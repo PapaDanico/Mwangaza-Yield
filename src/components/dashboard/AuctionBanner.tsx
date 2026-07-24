@@ -30,7 +30,8 @@ export default function AuctionBanner() {
           {next.issueCode} · {next.bondName}
         </p>
         <p className="text-sm text-slate-400">
-          {formatCompactKES(next.amountOfferedKES)} on offer · closes {next.offerCloseDate}
+          {next.amountOfferedKES > 0 ? `${formatCompactKES(next.amountOfferedKES)} on offer · ` : ''}
+          closes {next.offerCloseDate}
         </p>
       </div>
       <div className="text-right">

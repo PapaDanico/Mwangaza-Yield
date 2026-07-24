@@ -32,7 +32,21 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Everything else: cache-first, then network, caching successful responses.
+  // Navigations: network-first so deploys reach users; cache is the offline fallback.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(VERSION).then((c) => c.put(e.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then((cached) => cached || caches.match('/')))
+    );
+    return;
+  }
+
+  // Hashed assets and icons: cache-first (immutable per deploy).
   e.respondWith(
     caches.match(e.request).then(
       (cached) =>

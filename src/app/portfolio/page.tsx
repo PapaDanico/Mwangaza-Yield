@@ -45,7 +45,6 @@ export default function PortfolioPage() {
     }
     for (const e of enriched) {
       if (!e.bond || !e.result) continue;
-      const freq = e.bond.couponFrequencyPerYear || 2;
       let d = getNextCouponDate(e.bond, now);
       while (d) {
         const idx = (d.getFullYear() - now.getFullYear()) * 12 + (d.getMonth() - now.getMonth());
@@ -55,7 +54,6 @@ export default function PortfolioPage() {
         if (!next || next.getTime() === d.getTime()) break;
         d = next;
       }
-      void freq;
     }
     return months;
   }, [enriched]);

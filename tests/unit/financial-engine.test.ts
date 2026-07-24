@@ -6,6 +6,7 @@ import {
   getNextCouponDate,
   calculateAccruedInterest,
   computeBondInvestment,
+  solveYTMFromPrice,
 } from '../../src/lib/financial-engine';
 import type { Bond } from '../../src/types/bond';
 
@@ -61,14 +62,43 @@ describe('accrued interest (Act/365)', () => {
   });
 });
 
+describe('solveYTMFromPrice', () => {
+  it('at par on issue date, YTM ≈ coupon', () => {
+    const y = solveYTMFromPrice(fxd10, 100, new Date('2024-02-12'));
+    expect(y).toBeCloseTo(16.0, 1);
+  });
+  it('discount price → YTM above coupon; premium → below', () => {
+    const settle = new Date('2024-02-12');
+    expect(solveYTMFromPrice(fxd10, 90, settle)).toBeGreaterThan(16.0);
+    expect(solveYTMFromPrice(fxd10, 110, settle)).toBeLessThan(16.0);
+  });
+  it('round-trips: price computed at solved yield matches input', () => {
+    // Solve then re-discount by hand at the solved rate.
+    const settle = new Date('2024-02-12');
+    const y = solveYTMFromPrice(fxd10, 95, settle) / 100;
+    let pv = 0;
+    const flows = 20; // 10y semi-annual
+    for (let i = 1; i <= flows; i++) pv += 8 / Math.pow(1 + y / 2, i) + (i === flows ? 100 / Math.pow(1 + y / 2, i) : 0);
+    expect(pv).toBeCloseTo(95, 0);
+  });
+});
+
 describe('computeBondInvestment', () => {
-  it('at par, taxable 10y: net = gross * 0.9', () => {
+  it('at par, taxable 10y: net ≈ taxed-coupon rate, drag ≈ 160bps', () => {
     const r = computeBondInvestment(fxd10, 1_000_000, 100, new Date('2024-02-12'));
     expect(r.settlementCostKES).toBeCloseTo(1_000_000, 0);
     expect(r.grossCouponPerPeriodKES).toBeCloseTo(80_000, 0);
     expect(r.netCouponPerPeriodKES).toBeCloseTo(72_000, 0);
+    expect(r.grossYTM).toBeCloseTo(16.0, 1);
     expect(r.netYTM).toBeCloseTo(14.4, 1);
-    expect(r.taxDragBps).toBeCloseTo(160, 0);
+    expect(r.taxDragBps).toBeGreaterThan(140);
+    expect(r.taxDragBps).toBeLessThan(180);
+  });
+  it('yields respond to price', () => {
+    const cheap = computeBondInvestment(fxd10, 1_000_000, 92, new Date('2024-02-12'));
+    const dear = computeBondInvestment(fxd10, 1_000_000, 108, new Date('2024-02-12'));
+    expect(cheap.grossYTM).toBeGreaterThan(dear.grossYTM);
+    expect(cheap.netYTM).toBeGreaterThan(dear.netYTM);
   });
   it('IFB has zero tax drag', () => {
     const r = computeBondInvestment(ifb, 1_000_000, 100, new Date('2024-02-12'));

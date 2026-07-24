@@ -45,12 +45,18 @@ export const useBondStore = create<BondState>((set) => ({
         loadJSON<SecondaryTrade[]>('/data/secondary.json'),
       ]);
       set({ bonds, auctions, macro, secondary, loaded: true, offline: false });
-      await Promise.all([
-        db.bonds.bulkPut(bonds),
-        db.auctions.bulkPut(auctions),
-        db.macro.bulkPut(macro),
-        db.secondary.bulkPut(secondary),
-      ]).catch(() => {});
+      // Replace, don't merge: retired issues must not linger from old datasets.
+      await db
+        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary], async () => {
+          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear()]);
+          await Promise.all([
+            db.bonds.bulkPut(bonds),
+            db.auctions.bulkPut(auctions),
+            db.macro.bulkPut(macro),
+            db.secondary.bulkPut(secondary),
+          ]);
+        })
+        .catch(() => {});
     } catch {
       set((s) => ({ offline: true, loaded: s.bonds.length > 0 }));
     }

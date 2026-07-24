@@ -1,0 +1,58 @@
+import { create } from 'zustand';
+import type { Bond, AuctionSchedule, MacroIndicator, SecondaryTrade } from '@/types/bond';
+import { db } from '@/lib/db';
+
+interface BondState {
+  bonds: Bond[];
+  auctions: AuctionSchedule[];
+  macro: MacroIndicator[];
+  secondary: SecondaryTrade[];
+  loaded: boolean;
+  offline: boolean;
+  fetchData: () => Promise<void>;
+}
+
+async function loadJSON<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  return res.json();
+}
+
+export const useBondStore = create<BondState>((set) => ({
+  bonds: [],
+  auctions: [],
+  macro: [],
+  secondary: [],
+  loaded: false,
+  offline: false,
+  fetchData: async () => {
+    // Offline-first: serve IndexedDB immediately, then refresh from network.
+    try {
+      const [bonds, auctions, macro, secondary] = await Promise.all([
+        db.bonds.toArray(),
+        db.auctions.toArray(),
+        db.macro.toArray(),
+        db.secondary.toArray(),
+      ]);
+      if (bonds.length) set({ bonds, auctions, macro, secondary, loaded: true });
+    } catch { /* IndexedDB unavailable (SSR/private mode) — fall through */ }
+
+    try {
+      const [bonds, auctions, macro, secondary] = await Promise.all([
+        loadJSON<Bond[]>('/data/bonds.json'),
+        loadJSON<AuctionSchedule[]>('/data/auctions.json'),
+        loadJSON<MacroIndicator[]>('/data/macro.json'),
+        loadJSON<SecondaryTrade[]>('/data/secondary.json'),
+      ]);
+      set({ bonds, auctions, macro, secondary, loaded: true, offline: false });
+      await Promise.all([
+        db.bonds.bulkPut(bonds),
+        db.auctions.bulkPut(auctions),
+        db.macro.bulkPut(macro),
+        db.secondary.bulkPut(secondary),
+      ]).catch(() => {});
+    } catch {
+      set((s) => ({ offline: true, loaded: s.bonds.length > 0 }));
+    }
+  },
+}));

@@ -1,0 +1,6 @@
+[
+  { "isin": "KE1000010184", "tradeDate": "2026-07-22", "price": 96.85, "yield": 15.02, "volumeKES": 850000000, "tradesCount": 14 },
+  { "isin": "KE1000010440", "tradeDate": "2026-07-22", "price": 108.4, "yield": 14.25, "volumeKES": 420000000, "tradesCount": 9 },
+  { "isin": "KE1000010457", "tradeDate": "2026-07-21", "price": 106.1, "yield": 12.9, "volumeKES": 210000000, "tradesCount": 5 },
+  { "isin": "KE1000010620", "tradeDate": "2026-07-22", "price": 97.2, "yield": 14.18, "volumeKES": 610000000, "tradesCount": 11 }
+]

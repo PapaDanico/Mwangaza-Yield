@@ -8,7 +8,13 @@ from bs4 import BeautifulSoup
 
 from common import write_dataset
 
-UA = {"User-Agent": "MwangazaYield/1.0 (+https://github.com/papadanico/mwangaza-yield)"}
+# CBK returns 403 to non-browser clients (verified 2026-07 — see docs/DATA-SOURCES.md),
+# so present a standard browser UA.
+UA = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+    "Accept-Language": "en-KE,en;q=0.9",
+}
 
 
 def fetch_text(url: str) -> str:

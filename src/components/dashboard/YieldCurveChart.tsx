@@ -7,8 +7,14 @@ import { useBondStore } from '@/stores/bondStore';
 
 export default function YieldCurveChart() {
   const bonds = useBondStore((s) => s.bonds);
-  const data = bonds
-    .filter((b) => !b.taxExempt) // FXD curve — IFBs price off a tax-free curve
+  // FXD curve — IFBs price off a tax-free curve. One point per tenor:
+  // where reopens share a tenor, keep the most recent issue.
+  const byTenor = new Map<number, (typeof bonds)[number]>();
+  for (const b of bonds.filter((x) => !x.taxExempt)) {
+    const prev = byTenor.get(b.tenorYears);
+    if (!prev || b.issueDate > prev.issueDate) byTenor.set(b.tenorYears, b);
+  }
+  const data = Array.from(byTenor.values())
     .map((b) => ({ tenor: b.tenorYears, ytm: b.ytmGross, code: b.issueCode }))
     .sort((a, b) => a.tenor - b.tenor);
 

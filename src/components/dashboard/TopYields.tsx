@@ -26,8 +26,8 @@ export default function TopYields() {
   const bestFXD = best(ranked.filter((r) => !r.bond.taxExempt));
 
   const tiles = [
-    bestIFB && { ...bestIFB, label: 'Best tax-free (IFB)', Icon: ShieldCheck, accent: 'text-emerald-400' },
-    bestFXD && { ...bestFXD, label: 'Best taxable (FXD)', Icon: Sparkles, accent: 'text-gold-400' },
+    bestIFB && { ...bestIFB, label: 'Best tax-free (IFB)', Icon: ShieldCheck, accent: 'text-mint-700' },
+    bestFXD && { ...bestFXD, label: 'Best taxable (FXD)', Icon: Sparkles, accent: 'text-gold-700' },
   ].filter(Boolean) as (Ranked & { label: string; Icon: typeof Sparkles; accent: string })[];
 
   return (
@@ -36,16 +36,16 @@ export default function TopYields() {
         <Link
           key={bond.isin}
           href="/calculator/"
-          className="card group relative overflow-hidden transition hover:border-gold-500/50"
+          className="card group relative overflow-hidden transition hover:border-gold-500"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
             <Icon size={14} className={accent} /> {label}
           </div>
           <p className={`num mt-2 text-4xl font-bold ${accent}`}>{formatPct(netYTM, 2)}</p>
-          <p className="mt-1 text-sm text-slate-300">
-            net of tax · <span className="font-medium text-white">{bond.issueCode}</span>
+          <p className="mt-1 text-sm text-ink-soft">
+            net of tax · <span className="font-semibold text-ink">{bond.issueCode}</span>
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-faint">
             {bond.couponRate}% coupon · at {price.toFixed(2)} · {bond.maturityDate.slice(0, 4)} maturity
           </p>
         </Link>

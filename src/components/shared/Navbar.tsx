@@ -20,13 +20,13 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-700/50 bg-treasury-navy/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-sand-300 bg-sand-100/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link href="/" className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" className="h-8 w-8" />
-            <span className="text-lg font-bold tracking-tight text-white">
-              Mwangaza <span className="text-gold-500">Yield</span>
+            <img src="/logo.svg" alt="" className="h-9 w-9 rounded-xl" />
+            <span className="font-display text-lg font-bold tracking-tight text-ink">
+              Mwangaza <span className="text-gold-600">Yield</span>
             </span>
           </Link>
           <nav className="ml-8 hidden gap-1 md:flex">
@@ -37,8 +37,8 @@ export default function Navbar() {
                 className={cn(
                   'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                   isActive(href)
-                    ? 'bg-gold-500/15 text-gold-300'
-                    : 'text-slate-400 hover:bg-slate-700/40 hover:text-slate-200'
+                    ? 'bg-ink text-sand-50'
+                    : 'text-ink-muted hover:bg-sand-200 hover:text-ink'
                 )}
               >
                 {label}
@@ -52,14 +52,14 @@ export default function Navbar() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-slate-700/60 bg-treasury-navy/95 py-2 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand-300 bg-sand-50/95 py-2 backdrop-blur md:hidden">
         {links.map(({ href, label, Icon }) => (
           <Link
             key={href}
             href={href}
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1 text-[11px]',
-              isActive(href) ? 'text-gold-400' : 'text-slate-400'
+              'flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] font-medium',
+              isActive(href) ? 'text-gold-700' : 'text-ink-muted'
             )}
           >
             <Icon size={20} />

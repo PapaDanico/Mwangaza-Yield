@@ -15,10 +15,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">
-          Karibu <span className="text-gold-500">👋</span>
+        <h1 className="text-3xl font-bold tracking-tight text-ink">
+          Sovereign yields, <span className="text-gold-600">crystal clear.</span>
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-ink-muted">
           What your money can earn in Kenyan government bonds — after tax, today.
         </p>
       </div>
@@ -30,10 +30,10 @@ export default function DashboardPage() {
 
       <div className="grid gap-3 md:grid-cols-3">
         {actions.map(({ href, title, desc, Icon }) => (
-          <Link key={href} href={href} className="card transition hover:border-gold-500/50">
-            <Icon size={22} className="mb-3 text-gold-400" />
-            <p className="font-semibold text-white">{title}</p>
-            <p className="mt-1 text-sm text-slate-400">{desc}</p>
+          <Link key={href} href={href} className="card transition hover:border-gold-500">
+            <Icon size={22} className="mb-3 text-gold-600" />
+            <p className="font-display font-semibold text-ink">{title}</p>
+            <p className="mt-1 text-sm text-ink-muted">{desc}</p>
           </Link>
         ))}
       </div>

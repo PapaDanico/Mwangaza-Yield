@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink, ChevronDown } from 'lucide-react';
+import { ExternalLink, ChevronDown, CalendarPlus } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
+import { downloadICS } from '@/lib/ics';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -33,9 +34,29 @@ export default function AuctionsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">Auction Radar</h1>
-        <p className="text-sm text-ink-muted">CBK primary issuance calendar with countdowns.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Auction Radar</h1>
+          <p className="text-sm text-ink-muted">CBK primary issuance calendar with countdowns.</p>
+        </div>
+        <button
+          onClick={() => {
+            const live = effective.filter((a) => a.status === 'open' || a.status === 'upcoming');
+            if (live.length)
+              downloadICS(
+                live.map((a) => ({
+                  date: a.offerCloseDate,
+                  title: `CBK auction closes: ${a.issueCode}`,
+                  description: `${a.bondName}. Settlement ${a.settlementDate}. Bid via DhowCSD before close.`,
+                })),
+                'mwangaza-auctions.ics',
+                'Mwangaza Yield — Auctions'
+              );
+          }}
+          className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+        >
+          <CalendarPlus size={15} /> Add to calendar
+        </button>
       </div>
 
       <div className="space-y-3">

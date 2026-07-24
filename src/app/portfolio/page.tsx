@@ -2,10 +2,11 @@
 
 import { useMemo, useRef } from 'react';
 import Papa from 'papaparse';
-import { Upload, Trash2, Download } from 'lucide-react';
+import { Upload, Trash2, Download, CalendarPlus } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
-import { computeBondInvestment, formatKES, formatPct, getNextCouponDate } from '@/lib/financial-engine';
+import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
+import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import type { Holding } from '@/types/bond';
 
 const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFXD1/2022/10,1000000,2026-07-13,100\nIFB1/2022/19,500000,2026-02-16,100\n';
@@ -89,6 +90,27 @@ export default function PortfolioPage() {
 
   const maxMonth = Math.max(...calendar.map((m) => m.total), 1);
 
+  function exportPayoutCalendar() {
+    const events: CalendarEvent[] = [];
+    for (const e of enriched) {
+      if (!e.bond || !e.result) continue;
+      const dates = getCouponDates(new Date(e.bond.issueDate), new Date(e.bond.maturityDate), e.bond.couponFrequencyPerYear || 2)
+        .filter((d) => d > new Date());
+      for (const d of dates) {
+        const iso = d.toISOString().slice(0, 10);
+        const isMaturity = iso === e.bond.maturityDate;
+        events.push({
+          date: iso,
+          title: `${e.bond.issueCode} ${isMaturity ? 'matures' : 'coupon'}`,
+          description: isMaturity
+            ? `Principal ${formatKES(e.holding.faceValueKES)} + final coupon ${formatKES(e.result.netCouponPerPeriodKES)} (net)`
+            : `Net coupon ${formatKES(e.result.netCouponPerPeriodKES)}`,
+        });
+      }
+    }
+    if (events.length) downloadICS(events, 'mwangaza-payouts.ics', 'Mwangaza Yield — Payouts');
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -164,8 +186,18 @@ export default function PortfolioPage() {
           </div>
 
           <div className="card">
-            <h2 className="mb-1 font-semibold text-ink">Coupon Cash-Flow Calendar</h2>
-            <p className="mb-4 text-xs text-ink-muted">Estimated net coupons over the next 12 months</p>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="mb-1 font-semibold text-ink">Coupon Cash-Flow Calendar</h2>
+                <p className="text-xs text-ink-muted">Estimated net coupons over the next 12 months</p>
+              </div>
+              <button
+                onClick={exportPayoutCalendar}
+                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+              >
+                <CalendarPlus size={15} /> Add to calendar
+              </button>
+            </div>
             <div className="grid grid-cols-6 gap-2 md:grid-cols-12">
               {calendar.map((m) => (
                 <div key={m.label} className="flex flex-col items-center gap-1">

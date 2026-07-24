@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calculator, Radar, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Calculator, Radar, Briefcase, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfflineBadge from './OfflineBadge';
 
 const links = [
-  { href: '/', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/dashboard/', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/ladder/', label: 'Ladder', Icon: Layers },
   { href: '/calculator/', label: 'Calculator', Icon: Calculator },
   { href: '/auctions/', label: 'Auctions', Icon: Radar },
   { href: '/portfolio/', label: 'Portfolio', Icon: Briefcase },
@@ -15,8 +16,7 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href.replace(/\/$/, ''));
+  const isActive = (href: string) => pathname.startsWith(href.replace(/\/$/, ''));
 
   return (
     <>

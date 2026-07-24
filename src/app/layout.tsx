@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   description:
     'Tax-adjusted yield analytics, auction radar and portfolio tracking for Kenyan government bond investors.',
   manifest: '/manifest.json',
-  icons: { icon: '/favicon.svg' },
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/icons/icon-192.png', sizes: '192x192' }],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export const viewport: Viewport = {

@@ -1,13 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0A192F"/>
-  <circle cx="256" cy="212" r="86" fill="#F59E0B"/>
-  <g stroke="#F59E0B" stroke-width="20" stroke-linecap="round">
-    <line x1="256" y1="72" x2="256" y2="102"/>
-    <line x1="356" y1="112" x2="335" y2="133"/>
-    <line x1="156" y1="112" x2="177" y2="133"/>
-    <line x1="396" y1="212" x2="366" y2="212"/>
-    <line x1="116" y1="212" x2="146" y2="212"/>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="32%" r="85%">
+      <stop offset="0%" stop-color="#12294A"/>
+      <stop offset="55%" stop-color="#0A192F"/>
+      <stop offset="100%" stop-color="#020C1B"/>
+    </radialGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="55%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="curve" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- sun glow -->
+  <circle cx="256" cy="208" r="150" fill="url(#glow)"/>
+
+  <!-- rays -->
+  <g stroke="#F59E0B" stroke-width="14" stroke-linecap="round" opacity="0.9">
+    <line x1="256" y1="86" x2="256" y2="116"/>
+    <line x1="169" y1="121" x2="190" y2="142"/>
+    <line x1="343" y1="121" x2="322" y2="142"/>
+    <line x1="134" y1="208" x2="164" y2="208"/>
+    <line x1="378" y1="208" x2="348" y2="208"/>
   </g>
-  <polyline points="120,412 200,352 268,382 392,300" fill="none" stroke="#34D399" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
-  <polygon points="392,300 392,344 348,300" fill="#34D399"/>
+
+  <!-- rising sun, clipped by horizon -->
+  <path d="M 186 278 A 70 70 0 1 1 326 278 Z" fill="url(#sun)"/>
+
+  <!-- horizon line -->
+  <line x1="120" y1="278" x2="392" y2="278" stroke="#334155" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- ascending yield curve, breaking above the horizon -->
+  <path d="M 116 416 C 190 408, 240 376, 288 340 S 356 282, 378 262"
+        fill="none" stroke="url(#curve)" stroke-width="24" stroke-linecap="round"/>
+  <!-- arrowhead along curve tangent -->
+  <path d="M 398 238 L 394 282 L 358 262 Z" fill="#34D399"/>
 </svg>

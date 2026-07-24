@@ -112,9 +112,10 @@ export default function CalculatorPage() {
             <Row label="Net current yield" value={formatPct(result.currentYieldNet)} />
             <Row label="Next coupon date" value={result.nextCouponDate ?? '—'} />
             <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
-              Accrued interest uses Actual/365. Net YTM approximates WHT on the coupon stream only
-              (principal redemption is untaxed). Coupon dates are estimated from the issue schedule —
-              confirm exact dates in the prospectus.
+              Accrued interest uses Actual/365. Yields are solved from your price on the remaining
+              cash-flow schedule; net YTM taxes coupons at the WHT rate (principal redemption is
+              untaxed). Coupon dates are estimated from the issue schedule — confirm exact dates in
+              the prospectus.
             </p>
           </div>
         )}

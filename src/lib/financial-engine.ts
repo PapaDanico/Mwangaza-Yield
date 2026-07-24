@@ -65,6 +65,42 @@ export function calculateAccruedInterest(bond: Bond, settlementDate: Date): numb
   return (bond.couponRate * days) / DAYS_IN_YEAR;
 }
 
+/**
+ * Solve YTM from a dirty price by bisection on the remaining cash flows.
+ * Semi-annual compounding; time to each flow measured in half-year periods
+ * (days/182.5, Act/365). `couponTaxFactor` scales coupons (1 = gross,
+ * 1 - WHT = net); principal redemption is never taxed.
+ * Returns annual percent.
+ */
+export function solveYTMFromPrice(
+  bond: Bond,
+  dirtyPrice: number,
+  settlementDate: Date,
+  couponTaxFactor = 1
+): number {
+  const freq = bond.couponFrequencyPerYear || 2;
+  const couponPerPeriod = (bond.couponRate / freq) * couponTaxFactor;
+  const maturity = new Date(bond.maturityDate);
+  const flows = getCouponDates(new Date(bond.issueDate), maturity, freq)
+    .filter((d) => d > settlementDate)
+    .map((d) => ({
+      t: (d.getTime() - settlementDate.getTime()) / 86_400_000 / (365 / freq),
+      amount: couponPerPeriod + (d.getTime() === maturity.getTime() ? 100 : 0),
+    }));
+  if (!flows.length) return 0;
+
+  const pv = (y: number) =>
+    flows.reduce((s, f) => s + f.amount / Math.pow(1 + y / freq, f.t), 0);
+
+  let lo = 0.000001, hi = 2; // 0–200% annual
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    if (pv(mid) > dirtyPrice) lo = mid;
+    else hi = mid;
+  }
+  return ((lo + hi) / 2) * 100;
+}
+
 export interface InvestmentResult {
   faceValueKES: number;
   cleanPrice: number;
@@ -87,10 +123,9 @@ export interface InvestmentResult {
  * Full investment economics for buying `faceValueKES` of a bond at
  * `cleanPrice` (per 100), settling on `settlementDate`.
  *
- * Net YTM approximation: gross YTM with the coupon stream taxed at the WHT
- * rate. For par-region prices this is ytm * (1 - wht * couponShare); we use
- * the simple, conservative ytm * (1 - wht) bound adjusted by current-yield
- * weighting so premium/discount bonds are not misstated.
+ * Gross and net YTM are solved from the dirty price by bisection on the
+ * remaining cash-flow schedule (net = WHT-taxed coupons, untaxed principal),
+ * so both respond correctly to the price the user actually pays.
  */
 export function computeBondInvestment(
   bond: Bond,
@@ -109,12 +144,11 @@ export function computeBondInvestment(
   const grossAnnualIncomeKES = grossCouponPerPeriodKES * freq;
   const netAnnualIncomeKES = netCouponPerPeriodKES * freq;
 
-  // Tax hits only the coupon stream, not principal redemption. Weight the
-  // WHT drag by the coupon's share of gross return at this price.
-  const grossYTM = bond.ytmGross;
-  const currentYieldGross = (grossAnnualIncomeKES / settlementCostKES) * 100;
-  const couponShare = grossYTM > 0 ? Math.min(1, currentYieldGross / grossYTM) : 1;
-  const netYTM = grossYTM * (1 - whtRate * couponShare);
+  // Both yields are solved from the price the user actually pays. Net YTM
+  // discounts WHT-taxed coupons with untaxed principal — exact, not a
+  // coupon-share approximation.
+  const grossYTM = solveYTMFromPrice(bond, dirtyPrice, settlementDate, 1);
+  const netYTM = solveYTMFromPrice(bond, dirtyPrice, settlementDate, 1 - whtRate);
 
   const next = getNextCouponDate(bond, settlementDate);
 

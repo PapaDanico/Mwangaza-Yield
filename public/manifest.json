@@ -1,0 +1,13 @@
+{
+  "name": "Mwangaza Yield — Kenyan Bond Intelligence",
+  "short_name": "Mwangaza",
+  "description": "Tax-adjusted yield analytics, auction radar and portfolio tracking for Kenyan bond investors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020C1B",
+  "theme_color": "#0A192F",
+  "icons": [
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/logo.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

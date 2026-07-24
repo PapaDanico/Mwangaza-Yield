@@ -16,7 +16,7 @@ module.exports = {
           DEFAULT: '#0A192F', // treasury navy as text
           soft: '#31445F',
           muted: '#67737F',
-          faint: '#8B8676',   // warm earthy muted
+          faint: '#726D5C',   // warm earthy muted — AA on sand-50 at small sizes
         },
         treasury: { navy: '#0A192F', dark: '#020C1B' },
         gold: { 300: '#FCD34D', 500: '#F59E0B', 600: '#D97706', 700: '#B45309' },

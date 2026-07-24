@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { Radar, ArrowRight } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
-import { daysUntil, formatCompactKES } from '@/lib/utils';
+import { daysUntil, formatCompactKES, effectiveAuctionStatus } from '@/lib/utils';
 
 export default function AuctionBanner() {
   const auctions = useBondStore((s) => s.auctions);
   const next = auctions
+    .map((a) => ({ ...a, status: effectiveAuctionStatus(a) }))
     .filter((a) => a.status === 'open' || a.status === 'upcoming')
     .sort((a, b) => a.offerCloseDate.localeCompare(b.offerCloseDate))[0];
 

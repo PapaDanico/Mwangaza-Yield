@@ -96,7 +96,7 @@ export default function CalculatorPage() {
               <span className="num text-gold-700">{price.toFixed(2)}</span>
             </label>
             <input
-              type="range" min={80} max={120} step={0.05} value={price}
+              type="range" min={70} max={120} step={0.05} value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
               className="w-full accent-gold-600"
             />

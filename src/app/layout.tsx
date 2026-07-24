@@ -9,9 +9,22 @@ import Navbar from '@/components/shared/Navbar';
 import AppInit from '@/components/shared/AppInit';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mwangazayield.netlify.app'),
   title: 'Mwangaza Yield — Kenyan Bond Intelligence',
   description:
-    'Tax-adjusted yield analytics, auction radar and portfolio tracking for Kenyan government bond investors.',
+    'Sovereign yields, crystal clear. Tax-adjusted yield analytics, auction radar and portfolio tracking for Kenyan government bond investors.',
+  openGraph: {
+    title: 'Mwangaza Yield — Sovereign yields, crystal clear.',
+    description: 'Tax-adjusted analytics for Kenya’s bond market.',
+    images: ['/og.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mwangaza Yield — Sovereign yields, crystal clear.',
+    description: 'Tax-adjusted analytics for Kenya’s bond market.',
+    images: ['/og.png'],
+  },
   manifest: '/manifest.json',
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/icons/icon-192.png', sizes: '192x192' }],

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ExternalLink, ChevronDown } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
-import { daysUntil, formatCompactKES, cn } from '@/lib/utils';
+import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -25,17 +25,7 @@ export default function AuctionsPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
-  // Effective status from dates — the JSON snapshot goes stale between refreshes.
-  const today = new Date().toISOString().slice(0, 10);
-  const effective = auctions.map((a) => {
-    let status = a.status;
-    if (status === 'open' || status === 'upcoming') {
-      if (today > a.settlementDate) status = 'settled';
-      else if (today > a.offerCloseDate) status = 'closed';
-      else if (today >= a.offerOpenDate) status = 'open';
-    }
-    return { ...a, status };
-  });
+  const effective = auctions.map((a) => ({ ...a, status: effectiveAuctionStatus(a) }));
   const sorted = effective.sort((a, b) => {
     const rank = (s: string) => ({ open: 0, upcoming: 1, closed: 2, settled: 3 }[s] ?? 4);
     return rank(a.status) - rank(b.status) || a.offerCloseDate.localeCompare(b.offerCloseDate);

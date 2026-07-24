@@ -67,7 +67,22 @@ export default function CalculatorPage() {
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               className="num w-full rounded-xl border border-slate-700 bg-treasury-navy px-3 py-2.5 text-sm text-white outline-none focus:border-gold-500"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {[100_000, 500_000, 1_000_000, 5_000_000].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setAmount(v)}
+                  className={`num rounded-full border px-3 py-1 text-xs transition ${
+                    amount === v
+                      ? 'border-gold-500 bg-gold-500/15 text-gold-300'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  {v >= 1_000_000 ? `${v / 1_000_000}M` : `${v / 1_000}k`}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
               Minimum {formatKES(bond.minInvestmentKES)}
             </p>
           </div>

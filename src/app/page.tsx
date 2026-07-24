@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Calculator, Briefcase, Radar } from 'lucide-react';
 import AuctionBanner from '@/components/dashboard/AuctionBanner';
+import TopYields from '@/components/dashboard/TopYields';
 import YieldCurveChart from '@/components/dashboard/YieldCurveChart';
 import MacroPanel from '@/components/dashboard/MacroPanel';
 
@@ -14,12 +15,15 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-white">Karibu 👋</h1>
-        <p className="text-sm text-slate-400">
-          Real-time intelligence for Kenyan government bond investors.
+        <h1 className="text-3xl font-bold tracking-tight text-white">
+          Karibu <span className="text-gold-500">👋</span>
+        </h1>
+        <p className="mt-1 text-sm text-slate-400">
+          What your money can earn in Kenyan government bonds — after tax, today.
         </p>
       </div>
 
+      <TopYields />
       <AuctionBanner />
       <MacroPanel />
       <YieldCurveChart />

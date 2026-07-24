@@ -20,7 +20,7 @@ export default function YieldCurveChart() {
       <p className="mb-4 text-xs text-slate-400">Gross YTM by tenor, latest FXD issues</p>
       <div className="h-64">
         <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: -8 }}>
+          <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke="#334155" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="tenor" type="number" domain={['dataMin', 'dataMax']}
@@ -29,7 +29,7 @@ export default function YieldCurveChart() {
             />
             <YAxis
               tick={{ fill: '#94A3B8', fontSize: 12 }} stroke="#334155"
-              tickFormatter={(v) => `${v}%`} width={48} domain={['auto', 'auto']}
+              tickFormatter={(v) => `${Number(v).toFixed(1)}%`} width={60} domain={['auto', 'auto']}
             />
             <Tooltip
               contentStyle={{ background: '#0A192F', border: '1px solid #334155', borderRadius: 12 }}

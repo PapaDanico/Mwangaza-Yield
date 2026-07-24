@@ -1,7 +1,13 @@
-# Mwangaza Yield ☀️
+# Mwangaza Yield ⛵
 
-**Kenyan bond intelligence, offline-first.** Tax-adjusted yield analytics, auction radar and
-portfolio tracking for retail investors on CBK's DhowCSD platform.
+**Sovereign yields, crystal clear.** Tax-adjusted yield analytics, auction radar and
+portfolio tracking for Kenyan retail bond investors — offline-first, built around CBK's
+DhowCSD platform.
+
+**Brand:** gold dhow-sail mark with a rising yield line on treasury navy; earthy light UI
+(warm cream/khaki surfaces, navy ink, gold & emerald accents). Type: Plus Jakarta Sans /
+Roboto / JetBrains Mono. Regenerate icons and the social card after any logo change:
+`node scripts/generate-icons.js && node scripts/generate-og.js`.
 
 ## Features
 

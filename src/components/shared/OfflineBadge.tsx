@@ -21,7 +21,7 @@ export default function OfflineBadge() {
 
   if (!storeOffline && !navOffline) return null;
   return (
-    <span className="flex items-center gap-1.5 rounded-full border border-gold-600/50 bg-gold-500/10 px-2.5 py-1 text-xs font-medium text-gold-300">
+    <span className="flex items-center gap-1.5 rounded-full border border-gold-600/40 bg-gold-500/10 px-2.5 py-1 text-xs font-medium text-gold-700">
       <WifiOff size={13} /> Offline — cached data
     </span>
   );

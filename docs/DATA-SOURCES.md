@@ -593,3 +593,57 @@ Three roadmap items are downstream of auction results:
 | Auction capture (#5) | The weighted average accepted rate — what to actually bid |
 
 This is the single highest-leverage dataset still missing.
+
+## 15. CORRECTION: I was probing a stale path — auction results ARE readable (2026-07-25)
+
+Capt. Ng'ong'a pointed out that coupon rates are publicly available via a thorough web
+search of CBK's site. He was right, and §12/§14 were wrong because of how I looked.
+
+### The mistake
+
+Every probe this session hit **`/securities/treasury-bonds/`**. That path answers
+**HTTP 200** — so I trusted it — but serves a **legacy 2016 archive**. It is why the
+prospectus probe twice reported "only 2016 documents reachable" and why item 1 went down
+as blocked.
+
+The live section is **`/bills-bonds/`**, and one web search found it plus:
+
+| What | Where |
+|---|---|
+| Auction results archive | `/uploads/historical_treasury_bond_results/` |
+| T-bill results archive | `/uploads/91_day_historical_treasury_bill_results/` |
+| **Current** prospectuses | `/uploads/treasury_bonds_prospectuses/` — sample is **January 2026** |
+
+**A legacy path returning 200 is more dangerous than one returning 404.** The three 404s
+from my invented URLs were honest signals. The 200 was what misled me, precisely because
+it looked alive. Search before guessing; a live-looking page is not evidence it is the
+current one.
+
+### What the results PDFs actually contain
+
+```
+| Price per Kshs 100 at average yield   100.000   97.632
+| Coupon Rate (%)                       1 1.277   1 2.873
+| New Borrowing/Net Repayment           69,507.37
+| B. FORTHCOMING TREASURY BOND(S) ISSUE(S) FOR THE MONTH OF DECEMBER 2021
+```
+
+**Text layer present, coupon rates and clearing prices both there.** This unblocks the
+three items that were downstream of it.
+
+**One hazard, already familiar.** `Coupon Rate (%) 1 1.277 1 2.873` is two coupons —
+11.277% and 12.873% — with a space injected by the two-column layout. A naive regex
+would read `1`, `1.277`, `1`, `2.873` and produce four wrong numbers with total
+confidence. Any parser must reconstruct columns (`extract_tables`, or x-position
+clustering on `page.chars`) and sanity-check every rate against a plausible band, exactly
+as `cbr_history_parser.py` does.
+
+### Revised status
+
+| Item | Was | Now |
+|---|---|---|
+| Coupon rates for all 59 bonds | blocked | **reachable** — parse results PDFs |
+| Yield history (#4) | blocked | **reachable** — the archive is the history |
+| Auction capture (#5) | blocked | **reachable** |
+| Exact coupon dates (#1) | "2016 only" — WRONG | re-probe against the live listing |
+| Day-count convention (#2) | not stated | still not stated; test behaviour instead |

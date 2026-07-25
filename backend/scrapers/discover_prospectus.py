@@ -28,7 +28,12 @@ import pdfplumber
 import requests
 from bs4 import BeautifulSoup
 
-LISTING = "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/"
+# Corrected 2026-07-25: the /securities/ listing answers 200 but serves a 2016
+# archive, which is why this probe twice concluded "only 2016 reachable". The
+# live documents sit under /uploads/treasury_bonds_prospectuses/ and are linked
+# from /bills-bonds/treasury-bonds/. Found by web search, not by guessing.
+LISTING = "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"
+LEGACY_LISTING = "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/"
 UA = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
@@ -66,8 +71,8 @@ BOILERPLATE = re.compile(
 ISSUE_RE = re.compile(r"(FXD|IFB|SDB)\s?\d?[/_-]?\d{4}", re.I)
 
 
-def find_prospectus_pdfs() -> list:
-    r = requests.get(LISTING, headers=UA, timeout=TIMEOUT)
+def find_prospectus_pdfs(listing: str = LISTING) -> list:
+    r = requests.get(listing, headers=UA, timeout=TIMEOUT)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "lxml")
 
@@ -81,7 +86,7 @@ def find_prospectus_pdfs() -> list:
 
     seen, out = set(), []
     for a in anchors:
-        href = urljoin(LISTING, a["href"])
+        href = urljoin(listing, a["href"])
         label = " ".join(a.get_text(" ", strip=True).split())[:70]
         if not href.lower().endswith(".pdf") or href in seen:
             continue

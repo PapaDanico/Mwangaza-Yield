@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CheckCircle2, MinusCircle, XCircle, ExternalLink } from 'lucide-react';
 import Prose from '@/components/shared/Prose';
 import ArchiveCoverage from '@/components/sources/ArchiveCoverage';
+import ArchiveDownload from '@/components/sources/ArchiveDownload';
 
 export const metadata: Metadata = {
   title: 'Data sources — Mwangaza Yield',
@@ -198,8 +199,10 @@ export default function SourcesPage() {
 
       <p>
         The archive is downloadable as{' '}
-        <a href="/data/auction-results.json">JSON</a> — the same file the app itself reads, gaps and
-        all. If you want it for research, journalism or a product of your own, take it; attribution
+        <a href="/data/auction-results.json">JSON</a> or <ArchiveDownload /> — the same file the app
+        itself reads, gaps and all. The CSV names the date column{' '}
+        <code className="num">valueDate</code>, because that is what it holds. If you want it for
+        research, journalism or a product of your own, take it; attribution
         to CBK as the underlying source is the only thing we would ask. If you need it filled in,
         documented and kept current, that is work, and{' '}
         <a href="/support/">we can talk about it</a>.

@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 4
+PARSER_VERSION = 5
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -187,7 +187,26 @@ def cell_value(fragments: list) -> str:
 VALUE_FRAGMENT_RE = re.compile(r"^(?=[\d,.]*\d)[\d,]*\.?\d*$")
 
 
-def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
+def label_word_positions(line: list, span: tuple) -> set:
+    """Word positions covered by a field's label pattern on the joined line.
+
+    `read_fields` joins a line with single spaces before testing the label
+    pattern, so a character span maps back onto word positions exactly. Any word
+    overlapping the label's own match is label text by definition, however
+    numeric it happens to look.
+    """
+    start, end = span
+    positions, cursor = set(), 0
+    for pos, w in enumerate(line):
+        w_start, w_end = cursor, cursor + len(w["text"])
+        if w_start < end and w_end > start:
+            positions.add(pos)
+        cursor = w_end + 1  # the joining space
+    return positions
+
+
+def assign_to_columns(line: list, centres: list, label_x: float,
+                      skip: set | None = None) -> dict:
     """Map a line's numeric fragments onto the column each one sits under.
 
     Two filters, and the content one is what makes a cell trustworthy.
@@ -207,9 +226,23 @@ def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
     instead of the magic 40 lands at or below 64 on these files — equally
     permissive. What settles it is asking whether a fragment could be part of a
     number before letting it into a cell.
+
+    That content filter still cannot save us from a label that CONTAINS a
+    number, because "100" is exactly as number-like as "97.583":
+
+        Price per Kshs 100 at average yield 97.583
+
+    Both words pass the filter, both sit right of the boundary, and cell_value
+    glues them into 10097.583 — which the plausibility band then drops, losing a
+    real figure to a guard meant for corrupt ones. No positional or content rule
+    separates those two words. `skip` carries the answer from the one place that
+    already knows it: the caller matched this row using the field's own label
+    pattern, so it knows precisely which words the label occupied.
     """
     buckets: dict = {i: [] for i in range(len(centres))}
-    for w in line:
+    for pos, w in enumerate(line):
+        if skip and pos in skip:
+            continue  # inside the matched label — the "100" in "per Kshs 100"
         mid = (w["x0"] + w["x1"]) / 2
         if mid < label_x:  # part of the row label, not a value
             continue
@@ -395,9 +428,12 @@ def read_fields(lines: list, codes: list, centres: list,
     for key, pattern in FIELDS:
         for line in lines:
             text = " ".join(w["text"] for w in line)
-            if not pattern.search(text):
+            match = pattern.search(text)
+            if not match:
                 continue
-            for idx, raw in assign_to_columns(line, centres, label_x).items():
+            for idx, raw in assign_to_columns(
+                line, centres, label_x, label_word_positions(line, match.span())
+            ).items():
                 if idx >= len(codes) or not NUMERIC_RE.match(raw):
                     continue
                 value = float(raw)

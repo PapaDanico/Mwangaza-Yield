@@ -100,10 +100,19 @@ jobs:
       # raced each other through 280 PDFs — one finished in five minutes while
       # the other was still going at twenty-eight. Reading fewer files here
       # makes the check faster AND the real run reliable.
+      #
+      # The file count is now stated here rather than inherited. It used to come
+      # from MAX_NEW_PER_RUN, which was 120 and has been raised to 500 so that a
+      # parser fix reaches every record it corrects in one run — the right value
+      # for refresh-data and the wrong one for a smoke test. Without this the
+      # dry run would be bounded only by its 90 seconds, quietly turning "a
+      # handful of files" into as many as ninety seconds buys, against the same
+      # server the real run is reading concurrently.
       - name: Dry-run the auction results parser
         working-directory: backend/scrapers
         env:
           AUCTION_TIME_BUDGET: 90
+          AUCTION_MAX_FILES: 25
         run: python auction_results.py || echo "auction parser failed — see output above"
       # About one file in ten from 2020-2023 parses to nothing. Three very
       # different causes are possible — a scan with no text layer (which the

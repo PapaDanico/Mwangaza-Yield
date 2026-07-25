@@ -61,7 +61,25 @@ TIMEOUT = 60
 #
 # The accumulating file is also the yield history roadmap item 4 asked for —
 # every auction print we have ever read, kept rather than discarded.
-MAX_NEW_PER_RUN = 120
+#
+# RAISED FROM 120, because a count that bounds nothing still delays everything.
+# TIME_BUDGET_SECONDS below is the real limit and says so in its own comment —
+# "a count is not a time bound" — which leaves this cap doing no safety work
+# while capping how fast a parser FIX reaches the archive.
+#
+# That is not theoretical. A version bump makes every file stale at once, so
+# the run works newest-first through all of them; at 120 a bump took three days
+# to propagate. The column-shift fix went out with 8 records carrying wrong
+# published bids, the newest 120 files were re-read in FIFTY-TWO SECONDS
+# against a 600-second budget, and the four 2017 files holding those wrong
+# figures were not in the slice — so they stayed wrong and stayed live, waiting
+# on a cap that existed to bound a runtime the budget already bounds.
+#
+# Raising it costs nothing that stopping early does not already cover: the
+# budget still ends a slow run, whatever was read is kept, and the next run
+# resumes at the next unread file. What it buys is that a fix for a wrong
+# number reaches every record it corrects in the same run that ships it.
+MAX_NEW_PER_RUN = int(os.environ.get("AUCTION_MAX_FILES", "500"))
 
 # A count is not a time bound. 120 files at a 60-second timeout is a two-hour
 # worst case, and the first dispatch of the incremental parser demonstrated the

@@ -154,6 +154,12 @@ def main() -> None:
 
     print(f"[expand] adding {len(added)}; {len(skipped_no_coupon)} outstanding bond(s) "
           f"have no coupon rate yet and are deliberately NOT listed", file=sys.stderr)
+    # Name them. A count tells you coverage is incomplete; the names tell you
+    # WHICH auctions still need reading, which is the actionable half.
+    for code in sorted(skipped_no_coupon)[:25]:
+        print(f"[expand]  - {code} (no auction result parsed yet)", file=sys.stderr)
+    if len(skipped_no_coupon) > 25:
+        print(f"[expand]  - ... and {len(skipped_no_coupon) - 25} more", file=sys.stderr)
     for b in added:
         print(f"[expand]  + {b['issueCode']:<16} coupon {b['couponRate']}%  "
               f"ytm {b['ytmGross']}%  matures {b['maturityDate']}", file=sys.stderr)

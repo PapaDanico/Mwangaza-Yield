@@ -135,6 +135,49 @@ def main():
     codes, _ = find_header(noisy, ["FXD1/2018/025", "FXD1/2021/025"])
     check("the best-matching line wins", codes, ["FXD1/2018/025", "FXD1/2021/025"])
 
+    print("incremental parsing must never lose an auction")
+    import json as _json, tempfile
+    from pathlib import Path as _Path
+    import auction_results as mod
+
+    original = mod.DATA_DIR
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.DATA_DIR = _Path(tmp)
+        # Nothing captured yet.
+        recs, seen = mod.load_existing()
+        check("an absent file starts empty", (recs, seen), ([], set()))
+
+        (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
+            {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
+             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf"},
+            {"issueCode": "FXD1/2019/020", "auctionDate": "2021-11-15",
+             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf"},
+        ]))
+        recs, seen = mod.load_existing()
+        check("existing records are recovered", len(recs), 2)
+        check("the PDF they came from is remembered", seen, {"https://cbk/a.pdf"})
+
+        # A file that is not valid JSON must not wipe the archive silently —
+        # it should start fresh loudly rather than pretend it had nothing.
+        (_Path(tmp) / "auction-results.json").write_text("{ not json")
+        recs, seen = mod.load_existing()
+        check("a corrupt file yields empty rather than crashing", (recs, seen), ([], set()))
+    mod.DATA_DIR = original
+
+    print("deduplication key")
+    # The same auction re-listed under a new URL must collapse to one record,
+    # while two different auctions of the SAME bond must both survive — that is
+    # what makes this file a yield history rather than a snapshot.
+    rows = [
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15", "couponRate": 11.277},
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15", "couponRate": 11.277},
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2023-04-10", "couponRate": 11.277},
+    ]
+    uniq = {(r["issueCode"], r.get("auctionDate")): r for r in rows}
+    check("a duplicate auction collapses", len(uniq), 2)
+    check("a reopening on a different date is kept",
+          sorted(d for _, d in uniq), ["2021-11-15", "2023-04-10"])
+
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)
         for f in failures:

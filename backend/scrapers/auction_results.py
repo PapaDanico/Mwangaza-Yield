@@ -46,13 +46,20 @@ UA = {
     "Accept-Language": "en-KE,en;q=0.9",
 }
 TIMEOUT = 60
-# 280 results PDFs are linked. Twelve covered three months and priced 13 of the
-# 59 outstanding bonds; most of the rest were last auctioned earlier than that.
-# 80 reaches back roughly two years at ~4s each — a few minutes in a job that
-# runs once a day, in exchange for most of the universe becoming priceable.
-# Deliberately not unbounded: coverage past a couple of years buys bonds that
-# have already matured.
-MAX_PDFS = 80
+# Every results PDF is parsed exactly ONCE. Its numbers never change after
+# publication — an auction held in 2021 cleared where it cleared — so
+# re-downloading 280 files daily to re-derive identical values is pure waste,
+# and it was also the thing capping coverage: a cheap daily run could only
+# afford a dozen files, which priced 13 of 59 bonds.
+#
+# Now the run skips anything already in auction-results.json and spends its
+# budget on files it has never seen. The first few runs work backwards through
+# the archive; after that CBK publishes about four a month and the job has
+# almost nothing to do.
+#
+# The accumulating file is also the yield history roadmap item 4 asked for —
+# every auction print we have ever read, kept rather than discarded.
+MAX_NEW_PER_RUN = 120
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -254,6 +261,20 @@ def find_result_pdfs() -> list:
     return out
 
 
+def load_existing() -> tuple:
+    """Records already captured, and the set of PDFs they came from."""
+    path = DATA_DIR / "auction-results.json"
+    if not path.exists():
+        return [], set()
+    try:
+        records = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
+              f"starting fresh", file=sys.stderr)
+        return [], set()
+    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+
+
 def main() -> None:
     pdfs = find_result_pdfs()
     print(f"[auctions] {len(pdfs)} result PDF(s) linked from {LISTING}", file=sys.stderr)
@@ -261,8 +282,14 @@ def main() -> None:
         print("[auctions] none found — the listing layout may have changed", file=sys.stderr)
         sys.exit(1)
 
-    records = []
-    for url in pdfs[:MAX_PDFS]:
+    records, seen = load_existing()
+    fresh = [u for u in pdfs if u not in seen]
+    print(f"[auctions] {len(seen)} already parsed, {len(fresh)} new; "
+          f"reading up to {MAX_NEW_PER_RUN} this run", file=sys.stderr)
+    if not fresh:
+        print("[auctions] archive fully parsed — nothing new", file=sys.stderr)
+
+    for url in fresh[:MAX_NEW_PER_RUN]:
         try:
             resp = requests.get(url, headers=UA, timeout=TIMEOUT)
             resp.raise_for_status()
@@ -273,10 +300,22 @@ def main() -> None:
         print(f"[auctions] {url[-60:]}: {len(got)} issue(s)", file=sys.stderr)
         records.extend(got)
 
-    with_coupon = [r for r in records if "couponRate" in r]
-    print(f"[auctions] {len(records)} record(s), {len(with_coupon)} with a coupon rate",
-          file=sys.stderr)
-    write_dataset("auction-results", sorted(records, key=lambda r: (r["auctionDate"] or "", r["issueCode"])))
+    # Deduplicate on the natural key. A PDF re-listed under a new URL must not
+    # produce a second copy of the same auction.
+    unique: dict = {}
+    for r in records:
+        unique[(r["issueCode"], r.get("auctionDate"))] = r
+
+    final = sorted(unique.values(), key=lambda r: (r["auctionDate"] or "", r["issueCode"]))
+    with_coupon = [r for r in final if "couponRate" in r]
+    bonds = {r["issueCode"] for r in final}
+    remaining = max(0, len(fresh) - MAX_NEW_PER_RUN)
+    print(f"[auctions] {len(final)} record(s) across {len(bonds)} bond(s), "
+          f"{len(with_coupon)} with a coupon rate", file=sys.stderr)
+    if remaining:
+        print(f"[auctions] {remaining} PDF(s) still unread — the next run continues "
+              f"where this one stopped", file=sys.stderr)
+    write_dataset("auction-results", final)
 
 
 if __name__ == "__main__":

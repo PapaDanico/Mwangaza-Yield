@@ -450,6 +450,23 @@ def read_fields(lines: list, codes: list, centres: list,
                     "parserVersion": PARSER_VERSION,
                 })
                 rec.setdefault(key, value)
+                # Keep the words CBK actually used for the bids row.
+                #
+                # The pattern accepts "Total Bids Received" and "Bids Received"
+                # as one field, which discards the only clue to what the number
+                # covers. That matters: across the archive's multi-bond auctions
+                # a lone bids figure divides into the amount offered at a normal
+                # cover ratio 23 times out of 32 — reading as the whole
+                # auction — while five auctions carry plainly different figures
+                # per bond. Both forms exist in CBK's documents.
+                #
+                # Which reading "Total" signals is not settled here, and
+                # guessing is how the withdrawn auction note came to report
+                # oversubscribed auctions as undersubscribed. Recording the
+                # label lets the answer be measured from accumulated data
+                # instead of assumed.
+                if key == "bidsReceivedKESM":
+                    rec.setdefault("bidsLabel", " ".join(match.group(0).split()).lower())
             break
     return records
 

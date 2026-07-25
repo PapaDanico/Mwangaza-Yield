@@ -2,6 +2,41 @@
  * The monthly auction review: what the government asked for, what the market
  * offered, and what it actually got.
  *
+ * NOT PUBLISHED. NOT YET FIT TO PUBLISH.
+ * ======================================
+ * This module is correct and tested. The ARCHIVE UNDERNEATH IT IS NOT SOUND
+ * ENOUGH to put these figures in front of a reader, and the difference nearly
+ * shipped as a research note.
+ *
+ * What happened, recorded so it is not repeated. A first version of this file
+ * computed bid-to-cover for every month in the archive and reported that
+ * Kenyan bond auctions were persistently UNDERSUBSCRIBED — medians of 0.5x to
+ * 0.8x, month after month. That is the opposite of the truth. CBK's own
+ * published results for February 2026 show KES 213.7bn of bids against a
+ * KES 50bn target: 427%. April 2026 drew KES 74.89bn against KES 40bn. Kenyan
+ * auctions are persistently OVERSUBSCRIBED and have been for years.
+ *
+ * The cause was arithmetic, not the market. Bids are parsed PER BOND; the
+ * offered amount is stored for the WHOLE AUCTION. February 2026 has 50,000
+ * offered on one row and 133,792 bid on another, with the auction's remaining
+ * bond blank. Dividing one bond's bids by the entire auction's target
+ * understates cover by roughly the number of bonds on offer — which is exactly
+ * how every month came out below 1.0x.
+ *
+ * `bidsComplete` below now refuses the ratio unless every row in the auction
+ * carries its bids figure, which lifts the archive-wide median to 1.04x with a
+ * maximum of 4.12x — consistent with the published record. It is still not
+ * enough. Nothing in the archive says whether an auction was captured in FULL,
+ * so a genuinely single-bond auction is indistinguishable from a three-bond
+ * auction whose other two rows were never parsed. Uptake has the same flaw for
+ * the same reason.
+ *
+ * So the page this fed was withdrawn before release. It stays here, tested,
+ * until the parser captures every bond of an auction or records that it could
+ * not. The lesson is the cheap one to write down and the expensive one to
+ * learn: a number that disagrees with everyone who follows the market is not a
+ * discovery, it is a bug, and the first move is to check it against them.
+ *
  * This is computation, not commentary. Every figure is derived from CBK's own
  * published auction results and can be checked against the PDF each row links
  * to. Nothing here recommends a course of action, and nothing here is a
@@ -114,9 +149,25 @@ function toRow(date: string, group: AuctionPrint[]): AuctionRow {
   const acceptedKESM = sum('amountAcceptedKESM');
   const bidsKESM = sum('bidsReceivedKESM');
 
+  // Bids are parsed PER BOND; the offered amount is for the WHOLE auction. If
+  // any bond in the auction is missing its bids figure, the numerator covers
+  // part of the auction and the denominator covers all of it, and the ratio is
+  // wrong by roughly the number of bonds on offer.
+  //
+  // This is not hypothetical. February 2026 stores 50,000 offered against one
+  // row and 133,792 bid against another, with the auction's other bond blank.
+  // That divides to 2.68x; CBK published 213.7bn of bids against a 50bn target,
+  // which is 4.27x. Every month this file produced came out under 1.0x, and
+  // Kenyan auctions are in fact persistently oversubscribed — the ratio was an
+  // artefact of a partial numerator, not a fact about demand.
+  //
+  // The same reasoning already guarded uptakePct below. It should always have
+  // guarded this.
+  const bidsComplete = group.length > 0 && group.every((p) => num(p.bidsReceivedKESM) !== undefined);
+
   let bidToCover: number | undefined;
   let coverRejected = false;
-  if (offeredKESM && bidsKESM) {
+  if (offeredKESM && bidsKESM && bidsComplete) {
     const c = bidsKESM / offeredKESM;
     if (plausible(c)) bidToCover = c;
     else coverRejected = true;

@@ -122,6 +122,50 @@ describe('bid-to-cover, and refusing to report a misparse as a market event', ()
     expect(r.rows[0].bidToCover).toBeUndefined();
     expect(r.rows[0].coverRejected).toBe(false); // absent is not rejected
   });
+
+  // The bug that shipped a false finding. None of the tests above caught it,
+  // because every fixture happened to carry bids on all of its rows.
+  it('refuses the ratio when one bond of a multi-bond auction has no bids figure', () => {
+    // Bids are per bond; offered is for the whole auction. A partial numerator
+    // over a whole denominator understates cover by roughly the number of
+    // bonds — which reported Kenyan auctions as undersubscribed when they are
+    // in fact persistently oversubscribed.
+    const r = buildMonthlyReview(
+      [
+        p({ issueCode: 'FXD1/2018/025', amountOfferedKESM: 50_000 }),
+        p({ issueCode: 'FXD3/2019/015', amountAcceptedKESM: 54_786, bidsReceivedKESM: 133_792 }),
+      ],
+      '2024-06'
+    );
+    expect(r.rows[0].bidToCover).toBeUndefined();
+    expect(r.measured).toBe(0);
+    // Not "rejected" either — the figure was never computable, as opposed to
+    // computed and found impossible. Conflating the two would hide a data gap
+    // inside a parse-failure count.
+    expect(r.rows[0].coverRejected).toBe(false);
+  });
+
+  it('reports the true ratio once every bond in the auction carries its bids', () => {
+    // The same February 2026 auction as CBK published it: 213.7bn against a
+    // 50bn target, which is 4.27x — oversubscribed, as the market record says.
+    const r = buildMonthlyReview(
+      [
+        p({ issueCode: 'FXD1/2018/025', amountOfferedKESM: 50_000, bidsReceivedKESM: 79_900 }),
+        p({ issueCode: 'FXD3/2019/015', bidsReceivedKESM: 133_800 }),
+      ],
+      '2024-06'
+    );
+    expect(r.rows[0].bidToCover).toBeCloseTo(4.274, 2);
+    expect(r.measured).toBe(1);
+  });
+
+  it('still measures a genuine single-bond auction', () => {
+    const r = buildMonthlyReview(
+      [p({ amountOfferedKESM: 10_000, bidsReceivedKESM: 21_000 })],
+      '2024-06'
+    );
+    expect(r.rows[0].bidToCover).toBeCloseTo(2.1);
+  });
 });
 
 describe('uptake', () => {

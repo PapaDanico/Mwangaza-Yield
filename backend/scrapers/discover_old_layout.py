@@ -36,27 +36,43 @@ come back short. It cannot be wrong about which files are broken.
 
 Read-only. Never gates CI.
 """
-import re
 import sys
 from io import BytesIO
 
 import requests
 
 from auction_results import (
-    UA, TIMEOUT, codes_in_name, find_header, find_result_pdfs, group_lines,
-    parse_pdf, results_section,
+    UA, TIMEOUT, auction_date_from_name, codes_in_name, find_header,
+    find_result_pdfs, group_lines, parse_pdf, results_section,
 )
 
-# The failures cluster in these years; newer files parse cleanly and re-reading
-# them would spend the probe's budget proving what already works.
-YEAR_RE = re.compile(r"(20(?:19|20|21|22|23))")
+FIRST_YEAR, LAST_YEAR = "2020", "2023"
 MAX_CANDIDATES = 25   # files to test-parse looking for failures
 MAX_REPORTED = 3      # failures to describe in full — enough to see the pattern
 MAX_LINES = 30
 
 
 def is_candidate(url: str) -> bool:
-    return bool(YEAR_RE.search(url)) and len(codes_in_name(url)) >= 1
+    """Files in the failing years that name more than one bond.
+
+    Both halves of this are evidence, not intuition.
+
+    The YEAR must come from the auction date in the filename, not from any
+    four-digit run in the URL. Issue codes are full of years — FXD1-2019-020 —
+    so a substring match tags a 2026 file as a 2020-2023 candidate, and since
+    the listing is newest-first the probe would spend its whole budget
+    re-reading recent files that already parse and then report, reassuringly
+    and uselessly, that it found no failures.
+
+    The BOND COUNT filter comes from the failure log: of 14 files that parsed
+    short, every single one named two or three bonds and not one named a single
+    bond. Whatever is wrong lives in the multi-column geometry, so single-bond
+    files have nothing to teach here.
+    """
+    day = auction_date_from_name(url)
+    if not day or not (FIRST_YEAR <= day[:4] <= LAST_YEAR):
+        return False
+    return len(codes_in_name(url)) >= 2
 
 
 def describe(url: str, content: bytes) -> None:
@@ -91,6 +107,28 @@ def describe(url: str, content: bytes) -> None:
             if codes:
                 print(f"      column centres: {[round(c) for c in centres]}")
 
+            # The leading hypothesis, stated so the output can refute it.
+            #
+            # find_header scores ONE line at a time and keeps the best. If a
+            # file prints its two issue codes on two different visual lines —
+            # a stacked or wrapped header — then no single line names both,
+            # the best line names one, and the parser reads one bond out of
+            # two. That is exactly the "names 2, parsed 1" signature, and it
+            # would also explain why only multi-bond files fail.
+            #
+            # This prints which line each expected code actually landed on. If
+            # they differ, the hypothesis stands and the fix is to merge
+            # header fragments across lines rather than pick a winner.
+            for code in expected:
+                family, year, tenor = code.split("/")
+                bare = str(int(tenor.split(".")[0])) if tenor.split(".")[0].isdigit() else tenor
+                hits = []
+                for i, line in enumerate(lines):
+                    joined = " ".join(w["text"] for w in line)
+                    if family in joined and year in joined:
+                        hits.append(i)
+                print(f"      {code}: appears on line index {hits or 'NONE'}")
+
             print(f"      first {MAX_LINES} reconstructed line(s):")
             for line in lines[:MAX_LINES]:
                 joined = " ".join(w["text"] for w in line)
@@ -105,8 +143,12 @@ def main() -> None:
         print(f"listing unreachable: {exc.__class__.__name__} — {exc}")
         return
 
-    print(f"{len(pdfs)} candidate file(s) from 2019-2023; "
-          f"test-parsing up to {MAX_CANDIDATES} to find failures")
+    print(f"{len(pdfs)} multi-bond file(s) auctioned {FIRST_YEAR}-{LAST_YEAR}; "
+          f"test-parsing up to {MAX_CANDIDATES} of them to find failures")
+    if not pdfs:
+        print("No candidates matched — check the filter before concluding "
+              "the archive is clean.")
+        return
 
     reported = 0
     tested = 0
@@ -130,8 +172,10 @@ def main() -> None:
 
     print(f"\ntested {tested} file(s), described {reported} failure(s)")
     if reported == 0:
-        print("No failures in this sample — the losses may be concentrated "
-              "further back in the archive than this probe reached.")
+        print("No failures in this sample. Do NOT read that as the archive "
+              "being clean: this probe reads the first "
+              f"{MAX_CANDIDATES} candidates only, and the listing is "
+              "newest-first, so losses further back go unseen.")
     else:
         print("Read the reconstructed lines above against the three "
               "explanations in this file's docstring BEFORE changing the parser.")

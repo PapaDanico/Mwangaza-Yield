@@ -369,6 +369,33 @@ def main():
     check("nor is a count mentioned in passing in a sentence",
           p_rec.get("bidsReceivedKESM") != 64.0, True)
 
+    print("face value is second choice, not forbidden")
+    # This cost 32 records. Excluding the face-value row outright — on the
+    # reasoning that it is not the cost — removed the ONLY bids row those tap
+    # files have, and it shipped. Both figures are real and they are 21% apart
+    # on a discount bond, so "at cost" wins where it exists and face value is
+    # recorded where it is all there is, with bidsLabel saying which.
+    both_rows = group_lines([
+        w("TENOR", 40, 100), w("IFB1/2011/12", 280, 100),
+        *row(["Total", "bids", "Received", "in", "Face", "Value", "(Kshs.", "M)"], "5,838.75", 130),
+        *row(["Total", "bids", "Received", "at", "Cost", "(Kshs.", "M)"], "4,822.69", 160),
+    ])
+    b_codes, b_centres = find_header(both_rows, ["IFB1/2011/012"])
+    b = _rf(both_rows, b_codes, b_centres, "2011-09-19", "u").get("IFB1/2011/012", {})
+    check("at cost wins when both rows are present", b.get("bidsReceivedKESM"), 4822.69)
+    check("and the label says which row it came from",
+          "at cost" in (b.get("bidsLabel") or ""), True)
+
+    face_only = group_lines([
+        w("TENOR", 40, 100), w("IFB1/2011/12", 280, 100),
+        *row(["Total", "bids", "Received", "in", "Face", "Value", "(Kshs.", "M)"], "5,838.75", 130),
+    ])
+    f_codes, f_centres = find_header(face_only, ["IFB1/2011/012"])
+    f = _rf(face_only, f_codes, f_centres, "2011-09-19", "u").get("IFB1/2011/012", {})
+    check("face value is read when it is the only row", f.get("bidsReceivedKESM"), 5838.75)
+    check("and the label admits it is face value",
+          "face value" in (f.get("bidsLabel") or ""), True)
+
     print("a primary auction is unchanged by any of this")
     primary = group_lines([
         w("TENOR", 40, 100), w("FXD1/2022/03", 280, 100),

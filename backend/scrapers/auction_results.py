@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 8
+PARSER_VERSION = 9
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -181,8 +181,29 @@ FIELDS = [
 # first as a fifth more money than was actually bid. Neither is a rounding
 # error; both are a different column entirely.
 FIELD_EXCLUSIONS = {
-    "bidsReceivedKESM": re.compile(r"face\s*value|number\s*of\s*bids", re.I),
+    "bidsReceivedKESM": re.compile(r"number\s*of\s*bids", re.I),
     "amountAcceptedKESM": re.compile(r"number\s*of\s*bids", re.I),
+}
+
+# Rows to reach for FIRST when a document offers more than one that fits.
+#
+# A tap sale states its bids twice, in two different currencies of meaning:
+#
+#     Total bids Received in Face Value (Kshs. M)   5,838.75
+#     Total bids Received at Cost (Kshs. M)         4,822.69
+#
+# Both are real; they are 21% apart on a discount bond. "At cost" is the money
+# actually put up, it is what every primary auction reports, and it is what a
+# bid-to-cover ratio needs — so it wins wherever it exists.
+#
+# Face value is NOT excluded, and that distinction was learned the expensive
+# way. Excluding it outright removed the only bids row from 32 tap records that
+# had one, in a change that shipped. Where a document offers face value alone,
+# recording it beats recording nothing — and `bidsLabel` already stores the
+# wording CBK used, so a reader can see which of the two they have rather than
+# being told they are the same thing.
+FIELD_PREFERENCE = {
+    "bidsReceivedKESM": re.compile(r"at\s*cost", re.I),
 }
 
 # Plausible bands. A value outside these means we read the wrong cell, and a
@@ -648,6 +669,28 @@ def _fit(records: dict, codes: list, density: float) -> tuple:
 LABEL_START_SLACK = 3
 
 
+def _row_label(line: list, label_x: float) -> str:
+    """A row's label — every word before its first value.
+
+    Recorded so that a reading can be judged later rather than trusted now. Two
+    rows can satisfy the same pattern and mean different things, and the only
+    thing that separates them is the wording CBK chose:
+
+        total bids received in face value (kshs. m)
+        total bids received at cost (kshs. m)
+
+    Stops at the first word that could be a figure, so the label never carries
+    the number it labels.
+    """
+    out = []
+    for w in line:
+        mid = (w["x0"] + w["x1"]) / 2
+        if mid >= label_x and VALUE_FRAGMENT_RE.match(w["text"]):
+            break
+        out.append(w["text"])
+    return " ".join(" ".join(out).split()).lower()
+
+
 def _field_lines(lines: list, key: str, pattern) -> list:
     """Candidate lines for one field, table rows first, prose last.
 
@@ -673,7 +716,12 @@ def _field_lines(lines: list, key: str, pattern) -> list:
     and a count of bids are not amounts, and no ordering makes them so.
     """
     reject = FIELD_EXCLUSIONS.get(key)
-    at_start, elsewhere = [], []
+    prefer = FIELD_PREFERENCE.get(key)
+    # Three tiers, best first: the preferred row at the start of its line, then
+    # any other row at the start of its line, then prose. Two dimensions rather
+    # than one, because "at cost" beats "in face value" on meaning while both
+    # beat a sentence on being a row at all.
+    best, ordinary, prose = [], [], []
     for line in lines:
         text = " ".join(w["text"] for w in line)
         m = pattern.search(text)
@@ -681,8 +729,13 @@ def _field_lines(lines: list, key: str, pattern) -> list:
             continue
         if reject and reject.search(text):
             continue
-        (at_start if m.start() <= LABEL_START_SLACK else elsewhere).append(line)
-    return at_start + elsewhere
+        if m.start() > LABEL_START_SLACK:
+            prose.append(line)
+        elif prefer and prefer.search(text):
+            best.append(line)
+        else:
+            ordinary.append(line)
+    return best + ordinary + prose
 
 
 # The heading of section A, which states the date the bond is dated from:
@@ -801,8 +854,16 @@ def read_fields(lines: list, codes: list, centres: list,
                 # oversubscribed auctions as undersubscribed. Recording the
                 # label lets the answer be measured from accumulated data
                 # instead of assumed.
+                #
+                # The label is the ROW's, not the pattern's. It used to store
+                # `match.group(0)`, which is only the words the regex itself
+                # consumed — "total bids received" — and so could not tell
+                # "Total bids Received at Cost" from "Total bids Received in
+                # Face Value". Those are different quantities, 21% apart on a
+                # discount bond, and a comment in this file claimed the label
+                # distinguished them when it could not. It does now.
                 if key == "bidsReceivedKESM":
-                    rec.setdefault("bidsLabel", " ".join(match.group(0).split()).lower())
+                    rec.setdefault("bidsLabel", _row_label(line, label_x))
             break
 
     # One field, and one only, may be taken from the total column.

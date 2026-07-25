@@ -66,6 +66,14 @@ export default function CalculatorPage() {
   // Never print the solver's own ceiling as though it were measured.
   const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
 
+  // Both yields pinned means both stopped at the same ceiling, so their
+  // difference is zero by construction — not because tax took nothing. Printing
+  // "0.00 pp" there tells a taxed bondholder their tax is free.
+  const taxDrag = (gross: number, net: number, bps: number) =>
+    isYieldPinned(gross) && isYieldPinned(net)
+      ? 'not measurable at this price'
+      : `${(bps / 100).toFixed(2)} pp`;
+
   const inputCls =
     'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
 
@@ -182,7 +190,7 @@ export default function CalculatorPage() {
               hint="Your yearly return after tax, if you hold this bond to the end. This is the number to compare against anything else." />
             <Row label="Before tax" value={pct(result.grossYTM)}
               hint="The figure most places quote. It is not what you keep." />
-            <Row label="Lost to tax" value={`${(result.taxDragBps / 100).toFixed(2)} pp`}
+            <Row label="Lost to tax" value={taxDrag(result.grossYTM, result.netYTM, result.taxDragBps)}
               hint="The gap between the two figures above. Infrastructure bonds have none." />
             <Row label="Interest owed to the seller" value={result.accruedInterestPer100.toFixed(2)}
               hint="Per KES 100. Interest built up since the last payment — you repay it now and get it back at the next coupon." />

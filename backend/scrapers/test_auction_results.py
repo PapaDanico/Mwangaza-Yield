@@ -13,7 +13,7 @@ import os
 import sys
 
 from auction_results import (
-    NUMERIC_RE, header_candidates, _field_count,
+    NUMERIC_RE, header_candidates, _field_count, merge_page,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -142,12 +142,12 @@ def main():
     check("the title outranks the header on bond count alone",
           ranked[0][0], ["FXD1/2022/003", "FXD1/2019/015"])
     check("but the real header is also a candidate",
-          ["FXD1/2022/003"] in [c for c, _ in ranked], True)
+          ["FXD1/2022/003"] in [c for c, _, _ in ranked], True)
 
     from auction_results import read_fields, _fit
-    title_codes, title_centres = ranked[0]
+    title_codes, title_centres, title_density = ranked[0]
     via_title = read_fields(titled, title_codes, title_centres, "2023-04-24", "u")
-    hdr = [(c, ce) for c, ce in ranked if c == ["FXD1/2022/003"]][0]
+    hdr = [(c, ce, d) for c, ce, d in ranked if c == ["FXD1/2022/003"]][0]
     via_header = read_fields(titled, hdr[0], hdr[1], "2023-04-24", "u")
 
     # The danger is not that the title reads nothing — it reads the SAME number
@@ -159,7 +159,7 @@ def main():
 
     # Column coverage can: 1 of 2 columns filled versus 1 of 1.
     check("coverage ranks the real header above the title",
-          _fit(via_header, hdr[0]) > _fit(via_title, title_codes), True)
+          _fit(via_header, hdr[0], hdr[2]) > _fit(via_title, title_codes, title_density), True)
     check("and it reads the split coupon onto the right bond",
           via_header["FXD1/2022/003"]["couponRate"], 11.766)
 
@@ -183,7 +183,7 @@ def main():
     check("the real header now outranks the sentence",
           ranked[0][0], ["FXD1/2022/003"])
     check("the sentence is still a candidate, just a worse one",
-          ["FXD1/2019/015"] in [c for c, _ in ranked], True)
+          ["FXD1/2019/015"] in [c for c, _, _ in ranked], True)
 
     from auction_results import read_fields as _rf
     won = _rf(cancelled, ranked[0][0], ranked[0][1], "2023-04-24", "u")
@@ -412,6 +412,21 @@ def main():
         check("and their PDF is no longer marked as read",
               seen, {"https://cbk/new.pdf"})
     mod.DATA_DIR = original
+
+    print("a later page fills gaps but never overwrites the results table")
+    doc = {}
+    merge_page(doc, {"FXD1/2021/005": {"couponRate": 11.277, "weightedAverageRate": 13.4}})
+    # A later page — a repayment schedule, say — mentions the same issue and a
+    # stray figure lands in the coupon column. It must not win.
+    merge_page(doc, {"FXD1/2021/005": {"couponRate": 1.277, "tenorYears": 5}})
+    check("the first page keeps the coupon", doc["FXD1/2021/005"]["couponRate"], 11.277)
+    check("the first page keeps the clearing rate",
+          doc["FXD1/2021/005"]["weightedAverageRate"], 13.4)
+    check("a field only the later page had is still added",
+          doc["FXD1/2021/005"]["tenorYears"], 5)
+    merge_page(doc, {"IFB1/2022/019": {"couponRate": 12.9}})
+    check("a bond first seen on a later page is added",
+          doc["IFB1/2022/019"]["couponRate"], 12.9)
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

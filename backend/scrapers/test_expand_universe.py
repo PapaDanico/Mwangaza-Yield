@@ -8,7 +8,8 @@ someone, or invite a placeholder coupon that looks real.
 """
 import sys
 
-from expand_universe import coupon_for, build_bond, display_code, normalise
+from expand_universe import (coupon_for, correction_for, build_bond, display_code,
+                             normalise)
 
 failures = []
 
@@ -79,6 +80,26 @@ def main():
           coupon_for("X", [{"couponRate": 13.0}, {"couponRate": 13.0},
                            {"couponRate": 14.0}]), 13.0)
     check("no coupon anywhere stays None", coupon_for("X", [{"auctionDate": "2020-01-01"}]), None)
+
+    print("a correction to a listed bond needs more than one witness")
+    lone = [{"couponRate": 1.0, "auctionDate": "2020-12-14"}]
+    check("a single misread PDF cannot overwrite a hand-verified coupon",
+          correction_for("FXD1/2012/015", 11.0, lone), None)
+    corroborated = [{"couponRate": 12.5, "auctionDate": "2021-01-01"},
+                    {"couponRate": 12.5, "auctionDate": "2021-06-01"}]
+    check("two auctions agreeing do correct it",
+          correction_for("FXD1/2012/015", 11.0, corroborated), 12.5)
+    check("a value that already matches is not a correction",
+          correction_for("X", 12.5, corroborated), None)
+    check("no auction coupon at all leaves the listing alone",
+          correction_for("X", 12.5, [{"auctionDate": "2021-01-01"}]), None)
+    # The original defect must still be corrected: the 11.0 there is the modal
+    # value AND is reported twice, so it clears the witness bar.
+    poisoned = [{"couponRate": 11.0, "auctionDate": "2019-06-17"},
+                {"couponRate": 11.0, "auctionDate": "2019-12-17"},
+                {"couponRate": 1.0, "auctionDate": "2020-12-14"}]
+    check("the 1% coupon is still corrected away",
+          correction_for("FXD1/2012/015", 1.0, poisoned), 11.0)
 
     # And the bond still refuses to be listed when nothing reported a coupon.
     check("a bond with no coupon is not built",

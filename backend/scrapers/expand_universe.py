@@ -122,6 +122,31 @@ def coupon_for(code: str, records: list) -> float | None:
     return best[0]
 
 
+def correction_for(code: str, listed: float | None, records: list) -> float | None:
+    """The coupon a listed bond should be corrected to, or None to leave it.
+
+    A correction needs a witness. The seed file carries hand-verified coupons
+    taken from prospectuses, and most codes we hold auction facts for are backed
+    by a SINGLE PDF — so an unguarded rewrite lets one misread page overwrite a
+    figure a human checked, in the same silent way the 1% coupon arrived. Two
+    records agreeing is the cheapest evidence that the value is the bond's
+    coupon and not that page's accident; a lone dissenter is reported and the
+    listed value stands.
+    """
+    agreed = coupon_for(code, records)
+    if agreed is None or agreed == listed:
+        return None
+    witnesses = sum(1 for r in records if r.get("couponRate") == agreed)
+    if witnesses < 2:
+        print(f"[expand] {code}: one auction reports coupon {agreed}, the listing "
+              f"says {listed} — LEAVING the listed value; a single record is not "
+              f"enough to overwrite it", file=sys.stderr)
+        return None
+    print(f"[expand] {code}: correcting coupon {listed} -> {agreed} "
+          f"({witnesses} auctions agree)", file=sys.stderr)
+    return agreed
+
+
 def build_bond(code: str, reg: dict, auction: dict,
                coupon: float | None = None) -> dict | None:
     if coupon is None:
@@ -180,11 +205,9 @@ def main() -> None:
     # came from was later rejected, and the listing never noticed.
     for bond in existing:
         code = normalise(bond["issueCode"])
-        agreed = coupon_for(code, every.get(code, []))
-        if agreed is None or agreed == bond.get("couponRate"):
+        agreed = correction_for(code, bond.get("couponRate"), every.get(code, []))
+        if agreed is None:
             continue
-        print(f"[expand] {bond['issueCode']}: correcting coupon "
-              f"{bond.get('couponRate')} -> {agreed}", file=sys.stderr)
         # The yield was solved from the wrong coupon, so it is no better.
         if bond.get("ytmGross") == bond.get("couponRate"):
             bond["ytmGross"] = agreed

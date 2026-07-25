@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 3
+PARSER_VERSION = 4
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -177,7 +177,14 @@ def cell_value(fragments: list) -> str:
 
 # A fragment that could be part of a number. Anything else on a data row is
 # label text, whichever side of the boundary it happened to land on.
-VALUE_FRAGMENT_RE = re.compile(r"^[\d,]*\.?\d+$")
+#
+# The lookahead is load-bearing. An earlier form required a digit AFTER the
+# decimal point, which rejected "13." — and CBK splits numbers at arbitrary
+# points, so "13." + "9128" is a real rendering of 13.9128. Dropping the first
+# half left the cell reading "9128", silently, which is exactly the field loss
+# this filter exists to prevent. Requiring only that a fragment contain SOME
+# digit keeps both halves and still rejects "(%)", "Bids" and "Kshs.".
+VALUE_FRAGMENT_RE = re.compile(r"^(?=[\d,.]*\d)[\d,]*\.?\d*$")
 
 
 def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
@@ -303,13 +310,13 @@ def header_candidates(lines: list, expected: list | None = None) -> list:
         score = len(set(codes) & set(expected or [])) if expected else 0
         scored.append((score, code_density(line), codes, centres))
     scored.sort(key=lambda t: (-t[0], -t[1]))
-    return [(codes, centres) for _score, _density, codes, centres in scored]
+    return [(codes, centres, density) for _score, density, codes, centres in scored]
 
 
 def find_header(lines: list, expected: list | None = None) -> tuple:
     """The single best header line. See header_candidates for the ranking."""
     candidates = header_candidates(lines, expected)
-    return candidates[0] if candidates else ([], [])
+    return (candidates[0][0], candidates[0][1]) if candidates else ([], [])
 
 
 def codes_in_name(url: str) -> list:
@@ -351,25 +358,31 @@ def _field_count(records: dict) -> int:
     return sum(len(r) - 5 for r in records.values())  # minus the identity keys
 
 
-def _fit(records: dict, codes: list) -> tuple:
+def _fit(records: dict, codes: list, density: float) -> tuple:
     """How well a candidate header explains the page. Higher is better.
 
-    Column COVERAGE leads and field count only breaks ties, because counting
-    fields alone is not merely weak — it is unsafe. On a real CBK file where
-    one leg of a two-bond auction was cancelled, the prose title named both
-    bonds while the table listed one. Both geometries recovered exactly one
-    field, so a count could not choose between them; but the title's columns
-    put that coupon under the CANCELLED bond. A wrong number attached to a real
-    bond name is the worst thing this parser can produce, and far worse than
-    reading nothing at all.
+    Ranked by how many BONDS were priced, then how many fields, then how much
+    of the line is issue code.
 
-    Coverage separates them cleanly. The values fell into one of the title's
-    two columns (0.5) and into the only column the true header declares (1.0).
-    A header whose columns are real gets them filled.
+    The ratio this used to lead with — bonds priced divided by bonds named —
+    was a trap, and a review caught it before it shipped. Dividing rewards
+    naming fewer bonds, so a prose line mentioning one code beat the real
+    header listing two whenever only one leg of an auction cleared:
+
+        real header  TENOR FXD1/2022/03 FXD1/2019/15   1 of 2 = 0.50
+        prose        "...FXD 1/2019/15 was cancelled"  1 of 1 = 1.00
+
+    The prose won and the coupon landed on the CANCELLED bond — precisely the
+    failure the ratio had been introduced to prevent, reintroduced in the
+    variant where CBK keeps both legs in the header. The first fix and its test
+    only covered the variant where the cancelled leg is omitted.
+
+    Counting bonds priced makes those two tie at 1, and density then decides:
+    a header row is almost entirely codes (0.67-0.79), a prose sentence is
+    mostly words (0.13). Both known cases resolve to the real header, and
+    nothing is rewarded for naming less.
     """
-    if not codes:
-        return (0.0, 0)
-    return (len(records) / len(codes), _field_count(records))
+    return (len(records), _field_count(records), density)
 
 
 def read_fields(lines: list, codes: list, centres: list,
@@ -405,6 +418,22 @@ def read_fields(lines: list, codes: list, centres: list,
     return records
 
 
+def merge_page(records: dict, page: dict) -> dict:
+    """Fold one page's records into the document's, first reading winning.
+
+    The results table sits on the earliest page that has one; later pages repeat
+    the issue in summaries, cash-flow schedules and footers, where a stray
+    number can land in the same column. Merging with `.update()` gave those the
+    LAST word — the weakest reading of a bond silently overwriting the table it
+    was summarising. A later page may only fill a field that is still missing.
+    """
+    for code, rec in page.items():
+        held = records.setdefault(code, {})
+        for field, value in rec.items():
+            held.setdefault(field, value)
+    return records
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
@@ -427,14 +456,13 @@ def parse_pdf(content: bytes, source_url: str) -> list:
         # column. Counting the fields recovered is a direct measure of whether
         # a header explains the page, so it needs no heuristic about titles.
         best_page: dict = {}
-        best_fit = (0.0, 0)
-        for codes, centres in header_candidates(lines, expected)[:MAX_HEADER_TRIES]:
+        best_fit = (0, 0, -1.0)
+        for codes, centres, density in header_candidates(lines, expected)[:MAX_HEADER_TRIES]:
             attempt = read_fields(lines, codes, centres, auction_date, source_url)
-            fit = _fit(attempt, codes)
+            fit = _fit(attempt, codes, density)
             if fit > best_fit:
                 best_page, best_fit = attempt, fit
-        for code, rec in best_page.items():
-            records.setdefault(code, {}).update(rec)
+        merge_page(records, best_page)
 
     # CBK names the issues in the filename, so we can check our own work. If
     # the header yielded fewer, we have silently dropped a bond — say so

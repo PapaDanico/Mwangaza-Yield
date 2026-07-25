@@ -1,5 +1,1019 @@
 [
   {
+    "id": "res-fxd1-2009-005-None",
+    "issueCode": "FXD1/2009/005",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/RESULTS2-5%20090909.pdf",
+    "amountOfferedKESM": 11000.0
+  },
+  {
+    "id": "res-fxd1-2010-010-None",
+    "issueCode": "FXD1/2010/010",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%2010%20%2020%20yr%20-%20May%202011.pdf",
+    "weightedAverageRate": 18.6,
+    "bidsReceivedKESM": 18.6
+  },
+  {
+    "id": "res-fxd1-2010-025-None",
+    "issueCode": "FXD1/2010/025",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2025%20yr%20re-opening%20July%202010.pdf",
+    "couponRate": 11.25,
+    "pricePer100": 113.88,
+    "amountOfferedKESM": 15000.0,
+    "amountAcceptedKESM": 14953.06,
+    "bidsReceivedKESM": 363.0
+  },
+  {
+    "id": "res-fxd1-2011-005-None",
+    "issueCode": "FXD1/2011/005",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20yr%20-%20January%202011.pdf",
+    "couponRate": 5.0,
+    "amountOfferedKESM": 16000.0,
+    "bidsReceivedKESM": 5.0
+  },
+  {
+    "id": "res-fxd1-2011-020-None",
+    "issueCode": "FXD1/2011/020",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%2010%20%2020%20yr%20-%20May%202011.pdf",
+    "weightedAverageRate": 19.06,
+    "bidsReceivedKESM": 19.06
+  },
+  {
+    "id": "res-fxd1-2012-002-None",
+    "issueCode": "FXD1/2012/002",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/results%202Year%20Bond%20April%202012.pdf",
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 5000.0,
+    "amountAcceptedKESM": 6468.64,
+    "bidsReceivedKESM": 27714.5
+  },
+  {
+    "id": "res-fxd1-2012-005-None",
+    "issueCode": "FXD1/2012/005",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20year%20July%202012.pdf",
+    "couponRate": 1.855,
+    "pricePer100": 94.097
+  },
+  {
+    "id": "res-fxd1-2012-010-None",
+    "issueCode": "FXD1/2012/010",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20year%20July%202012.pdf",
+    "couponRate": 12.705,
+    "pricePer100": 95.02,
+    "amountOfferedKESM": 10000.0,
+    "bidsReceivedKESM": 10.0
+  },
+  {
+    "id": "res-fxd1-2023-005-None",
+    "issueCode": "FXD1/2023/005",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf",
+    "couponRate": 16.844,
+    "weightedAverageRate": 19.0675,
+    "marketWeightedAverageRate": 19.0675,
+    "pricePer100": 94.3168,
+    "amountOfferedKESM": 35000.0
+  },
+  {
+    "id": "res-fxd1-2024-003-None",
+    "issueCode": "FXD1/2024/003",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf",
+    "couponRate": 18.3854,
+    "weightedAverageRate": 18.6314,
+    "marketWeightedAverageRate": 18.6314,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 22069.44,
+    "bidsReceivedKESM": 29089.43
+  },
+  {
+    "id": "res-fxd2-2008-010-None",
+    "issueCode": "FXD2/2008/010",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/388374197_RESULTS FOR 10 YR JULY 2009.pdf",
+    "couponRate": 10.75,
+    "pricePer100": 94.163,
+    "amountOfferedKESM": 12000.0,
+    "amountAcceptedKESM": 11888.74,
+    "bidsReceivedKESM": 14.8
+  },
+  {
+    "id": "res-fxd2-2010-005-None",
+    "issueCode": "FXD2/2010/005",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20years%20-%20August%202011.pdf",
+    "amountAcceptedKESM": 9.0
+  },
+  {
+    "id": "res-fxd2-2010-015-None",
+    "issueCode": "FXD2/2010/015",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20%2015%20year%20-%20December%202010.pdf",
+    "amountOfferedKESM": 15000.0
+  },
+  {
+    "id": "res-fxd2-2011-002-None",
+    "issueCode": "FXD2/2011/002",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%2010%20%2020%20yr%20-%20May%202011.pdf",
+    "couponRate": 10.0,
+    "pricePer100": 73.47,
+    "amountOfferedKESM": 18000.0
+  },
+  {
+    "id": "res-fxd2-2012-002-None",
+    "issueCode": "FXD2/2012/002",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20year%20AUGUST%202012.pdf",
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 16314.7,
+    "bidsReceivedKESM": 253.0
+  },
+  {
+    "id": "res-fxd4-2011-002-None",
+    "issueCode": "FXD4/2011/002",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20yr%20-%20November%202011.pdf",
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 15000.0,
+    "amountAcceptedKESM": 9980.05,
+    "bidsReceivedKESM": 162.0
+  },
+  {
+    "id": "res-ifb1-2010-008-None",
+    "issueCode": "IFB1/2010/008",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1065265609_ Treasury Bond Results Third IFB Results.pdf",
+    "couponRate": 9.75,
+    "pricePer100": 100.498,
+    "amountOfferedKESM": 14500.0,
+    "amountAcceptedKESM": 16263.84,
+    "bidsReceivedKESM": 400.0
+  },
+  {
+    "id": "res-ifb1-2011-012-None",
+    "issueCode": "IFB1/2011/012",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2012%20yr%20tap%20sales.pdf",
+    "amountAcceptedKESM": 4822.69
+  },
+  {
+    "id": "res-sdb1-2011-030-None",
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": null,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2030%20%202%20yr%20-%20February%202011.pdf",
+    "couponRate": 2.0,
+    "amountOfferedKESM": 18000.0,
+    "bidsReceivedKESM": 231015.3
+  },
+  {
+    "id": "res-fxd2-2014-005-2014-06-30",
+    "issueCode": "FXD2/2014/005",
+    "auctionDate": "2014-06-30",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1063682726_Result for 20& 5 Year Tap Sale Dated 30.06.2014.pdf",
+    "amountAcceptedKESM": 2737.0
+  },
+  {
+    "id": "res-fxd1-2016-010-2016-08-29",
+    "issueCode": "FXD1/2016/010",
+    "auctionDate": "2016-08-29",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/795035346_FXD1-2016-10 DATED 29.08.2016.pdf",
+    "couponRate": 15.039,
+    "marketWeightedAverageRate": 15.267,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 25000.0,
+    "amountAcceptedKESM": 18312.23,
+    "bidsReceivedKESM": 25795.0
+  },
+  {
+    "id": "res-fxd1-2016-020-2016-09-26",
+    "issueCode": "FXD1/2016/020",
+    "auctionDate": "2016-09-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/70894349_FXD3-2016-005 AND FXD1-2016-020 DATED 26-09-2016.pdf",
+    "couponRate": 14.0,
+    "pricePer100": 96.13,
+    "amountOfferedKESM": 25000.0,
+    "bidsReceivedKESM": 25.0
+  },
+  {
+    "id": "res-fxd3-2016-005-2016-09-26",
+    "issueCode": "FXD3/2016/005",
+    "auctionDate": "2016-09-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/70894349_FXD3-2016-005 AND FXD1-2016-020 DATED 26-09-2016.pdf",
+    "couponRate": 13.112,
+    "weightedAverageRate": 17.8,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 23052.24
+  },
+  {
+    "id": "res-ifb1-2016-015-2016-10-24",
+    "issueCode": "IFB1/2016/015",
+    "auctionDate": "2016-10-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/218483643_IFB1-2016-015 DATED 24-10-2016.pdf",
+    "couponRate": 12.0,
+    "marketWeightedAverageRate": 13.277,
+    "pricePer100": 93.529,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 30571.54,
+    "bidsReceivedKESM": 301268.0
+  },
+  {
+    "id": "res-fxd1-2008-020-2016-11-28",
+    "issueCode": "FXD1/2008/020",
+    "auctionDate": "2016-11-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/739138275_FXD3-2007-15 & FXD1-2008-20 Dated 28.11.2016.pdf",
+    "couponRate": 13.75,
+    "pricePer100": 103.225,
+    "amountOfferedKESM": 30000.0,
+    "bidsReceivedKESM": 30.0
+  },
+  {
+    "id": "res-fxd3-2007-015-2016-11-28",
+    "issueCode": "FXD3/2007/015",
+    "auctionDate": "2016-11-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/739138275_FXD3-2007-15 & FXD1-2008-20 Dated 28.11.2016.pdf",
+    "couponRate": 12.5,
+    "weightedAverageRate": 8.4,
+    "pricePer100": 96.167,
+    "amountAcceptedKESM": 14286.03
+  },
+  {
+    "id": "res-fxd3-2016-002-2016-12-19",
+    "issueCode": "FXD3/2016/002",
+    "auctionDate": "2016-12-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1451685551_FXD3-2016-002 DATED 19.12.2016.pdf",
+    "couponRate": 12.509,
+    "marketWeightedAverageRate": 13.074,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 10535.3,
+    "bidsReceivedKESM": 30.0
+  },
+  {
+    "id": "res-ifb1-2017-012-2017-02-27",
+    "issueCode": "IFB1/2017/012",
+    "auctionDate": "2017-02-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1556453751_IFB1-2017-12 DATED 27-02-2017.pdf",
+    "couponRate": 12.5,
+    "marketWeightedAverageRate": 14.052,
+    "pricePer100": 94.853,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 5997.45,
+    "bidsReceivedKESM": 30.0
+  },
+  {
+    "id": "res-fxd2-2014-005-2017-03-27",
+    "issueCode": "FXD2/2014/005",
+    "auctionDate": "2017-03-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf",
+    "couponRate": 11.934,
+    "pricePer100": 102.276,
+    "amountAcceptedKESM": 12962.92,
+    "bidsReceivedKESM": 32.92
+  },
+  {
+    "id": "res-fxd3-2013-005-2017-03-27",
+    "issueCode": "FXD3/2013/005",
+    "auctionDate": "2017-03-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf",
+    "couponRate": 11.952,
+    "pricePer100": 104.298,
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-fxd1-2009-010-2017-04-24",
+    "issueCode": "FXD1/2009/010",
+    "auctionDate": "2017-04-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1394544047_FXD3-2008-10 AND FXD1-2009-10 DATED 24.04.2017.pdf",
+    "couponRate": 10.75,
+    "pricePer100": 98.098,
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-fxd3-2008-010-2017-04-24",
+    "issueCode": "FXD3/2008/010",
+    "auctionDate": "2017-04-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1394544047_FXD3-2008-10 AND FXD1-2009-10 DATED 24.04.2017.pdf",
+    "couponRate": 10.75,
+    "pricePer100": 100.277,
+    "amountAcceptedKESM": 14617.39,
+    "bidsReceivedKESM": 27.63
+  },
+  {
+    "id": "res-fxd1-2009-015-2017-05-22",
+    "issueCode": "FXD1/2009/015",
+    "auctionDate": "2017-05-22",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1243324354_FXD2-2010-10 AND FXD1-2009-15 DATED 22.05.2017.pdf",
+    "couponRate": 12.5,
+    "pricePer100": 98.194,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd2-2010-010-2017-05-22",
+    "issueCode": "FXD2/2010/010",
+    "auctionDate": "2017-05-22",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1243324354_FXD2-2010-10 AND FXD1-2009-15 DATED 22.05.2017.pdf",
+    "couponRate": 9.307,
+    "pricePer100": 92.093,
+    "amountAcceptedKESM": 8532.76,
+    "bidsReceivedKESM": 24.37
+  },
+  {
+    "id": "res-fxd2-2007-015-2017-06-26",
+    "issueCode": "FXD2/2007/015",
+    "auctionDate": "2017-06-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/294239679_FXD2-2007-15 DATED 26-06-2017.pdf",
+    "couponRate": 13.5,
+    "weightedAverageRate": 12.651,
+    "marketWeightedAverageRate": 12.651,
+    "pricePer100": 104.047,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 26409.89,
+    "bidsReceivedKESM": 39073.2
+  },
+  {
+    "id": "res-fxd1-2017-010-2017-07-31",
+    "issueCode": "FXD1/2017/010",
+    "auctionDate": "2017-07-31",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/356301072_FXD1-2017-10 DATED 31-07-2017.pdf",
+    "couponRate": 12.966,
+    "weightedAverageRate": 13.325,
+    "marketWeightedAverageRate": 13.325,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 5190.83,
+    "bidsReceivedKESM": 19043.27
+  },
+  {
+    "id": "res-fxd1-2017-005-2017-08-28",
+    "issueCode": "FXD1/2017/005",
+    "auctionDate": "2017-08-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/910183579_FXD1-2017-5 AND FXD1-2017-10 DATED 28.08.2017.pdf",
+    "couponRate": 1.0,
+    "amountAcceptedKESM": 12112.2,
+    "bidsReceivedKESM": 18715.2
+  },
+  {
+    "id": "res-fxd1-2017-010-2017-08-28",
+    "issueCode": "FXD1/2017/010",
+    "auctionDate": "2017-08-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/910183579_FXD1-2017-5 AND FXD1-2017-10 DATED 28.08.2017.pdf",
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-fxd1-2017-002-2017-09-25",
+    "issueCode": "FXD1/2017/002",
+    "auctionDate": "2017-09-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/150467889_FXD1-2017-2 AND FXD1-2017-10 DATED 25.09.2017.pdf",
+    "couponRate": 1.619,
+    "weightedAverageRate": 11.761,
+    "marketWeightedAverageRate": 11.761
+  },
+  {
+    "id": "res-fxd1-2017-010-2017-09-25",
+    "issueCode": "FXD1/2017/010",
+    "auctionDate": "2017-09-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/150467889_FXD1-2017-2 AND FXD1-2017-10 DATED 25.09.2017.pdf",
+    "couponRate": 12.966,
+    "weightedAverageRate": 13.162,
+    "marketWeightedAverageRate": 13.162,
+    "pricePer100": 101.373,
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-fxd2-2017-005-2017-10-23",
+    "issueCode": "FXD2/2017/005",
+    "auctionDate": "2017-10-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/247503602_FXD2-2017-5 DATED 23-10-2017.pdf",
+    "couponRate": 12.517,
+    "weightedAverageRate": 12.621,
+    "marketWeightedAverageRate": 12.621,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 13504.64,
+    "bidsReceivedKESM": 20076.78
+  },
+  {
+    "id": "res-ifb1-2017-007-2017-11-27",
+    "issueCode": "IFB1/2017/007",
+    "auctionDate": "2017-11-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1322546552_IFB1-2017-7 DATED 27-11-2017.pdf",
+    "couponRate": 12.5,
+    "weightedAverageRate": 12.279,
+    "marketWeightedAverageRate": 12.279,
+    "pricePer100": 101.109,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 42020.13,
+    "bidsReceivedKESM": 45910.86
+  },
+  {
+    "id": "res-fxd1-2017-010-2017-12-18",
+    "issueCode": "FXD1/2017/010",
+    "auctionDate": "2017-12-18",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/866030863_FXD1-2008-15& FXD1-2017-10 DATED 18-12-2017.pdf",
+    "couponRate": 12.966,
+    "weightedAverageRate": 13.229,
+    "marketWeightedAverageRate": 13.229,
+    "pricePer100": 104.299,
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-ifb1-2018-015-2018-01-29",
+    "issueCode": "IFB1/2018/015",
+    "auctionDate": "2018-01-29",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1165104678_RESULTS IFB1-2018-015 DATED 29-01-2018.pdf",
+    "couponRate": 12.5,
+    "weightedAverageRate": 13.026,
+    "marketWeightedAverageRate": 13.026,
+    "pricePer100": 99.969,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 5041.51,
+    "bidsReceivedKESM": 55756.52
+  },
+  {
+    "id": "res-fxd1-2010-015-2018-02-26",
+    "issueCode": "FXD1/2010/015",
+    "auctionDate": "2018-02-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/874561339_RE-OPEN FXD1-2010-15 & FXD2-2013-15 DATED 26-02-2018.pdf",
+    "couponRate": 10.25,
+    "weightedAverageRate": 12.764,
+    "marketWeightedAverageRate": 12.764,
+    "pricePer100": 93.418,
+    "amountAcceptedKESM": 4444.24,
+    "bidsReceivedKESM": 7965.86
+  },
+  {
+    "id": "res-fxd2-2013-015-2018-02-26",
+    "issueCode": "FXD2/2013/015",
+    "auctionDate": "2018-02-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/874561339_RE-OPEN FXD1-2010-15 & FXD2-2013-15 DATED 26-02-2018.pdf",
+    "couponRate": 12.0,
+    "weightedAverageRate": 13.0,
+    "marketWeightedAverageRate": 13.0,
+    "pricePer100": 99.065,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd1-2018-005-2018-03-26",
+    "issueCode": "FXD1/2018/005",
+    "auctionDate": "2018-03-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1112307830_AUCTION RESULTS FXD1-2018-20 AND FXD1-2018-5 DATED 26-03-2018.pdf",
+    "couponRate": 12.299,
+    "weightedAverageRate": 12.394,
+    "marketWeightedAverageRate": 12.394,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 23065.28,
+    "bidsReceivedKESM": 37645.92
+  },
+  {
+    "id": "res-fxd1-2018-020-2018-03-26",
+    "issueCode": "FXD1/2018/020",
+    "auctionDate": "2018-03-26",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1112307830_AUCTION RESULTS FXD1-2018-20 AND FXD1-2018-5 DATED 26-03-2018.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.423,
+    "marketWeightedAverageRate": 13.423,
+    "pricePer100": 99.057,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd1-2008-015-2018-04-30",
+    "issueCode": "FXD1/2008/015",
+    "auctionDate": "2018-04-30",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/712863756_RE-OPEN FXD1-2008-15 & FXD1-2018-20 DATED 30-04-2018.pdf",
+    "couponRate": 12.5,
+    "weightedAverageRate": 12.348,
+    "marketWeightedAverageRate": 12.348,
+    "pricePer100": 102.066,
+    "amountAcceptedKESM": 20152.6,
+    "bidsReceivedKESM": 22864.18
+  },
+  {
+    "id": "res-fxd1-2018-020-2018-04-30",
+    "issueCode": "FXD1/2018/020",
+    "auctionDate": "2018-04-30",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/712863756_RE-OPEN FXD1-2008-15 & FXD1-2018-20 DATED 30-04-2018.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.397,
+    "marketWeightedAverageRate": 13.397,
+    "pricePer100": 100.357,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd1-2018-015-2018-05-28",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2018-05-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2129006739_AUCTION RESULTS TREASURY BOND  FXD1-2018-15 DATED 28-05-2018.pdf",
+    "couponRate": 12.65,
+    "weightedAverageRate": 13.169,
+    "marketWeightedAverageRate": 13.169,
+    "pricePer100": 97.217,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 12863.5,
+    "bidsReceivedKESM": 20217.0
+  },
+  {
+    "id": "res-fxd1-2018-025-2018-06-25",
+    "issueCode": "FXD1/2018/025",
+    "auctionDate": "2018-06-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/846641586_AUCTION RESULTS FXD1-2018-25 DATED 25-06-2018.pdf",
+    "couponRate": 13.4,
+    "weightedAverageRate": 13.684,
+    "marketWeightedAverageRate": 13.684,
+    "pricePer100": 99.635,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 5171.81,
+    "bidsReceivedKESM": 10130.71
+  },
+  {
+    "id": "res-fxd2-2018-020-2018-07-30",
+    "issueCode": "FXD2/2018/020",
+    "auctionDate": "2018-07-30",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1223407036_AUCTION RESULTS FXD2-2018-20 DATED 30-07-2018.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.411,
+    "marketWeightedAverageRate": 13.411,
+    "pricePer100": 98.817,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 10512.38,
+    "bidsReceivedKESM": 13860.32
+  },
+  {
+    "id": "res-fxd1-2018-010-2018-08-27",
+    "issueCode": "FXD1/2018/010",
+    "auctionDate": "2018-08-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1664475775_AUCTION RESULTS FXD1-2018-10 DD 27.08.2018.xlsx.pdf",
+    "couponRate": 12.686,
+    "weightedAverageRate": 12.819,
+    "marketWeightedAverageRate": 12.819,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 19362.24,
+    "bidsReceivedKESM": 29825.26
+  },
+  {
+    "id": "res-fxd1-2018-010-2018-09-24",
+    "issueCode": "FXD1/2018/010",
+    "auctionDate": "2018-09-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1621962219_AUCTION RESULTS FXD1-2018-10 AND FXD2-2018-20 DATED 24-09-2018.pdf",
+    "couponRate": 12.686,
+    "weightedAverageRate": 12.669,
+    "marketWeightedAverageRate": 12.669,
+    "pricePer100": 101.067,
+    "amountAcceptedKESM": 21244.61,
+    "bidsReceivedKESM": 22137.34
+  },
+  {
+    "id": "res-fxd2-2018-020-2018-09-24",
+    "issueCode": "FXD2/2018/020",
+    "auctionDate": "2018-09-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1621962219_AUCTION RESULTS FXD1-2018-10 AND FXD2-2018-20 DATED 24-09-2018.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.087,
+    "marketWeightedAverageRate": 13.087,
+    "pricePer100": 103.894,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd2-2018-015-2018-10-22",
+    "issueCode": "FXD2/2018/015",
+    "auctionDate": "2018-10-22",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1677711619_AUCTION RESULTS TREASURY BOND  FXD2-2018-15 DATED 22-10-2018.pdf",
+    "couponRate": 12.75,
+    "weightedAverageRate": 12.849,
+    "marketWeightedAverageRate": 12.849,
+    "pricePer100": 100.026,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 7854.06,
+    "bidsReceivedKESM": 27045.43
+  },
+  {
+    "id": "res-fxd2-2018-015-2018-11-05",
+    "issueCode": "FXD2/2018/015",
+    "auctionDate": "2018-11-05",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1076096048_RE-OPEN FXD2-2018-15 DATED 05.11.2018.pdf",
+    "couponRate": 12.75,
+    "weightedAverageRate": 12.746,
+    "marketWeightedAverageRate": 12.746,
+    "pricePer100": 100.582,
+    "amountOfferedKESM": 32000.0,
+    "amountAcceptedKESM": 21261.94,
+    "bidsReceivedKESM": 25375.61
+  },
+  {
+    "id": "res-ifb1-2018-020-2018-11-19",
+    "issueCode": "IFB1/2018/020",
+    "auctionDate": "2018-11-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/11932141_AUCTION RESULTS IFB1-2018-20 DATED 19-11-2018..pdf",
+    "couponRate": 11.95,
+    "weightedAverageRate": 12.286,
+    "marketWeightedAverageRate": 12.286,
+    "pricePer100": 98.678,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 27588.43,
+    "bidsReceivedKESM": 40393.25
+  },
+  {
+    "id": "res-fxd2-2018-010-2018-12-17",
+    "issueCode": "FXD2/2018/010",
+    "auctionDate": "2018-12-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1156379941_AUCTION RESULTS FXD2-2018-10 DD 17.12.2018.pdf",
+    "couponRate": 12.502,
+    "weightedAverageRate": 12.58,
+    "marketWeightedAverageRate": 12.58,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 26158.96,
+    "bidsReceivedKESM": 28860.5
+  },
+  {
+    "id": "res-fxd1-2019-002-2019-01-28",
+    "issueCode": "FXD1/2019/002",
+    "auctionDate": "2019-01-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/647731082_RESULTS FXD1-2019-2 AND FXD1-2019-15 DATED 28-01-2019.xlsx.pdf",
+    "couponRate": 10.701,
+    "weightedAverageRate": 10.905,
+    "marketWeightedAverageRate": 10.905,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 23774.63,
+    "bidsReceivedKESM": 76904.69
+  },
+  {
+    "id": "res-fxd1-2019-015-2019-01-28",
+    "issueCode": "FXD1/2019/015",
+    "auctionDate": "2019-01-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/647731082_RESULTS FXD1-2019-2 AND FXD1-2019-15 DATED 28-01-2019.xlsx.pdf",
+    "couponRate": 12.857,
+    "weightedAverageRate": 12.971,
+    "marketWeightedAverageRate": 12.971,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd1-2019-002-2019-02-11",
+    "issueCode": "FXD1/2019/002",
+    "auctionDate": "2019-02-11",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/6726502_RESULTS FOR RE-OPENED FXD1-2019-2 AND FXD1-2019-15 DATED 11-02-2019.pdf",
+    "couponRate": 10.701,
+    "weightedAverageRate": 10.61,
+    "marketWeightedAverageRate": 10.61,
+    "pricePer100": 101.049,
+    "amountAcceptedKESM": 7470.38,
+    "bidsReceivedKESM": 50196.39
+  },
+  {
+    "id": "res-fxd1-2019-015-2019-02-11",
+    "issueCode": "FXD1/2019/015",
+    "auctionDate": "2019-02-11",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/6726502_RESULTS FOR RE-OPENED FXD1-2019-2 AND FXD1-2019-15 DATED 11-02-2019.pdf",
+    "couponRate": 12.857,
+    "weightedAverageRate": 12.775,
+    "marketWeightedAverageRate": 12.775,
+    "pricePer100": 101.068,
+    "amountOfferedKESM": 12000.0
+  },
+  {
+    "id": "res-fxd1-2019-005-2019-02-25",
+    "issueCode": "FXD1/2019/005",
+    "auctionDate": "2019-02-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/990251600_RESULTS FXD1-2019-5 AND FXD1-2019-10 DATED 25-02-2019.pdf",
+    "couponRate": 11.304,
+    "weightedAverageRate": 11.378,
+    "marketWeightedAverageRate": 11.378,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 20593.62,
+    "bidsReceivedKESM": 41926.78
+  },
+  {
+    "id": "res-fxd1-2019-010-2019-02-25",
+    "issueCode": "FXD1/2019/010",
+    "auctionDate": "2019-02-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/990251600_RESULTS FXD1-2019-5 AND FXD1-2019-10 DATED 25-02-2019.pdf",
+    "couponRate": 12.438,
+    "weightedAverageRate": 12.463,
+    "marketWeightedAverageRate": 12.463,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-ifb1-2019-025-2019-03-25",
+    "issueCode": "IFB1/2019/025",
+    "auctionDate": "2019-03-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/989366244_RESULTS IFB1-2019-25 DATED 25-03-2019.pdf",
+    "couponRate": 12.2,
+    "weightedAverageRate": 12.834,
+    "marketWeightedAverageRate": 12.834,
+    "pricePer100": 96.774,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 16303.06,
+    "bidsReceivedKESM": 29376.22
+  },
+  {
+    "id": "res-fxd1-2019-020-2019-04-15",
+    "issueCode": "FXD1/2019/020",
+    "auctionDate": "2019-04-15",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1876429912_RESULTS FXD2-2019-10 AND FXD1-2019-20 DATED 15-04-2019...pdf",
+    "couponRate": 12.873,
+    "weightedAverageRate": 12.935,
+    "marketWeightedAverageRate": 12.935,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd2-2019-010-2019-04-15",
+    "issueCode": "FXD2/2019/010",
+    "auctionDate": "2019-04-15",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1876429912_RESULTS FXD2-2019-10 AND FXD1-2019-20 DATED 15-04-2019...pdf",
+    "couponRate": 12.3,
+    "weightedAverageRate": 12.346,
+    "marketWeightedAverageRate": 12.346,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 51326.72,
+    "bidsReceivedKESM": 70934.16
+  },
+  {
+    "id": "res-fxd2-2019-005-2019-05-13",
+    "issueCode": "FXD2/2019/005",
+    "auctionDate": "2019-05-13",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2016424302_RESULTS FOR FXD2-2019-5 AND FXD2-2019-15 DATED 13.05.2019.pdf",
+    "couponRate": 10.872,
+    "weightedAverageRate": 10.934,
+    "marketWeightedAverageRate": 10.934,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 39210.55,
+    "bidsReceivedKESM": 49300.53
+  },
+  {
+    "id": "res-fxd2-2019-015-2019-05-13",
+    "issueCode": "FXD2/2019/015",
+    "auctionDate": "2019-05-13",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2016424302_RESULTS FOR FXD2-2019-5 AND FXD2-2019-15 DATED 13.05.2019.pdf",
+    "couponRate": 12.734,
+    "weightedAverageRate": 12.766,
+    "marketWeightedAverageRate": 12.766,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2012-015-2019-06-17",
+    "issueCode": "FXD1/2012/015",
+    "auctionDate": "2019-06-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/469929779_RESULTS FOR RE-OPENED FXD1-2012-15 AND FXD1-2018-15 DATED 17.06.2019.pdf",
+    "couponRate": 11.0,
+    "weightedAverageRate": 11.666,
+    "marketWeightedAverageRate": 11.666,
+    "pricePer100": 99.615,
+    "amountAcceptedKESM": 21211.35,
+    "bidsReceivedKESM": 39768.05
+  },
+  {
+    "id": "res-fxd1-2018-015-2019-06-17",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2019-06-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/469929779_RESULTS FOR RE-OPENED FXD1-2012-15 AND FXD1-2018-15 DATED 17.06.2019.pdf",
+    "couponRate": 12.65,
+    "weightedAverageRate": 12.591,
+    "marketWeightedAverageRate": 12.591,
+    "pricePer100": 101.979,
+    "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd3-2019-015-2019-07-29",
+    "issueCode": "FXD3/2019/015",
+    "auctionDate": "2019-07-29",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/293970112_RESULTS FXD3-2019-15 DATED 29-07-2019.pdf",
+    "couponRate": 12.34,
+    "weightedAverageRate": 12.415,
+    "marketWeightedAverageRate": 12.415,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 40000.0,
+    "amountAcceptedKESM": 50578.3,
+    "bidsReceivedKESM": 86674.56
+  },
+  {
+    "id": "res-fxd1-2019-020-2019-08-19",
+    "issueCode": "FXD1/2019/020",
+    "auctionDate": "2019-08-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1154486276_RESULTS FOR FXD3-2019-10 AND FXD1-2019-20 DATED 19-08-2019.pdf",
+    "couponRate": 12.873,
+    "weightedAverageRate": 12.744,
+    "marketWeightedAverageRate": 12.744,
+    "pricePer100": 105.336,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd3-2019-010-2019-08-19",
+    "issueCode": "FXD3/2019/010",
+    "auctionDate": "2019-08-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1154486276_RESULTS FOR FXD3-2019-10 AND FXD1-2019-20 DATED 19-08-2019.pdf",
+    "couponRate": 11.517,
+    "weightedAverageRate": 11.568,
+    "marketWeightedAverageRate": 11.568,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 45014.8,
+    "bidsReceivedKESM": 52769.38
+  },
+  {
+    "id": "res-fxd1-2018-015-2019-09-23",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2019-09-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1034254929_Results FXD1-2018-15 AND FXD2-2019-15 DATED 23-09-2019.pdf",
+    "couponRate": 12.65,
+    "weightedAverageRate": 12.564,
+    "marketWeightedAverageRate": 12.564,
+    "pricePer100": 104.647,
+    "amountAcceptedKESM": 15256.19,
+    "bidsReceivedKESM": 15256.19
+  },
+  {
+    "id": "res-fxd2-2019-015-2019-09-23",
+    "issueCode": "FXD2/2019/015",
+    "auctionDate": "2019-09-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1034254929_Results FXD1-2018-15 AND FXD2-2019-15 DATED 23-09-2019.pdf",
+    "couponRate": 12.734,
+    "weightedAverageRate": 12.673,
+    "marketWeightedAverageRate": 12.673,
+    "pricePer100": 105.016,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2018-015-2019-10-07",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2019-10-07",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1849133954_RESULTS FOR FXD1-2018-15 FXD2-2019-15 DATED 07-10-2019.pdf",
+    "couponRate": 12.65
+  },
+  {
+    "id": "res-fxd2-2019-015-2019-10-07",
+    "issueCode": "FXD2/2019/015",
+    "auctionDate": "2019-10-07",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1849133954_RESULTS FOR FXD1-2018-15 FXD2-2019-15 DATED 07-10-2019.pdf",
+    "couponRate": 12.734,
+    "bidsReceivedKESM": 9359.96
+  },
+  {
+    "id": "res-ifb1-2019-016-2019-10-28",
+    "issueCode": "IFB1/2019/016",
+    "auctionDate": "2019-10-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/174650516_IFB1-2019-16 DATED 28.10.2019.pdf",
+    "couponRate": 11.75,
+    "weightedAverageRate": 12.507,
+    "marketWeightedAverageRate": 12.507,
+    "pricePer100": 95.875,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 68466.07,
+    "bidsReceivedKESM": 86946.69
+  },
+  {
+    "id": "res-fxd4-2019-010-2019-11-25",
+    "issueCode": "FXD4/2019/010",
+    "auctionDate": "2019-11-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1312255817_RESULTS FOR FXD4-2019-10 DATED 25-11-2019,.pdf",
+    "couponRate": 12.28,
+    "weightedAverageRate": 12.464,
+    "marketWeightedAverageRate": 12.464,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 28351.81,
+    "bidsReceivedKESM": 38372.61
+  },
+  {
+    "id": "res-fxd3-2019-005-2019-12-16",
+    "issueCode": "FXD3/2019/005",
+    "auctionDate": "2019-12-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1354513376_RESULTS FXD3-2019-5 DATED 16.12.2019.pdf",
+    "couponRate": 11.492,
+    "weightedAverageRate": 11.583,
+    "marketWeightedAverageRate": 11.583,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 25000.0,
+    "amountAcceptedKESM": 18740.55,
+    "bidsReceivedKESM": 28468.51
+  },
+  {
+    "id": "res-fxd3-2019-005-2019-12-23",
+    "issueCode": "FXD3/2019/005",
+    "auctionDate": "2019-12-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/383409132_Results Tap Sale FXD3-2019-5 DATED 23-12-2019.pdf",
+    "bidsReceivedKESM": 9750.51
+  },
+  {
+    "id": "res-fxd1-2019-005-2020-01-27",
+    "issueCode": "FXD1/2019/005",
+    "auctionDate": "2020-01-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1492103459_RESULTS REOPEN FXD1-2019-005 AND FXD1-2019-10 DATED 27-01-2020.pdf",
+    "couponRate": 11.304,
+    "weightedAverageRate": 11.5,
+    "marketWeightedAverageRate": 11.5,
+    "pricePer100": 104.141,
+    "amountAcceptedKESM": 44488.6,
+    "bidsReceivedKESM": 44515.72
+  },
+  {
+    "id": "res-fxd1-2019-010-2020-01-27",
+    "issueCode": "FXD1/2019/010",
+    "auctionDate": "2020-01-27",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1492103459_RESULTS REOPEN FXD1-2019-005 AND FXD1-2019-10 DATED 27-01-2020.pdf",
+    "couponRate": 12.438,
+    "weightedAverageRate": 12.496,
+    "marketWeightedAverageRate": 12.496,
+    "pricePer100": 105.28,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2018-025-2020-02-24",
+    "issueCode": "FXD1/2018/025",
+    "auctionDate": "2020-02-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1446203209_RESULTS FXD1-2020-15 AND FXD1-2018-25 DATED 24.02.2020.pdf",
+    "couponRate": 13.4,
+    "weightedAverageRate": 13.639,
+    "marketWeightedAverageRate": 13.639,
+    "pricePer100": 100.874,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2020-015-2020-02-24",
+    "issueCode": "FXD1/2020/015",
+    "auctionDate": "2020-02-24",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1446203209_RESULTS FXD1-2020-15 AND FXD1-2018-25 DATED 24.02.2020.pdf",
+    "couponRate": 12.756,
+    "weightedAverageRate": 13.038,
+    "marketWeightedAverageRate": 13.038,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 5194.04,
+    "bidsReceivedKESM": 18437.41
+  },
+  {
+    "id": "res-fxd1-2018-020-2020-03-23",
+    "issueCode": "FXD1/2018/020",
+    "auctionDate": "2020-03-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1015597215_RESULTS REOPEN FXD1-2018-20 AND FXD1-2018-25 DATED 23-03-2020.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.461,
+    "marketWeightedAverageRate": 13.461,
+    "pricePer100": 99.39,
+    "amountAcceptedKESM": 8274.69,
+    "bidsReceivedKESM": 19815.99
+  },
+  {
+    "id": "res-fxd1-2018-025-2020-03-23",
+    "issueCode": "FXD1/2018/025",
+    "auctionDate": "2020-03-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1015597215_RESULTS REOPEN FXD1-2018-20 AND FXD1-2018-25 DATED 23-03-2020.pdf",
+    "couponRate": 13.4,
+    "weightedAverageRate": 13.846,
+    "marketWeightedAverageRate": 13.846,
+    "pricePer100": 100.411,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-ifb1-2020-009-2020-04-13",
+    "issueCode": "IFB1/2020/009",
+    "auctionDate": "2020-04-13",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/347954303_Results IFBI-2020-09 Dated 13.04.2020.pdf",
+    "couponRate": 10.85,
+    "weightedAverageRate": 12.332,
+    "marketWeightedAverageRate": 12.332,
+    "pricePer100": 94.548,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 39010.13,
+    "bidsReceivedKESM": 68413.78
+  },
+  {
+    "id": "res-fxd1-2020-005-2020-05-11",
+    "issueCode": "FXD1/2020/005",
+    "auctionDate": "2020-05-11",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/542073813_RESULTS FXD1-2020-5 DATED 11.05.2020.pdf",
+    "couponRate": 11.667,
+    "weightedAverageRate": 11.788,
+    "marketWeightedAverageRate": 11.788,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 20777.17,
+    "bidsReceivedKESM": 34531.5
+  },
+  {
+    "id": "res-fxd1-2020-005-2020-05-25",
+    "issueCode": "FXD1/2020/005",
+    "auctionDate": "2020-05-25",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/79125276_RESULTS FXD1-2020-5 DATED 25.05.2020.pdf",
+    "couponRate": 11.667,
+    "weightedAverageRate": 11.851,
+    "marketWeightedAverageRate": 11.851,
+    "pricePer100": 100.139,
+    "amountOfferedKESM": 30000.0,
+    "amountAcceptedKESM": 8948.12,
+    "bidsReceivedKESM": 20581.07
+  },
+  {
     "id": "res-ifb1-2020-006-2020-06-01",
     "issueCode": "IFB1/2020/006",
     "auctionDate": "2020-06-01",
@@ -123,6 +1137,13 @@
     "amountOfferedKESM": 50000.0
   },
   {
+    "id": "res-fxd1-2018-025-2020-11-16",
+    "issueCode": "FXD1/2018/025",
+    "auctionDate": "2020-11-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/348240225_RESULTS TAP SALE FXD1-2018-25 DATED 16.11.2020.pdf",
+    "bidsReceivedKESM": 7959.9
+  },
+  {
     "id": "res-fxd1-2018-020-2020-11-23",
     "issueCode": "FXD1/2018/020",
     "auctionDate": "2020-11-23",
@@ -158,6 +1179,13 @@
     "auctionDate": "2020-12-14",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1432140282_RESULTS FXD1-2012-15 AND FXD2-2019-15 DATED 14.12.2020.pdf",
     "amountOfferedKESM": 40000.0
+  },
+  {
+    "id": "res-fxd1-2012-015-2020-12-28",
+    "issueCode": "FXD1/2012/015",
+    "auctionDate": "2020-12-28",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1271061829_RESULTS FXD1-2012-15 AND FXD2-2019-15 DATED 28.12.20.pdf",
+    "bidsReceivedKESM": 2578.4
   },
   {
     "id": "res-fxd1-2021-002-2021-01-11",
@@ -252,6 +1280,29 @@
     "bidsReceivedKESM": 88577.56
   },
   {
+    "id": "res-fxd1-2021-025-2021-05-10",
+    "issueCode": "FXD1/2021/025",
+    "auctionDate": "2021-05-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1882392561_RESULTS FXD2-2019-015 AND FXD1-2021-025 DATED 10-05-2021..pdf",
+    "couponRate": 13.924,
+    "weightedAverageRate": 14.061,
+    "marketWeightedAverageRate": 14.061,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 30000.0
+  },
+  {
+    "id": "res-fxd2-2019-015-2021-05-10",
+    "issueCode": "FXD2/2019/015",
+    "auctionDate": "2021-05-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1882392561_RESULTS FXD2-2019-015 AND FXD1-2021-025 DATED 10-05-2021..pdf",
+    "couponRate": 12.734,
+    "weightedAverageRate": 13.192,
+    "marketWeightedAverageRate": 13.192,
+    "pricePer100": 98.505,
+    "amountAcceptedKESM": 6042.69,
+    "bidsReceivedKESM": 11581.96
+  },
+  {
     "id": "res-fxd2-2019-015-2021-05-24",
     "issueCode": "FXD2/2019/015",
     "auctionDate": "2021-05-24",
@@ -312,6 +1363,41 @@
     "amountOfferedKESM": 60000.0
   },
   {
+    "id": "res-fxd1-2018-020-2021-08-16",
+    "issueCode": "FXD1/2018/020",
+    "auctionDate": "2021-08-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1276685061_RESULTS FXD3-2019-10  FXD1-2018-20 AND FXD1-2021-20  DATED 16-8-2021.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.25,
+    "marketWeightedAverageRate": 13.25,
+    "pricePer100": 105.385,
+    "amountAcceptedKESM": 17783.62,
+    "bidsReceivedKESM": 22818.8
+  },
+  {
+    "id": "res-fxd1-2021-020-2021-08-16",
+    "issueCode": "FXD1/2021/020",
+    "auctionDate": "2021-08-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1276685061_RESULTS FXD3-2019-10  FXD1-2018-20 AND FXD1-2021-20  DATED 16-8-2021.pdf",
+    "couponRate": 13.444,
+    "weightedAverageRate": 13.469,
+    "marketWeightedAverageRate": 13.469,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 60000.0
+  },
+  {
+    "id": "res-fxd3-2019-010-2021-08-16",
+    "issueCode": "FXD3/2019/010",
+    "auctionDate": "2021-08-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1276685061_RESULTS FXD3-2019-10  FXD1-2018-20 AND FXD1-2021-20  DATED 16-8-2021.pdf",
+    "couponRate": 11.517,
+    "weightedAverageRate": 12.309,
+    "marketWeightedAverageRate": 12.309,
+    "pricePer100": 96.71,
+    "amountAcceptedKESM": 22968.26,
+    "bidsReceivedKESM": 38313.49
+  },
+  {
     "id": "res-ifb1-2021-021-2021-09-13",
     "issueCode": "IFB1/2021/021",
     "auctionDate": "2021-09-13",
@@ -358,6 +1444,29 @@
     "pricePer100": 99.43,
     "amountAcceptedKESM": 3267.29,
     "bidsReceivedKESM": 3390.35
+  },
+  {
+    "id": "res-fxd1-2019-020-2021-11-15",
+    "issueCode": "FXD1/2019/020",
+    "auctionDate": "2021-11-15",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1276816915_RESULTS FXD1-2021-005 AND FXD1-2019-020 DATED 15-11-2021.pdf",
+    "couponRate": 12.873,
+    "weightedAverageRate": 13.469,
+    "marketWeightedAverageRate": 13.469,
+    "pricePer100": 97.632,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2021-005-2021-11-15",
+    "issueCode": "FXD1/2021/005",
+    "auctionDate": "2021-11-15",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1276816915_RESULTS FXD1-2021-005 AND FXD1-2019-020 DATED 15-11-2021.pdf",
+    "couponRate": 11.277,
+    "weightedAverageRate": 11.338,
+    "marketWeightedAverageRate": 11.338,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 53661.88,
+    "bidsReceivedKESM": 66603.14
   },
   {
     "id": "res-fxd1-2018-020-2021-12-13",
@@ -464,6 +1573,29 @@
     "amountOfferedKESM": 30000.0,
     "amountAcceptedKESM": 27637.05,
     "bidsReceivedKESM": 32545.9
+  },
+  {
+    "id": "res-fxd1-2021-025-2022-05-16",
+    "issueCode": "FXD1/2021/025",
+    "auctionDate": "2022-05-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1003924544_RESULTS FXD1-2022-010 AND FXD1-2021-025 DATED 16-05-2022.pdf",
+    "couponRate": 13.924,
+    "weightedAverageRate": 14.246,
+    "marketWeightedAverageRate": 14.246,
+    "pricePer100": 99.902,
+    "amountOfferedKESM": 60000.0
+  },
+  {
+    "id": "res-fxd1-2022-010-2022-05-16",
+    "issueCode": "FXD1/2022/010",
+    "auctionDate": "2022-05-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1003924544_RESULTS FXD1-2022-010 AND FXD1-2021-025 DATED 16-05-2022.pdf",
+    "couponRate": 13.49,
+    "weightedAverageRate": 13.542,
+    "marketWeightedAverageRate": 13.542,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 28675.32,
+    "bidsReceivedKESM": 32893.01
   },
   {
     "id": "res-fxd1-2021-025-2022-05-23",
@@ -575,6 +1707,52 @@
     "bidsReceivedKESM": 8961.47
   },
   {
+    "id": "res-fxd1-2022-010-2022-09-19",
+    "issueCode": "FXD1/2022/010",
+    "auctionDate": "2022-09-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/947041113_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2022-10 AND FXD1-2022-15 DATED 19-09-2022.pdf",
+    "couponRate": 13.49,
+    "weightedAverageRate": 13.964,
+    "marketWeightedAverageRate": 13.964,
+    "pricePer100": 102.226,
+    "amountAcceptedKESM": 25619.45,
+    "bidsReceivedKESM": 28516.06
+  },
+  {
+    "id": "res-fxd1-2022-015-2022-09-19",
+    "issueCode": "FXD1/2022/015",
+    "auctionDate": "2022-09-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/947041113_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2022-10 AND FXD1-2022-15 DATED 19-09-2022.pdf",
+    "couponRate": 13.942,
+    "weightedAverageRate": 14.044,
+    "marketWeightedAverageRate": 14.044,
+    "pricePer100": 105.341,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2017-010-2022-10-10",
+    "issueCode": "FXD1/2017/010",
+    "auctionDate": "2022-10-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/339112848_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2017-10 AND FXD1-2020-15 DATED 10-10-2022.pdf",
+    "couponRate": 12.966,
+    "weightedAverageRate": 13.512,
+    "marketWeightedAverageRate": 13.512,
+    "pricePer100": 101.299,
+    "amountAcceptedKESM": 14109.57,
+    "bidsReceivedKESM": 17256.31
+  },
+  {
+    "id": "res-fxd1-2020-015-2022-10-10",
+    "issueCode": "FXD1/2020/015",
+    "auctionDate": "2022-10-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/339112848_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2017-10 AND FXD1-2020-15 DATED 10-10-2022.pdf",
+    "couponRate": 12.756,
+    "weightedAverageRate": 14.144,
+    "marketWeightedAverageRate": 14.144,
+    "pricePer100": 94.621,
+    "amountOfferedKESM": 40000.0
+  },
+  {
     "id": "res-fxd1-2022-025-2022-10-24",
     "issueCode": "FXD1/2022/025",
     "auctionDate": "2022-10-24",
@@ -622,12 +1800,58 @@
     "bidsReceivedKESM": 52903.55
   },
   {
+    "id": "res-fxd1-2008-020-2022-12-12",
+    "issueCode": "FXD1/2008/020",
+    "auctionDate": "2022-12-12",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/752527526_December 2022  FXD1-2008-20 & FXD1-2022-25 DATED 12-12-2022.pdf",
+    "couponRate": 13.75,
+    "weightedAverageRate": 13.831,
+    "marketWeightedAverageRate": 13.831,
+    "pricePer100": 99.699,
+    "amountAcceptedKESM": 17265.6,
+    "bidsReceivedKESM": 17322.8
+  },
+  {
+    "id": "res-fxd1-2022-025-2022-12-12",
+    "issueCode": "FXD1/2022/025",
+    "auctionDate": "2022-12-12",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/752527526_December 2022  FXD1-2008-20 & FXD1-2022-25 DATED 12-12-2022.pdf",
+    "couponRate": 14.188,
+    "weightedAverageRate": 14.526,
+    "marketWeightedAverageRate": 14.526,
+    "pricePer100": 100.177,
+    "amountOfferedKESM": 40000.0
+  },
+  {
     "id": "res-ifb1-2022-006-2022-12-26",
     "issueCode": "IFB1/2022/006",
     "auctionDate": "2022-12-26",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1685903722_RESULTS FOR TAP TREASURY BONDS ISSUE NOs IFBI-2022-06 DATED 26-12-2022.pdf",
     "couponRate": 13.215,
     "bidsReceivedKESM": 10814.55
+  },
+  {
+    "id": "res-fxd1-2020-005-2023-01-16",
+    "issueCode": "FXD1/2020/005",
+    "auctionDate": "2023-01-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/105031937_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2020-05 AND FXD1-2022-15 DATED 16-01-2023.pdf",
+    "couponRate": 11.667,
+    "weightedAverageRate": 12.917,
+    "marketWeightedAverageRate": 12.917,
+    "pricePer100": 99.846,
+    "amountAcceptedKESM": 24352.62,
+    "bidsReceivedKESM": 27620.35
+  },
+  {
+    "id": "res-fxd1-2022-015-2023-01-16",
+    "issueCode": "FXD1/2022/015",
+    "auctionDate": "2023-01-16",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/105031937_RESULTS FOR RE-OPENED TREASURY BONDS ISSUE NOs. FXD1-2020-05 AND FXD1-2022-15 DATED 16-01-2023.pdf",
+    "couponRate": 13.942,
+    "weightedAverageRate": 14.337,
+    "marketWeightedAverageRate": 14.337,
+    "pricePer100": 101.681,
+    "amountOfferedKESM": 50000.0
   },
   {
     "id": "res-fxd1-2020-005-2023-01-23",
@@ -782,6 +2006,29 @@
     "bidsReceivedKESM": 18560.05
   },
   {
+    "id": "res-fxd1-2016-010-2023-07-17",
+    "issueCode": "FXD1/2016/010",
+    "auctionDate": "2023-07-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/842956014_RESULTS FOR  TREASURY BOND ISSUE NOs. FXD1-2016-10 AND FXD1-2023-05 DATED 17-07-2023.pdf",
+    "couponRate": 15.039,
+    "weightedAverageRate": 16.582,
+    "marketWeightedAverageRate": 16.582,
+    "pricePer100": 102.989,
+    "amountAcceptedKESM": 15740.47,
+    "bidsReceivedKESM": 22663.75
+  },
+  {
+    "id": "res-fxd1-2023-005-2023-07-17",
+    "issueCode": "FXD1/2023/005",
+    "auctionDate": "2023-07-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/842956014_RESULTS FOR  TREASURY BOND ISSUE NOs. FXD1-2016-10 AND FXD1-2023-05 DATED 17-07-2023.pdf",
+    "couponRate": 16.844,
+    "weightedAverageRate": 17.026,
+    "marketWeightedAverageRate": 17.026,
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 40000.0
+  },
+  {
     "id": "res-fxd1-2016-010-2023-07-24",
     "issueCode": "FXD1/2016/010",
     "auctionDate": "2023-07-24",
@@ -795,6 +2042,29 @@
     "auctionDate": "2023-07-24",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/579857472_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. FXD1-2016-10 AND FXD1-2023-05 DATED 24-07-2023.pdf",
     "couponRate": 16.844
+  },
+  {
+    "id": "res-fxd1-2023-002-2023-08-21",
+    "issueCode": "FXD1/2023/002",
+    "auctionDate": "2023-08-21",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1037051525_AUGUST 2023 NEW FXD1-2023-02 & RE-OPENED FXD1-2023-05 DATED 21-08-2023.pdf",
+    "couponRate": 16.9723,
+    "weightedAverageRate": 17.5545,
+    "marketWeightedAverageRate": 17.5545,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 11659.58,
+    "bidsReceivedKESM": 38301.96
+  },
+  {
+    "id": "res-fxd1-2023-005-2023-08-21",
+    "issueCode": "FXD1/2023/005",
+    "auctionDate": "2023-08-21",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1037051525_AUGUST 2023 NEW FXD1-2023-02 & RE-OPENED FXD1-2023-05 DATED 21-08-2023.pdf",
+    "couponRate": 16.844,
+    "weightedAverageRate": 18.1646,
+    "marketWeightedAverageRate": 18.1646,
+    "pricePer100": 98.0427,
+    "amountOfferedKESM": 40000.0
   },
   {
     "id": "res-fxd1-2023-002-2023-08-28",
@@ -1007,6 +2277,29 @@
     "bidsReceivedKESM": 7107.55
   },
   {
+    "id": "res-fxd1-2023-002-2024-06-10",
+    "issueCode": "FXD1/2023/002",
+    "auctionDate": "2024-06-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/89892287_RESULTS FOR RE-OPEN FXD1-2023-002 AND FXD1-2024-003 DATED 10-06-2024.pdf",
+    "couponRate": 16.9723,
+    "weightedAverageRate": 17.1867,
+    "marketWeightedAverageRate": 17.1867,
+    "pricePer100": 104.9834,
+    "amountAcceptedKESM": 7075.38,
+    "bidsReceivedKESM": 8445.84
+  },
+  {
+    "id": "res-fxd1-2024-003-2024-06-10",
+    "issueCode": "FXD1/2024/003",
+    "auctionDate": "2024-06-10",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/89892287_RESULTS FOR RE-OPEN FXD1-2023-002 AND FXD1-2024-003 DATED 10-06-2024.pdf",
+    "couponRate": 18.3854,
+    "weightedAverageRate": 17.6266,
+    "marketWeightedAverageRate": 17.6266,
+    "pricePer100": 108.9748,
+    "amountOfferedKESM": 30000.0
+  },
+  {
     "id": "res-fxd1-2023-005-2024-06-17",
     "issueCode": "FXD1/2023/005",
     "auctionDate": "2024-06-17",
@@ -1061,6 +2354,29 @@
     "pricePer100": 102.3524,
     "amountAcceptedKESM": 6752.15,
     "bidsReceivedKESM": 7067.73
+  },
+  {
+    "id": "res-ifb1-2023-006.5-2024-08-19",
+    "issueCode": "IFB1/2023/006.5",
+    "auctionDate": "2024-08-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/107706422_RESULTS FOR REOPENED IFB1-2023-6.5 AND IFB1-2023-17 DATED 19-08-2024.pdf",
+    "couponRate": 17.9327,
+    "weightedAverageRate": 18.4685,
+    "marketWeightedAverageRate": 18.4685,
+    "pricePer100": 103.7373,
+    "amountAcceptedKESM": 74167.6,
+    "bidsReceivedKESM": 96861.91
+  },
+  {
+    "id": "res-ifb1-2023-017-2024-08-19",
+    "issueCode": "IFB1/2023/017",
+    "auctionDate": "2024-08-19",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/107706422_RESULTS FOR REOPENED IFB1-2023-6.5 AND IFB1-2023-17 DATED 19-08-2024.pdf",
+    "couponRate": 14.399,
+    "weightedAverageRate": 18.1583,
+    "marketWeightedAverageRate": 18.1583,
+    "pricePer100": 90.4223,
+    "amountOfferedKESM": 50000.0
   },
   {
     "id": "res-ifb1-2023-017-2024-09-02",
@@ -1193,6 +2509,29 @@
     "bidsReceivedKESM": 53628.95
   },
   {
+    "id": "res-fxd1-2018-015-2025-01-20",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2025-01-20",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/56116132_RESULTS FXD1-2015-018 AND FXD1-2022-025 DATED 20-01-2025.pdf",
+    "couponRate": 12.65,
+    "weightedAverageRate": 14.3288,
+    "marketWeightedAverageRate": 14.3288,
+    "pricePer100": 94.6644,
+    "amountAcceptedKESM": 23753.07,
+    "bidsReceivedKESM": 30576.6
+  },
+  {
+    "id": "res-fxd1-2022-025-2025-01-20",
+    "issueCode": "FXD1/2022/025",
+    "auctionDate": "2025-01-20",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/56116132_RESULTS FXD1-2015-018 AND FXD1-2022-025 DATED 20-01-2025.pdf",
+    "couponRate": 14.188,
+    "weightedAverageRate": 15.7433,
+    "marketWeightedAverageRate": 15.7433,
+    "pricePer100": 94.2528,
+    "amountOfferedKESM": 30000.0
+  },
+  {
     "id": "res-fxd1-2022-003-2025-02-17",
     "issueCode": "FXD1/2022/003",
     "auctionDate": "2025-02-17",
@@ -1213,6 +2552,29 @@
     "weightedAverageRate": 9.0895,
     "marketWeightedAverageRate": 9.0895,
     "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-ifb1-2022-014-2025-02-17",
+    "issueCode": "IFB1/2022/014",
+    "auctionDate": "2025-02-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf",
+    "couponRate": 13.938,
+    "weightedAverageRate": 14.0857,
+    "marketWeightedAverageRate": 14.0857,
+    "pricePer100": 103.5012,
+    "amountAcceptedKESM": 65255.75,
+    "bidsReceivedKESM": 93132.02
+  },
+  {
+    "id": "res-ifb1-2023-017-2025-02-17",
+    "issueCode": "IFB1/2023/017",
+    "auctionDate": "2025-02-17",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf",
+    "couponRate": 14.399,
+    "weightedAverageRate": 14.4161,
+    "marketWeightedAverageRate": 14.4161,
+    "pricePer100": 106.984,
+    "amountOfferedKESM": 70000.0
   },
   {
     "id": "res-fxd1-2018-025-2025-03-10",
@@ -1271,6 +2633,29 @@
     "bidsReceivedKESM": 13239.65
   },
   {
+    "id": "res-fxd1-2022-015-2025-05-05",
+    "issueCode": "FXD1/2022/015",
+    "auctionDate": "2025-05-05",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1376056348_RESULTS FXD1-2022-015 AND FXD1-2022-025 DATED 05-05-2025.pdf",
+    "couponRate": 13.942,
+    "weightedAverageRate": 13.9417,
+    "marketWeightedAverageRate": 13.9417,
+    "pricePer100": 100.6876,
+    "amountAcceptedKESM": 25280.99,
+    "bidsReceivedKESM": 26413.49
+  },
+  {
+    "id": "res-fxd1-2022-025-2025-05-05",
+    "issueCode": "FXD1/2022/025",
+    "auctionDate": "2025-05-05",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1376056348_RESULTS FXD1-2022-015 AND FXD1-2022-025 DATED 05-05-2025.pdf",
+    "couponRate": 14.188,
+    "weightedAverageRate": 14.6362,
+    "marketWeightedAverageRate": 14.6362,
+    "pricePer100": 98.2211,
+    "amountOfferedKESM": 50000.0
+  },
+  {
     "id": "res-fxd1-2012-020-2025-05-12",
     "issueCode": "FXD1/2012/020",
     "auctionDate": "2025-05-12",
@@ -1282,6 +2667,68 @@
     "amountOfferedKESM": 30000.0,
     "amountAcceptedKESM": 43520.27,
     "bidsReceivedKESM": 54388.38
+  },
+  {
+    "id": "res-fxd1-2020-015-2025-06-23",
+    "issueCode": "FXD1/2020/015",
+    "auctionDate": "2025-06-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1672578533_RESULTS FXD1-2020-015 AND SDB1-2011-030 DATED 23-06-2025.pdf",
+    "couponRate": 12.756,
+    "weightedAverageRate": 13.6062,
+    "marketWeightedAverageRate": 13.6062,
+    "pricePer100": 100.4905,
+    "amountAcceptedKESM": 57872.64,
+    "bidsReceivedKESM": 84734.64
+  },
+  {
+    "id": "res-sdb1-2011-030-2025-06-23",
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": "2025-06-23",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1672578533_RESULTS FXD1-2020-015 AND SDB1-2011-030 DATED 23-06-2025.pdf",
+    "couponRate": 12.0,
+    "weightedAverageRate": 14.1807,
+    "marketWeightedAverageRate": 14.1807,
+    "pricePer100": 91.7928,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-fxd1-2018-020-2025-07-14",
+    "issueCode": "FXD1/2018/020",
+    "auctionDate": "2025-07-14",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1968103295_RESULTS FXD1-2018-020 AND FXD1-2018-025 DATED 14-07-2025.pdf",
+    "couponRate": 13.2,
+    "weightedAverageRate": 13.9451,
+    "marketWeightedAverageRate": 13.9451,
+    "pricePer100": 100.1525,
+    "amountAcceptedKESM": 30572.4,
+    "bidsReceivedKESM": 33075.11
+  },
+  {
+    "id": "res-fxd1-2018-025-2025-07-14",
+    "issueCode": "FXD1/2018/025",
+    "auctionDate": "2025-07-14",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1968103295_RESULTS FXD1-2018-020 AND FXD1-2018-025 DATED 14-07-2025.pdf",
+    "couponRate": 13.4,
+    "weightedAverageRate": 14.4348,
+    "marketWeightedAverageRate": 14.4348,
+    "pricePer100": 94.948,
+    "amountOfferedKESM": 50000.0
+  },
+  {
+    "id": "res-ifb1-2018-015-2025-08-18",
+    "issueCode": "IFB1/2018/015",
+    "auctionDate": "2025-08-18",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2002441258_RESULTS IFB1-2018-015 AND IFB1-2022-019 DATED 18-08-2025.pdf",
+    "couponRate": 1.0,
+    "amountAcceptedKESM": 50658.38,
+    "bidsReceivedKESM": 215941.68
+  },
+  {
+    "id": "res-ifb1-2022-019-2025-08-18",
+    "issueCode": "IFB1/2022/019",
+    "auctionDate": "2025-08-18",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2002441258_RESULTS IFB1-2018-015 AND IFB1-2022-019 DATED 18-08-2025.pdf",
+    "amountOfferedKESM": 90000.0
   },
   {
     "id": "res-ifb1-2018-015-2025-08-25",
@@ -1706,24 +3153,16 @@
     "id": "res-fxd1-2018-020-2026-06-22",
     "issueCode": "FXD1/2018/020",
     "auctionDate": "2026-06-22",
-    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1312458656_RESULTS FXD1-2018-020 AND FXD1-2021-025 DATED 22-06-2026.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1690108982_TAP SALE RESULTS FXD1-2018-025 AND FXD1-2021-025 DATED 22-06-2026.pdf",
     "couponRate": 13.2,
-    "weightedAverageRate": 14.116,
-    "marketWeightedAverageRate": 14.116,
-    "pricePer100": 99.0155,
-    "amountAcceptedKESM": 19558.61,
-    "bidsReceivedKESM": 22676.86
+    "bidsReceivedKESM": 6387.35
   },
   {
     "id": "res-fxd1-2021-025-2026-06-22",
     "issueCode": "FXD1/2021/025",
     "auctionDate": "2026-06-22",
-    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1312458656_RESULTS FXD1-2018-020 AND FXD1-2021-025 DATED 22-06-2026.pdf",
-    "couponRate": 13.924,
-    "weightedAverageRate": 15.111,
-    "marketWeightedAverageRate": 15.111,
-    "pricePer100": 95.8704,
-    "amountOfferedKESM": 60000.0
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1690108982_TAP SALE RESULTS FXD1-2018-025 AND FXD1-2021-025 DATED 22-06-2026.pdf",
+    "couponRate": 13.924
   },
   {
     "id": "res-fxd1-2021-020-2026-07-13",

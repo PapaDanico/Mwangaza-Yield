@@ -6,6 +6,7 @@ import type { Bond, SecondaryTrade, TBill } from '@/types/bond';
 import { computeBondInvestment, getCouponDates } from './financial-engine';
 import { buildLadder, type LadderPlan } from './ladder';
 import { computeTBill } from './tbills';
+import { monthsToTarget } from './progress';
 
 export type GoalKey = 'fire' | 'school-fees' | 'passive-income' | 'capital-preservation';
 
@@ -86,21 +87,18 @@ export function planFire(
   const incomeFromCurrentKES = currentCapitalKES * r;
   const shortfallKES = Math.max(0, requiredCapitalKES - currentCapitalKES);
 
-  // Future value of a growing pot: capital compounds at r while contributions
-  // are added monthly. Solved by stepping years until the target is met.
-  let yearsToTarget: number | null = null;
-  if (shortfallKES > 0 && (monthlyContributionKES > 0 || r > 0)) {
-    let pot = currentCapitalKES;
-    for (let y = 1; y <= 60; y++) {
-      pot = pot * (1 + r) + monthlyContributionKES * 12 * (1 + r / 2);
-      if (pot >= requiredCapitalKES) {
-        yearsToTarget = y;
-        break;
-      }
-    }
-  } else if (shortfallKES === 0) {
-    yearsToTarget = 0;
-  }
+  // Future value of a growing pot, stepped monthly because that is how the
+  // contributions are actually made. This is the same projection the progress
+  // tracker measures recorded checkpoints against — deliberately one function,
+  // so a saver is never marked "behind" against a curve that differs from the
+  // one their plan was drawn with.
+  const months = monthsToTarget(
+    currentCapitalKES,
+    monthlyContributionKES,
+    netYield,
+    requiredCapitalKES
+  );
+  const yearsToTarget = months === null ? null : months / 12;
 
   return {
     targetAnnualIncomeKES,

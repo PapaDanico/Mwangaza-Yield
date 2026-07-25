@@ -12,6 +12,7 @@ import { cn, formatCompactKES } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
+import GoalProgress from '@/components/shared/GoalProgress';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -105,7 +106,14 @@ export default function GoalsPage() {
     if (name === null) return;
     const now = new Date().toISOString();
     const plan = makePlan(goal, currentInputs, name, now, existing?.id);
-    await savePlan(existing ? { ...plan, createdAt: existing.createdAt } : plan);
+    // Re-saving a plan must not wipe the readings recorded against it. makePlan
+    // builds a fresh record, so anything the plan accumulated has to be carried
+    // over explicitly.
+    await savePlan(
+      existing
+        ? { ...plan, createdAt: existing.createdAt, checkpoints: existing.checkpoints }
+        : plan
+    );
     setActivePlanId(plan.id);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2200);
@@ -124,6 +132,12 @@ export default function GoalsPage() {
     [bonds, secondary, incomeCapital]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
+
+  // Progress needs a saved plan: it is measured against the projection made on
+  // a particular day with particular numbers, and unsaved inputs have no such
+  // anchor. It also has to match the goal on screen, so switching goals does
+  // not show one plan's readings under another's heading.
+  const activePlan = plans.find((p) => p.id === activePlanId && p.goal === goal) ?? null;
 
   if (!bonds.length) return <DataState />;
 
@@ -266,7 +280,15 @@ export default function GoalsPage() {
               <Stat label="Still to raise" value={formatCompactKES(fire.shortfallKES)} />
               <Stat
                 label="Years to target"
-                value={fire.yearsToTarget === null ? '—' : fire.yearsToTarget === 0 ? 'Funded' : `${fire.yearsToTarget}`}
+                // Stepped monthly, so this is fractional. Printed to one place:
+                // "3.6" is the honest answer, and the raw 3.5833333333333335
+                // this replaced was neither readable nor that precise.
+                value={
+                  fire.yearsToTarget === null ? '—'
+                    : fire.yearsToTarget === 0 ? 'Funded'
+                    : fire.yearsToTarget < 1 ? `${Math.round(fire.yearsToTarget * 12)} months`
+                    : `${fire.yearsToTarget.toFixed(1)}`
+                }
                 accent="text-gold-700"
               />
             </div>
@@ -278,6 +300,17 @@ export default function GoalsPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {goal === 'fire' && activePlan && (
+        <GoalProgress
+          plan={activePlan}
+          targetKES={fire.requiredCapitalKES}
+          annualRatePct={fire.bestNetYield}
+          startKES={activePlan.inputs.capital ?? 0}
+          monthlyKES={activePlan.inputs.monthly ?? 0}
+          onChange={savePlan}
+        />
       )}
 
       {/* ------------------------------------------------------ School fees */}
@@ -351,6 +384,21 @@ export default function GoalsPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {goal === 'school-fees' && activePlan && (
+        // The fees themselves are the target: the pot has to cover them by the
+        // time they fall due. Growth is the ladder's own blended net yield, and
+        // there is no monthly contribution in this planner, so the projection
+        // is the capital compounding alone.
+        <GoalProgress
+          plan={activePlan}
+          targetKES={fees.totalFeesKES}
+          annualRatePct={fees.ladder.blendedNetYTM}
+          startKES={activePlan.inputs.feeCapital ?? 0}
+          monthlyKES={0}
+          onChange={savePlan}
+        />
       )}
 
       {/* --------------------------------------------------- Passive income */}

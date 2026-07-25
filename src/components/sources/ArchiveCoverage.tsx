@@ -31,8 +31,10 @@ function Bar({ pct }: { pct: number }) {
 }
 
 export default function ArchiveCoverage() {
-  const { records, issueCodes, complete, completePct, bidToCover, earliest, latest, fields, stale } =
-    quality;
+  const {
+    records, issueCodes, complete, completePct, bidToCover, earliest, latest, fields, stale,
+    valueDates,
+  } = quality;
   const newest = quality.parserVersions[quality.parserVersions.length - 1];
 
   return (
@@ -110,10 +112,26 @@ export default function ArchiveCoverage() {
       <p className="mt-4 text-xs text-ink-muted">
         <span className="font-semibold text-ink-soft">On the value date:</span> the JSON key is
         called <code className="num">auctionDate</code>, and it holds the date CBK dates the bond
-        from — the Monday — not the Wednesday bidding closed. 297 of the {records} records land on
-        a Monday and the exceptions are switch auctions. The key keeps its name so that anything
-        already reading the file does not break; this note is the correction. If you need the day
-        an auction actually closed, that is in the forthcoming-auction feed, not here.
+        from — the Monday — not the Wednesday bidding closed.{' '}
+        <span className="num">{valueDates.mondays.toLocaleString()}</span> of the{' '}
+        <span className="num">{valueDates.dated.toLocaleString()}</span> records that carry a date
+        land on a Monday
+        {valueDates.exceptions > 0 && (
+          // Counted, not named. An earlier version of this sentence named the
+          // exceptions as switch auctions, which was true when it was written
+          // and is not now — one of them is a buyback. A count cannot go stale
+          // that way, and the reader can see the exceptions themselves in the
+          // CSV rather than take our word for what they are.
+          <>
+            {' '}
+            — the{' '}
+            <span className="num">{valueDates.exceptions.toLocaleString()}</span> that do not are
+            exchanges and buybacks rather than ordinary auctions, and settle on their own timetable
+          </>
+        )}
+        . The key keeps its name so that anything already reading the file does not break; this note
+        is the correction. If you need the day an auction actually closed, that is in the
+        forthcoming-auction feed, not here.
       </p>
 
       <p className="mt-3 text-xs text-ink-muted">

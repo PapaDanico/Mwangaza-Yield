@@ -40,9 +40,18 @@ export default function LadderReport({
         </div>
       </header>
 
-      <h1 className="mt-5 font-display text-2xl font-bold">
+      {/*
+        h2, not h1, even though this reads as the title of the exported document.
+        The report is rendered off-screen inside /ladder/, which already has its
+        own h1, so an h1 here gave that page two — and a screen-reader user
+        landing on it heard a currency figure announced as the page's subject.
+        The PDF is rasterised from the styles rather than the tags, so the export
+        looks identical either way; the level is doing semantic work only, and
+        the page it lives in is what decides it.
+      */}
+      <h2 className="mt-5 font-display text-2xl font-bold">
         {formatKES(plan.totalCostKES)} over {horizon} years
-      </h1>
+      </h2>
       <p className="mt-1 text-xs text-ink-muted">
         A staggered portfolio of Kenyan government bonds, priced at last traded levels and
         stated net of withholding tax.

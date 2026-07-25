@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 10
+PARSER_VERSION = 11
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -299,6 +299,74 @@ def label_word_positions(line: list, span: tuple) -> set:
     return positions
 
 
+def value_start_x(line: list, skip: set | None = None) -> float | None:
+    """Where this row's values begin — measured on the row, not on the header.
+
+    THE BUG THIS EXISTS TO FIX
+    --------------------------
+    `label_x` was one number for the whole page: min(header centres) - 40. That
+    assumes the issue codes in the header sit LEFT of the figures beneath them.
+    On four files in the archive they do not, and the consequence is not a
+    missing value but a wrong one:
+
+        Total bids Received (Kshs. M)   31,331.63   32,916.78   64,248.41
+
+    The first figure fell left of the page-wide boundary and was discarded, so
+    only two columns were measured where three exist. Two columns matched two
+    issue codes exactly, the geometry was accepted as correct, and every bond
+    took its neighbour's number — the last one taking the auction total:
+
+        FXD2/2014/005   recorded 32,916.78   (the other bond's bids)
+        FXD3/2013/005   recorded 64,248.40   (the auction total)
+
+    31,331.63 + 32,916.78 = 64,248.41. The same identity holds for three more
+    files. Nothing in the data contradicted it: two bonds, two plausible
+    figures, a total that never appeared. It was found only because the row
+    label had accidentally kept the discarded number.
+
+    WHY PER LINE
+    ------------
+    Where the label ends is a fact about the ROW. A row reads LABEL then VALUES,
+    so the boundary is the first word that could be a figure and is not inside
+    the label's own matched span. That cannot be pushed right by a header whose
+    codes happen to be indented, because it never looks at the header.
+
+    Scanned from the RIGHT, as a trailing run. Taking the first value-looking
+    word from the left would take the "100" out of "Price per Kshs 100 at
+    average yield 100.000 97.632" and admit it as a figure — the exact hazard
+    the page-wide boundary was introduced to prevent. Values in a row are the
+    words AFTER the last word, so the run that ends the line is the run that
+    matters:
+
+        Price per Kshs 100 at average yield  100.000  97.632
+                                             ^ run starts here, after "yield"
+        Total bids Received (Kshs. M)  31,331.63  32,916.78  64,248.41
+                                       ^ run starts here, after "M)"
+
+    That holds without help from `skip`, so the boundary is safe even where a
+    caller has none to give.
+
+    Returns None when the line does not end in values at all, and the caller
+    keeps its existing boundary — nothing to protect means nothing to move.
+
+    A word inside the label's own matched span ends the run too. Where a label
+    finishes on a number with nothing between it and the figures —
+    "Price per Kshs 100 100.000" — no amount of scanning separates them, and
+    `skip` is the caller's knowledge of which words its pattern consumed. That
+    is the same reasoning assign_to_columns already relies on.
+    """
+    start = None
+    for pos in range(len(line) - 1, -1, -1):
+        w = line[pos]
+        if skip and pos in skip:
+            break
+        if VALUE_FRAGMENT_RE.match(w["text"]):
+            start = w
+        elif any(c.isalpha() for c in w["text"]):
+            break
+    return None if start is None else start["x0"] - 1
+
+
 def assign_to_columns(line: list, centres: list, label_x: float,
                       skip: set | None = None) -> dict:
     """Map a line's numeric fragments onto the column each one sits under.
@@ -333,6 +401,15 @@ def assign_to_columns(line: list, centres: list, label_x: float,
     already knows it: the caller matched this row using the field's own label
     pattern, so it knows precisely which words the label occupied.
     """
+    # The row's own boundary wins where it sits further LEFT than the page-wide
+    # one, and only then. Moving left can admit a label word, which the content
+    # filter and `skip` below already handle; leaving the page-wide boundary in
+    # place where it is looser costs nothing. Moving RIGHT is what discarded a
+    # whole value column on four files, so it is never allowed.
+    own = value_start_x(line, skip)
+    if own is not None:
+        label_x = min(label_x, own)
+
     buckets: dict = {i: [] for i in range(len(centres))}
     for pos, w in enumerate(line):
         if skip and pos in skip:
@@ -409,11 +486,16 @@ def value_columns(lines: list, centres: list, label_x: float) -> list:
         if span is None:
             continue
         skip = label_word_positions(line, span)
+        # Same per-row boundary as assign_to_columns, for the same reason: a
+        # column measured here is a column a value can land in, and a column
+        # missed here is one that silently shifts every bond's figure.
+        own = value_start_x(line, skip)
+        bound = min(label_x, own) if own is not None else label_x
         for pos, w in enumerate(line):
             if pos in skip:
                 continue
             mid = (w["x0"] + w["x1"]) / 2
-            if mid >= label_x and VALUE_FRAGMENT_RE.match(w["text"]):
+            if mid >= bound and VALUE_FRAGMENT_RE.match(w["text"]):
                 xs.append(mid)
     if not xs:
         return []
@@ -743,10 +825,10 @@ def _field_lines(lines: list, key: str, pattern) -> list:
     factor of a thousand, from a line that is not a row at all, and it looked
     entirely plausible next to its neighbours.
 
-    A table row starts with its label; a sentence mentions it in passing. So
-    lines whose label begins at the start are preferred, and prose is kept only
-    as a fallback, because some genuinely old layouts have nothing else. Nothing
-    is discarded that used to be read — the order changes, not the set.
+    A table row ends with its value; a sentence keeps talking. `_looks_like_row`
+    decides which is which, and prose is DISCARDED rather than kept as a
+    fallback — see the note below on why a sentence read by column geometry is a
+    coincidence rather than a reading.
 
     FIELD_EXCLUSIONS then drops the near-miss rows outright: a face-value total
     and a count of bids are not amounts, and no ordering makes them so.
@@ -785,10 +867,12 @@ def _field_lines(lines: list, key: str, pattern) -> list:
             best.append(line)
         else:
             ordinary.append(line)
-    if dropped and not (best or ordinary):
-        print(f"[auctions] {key}: only prose mentions it ({dropped} line(s)) — "
-              f"leaving it unread rather than reading a sentence by column",
-              file=sys.stderr)
+    # No warning here, deliberately. This runs once per field, per header
+    # CANDIDATE, per page — up to four times a page for a document that read the
+    # field perfectly on page 1 and merely mentions it in prose on page 2. A
+    # message that fires on success is indistinguishable from one that fires on
+    # loss, which makes it worse than silence. probe_gaps.py reports what is
+    # actually missing, once, against the finished archive.
     return best + ordinary
 
 

@@ -221,3 +221,41 @@ issue afterwards.
 
 Last proven working: 2026-07-25 (issue raised, then deduplicated to a comment on a
 second run).
+
+
+## 8. CBK Weekly Bulletin — CONFIRMED machine-readable (2026-07-25)
+
+Probed with `discover_sources.py` on a network-open runner:
+
+```
+--- PDF: centralbank.go.ke/images/docs/weeklybulletin/2016/Jan/Weekly_Bulletin_-_January_15_2016.pdf
+    pages: 7, 388465 bytes
+    page 1: 915 chars, 2 images, 0 tables
+    >>> TEXT LAYER PRESENT — machine-readable
+    | CBK Weekly Statistical Bulletin of Key Monetary and Financial Indicators
+    | The average interbank rate declined to 5.45 percent in the week ending...
+```
+
+**Usable.** Unlike the NSE price list, these carry a real text layer and can be parsed
+with `pdfplumber`.
+
+⚠️ **Two things to resolve before building on it:**
+
+1. **The probe found 2016 archives**, not current bulletins — the URL pattern is
+   `/images/docs/weeklybulletin/<YYYY>/<Mon>/Weekly_Bulletin_-_<Month>_<D>_<YYYY>.pdf`.
+   The current-year listing page must be located before a scraper is written.
+2. **It carries turnover, not prices.** The bulletin reports market activity —
+   interbank rates, liquidity, bond turnover — not per-bond clean prices. It can enrich
+   the sovereign-context panel; it does **not** solve the calculator's missing market
+   prices. Those remain separate problems.
+
+## 9. CMA — no machine-readable statistics found (2026-07-25)
+
+```
+https://www.cma.or.ke/statistics/         -> HTTP 404
+https://www.cma.or.ke/market-statistics/  -> HTTP 404
+https://www.cma.or.ke/                    -> HTTP 200, no matching PDFs linked
+```
+
+Their statistics are either at an undiscovered path or rendered client-side. Not
+pursued further; revisit only if a specific document is identified by hand.

@@ -59,10 +59,19 @@ number for deciding what to bid next time. Feeds directly into (4).
 Saved plans are a snapshot. Storing a monthly progress point would turn Goals into
 something people open to watch a number move, which is what makes a tool a habit.
 
-### 7. Sovereign context expansion
-If the CBK Weekly Bulletin proves machine-readable, add market turnover and liquidity
-to the "Can the borrower pay?" panel. Note this is *context*, not pricing — it does not
-solve (3).
+### 7. Sovereign context expansion — CBK Weekly Bulletin CONFIRMED usable
+Probed 2026-07-25: the bulletin PDFs carry a real text layer (915 chars on page 1) and
+are parseable with `pdfplumber`. This is the one genuinely new source found in the
+July source review.
+
+**Two things to settle first:**
+- The probe surfaced 2016 archives. Locate the current-year listing page; the URL
+  pattern is `/images/docs/weeklybulletin/<YYYY>/<Mon>/Weekly_Bulletin_-_<Month>_<D>_<YYYY>.pdf`.
+- It carries **turnover, not prices**. Enriches the "Can the borrower pay?" panel with
+  market activity and liquidity; does **not** solve (3).
+
+CMA was probed at the same time and yielded nothing — `/statistics/` and
+`/market-statistics/` both 404, homepage links no matching PDFs.
 
 ---
 

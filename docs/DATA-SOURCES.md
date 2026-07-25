@@ -58,9 +58,37 @@ Two consequences that killed the original design:
   the PDF with `pdfplumber` (already a dependency for CBK prospectuses).
 - `NSE_BONDS_PAGE` overrides the listing page only if NSE relocates it.
 
-Bulk end-of-day data remains a **paid subscription** via `dataservices@nse.co.ke`; the
-dataservices page links only policy and pricing PDFs. The free daily list is the realistic
-source.
+### ⛔ The free list is not machine-readable
+
+Inspected on the runner 2026-07-25:
+
+```
+=== PDF STRUCTURE: BondPrices_24-JUL-2026.pdf ===
+  pages: 2
+  page 1: 0 chars, 1 images, 0 tables   -> NO TEXT LAYER (scanned image)
+  page 2: 0 chars, 1 images, 0 tables   -> NO TEXT LAYER (scanned image)
+```
+
+NSE publishes the Daily Bond Price List as **scanned images**. There is no text to
+extract, so no parser can read it.
+
+**We deliberately do not OCR it.** OCR confuses digits — 8/3, 5/6, 1/7 — and a misread
+bond price is a wrong number presented with full confidence to someone deciding where to
+put their savings. For this app that is a worse outcome than having no secondary-market
+data, which is the current, clearly-labelled state.
+
+`nse_parser.py` therefore checks for a text layer and **exits cleanly** when it finds
+none: a known permanent limitation must not raise a daily alert, or people learn to
+ignore alerts. The check remains in place so that if NSE ever publishes a text-layer PDF,
+the scraper starts working by itself and we find out immediately.
+
+**Routes to real secondary data, in order of preference:**
+1. NSE's paid end-of-day feed via `dataservices@nse.co.ke` (licensed, machine-readable).
+2. Ask NSE to publish the list as text — the underlying data is already digital.
+3. Manual entry of the handful of actively traded issues.
+
+Bulk end-of-day data remains a **paid subscription**; the dataservices page links only
+policy and pricing PDFs.
 
 ## 3. KNBS — inflation
 

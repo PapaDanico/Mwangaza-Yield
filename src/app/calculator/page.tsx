@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useBondStore } from '@/stores/bondStore';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
+import AuctionHistory from '@/components/shared/AuctionHistory';
 
 function Row({ label, value, accent, hint }: {
   label: string; value: string; accent?: boolean; hint?: string;
@@ -178,6 +179,11 @@ export default function CalculatorPage() {
           </div>
         )}
       </div>
+
+      {/* The result above says what this bond pays. This says whether that is
+          generous — the follow-up question, answered against the bond's own
+          past rather than a benchmark the reader would have to learn first. */}
+      <AuctionHistory issueCode={bond.issueCode} />
     </div>
   );
 }

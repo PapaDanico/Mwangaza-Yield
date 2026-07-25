@@ -30,24 +30,15 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-from common import DATA_DIR
+from common import CODE_RE, DATA_DIR, display_issue_code, normalise_issue_code, tenor_years
 
 REGISTER = Path(__file__).resolve().parents[1] / "reference" / "dhowcsd-securities.csv"
-CODE_RE = re.compile(r"^([A-Z]+\d*)/(\d{4})/(\d+)$")
 
-
-def normalise(code: str) -> str:
-    m = CODE_RE.match(code.strip().upper().replace(" ", ""))
-    if not m:
-        return code.strip().upper()
-    family, year, tenor = m.groups()
-    return f"{family}/{year}/{int(tenor):03d}"
-
-
-def display_code(code: str) -> str:
-    """FXD1/2022/010 -> FXD1/2022/10, which is how CBK writes it to humans."""
-    m = CODE_RE.match(code)
-    return f"{m.group(1)}/{m.group(2)}/{int(m.group(3))}" if m else code
+# The padding and fractional-tenor rules live in common, because this file, the
+# auction parser and the register reconciler each had their own copy and all
+# three assumed a whole number of years.
+normalise = normalise_issue_code
+display_code = display_issue_code
 
 
 def load_register(today: date) -> dict:
@@ -101,9 +92,13 @@ def build_bond(code: str, reg: dict, auction: dict) -> dict | None:
     m = CODE_RE.match(code)
     if not m:
         return None
-    family, _year, tenor_raw = m.groups()
-    tenor = int(tenor_raw)  # the ISSUED tenor, which is what WHT keys on
+    family = m.group(1)
+    tenor = tenor_years(code)  # the ISSUED tenor, which is what WHT keys on
+    if tenor is None:
+        return None
     category = "IFB" if family.startswith("IFB") else ("SDB" if family.startswith("SDB") else "FXD")
+    # 10.0 should read "10-Year", but 6.5 must stay "6.5-Year" — CBK issues both.
+    tenor_label = f"{tenor:g}"
 
     # The auction's weighted average accepted rate is the yield the market
     # actually paid. Fall back to the coupon only when a bond priced at par.
@@ -112,7 +107,7 @@ def build_bond(code: str, reg: dict, auction: dict) -> dict | None:
     return {
         "isin": reg["isin"],
         "issueCode": display_code(code),
-        "name": f"{tenor}-Year {'Infrastructure' if category == 'IFB' else 'Fixed Coupon'} Bond",
+        "name": f"{tenor_label}-Year {'Infrastructure' if category == 'IFB' else 'Fixed Coupon'} Bond",
         "category": category,
         "issueDate": reg["issueDate"],
         "maturityDate": reg["maturityDate"],
@@ -154,6 +149,12 @@ def main() -> None:
 
     print(f"[expand] adding {len(added)}; {len(skipped_no_coupon)} outstanding bond(s) "
           f"have no coupon rate yet and are deliberately NOT listed", file=sys.stderr)
+    # Name them. A count tells you coverage is incomplete; the names tell you
+    # WHICH auctions still need reading, which is the actionable half.
+    for code in sorted(skipped_no_coupon)[:25]:
+        print(f"[expand]  - {code} (no auction result parsed yet)", file=sys.stderr)
+    if len(skipped_no_coupon) > 25:
+        print(f"[expand]  - ... and {len(skipped_no_coupon) - 25} more", file=sys.stderr)
     for b in added:
         print(f"[expand]  + {b['issueCode']:<16} coupon {b['couponRate']}%  "
               f"ytm {b['ytmGross']}%  matures {b['maturityDate']}", file=sys.stderr)

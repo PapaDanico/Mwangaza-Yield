@@ -60,20 +60,6 @@ why we cannot fill it in for them.
 
 ## Next — features that compound
 
-### 4. Yield history
-The app answers "what does this pay?" but never "is that good?" — the question every
-investor actually asks before bidding. Twelve months of auction prints behind a
-sparkline on each bond would answer it. CBK publishes historical results; this is a
-data-collection task more than a UI one.
-
-The CBR history shipped in §12 below is the *policy* half of this answer and proves the
-pattern works end to end — scrape, guard, test, narrate. Per-bond auction prints are the
-*market* half, and are the natural next application of it.
-
-### 5. Auction result capture
-We show what is *offered*. We do not show what it *cleared at* — the single most useful
-number for deciding what to bid next time. Feeds directly into (4).
-
 ### 6. Goal progress over time
 Saved plans are a snapshot. Storing a monthly progress point would turn Goals into
 something people open to watch a number move, which is what makes a tool a habit.
@@ -95,6 +81,32 @@ CMA was probed at the same time and yielded nothing — `/statistics/` and
 ---
 
 ## Done since this roadmap was written
+
+### 4 & 5. Yield history and auction result capture — shipped 2026-07-25
+These were written as separate items and turned out to be one thing: once the parser
+kept every result it had read instead of replacing them, the archive *was* the history.
+
+The app could always say what a bond pays. It could never say whether that was any
+good — the question every investor asks immediately afterwards, and without an answer
+the first number is hard to act on. The calculator now shows every auction of the
+selected bond, the rate buyers actually received each time, and a plain reading of
+where the latest sits in that bond's own range. No benchmark to learn first.
+
+**Two things it deliberately refuses to do.** It draws nothing from a single auction —
+one print is a point, not a path, and a trend line through one dot invites the reader to
+see direction that was never measured. And it publishes no subscription ratio: CBK
+reports the amount offered per *auction* but bids received per *bond*, and one auction
+routinely covers three bonds, so dividing them would produce a confident meaningless
+number.
+
+The first incremental dispatch read 120 previously-unseen PDFs and reached **169 auction
+records across 57 bonds**, 159 carrying a coupon, with 148 files still queued.
+
+**It also surfaced a real defect in the archive's tail.** Roughly one file in ten from
+2020–2023 parses zero or partial — `filename names 2 issue(s), parsed 0` — because CBK's
+table layout differs in those years. The parser says so loudly rather than returning a
+tidy partial result, which is the behaviour we want, but the coverage is genuinely lost
+until the older layout is handled. That is the next piece of work on this item.
 
 ### 12. CBR rate-cycle history — shipped 2026-07-25
 119 MPC decisions from December 2008, scraped from CBK's own press table, with each
@@ -141,9 +153,24 @@ number the app exists to produce. Listing such a bond would put an uncalculable 
 front of someone, or invite a placeholder that looks real. The goal is coverage of bonds
 we can honestly price, not coverage.
 
-First run: **9 → 15 bonds**, with 44 outstanding bonds deliberately skipped and named in
-the log. Coverage is limited by how far back we read auction PDFs, not by the method —
-`MAX_PDFS` was raised from 12 to 80 (of 280 linked), which should price most of the 59.
+**9 → 15 → 46 of the 59 outstanding bonds.** The jump came from making the parse
+incremental: a daily job could only afford a dozen of 280 result PDFs and re-read the
+same dozen every day, which was the real ceiling. Reading each file once and keeping the
+result raised coverage and produced the yield history in the same change.
+
+**Two of those 46 were a bug, not a data gap.** `IFB1/2023/6.5` and `IFB1/2024/8.5` have
+FRACTIONAL tenors, and all three issue-code patterns in the pipeline assumed whole years —
+so they matched as "6" and "8", never joined the register, and sat in the "no auction
+result parsed yet" list looking like an ordinary gap. They are tax-free infrastructure
+bonds paying 17.93% and 18.46%, which is to say the two most attractive instruments in
+the entire dataset were invisible, silently, in an app whose central argument is that
+tax-free infrastructure bonds are the best deal available to a Kenyan retail investor.
+The padding rules now live in `common.py` so the next surprise is handled once rather
+than three times.
+
+The remaining 13 are named in the log every run. They are older IFBs whose auctions sit
+further back in the archive than we have read, plus two whose PDFs parsed without a
+coupon — the 2020-2023 layout defect.
 
 **The strongest validation of the whole pipeline:** all seven coupons that overlap our
 hand-curated figures matched exactly, including FXD1/2019/20 at 12.873% — the precise

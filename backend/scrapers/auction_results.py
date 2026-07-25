@@ -28,16 +28,18 @@ fragments within a column are joined. "1" and "1.277" sitting in the same
 column become "11.277" because that is what the page actually shows.
 """
 import json
+import os
 import re
 import sys
-from datetime import datetime
+import time
+from datetime import date, datetime
 from io import BytesIO
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 
-from common import DATA_DIR, write_dataset
+from common import DATA_DIR, normalise_issue_code, write_dataset
 
 LISTING = "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"
 UA = {
@@ -46,13 +48,33 @@ UA = {
     "Accept-Language": "en-KE,en;q=0.9",
 }
 TIMEOUT = 60
-# 280 results PDFs are linked. Twelve covered three months and priced 13 of the
-# 59 outstanding bonds; most of the rest were last auctioned earlier than that.
-# 80 reaches back roughly two years at ~4s each — a few minutes in a job that
-# runs once a day, in exchange for most of the universe becoming priceable.
-# Deliberately not unbounded: coverage past a couple of years buys bonds that
-# have already matured.
-MAX_PDFS = 80
+# Every results PDF is parsed exactly ONCE. Its numbers never change after
+# publication — an auction held in 2021 cleared where it cleared — so
+# re-downloading 280 files daily to re-derive identical values is pure waste,
+# and it was also the thing capping coverage: a cheap daily run could only
+# afford a dozen files, which priced 13 of 59 bonds.
+#
+# Now the run skips anything already in auction-results.json and spends its
+# budget on files it has never seen. The first few runs work backwards through
+# the archive; after that CBK publishes about four a month and the job has
+# almost nothing to do.
+#
+# The accumulating file is also the yield history roadmap item 4 asked for —
+# every auction print we have ever read, kept rather than discarded.
+MAX_NEW_PER_RUN = 120
+
+# A count is not a time bound. 120 files at a 60-second timeout is a two-hour
+# worst case, and the first dispatch of the incremental parser demonstrated the
+# problem: two jobs read the archive concurrently, one finished the same 120
+# files in five minutes and the other was still going twenty minutes later —
+# CBK evidently rations concurrent readers. A daily job must not be able to run
+# for hours because a server got slow.
+#
+# Stopping early is *free* here, and only because parsing is incremental:
+# whatever was read is kept, and the next run resumes at the next unread file.
+# Before that change this budget would have meant permanently losing the tail
+# of the archive; now it means arriving a day later.
+TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -61,8 +83,16 @@ RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # to a forthcoming bond. Everything at or below this line is not a result.
 SECTION_B_RE = re.compile(r"\bFORTHCOMING\b|^\s*B\.\s", re.I)
 # Issue codes appear as FXD1-2021-005 in filenames and FXD1/2021/5 in the page.
-ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3})\b", re.I)
-DATE_IN_NAME_RE = re.compile(r"(\d{2})-(\d{2})-(\d{4})")
+# The tenor may carry a fraction: CBK issued IFB1/2023/6.5 and IFB1/2024/8.5.
+ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3}(?:\.\d)?)\b", re.I)
+# CBK dates its result files four different ways across the archive:
+#   DATED 15-11-2021 · DATED 21.09.2020 · DATED 19-7-2021 · DD 24.01.2022
+# The first version of this pattern accepted only DD-MM-YYYY, which left 23 of
+# 169 captured records with no auction date at all — invisible to the yield
+# history, and a latent bug besides: the deduplication key is
+# (issue code, auction date), so two undated auctions of the SAME bond would
+# have silently collapsed into one. That had not happened yet. It would have.
+DATE_IN_NAME_RE = re.compile(r"\b(\d{1,2})[-.](\d{1,2})[-.](\d{2,4})\b")
 
 # Rows we care about, and how to recognise them whatever CBK's wording that year.
 FIELDS = [
@@ -88,7 +118,9 @@ NUMERIC_RE = re.compile(r"^-?[\d,]+(?:\.\d+)?$")
 
 
 def normalise_code(family: str, year: str, tenor: str) -> str:
-    return f"{family.upper().replace(' ', '')}/{year}/{int(tenor):03d}"
+    """Canonical issue code from a regex match. Delegates the padding rules
+    to common so the three files that need them cannot drift apart."""
+    return normalise_issue_code(f"{family.replace(' ', '')}/{year}/{tenor}")
 
 
 def group_lines(words: list, tolerance: float = 2.5) -> list:
@@ -178,6 +210,30 @@ def codes_in_name(url: str) -> list:
     return [normalise_code(*m.groups()) for m in ISSUE_RE.finditer(url)]
 
 
+def auction_date_from_name(url: str):
+    """The auction date CBK put in the filename, or None if there isn't one.
+
+    Takes the LAST plausible date in the string rather than the first. Issue
+    codes are full of digits and separators (FXD1-2012-020) and they always
+    precede the date, so reading from the right is what keeps a bond's tenor
+    from being mistaken for the day it was sold.
+    """
+    best = None
+    for m in DATE_IN_NAME_RE.finditer(url):
+        d, mo, y = (int(g) for g in m.groups())
+        # "28.12.20" is 2020. Two-digit years are unambiguous here: this archive
+        # starts in 2019 and CBK is not publishing auctions from 1920.
+        if y < 100:
+            y += 2000
+        if not (2000 <= y <= date.today().year + 1):
+            continue
+        try:
+            best = datetime(y, mo, d).date().isoformat()
+        except ValueError:
+            continue  # 31-02, or a tenor that looked like a date
+    return best
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
@@ -186,14 +242,7 @@ def parse_pdf(content: bytes, source_url: str) -> list:
     with pdfplumber.open(BytesIO(content)) as pdf:
         pages = [p.extract_words() or [] for p in pdf.pages]
 
-    auction_date = None
-    m = DATE_IN_NAME_RE.search(source_url)
-    if m:
-        d, mo, y = m.groups()
-        try:
-            auction_date = datetime(int(y), int(mo), int(d)).date().isoformat()
-        except ValueError:
-            auction_date = None
+    auction_date = auction_date_from_name(source_url)
 
     expected = codes_in_name(source_url)
     records: dict = {}
@@ -254,6 +303,86 @@ def find_result_pdfs() -> list:
     return out
 
 
+def load_existing() -> tuple:
+    """Records already captured, and the set of PDFs they came from."""
+    path = DATA_DIR / "auction-results.json"
+    if not path.exists():
+        return [], set()
+    try:
+        records = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
+              f"starting fresh", file=sys.stderr)
+        return [], set()
+    records = repair_codes(repair_dates(records))
+    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+
+
+def repair_dates(records: list) -> list:
+    """Fill in auction dates the parser could not read when it first ran.
+
+    Incremental parsing has one cost that is easy to miss: a file is read once,
+    so a LATER improvement to the parser never reaches records already
+    captured. Widening the filename date pattern would otherwise have left 23
+    existing records permanently undated — the archive would carry a bug that
+    had already been fixed.
+
+    This is safe to redo on every run precisely because it invents nothing: the
+    date is recovered from the source URL we already stored, by the same
+    function that would have read it at capture time. Nothing is re-downloaded
+    and no record without a readable filename date is touched.
+    """
+    fixed = 0
+    for rec in records:
+        if rec.get("auctionDate") or not rec.get("sourceUrl"):
+            continue
+        recovered = auction_date_from_name(rec["sourceUrl"])
+        if not recovered:
+            continue
+        rec["auctionDate"] = recovered
+        rec["id"] = f"res-{rec['issueCode'].replace('/', '-').lower()}-{recovered}"
+        fixed += 1
+    if fixed:
+        print(f"[auctions] recovered the auction date for {fixed} existing "
+              f"record(s) from their filenames", file=sys.stderr)
+    return records
+
+
+def repair_codes(records: list) -> list:
+    """Restore fractional tenors the old pattern truncated.
+
+    Same shape of problem as repair_dates, same reason it is needed: a PDF is
+    read once, so widening the issue-code pattern would never reach the records
+    already captured under `IFB1/2023/006` — a bond that does not exist.
+
+    The correction is not a guess. CBK names the issues in the filename, so a
+    stored code is a truncation when the filename does NOT name it and names
+    exactly one code that differs from it only by a fraction. Anything less
+    clear-cut than that is left alone: a wrong issue code would attach one
+    bond's coupon to another, which is worse than a missing bond.
+    """
+    fixed = 0
+    for rec in records:
+        url = rec.get("sourceUrl")
+        if not url:
+            continue
+        named = codes_in_name(url)
+        code = rec.get("issueCode")
+        if not code or code in named:
+            continue  # the filename confirms it; nothing to correct
+        candidates = [c for c in named if "." in c and c.split(".")[0] == code]
+        if len(candidates) != 1:
+            continue  # ambiguous, or a different problem entirely
+        rec["issueCode"] = candidates[0]
+        rec["id"] = (f"res-{candidates[0].replace('/', '-').lower()}-"
+                     f"{rec.get('auctionDate')}")
+        fixed += 1
+    if fixed:
+        print(f"[auctions] restored the fractional tenor on {fixed} existing "
+              f"record(s) from their filenames", file=sys.stderr)
+    return records
+
+
 def main() -> None:
     pdfs = find_result_pdfs()
     print(f"[auctions] {len(pdfs)} result PDF(s) linked from {LISTING}", file=sys.stderr)
@@ -261,8 +390,20 @@ def main() -> None:
         print("[auctions] none found — the listing layout may have changed", file=sys.stderr)
         sys.exit(1)
 
-    records = []
-    for url in pdfs[:MAX_PDFS]:
+    records, seen = load_existing()
+    fresh = [u for u in pdfs if u not in seen]
+    print(f"[auctions] {len(seen)} already parsed, {len(fresh)} new; "
+          f"reading up to {MAX_NEW_PER_RUN} this run", file=sys.stderr)
+    if not fresh:
+        print("[auctions] archive fully parsed — nothing new", file=sys.stderr)
+
+    deadline = time.monotonic() + TIME_BUDGET_SECONDS
+    read = 0
+    for url in fresh[:MAX_NEW_PER_RUN]:
+        if time.monotonic() > deadline:
+            print(f"[auctions] {TIME_BUDGET_SECONDS}s budget spent after {read} file(s) — "
+                  f"stopping here; the next run resumes at the next unread file", file=sys.stderr)
+            break
         try:
             resp = requests.get(url, headers=UA, timeout=TIMEOUT)
             resp.raise_for_status()
@@ -270,13 +411,29 @@ def main() -> None:
         except Exception as exc:  # noqa: BLE001 — one bad PDF must not lose the rest
             print(f"[auctions] {url[-60:]}: {exc.__class__.__name__}", file=sys.stderr)
             continue
+        finally:
+            read += 1
         print(f"[auctions] {url[-60:]}: {len(got)} issue(s)", file=sys.stderr)
         records.extend(got)
 
-    with_coupon = [r for r in records if "couponRate" in r]
-    print(f"[auctions] {len(records)} record(s), {len(with_coupon)} with a coupon rate",
-          file=sys.stderr)
-    write_dataset("auction-results", sorted(records, key=lambda r: (r["auctionDate"] or "", r["issueCode"])))
+    # Deduplicate on the natural key. A PDF re-listed under a new URL must not
+    # produce a second copy of the same auction.
+    unique: dict = {}
+    for r in records:
+        unique[(r["issueCode"], r.get("auctionDate"))] = r
+
+    final = sorted(unique.values(), key=lambda r: (r["auctionDate"] or "", r["issueCode"]))
+    with_coupon = [r for r in final if "couponRate" in r]
+    bonds = {r["issueCode"] for r in final}
+    # Count what was actually read, not what we were allowed to read — the run
+    # may have stopped on the clock well before the file cap.
+    remaining = max(0, len(fresh) - read)
+    print(f"[auctions] {len(final)} record(s) across {len(bonds)} bond(s), "
+          f"{len(with_coupon)} with a coupon rate", file=sys.stderr)
+    if remaining:
+        print(f"[auctions] {remaining} PDF(s) still unread — the next run continues "
+              f"where this one stopped", file=sys.stderr)
+    write_dataset("auction-results", final)
 
 
 if __name__ == "__main__":

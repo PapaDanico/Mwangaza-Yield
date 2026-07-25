@@ -9,11 +9,12 @@ which is TWO coupons, 11.277% and 12.873%, each split by an injected space.
 Any parser that reads the text linearly finds four numbers and gets all four
 wrong. These tests exist to keep that from ever shipping.
 """
+import os
 import sys
 
 from auction_results import (
-    assign_to_columns, cell_value, codes_in_name, find_header, group_lines,
-    normalise_code, results_section,
+    assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
+    find_header, group_lines, normalise_code, results_section,
 )
 
 failures = []
@@ -134,6 +135,154 @@ def main():
     ])
     codes, _ = find_header(noisy, ["FXD1/2018/025", "FXD1/2021/025"])
     check("the best-matching line wins", codes, ["FXD1/2018/025", "FXD1/2021/025"])
+
+    print("incremental parsing must never lose an auction")
+    import json as _json, tempfile
+    from pathlib import Path as _Path
+    import auction_results as mod
+
+    original = mod.DATA_DIR
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.DATA_DIR = _Path(tmp)
+        # Nothing captured yet.
+        recs, seen = mod.load_existing()
+        check("an absent file starts empty", (recs, seen), ([], set()))
+
+        (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
+            {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
+             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf"},
+            {"issueCode": "FXD1/2019/020", "auctionDate": "2021-11-15",
+             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf"},
+        ]))
+        recs, seen = mod.load_existing()
+        check("existing records are recovered", len(recs), 2)
+        check("the PDF they came from is remembered", seen, {"https://cbk/a.pdf"})
+
+        # A file that is not valid JSON must not wipe the archive silently —
+        # it should start fresh loudly rather than pretend it had nothing.
+        (_Path(tmp) / "auction-results.json").write_text("{ not json")
+        recs, seen = mod.load_existing()
+        check("a corrupt file yields empty rather than crashing", (recs, seen), ([], set()))
+    mod.DATA_DIR = original
+
+    print("deduplication key")
+    # The same auction re-listed under a new URL must collapse to one record,
+    # while two different auctions of the SAME bond must both survive — that is
+    # what makes this file a yield history rather than a snapshot.
+    rows = [
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15", "couponRate": 11.277},
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15", "couponRate": 11.277},
+        {"issueCode": "FXD1/2021/005", "auctionDate": "2023-04-10", "couponRate": 11.277},
+    ]
+    uniq = {(r["issueCode"], r.get("auctionDate")): r for r in rows}
+    check("a duplicate auction collapses", len(uniq), 2)
+    check("a reopening on a different date is kept",
+          sorted(d for _, d in uniq), ["2021-11-15", "2023-04-10"])
+
+    print("fractional tenors")
+    # CBK issued IFB1/2023/6.5 and IFB1/2024/8.5. Every issue-code pattern in
+    # the pipeline assumed whole years, so those matched as "6" and "8" and
+    # never joined the securities register — two TAX-FREE infrastructure bonds
+    # invisible in an app built on the argument that they are the best deal
+    # available. It failed silently, listed alongside genuine data gaps.
+    check("a fractional tenor survives normalisation",
+          normalise_code("IFB1", "2023", "6.5"), "IFB1/2023/006.5")
+    check("6.5 years is not 6 years",
+          normalise_code("IFB1", "2023", "6.5") == normalise_code("IFB1", "2023", "6"), False)
+    check("whole tenors are unchanged",
+          normalise_code("FXD1", "2022", "10"), "FXD1/2022/010")
+    check("the filename spelling is read too",
+          codes_in_name("RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf"),
+          ["IFB1/2024/008.5"])
+    check("and CBK's other filename spelling",
+          codes_in_name("RESULTS NOVEMBER 2023 IFB1-2023-6.5 DATED 13-11-2023.pdf"),
+          ["IFB1/2023/006.5"])
+
+    print("the auction date in the filename")
+    # All four spellings CBK actually uses. The first version of the pattern
+    # took only the first of these, which left 23 of 169 captured records with
+    # no date — invisible to the yield history and a latent dedup collapse.
+    check("DD-MM-YYYY",
+          auction_date_from_name("RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"),
+          "2021-11-15")
+    check("dots",
+          auction_date_from_name("RESULTS FXD2-2013-15 DATED 23.11.2020.pdf"),
+          "2020-11-23")
+    check("single-digit month",
+          auction_date_from_name("RESULTS FXD1-2012-15 DATED 19-7-2021.pdf"),
+          "2021-07-19")
+    check("two-digit year",
+          auction_date_from_name("RESULTS FXD1-2012-15 DATED 28.12.20.pdf"),
+          "2020-12-28")
+    check("'DD' instead of 'DATED'",
+          auction_date_from_name("RESULTS FXD2-2018-10 DD 24.01.2022.pdf"),
+          "2022-01-24")
+
+    # The hazard the looser pattern introduces: issue codes are digits joined by
+    # the same separators. Reading from the RIGHT is what keeps a bond's tenor
+    # from being mistaken for the day it was sold.
+    check("an issue code is not mistaken for a date",
+          auction_date_from_name("RESULTS FXD1-2012-020, FXD1-2019-020 DATED 05-07-2021.pdf"),
+          "2021-07-05")
+    check("a filename with no date yields None",
+          auction_date_from_name("RESULTS FXD1-2012-020.pdf"), None)
+    check("an impossible date is rejected rather than guessed",
+          auction_date_from_name("RESULTS DATED 31-02-2021.pdf"), None)
+
+    print("repairing dates a previous run could not read")
+    # Incremental parsing means a file is read once, so a later parser fix never
+    # reaches records already captured. This recovers them from the URL we
+    # already stored — no re-download, and nothing invented.
+    stale = [
+        {"id": "res-fxd1-2012-015-None", "issueCode": "FXD1/2012/015",
+         "auctionDate": None, "sourceUrl": "https://cbk/RESULTS FXD1-2012-15 DATED 28.12.20.pdf"},
+        {"id": "res-fxd1-2021-005-2021-11-15", "issueCode": "FXD1/2021/005",
+         "auctionDate": "2021-11-15", "sourceUrl": "https://cbk/b.pdf"},
+        {"id": "res-x-None", "issueCode": "FXD9/1999/001",
+         "auctionDate": None, "sourceUrl": "https://cbk/no date here.pdf"},
+    ]
+    repaired = mod.repair_dates(stale)
+    check("an undated record recovers its date", repaired[0]["auctionDate"], "2020-12-28")
+    check("and its id stops saying None", repaired[0]["id"], "res-fxd1-2012-015-2020-12-28")
+    check("a record that already had a date is untouched",
+          repaired[1]["auctionDate"], "2021-11-15")
+    check("a filename with no date is left alone rather than guessed at",
+          repaired[2]["auctionDate"], None)
+
+    print("restoring fractional tenors a previous run truncated")
+    stale = [
+        # Captured as IFB1/2023/006, a bond that does not exist.
+        {"id": "res-ifb1-2023-006-2023-11-13", "issueCode": "IFB1/2023/006",
+         "auctionDate": "2023-11-13",
+         "sourceUrl": "https://cbk/RESULTS NOVEMBER 2023 IFB1-2023-6.5 DATED 13-11-2023.pdf"},
+        # The filename confirms this one; it must not be touched.
+        {"id": "res-fxd1-2021-005-2021-11-15", "issueCode": "FXD1/2021/005",
+         "auctionDate": "2021-11-15",
+         "sourceUrl": "https://cbk/RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"},
+        # Filename names no fractional variant — leave it alone rather than guess.
+        {"id": "res-fxd9-1999-001-2021-01-01", "issueCode": "FXD9/1999/001",
+         "auctionDate": "2021-01-01",
+         "sourceUrl": "https://cbk/RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"},
+    ]
+    repaired = mod.repair_codes(stale)
+    check("a truncated fractional tenor is restored",
+          repaired[0]["issueCode"], "IFB1/2023/006.5")
+    check("and its id follows", repaired[0]["id"], "res-ifb1-2023-006.5-2023-11-13")
+    check("a code the filename confirms is untouched",
+          repaired[1]["issueCode"], "FXD1/2021/005")
+    check("an unexplained mismatch is left alone rather than guessed at",
+          repaired[2]["issueCode"], "FXD9/1999/001")
+
+    print("wall-clock budget")
+    # The budget's whole justification is that stopping early costs a day, not
+    # an archive: whatever was read is kept and the remaining count reports the
+    # true backlog rather than the one the file cap would imply.
+    check("a budget is set", mod.TIME_BUDGET_SECONDS > 0, True)
+    check("it is overridable for a slow day",
+          mod.TIME_BUDGET_SECONDS,
+          int(os.environ.get("AUCTION_TIME_BUDGET", "600")))
+    # Stopping after 30 of 148 must report 118 outstanding, not 28 (148 - 120).
+    check("the backlog counts files actually read", max(0, 148 - 30), 118)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

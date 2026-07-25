@@ -128,3 +128,51 @@ a GitHub runner (which, unlike the dev sandbox, has unrestricted egress):
 **6 of 7 usable as-is.** Re-run the job before trusting the pipeline after any long gap —
 it checks not just reachability but whether each page still contains the marker its parser
 depends on, which is how a scraper actually dies.
+
+## 7. Monitoring and alerting
+
+The pipeline fails in two ways, and only one is obvious.
+
+**Hard failure** — a scraper crashes. Its CI step records the failure rather than
+swallowing it.
+
+**Silent staleness** — a scraper "succeeds" while extracting nothing. Because
+`carry_forward()` preserves the previous values rather than deleting them, the output
+still looks healthy while the app serves numbers that quietly age. `healthcheck.py`
+catches this by asserting each dataset carries a recent date, with budgets matched to how
+often each source actually publishes:
+
+| Dataset | Field | Budget | Why |
+|---|---|---|---|
+| `meta.json` | `generatedAt` | 7d | refresh runs every weekday |
+| `macro.json` | `date` | 40d | CPI is monthly |
+| `tbills.json` | `auctionDate` | 21d | auctioned weekly |
+| `secondary.json` | `tradeDate` | 30d | NSE publishes daily |
+| `context.json` | `asOf` | 400d | annual indicators |
+
+Freshness is read from **named date fields only**. An earlier version scanned the whole
+JSON document and silently passed its own negative test, because ids like `fx-2026-07`
+embed dates that do not track when a value was refreshed. A check that cannot fail is
+worse than no check.
+
+On failure the job opens a GitHub issue labelled `scraper-alert` with the failing
+scrapers, the freshness report and a run link — commenting on the existing open issue
+rather than stacking duplicates. It uses the built-in `GITHUB_TOKEN`: no secrets, no
+third-party service, nothing to expire.
+
+### Testing the alarm
+
+Alerting that has never fired is an assumption. To prove it still works — do this after
+any change to the health check or the alert step:
+
+```
+Actions → CI & Daily Data Refresh → Run workflow → test_alert: true
+```
+
+`HEALTHCHECK_STRICT=1` forces every budget to 0 days, so real data trips the real
+staleness path: same report file, same exit code, same issue. Scrapers and the data
+commit are skipped, so **nothing is written to the repository**. Close the resulting
+issue afterwards.
+
+Last proven working: 2026-07-25 (issue raised, then deduplicated to a comment on a
+second run).

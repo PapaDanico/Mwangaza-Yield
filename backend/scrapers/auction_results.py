@@ -685,6 +685,54 @@ def _field_lines(lines: list, key: str, pattern) -> list:
     return at_start + elsewhere
 
 
+# The heading of section A, which states the date the bond is dated from:
+#
+#     A.RESULTS OF TREASURY BOND ISSUE NO. FXD 1/2009/15 YEAR VALUE DATED 26/10/2009
+#     A.RESULTS OF FIFTEEN YEAR TREASURY BOND ISSUE NO. FXD 1/2010/15 (RE-OPEN) DATED 24/11/2014
+#
+# "DATED" and "VALUE DATED" are the same thing, and that was established rather
+# than assumed. Eight files carrying BOTH a filename date and this heading agree
+# exactly, 8 for 8, with no gap in either direction; and every date of either
+# form falls on a Monday, as does the filename date on 297 of the archive's 303
+# dated records. See the note on parse_pdf for what that Monday actually is.
+HEADING_DATE_RE = re.compile(
+    r"RESULTS\s+OF\b.{0,120}?\b(?:VALUE\s+)?DATED\s+(\d{1,2})\s*/\s*(\d{1,2})\s*/\s*(\d{4})",
+    re.I | re.S)
+
+
+def auction_date_from_lines(lines: list):
+    """The date CBK printed inside the document, or None.
+
+    Only ever consulted when the FILENAME carries no date — 51 records, a sixth
+    of the archive, which were invisible to the year table and shared a
+    deduplication key of (issue code, None) with every other undated print of
+    the same bond.
+
+    The decoy this must not take is in every one of those files:
+
+        (i) The forthcoming issue(s) will be dated 25th January 2010.
+
+    That is NEXT month's bond. Reading from the right, which is what the
+    filename reader does and rightly so, would take it every single time. It is
+    excluded here because `lines` has already been through `results_section`,
+    which stops at the FORTHCOMING heading — a rule written for a different
+    purpose that happens to guard this one. Stated explicitly because a change
+    to that rule would silently re-admit the decoy.
+    """
+    for line in lines:
+        m = HEADING_DATE_RE.search(" ".join(w["text"] for w in line))
+        if not m:
+            continue
+        d, mo, y = (int(g) for g in m.groups())
+        if not (2000 <= y <= date.today().year + 1):
+            continue
+        try:
+            return datetime(y, mo, d).date().isoformat()
+        except ValueError:
+            continue
+    return None
+
+
 def read_fields(lines: list, codes: list, centres: list,
                 auction_date, source_url: str) -> dict:
     """Read every known field for one candidate column geometry."""
@@ -809,14 +857,38 @@ def parse_pdf(content: bytes, source_url: str) -> list:
     with pdfplumber.open(BytesIO(content)) as pdf:
         pages = [p.extract_words() or [] for p in pdf.pages]
 
-    auction_date = auction_date_from_name(source_url)
-
     expected = codes_in_name(source_url)
+    per_page = [results_section(group_lines(words)) for words in pages if words]
+
+    # The filename first, because it is unambiguous where it exists. Where it
+    # does not — 51 records, a sixth of the archive — the document states the
+    # same date on its own section-A heading, and that heading is now read.
+    #
+    # WHAT THIS DATE ACTUALLY IS, which the field name gets wrong
+    # ----------------------------------------------------------
+    # It is the VALUE date: the Monday the bond is dated from, not the day
+    # bidding closed. 297 of the archive's 303 dated records fall on a Monday,
+    # and the six that do not are switch auctions and a buyback. One tap-sale
+    # file says so in its own words — "Settlement ... remains Monday 30th, June
+    # 2014 as earlier advised", under a filename reading "Dated 30.06.2014" —
+    # and CBK writes the heading "VALUE DATED" as readily as "DATED".
+    #
+    # Kenyan bonds are auctioned on a Wednesday and value the following Monday,
+    # so `auctionDate` is out by about five days from what its name promises.
+    # The VALUES are right and are CBK's own; the NAME is what is wrong, and
+    # renaming a published key would break anyone already reading it. So it is
+    # documented here, on /sources/ and in the CSV header instead. Nothing in
+    # the app dates an auction window from it — those come from the forthcoming
+    # -auction feed, which carries offer-close and settlement separately.
+    auction_date = auction_date_from_name(source_url)
+    if auction_date is None:
+        for lines in per_page:
+            auction_date = auction_date_from_lines(lines)
+            if auction_date:
+                break
+
     records: dict = {}
-    for words in pages:
-        if not words:
-            continue
-        lines = results_section(group_lines(words))
+    for lines in per_page:
         # Try each plausible header and keep whichever actually makes the table
         # parse. Picking one up front and trusting it is how geometry from the
         # prose title got used for a table, collapsing both bonds into one

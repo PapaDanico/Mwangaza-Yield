@@ -386,6 +386,56 @@ def main():
     check("the weighted average still reads", pr.get("weightedAverageRate"), 13.471)
     check("price per 100 still reads, bracket or no bracket", pr.get("pricePer100"), 97.583)
 
+    print("a file with no date in its name takes it from the document")
+    from auction_results import auction_date_from_lines
+    # The real heading from FXD_1_2009_15.pdf, whose filename carries no date at
+    # all. "VALUE DATED" and plain "DATED" were established as the same thing
+    # rather than assumed: eight files carrying both a filename date and this
+    # heading agree exactly, 8 for 8.
+    heading = group_lines([
+        w("A.RESULTS", 40, 100), w("OF", 100, 100), w("TREASURY", 120, 100),
+        w("BOND", 175, 100), w("ISSUE", 210, 100), w("NO.", 245, 100),
+        w("FXD", 270, 100), w("1/2009/15", 295, 100), w("YEAR", 350, 100),
+        w("VALUE", 380, 100), w("DATED", 415, 100), w("26/10/2009", 455, 100),
+    ])
+    check("VALUE DATED is read", auction_date_from_lines(heading), "2009-10-26")
+
+    plain_heading = group_lines([
+        w("A.RESULTS", 40, 100), w("OF", 100, 100), w("FIFTEEN", 120, 100),
+        w("YEAR", 175, 100), w("TREASURY", 205, 100), w("BOND", 260, 100),
+        w("(RE-OPEN)", 295, 100), w("DATED", 355, 100), w("24/11/2014", 395, 100),
+    ])
+    check("plain DATED is read", auction_date_from_lines(plain_heading), "2014-11-24")
+
+    # The decoy. EVERY one of these files also names next month's bond, and
+    # reading from the right — which is exactly what the filename reader does,
+    # for good reasons — would take it every single time.
+    decoy = group_lines([
+        w("(i)", 40, 100), w("The", 60, 100), w("forthcoming", 85, 100),
+        w("issue(s)", 155, 100), w("will", 205, 100), w("be", 230, 100),
+        w("dated", 250, 100), w("25th", 285, 100), w("January", 315, 100),
+        w("2010.", 365, 100),
+    ])
+    check("a forthcoming-issue line is never mistaken for the auction",
+          auction_date_from_lines(decoy), None)
+
+    # results_section is what keeps the decoy out when a real document carries
+    # both, and it does so because of a rule written for another purpose. If
+    # that rule ever changes, this is the test that should fail.
+    both = group_lines([
+        w("A.RESULTS", 40, 100), w("OF", 100, 100), w("TREASURY", 120, 100),
+        w("BOND", 175, 100), w("DATED", 215, 100), w("26/10/2009", 260, 100),
+        w("B.", 40, 130), w("FORTHCOMING", 60, 130), w("ISSUES", 140, 130),
+        w("(i)", 40, 160), w("The", 60, 160), w("forthcoming", 85, 160),
+        w("issue(s)", 155, 160), w("will", 205, 160), w("be", 230, 160),
+        w("dated", 250, 160), w("30th", 285, 160), w("November", 315, 160),
+        w("2009.", 375, 160),
+    ])
+    check("section B is cut before the date is looked for",
+          auction_date_from_lines(results_section(both)), "2009-10-26")
+    check("and without that cut the decoy is still not taken first",
+          auction_date_from_lines(both), "2009-10-26")
+
     print("codes_in_name — the cross-check on our own work")
     check("filename codes are recovered",
           codes_in_name("RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"),

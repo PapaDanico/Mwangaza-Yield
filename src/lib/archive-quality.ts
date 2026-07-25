@@ -104,6 +104,21 @@ export interface ArchiveQuality {
    *  dataset; reporting only the higher one would overstate it. Both, labelled,
    *  is the only version that is true. */
   atNewest: { records: number; complete: number; pct: number } | null;
+  /** Evidence for the claim that `auctionDate` holds the VALUE date.
+   *
+   *  The key is named for the auction, but CBK dates a bond from the following
+   *  Monday, not the Wednesday bidding closed. The way to show that rather than
+   *  assert it is to count: if the field held bidding dates it would pile up on
+   *  Wednesdays, and it does not.
+   *
+   *  Computed rather than written down because the prose version was written
+   *  down once and went stale — it claimed 297 Mondays out of 391 records long
+   *  after the real figures were 372 out of 378, and used the whole-archive
+   *  count as a denominator when 13 rows carry no date at all. A published
+   *  number beside a computed one will always drift; this makes drift
+   *  impossible. `exceptions` is a count, not a name, because the exceptions
+   *  are not all one thing — five switch auctions and one buyback today. */
+  valueDates: { dated: number; mondays: number; exceptions: number };
 }
 
 /** A field counts as present only if it carries information. Zero is treated as
@@ -164,6 +179,13 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
 
   const complete = records.filter(isComplete).length;
 
+  // getUTCDay, not getDay. A bare "YYYY-MM-DD" is parsed as UTC midnight, so in
+  // any negative-offset timezone getDay() reads the previous day and every
+  // Monday in the archive would report as a Sunday. The build runs in UTC and
+  // the check would have passed there while being wrong for a reader in Nairobi
+  // — the kind of bug that only ever appears in someone else's browser.
+  const mondays = dated.filter((d) => new Date(d).getUTCDay() === 1).length;
+
   return {
     records: total,
     issueCodes: new Set(records.map((r) => r.issueCode)).size,
@@ -191,6 +213,7 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     byParserVersion,
     stale,
     atNewest,
+    valueDates: { dated: dated.length, mondays, exceptions: dated.length - mondays },
   };
 }
 

@@ -220,4 +220,39 @@ describe('the real archive, measured rather than described', () => {
     const csv = archiveToCSV(archive as unknown as AuctionPrint[]);
     expect(csv.split('\n')).toHaveLength(q.records + 1);
   });
+
+  describe('valueDates — the evidence that auctionDate is the value date', () => {
+    it('counts only records that carry a date', () => {
+      // The published sentence used the whole-archive count as its denominator
+      // while counting Mondays among the dated rows only, which quietly
+      // understated the proportion. Undated rows are not evidence either way.
+      const dated = (archive as unknown as AuctionPrint[]).filter((r) => r.auctionDate).length;
+      expect(q.valueDates.dated).toBe(dated);
+      expect(q.valueDates.mondays + q.valueDates.exceptions).toBe(q.valueDates.dated);
+    });
+
+    it('finds the overwhelming majority on a Monday', () => {
+      // The claim this footnote makes, asserted as a proportion rather than a
+      // fixed count so that it survives the archive growing. If this ever drops
+      // below nine in ten, the field is not holding what the note says it holds
+      // and the note is the thing to change.
+      expect(q.valueDates.mondays / q.valueDates.dated).toBeGreaterThan(0.9);
+    });
+
+    it('reads a Monday as a Monday west of Greenwich', () => {
+      // A bare YYYY-MM-DD parses as UTC midnight, so getDay() in any negative
+      // offset reads the day before and every Monday reports as a Sunday. CI
+      // runs in UTC, where the bug is invisible; a reader in New York would see
+      // the archive claim almost no Mondays at all. Pinned by forcing the
+      // offset rather than by trusting the reviewer to remember.
+      const tz = process.env.TZ;
+      try {
+        process.env.TZ = 'America/New_York';
+        const q2 = assessArchive([rec({ auctionDate: '2024-06-17' })]);
+        expect(q2.valueDates.mondays).toBe(1);
+      } finally {
+        process.env.TZ = tz;
+      }
+    });
+  });
 });

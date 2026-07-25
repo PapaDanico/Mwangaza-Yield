@@ -7,6 +7,7 @@ import {
   calculateAccruedInterest,
   computeBondInvestment,
   solveYTMFromPrice,
+  couponsByMonth,
 } from '../../src/lib/financial-engine';
 import type { Bond } from '../../src/types/bond';
 
@@ -59,6 +60,38 @@ describe('accrued interest (Act/365)', () => {
   it('30 days accrual', () => {
     // 16% * 30/365 = 1.3151 per 100
     expect(calculateAccruedInterest(fxd5, new Date('2025-03-14'))).toBeCloseTo((16 * 30) / 365, 4);
+  });
+});
+
+describe('couponsByMonth', () => {
+  const from = new Date('2026-07-24');
+
+  it('returns exactly `months` buckets in chronological order', () => {
+    const b = couponsByMonth(fxd5, from, 12);
+    expect(b).toHaveLength(12);
+    expect(b[0]).toMatchObject({ year: 2026, month: 6 });  // July
+    expect(b[11]).toMatchObject({ year: 2027, month: 5 }); // June
+  });
+
+  it('lands semi-annual coupons in the right months and nowhere else', () => {
+    // fxd5 issued 2024-02-12 → coupons every Feb and Aug.
+    const b = couponsByMonth(fxd5, from, 12);
+    const hits = b.filter((x) => x.count > 0);
+    expect(hits).toHaveLength(2);
+    expect(hits.map((h) => h.month).sort()).toEqual([1, 7]); // Feb, Aug
+    expect(b.reduce((s, x) => s + x.count, 0)).toBe(2);
+  });
+
+  it('excludes coupons on or before the start date', () => {
+    const onCoupon = new Date('2026-08-12');
+    const b = couponsByMonth(fxd5, onCoupon, 12);
+    expect(b[0].count).toBe(0); // August's coupon is not counted again
+  });
+
+  it('stops at maturity — no phantom coupons after redemption', () => {
+    // fxd5 matures 2029-02-12; look 12 months from mid-2029.
+    const b = couponsByMonth(fxd5, new Date('2029-06-01'), 12);
+    expect(b.reduce((s, x) => s + x.count, 0)).toBe(0);
   });
 });
 

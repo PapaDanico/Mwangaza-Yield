@@ -58,6 +58,18 @@ export interface SecondaryTrade {
   tradesCount: number;
 }
 
+export interface TBill {
+  id: string;
+  tenorDays: 91 | 182 | 364;
+  discountRate: number;      // quoted weighted average rate, % p.a.
+  auctionDate: string;
+  nextAuctionDate: string;
+  amountOfferedKES: number;
+  amountAcceptedKES: number;
+  minInvestmentKES: number;
+  source: string;
+}
+
 export interface DataBundle {
   bonds: Bond[];
   auctions: AuctionSchedule[];

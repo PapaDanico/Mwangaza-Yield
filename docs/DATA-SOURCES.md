@@ -16,6 +16,26 @@ Mwangaza Yield's data comes from and how to refresh it.
 User-Agent; if that stops working, fall back to manual download + local parse. This is why
 the pipeline treats scraping as best-effort with manual override.
 
+## 1b. Treasury bills (CBK)
+
+| What | Where |
+|---|---|
+| T-bill hub | `centralbank.go.ke/securities/treasury-bills/` |
+| Weekly results PDFs | `centralbank.go.ke/uploads/{91,182,364}_day_historical_treasury_bill_results/…` |
+
+- Tenors **91, 182, 364 days**; auctioned **weekly**, bids close **Thursday 2:00pm** via DhowCSD.
+- Minimum **KES 100,000**, thereafter multiples of KES 50,000.
+- **Discount convention (verified):** `Discount = Face × rate × days / 365`, `Price = Face − Discount`.
+  Effective annual yield `= (Face / Price) ^ (365 / days) − 1`. The quoted discount rate is
+  therefore always *below* the true gross yield.
+- **WHT 15%** on bill interest, with no exemption equivalent to infrastructure bonds.
+- ⚠️ The National Treasury announced from 2025 that the **364-day bill would be phased out** to
+  shorten the debt profile, but it was still being auctioned as of July 2026. Treat its
+  continued availability as needing re-checking each cycle rather than assumed.
+
+Rates captured 16 Jul 2026 auction: 91d **8.7986%**, 182d **8.9695%**, 364d **9.0415%**
+(KES 30.62B accepted on KES 44.02B bids, 157% performance).
+
 ## 2. NSE — secondary market
 
 - Daily Bond Price List: `nse.co.ke/bonds-statistics/` (downloadable, format varies).

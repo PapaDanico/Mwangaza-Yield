@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
-import { Upload, Trash2, Download, CalendarPlus, Share2 } from 'lucide-react';
+import { Upload, Trash2, Download, CalendarPlus, Share2, CheckCircle2 } from 'lucide-react';
 import { formatPortfolioSummary, shareText } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
@@ -14,18 +14,26 @@ const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFX
 
 export default function PortfolioPage() {
   const bonds = useBondStore((s) => s.bonds);
+  const secondary = useBondStore((s) => s.secondary);
   const { holdings, addHoldings, removeHolding, clear } = usePortfolioStore();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[] } | null>(null);
 
   const enriched = useMemo(() => {
     return holdings.map((h) => {
       const bond = bonds.find((b) => b.issueCode === h.issueCode || b.isin === h.isin);
-      if (!bond) return { holding: h, bond: null, result: null, nextCoupon: null };
+      if (!bond) return { holding: h, bond: null, result: null, market: null, nextCoupon: null };
+      // Locked-in economics from the price actually paid...
       const result = computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, new Date(h.purchaseDate));
+      // ...versus what the same bond yields at today's market price.
+      const marketPrice = secondary.find((t) => t.isin === bond.isin)?.price;
+      const market = marketPrice
+        ? computeBondInvestment(bond, h.faceValueKES, marketPrice, new Date())
+        : null;
       const nextCoupon = getNextCouponDate(bond, new Date());
-      return { holding: h, bond, result, nextCoupon };
+      return { holding: h, bond, result, market, nextCoupon };
     });
-  }, [holdings, bonds]);
+  }, [holdings, bonds, secondary]);
 
   const totals = useMemo(() => {
     const valid = enriched.filter((e) => e.result);
@@ -65,8 +73,8 @@ export default function PortfolioPage() {
       header: true,
       skipEmptyLines: true,
       complete: (res) => {
-        const rows: Holding[] = res.data
-          .filter((r) => r.issueCode && r.faceValueKES)
+        const usable = res.data.filter((r) => r.issueCode && r.faceValueKES);
+        const rows: Holding[] = usable
           .map((r, i) => ({
             id: `${r.issueCode}-${r.purchaseDate ?? ''}-${i}-${r.faceValueKES}`,
             isin: bonds.find((b) => b.issueCode === r.issueCode.trim())?.isin ?? '',
@@ -76,6 +84,14 @@ export default function PortfolioPage() {
             purchaseCleanPrice: Number(r.purchaseCleanPrice) || 100,
           }));
         if (rows.length) addHoldings(rows);
+        // Tell the user what actually landed — a silent import hides typos.
+        setImportNote({
+          ok: rows.length,
+          skipped: res.data.length - usable.length,
+          unknown: rows
+            .filter((r) => !bonds.some((b) => b.issueCode === r.issueCode))
+            .map((r) => r.issueCode),
+        });
       },
     });
   }
@@ -157,10 +173,49 @@ export default function PortfolioPage() {
         </div>
       </div>
 
+      {importNote && (
+        <div className="card flex items-start gap-3 border-l-4 border-l-mint-600 py-3">
+          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-mint-700" />
+          <div className="text-sm text-ink-soft">
+            <p>
+              Imported <span className="font-semibold text-ink">{importNote.ok}</span> holding
+              {importNote.ok === 1 ? '' : 's'}
+              {importNote.skipped > 0 && `, skipped ${importNote.skipped} incomplete row${importNote.skipped === 1 ? '' : 's'}`}.
+            </p>
+            {importNote.unknown.length > 0 && (
+              <p className="mt-1 text-ink-muted">
+                Not in the current bond list (check the issue code):{' '}
+                <span className="num">{importNote.unknown.join(', ')}</span>
+              </p>
+            )}
+          </div>
+          <button onClick={() => setImportNote(null)} className="ml-auto text-xs text-ink-faint hover:text-ink">
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {enriched.length === 0 ? (
-        <div className="card py-12 text-center text-sm text-ink-muted">
-          No holdings yet. Import a CSV (columns: issueCode, faceValueKES, purchaseDate,
-          purchaseCleanPrice) to see your net yields and coupon calendar.
+        <div className="card py-10 text-center">
+          <p className="text-sm text-ink-soft">
+            No holdings yet. Import a CSV to see net yields, mark-to-market and your coupon calendar.
+          </p>
+          <div className="mx-auto mt-4 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+              Example file
+            </p>
+            <pre className="num whitespace-pre text-[11px] leading-relaxed text-ink-soft">
+{`issueCode,faceValueKES,purchaseDate,purchaseCleanPrice
+FXD1/2022/10,1000000,2026-07-13,100
+IFB1/2022/19,500000,2026-02-16,98.5`}
+            </pre>
+          </div>
+          <button
+            onClick={downloadTemplate}
+            className="mt-3 text-xs text-gold-700 underline-offset-2 hover:underline"
+          >
+            Download this as a template
+          </button>
         </div>
       ) : (
         <>
@@ -171,13 +226,14 @@ export default function PortfolioPage() {
                   <th className="px-4 py-3">Bond</th>
                   <th className="px-4 py-3 text-right">Face value</th>
                   <th className="px-4 py-3 text-right">Price</th>
-                  <th className="px-4 py-3 text-right">Net yield</th>
+                  <th className="px-4 py-3 text-right">Net yield<span className="ml-1 font-normal normal-case text-ink-faint">(locked)</span></th>
+                  <th className="px-4 py-3 text-right">At market</th>
                   <th className="px-4 py-3 text-right">Next coupon</th>
                   <th className="px-2 py-3" />
                 </tr>
               </thead>
               <tbody>
-                {enriched.map(({ holding, bond, result, nextCoupon }) => (
+                {enriched.map(({ holding, bond, result, market, nextCoupon }) => (
                   <tr key={holding.id} className="border-b border-sand-300/60 last:border-0">
                     <td className="px-4 py-3">
                       <span className="font-medium text-ink">{holding.issueCode}</span>
@@ -186,6 +242,15 @@ export default function PortfolioPage() {
                     <td className="num px-4 py-3 text-right text-ink">{formatKES(holding.faceValueKES)}</td>
                     <td className="num px-4 py-3 text-right text-ink-soft">{holding.purchaseCleanPrice.toFixed(2)}</td>
                     <td className="num px-4 py-3 text-right text-gold-700">{result ? formatPct(result.netYTM) : '—'}</td>
+                    <td className="num px-4 py-3 text-right">
+                      {market ? (
+                        <span className={market.netYTM >= (result?.netYTM ?? 0) ? 'text-mint-700' : 'text-ink-muted'}>
+                          {formatPct(market.netYTM)}
+                        </span>
+                      ) : (
+                        <span className="text-ink-faint">—</span>
+                      )}
+                    </td>
                     <td className="num px-4 py-3 text-right text-ink-soft">{nextCoupon ? nextCoupon.toISOString().slice(0, 10) : '—'}</td>
                     <td className="px-2 py-3">
                       <button onClick={() => removeHolding(holding.id)} className="p-1 text-ink-faint hover:text-red-400">

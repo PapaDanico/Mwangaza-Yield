@@ -42,7 +42,7 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     url: 'https://www.treasury.go.ke/',
     status: 'reference',
     used: 'Not yet read by anything we run — linked so you can go to the primary record',
-    why: 'This entry used to claim we took public debt figures from here. We did not, and no scraper has ever contacted the site; the debt data we show comes from the World Bank. The Treasury publishes the same figures quarterly and in shillings, months ahead of the World Bank, which is worth having — so we are probing what it serves in a machine-readable form before writing anything that depends on it.',
+    why: 'This entry used to claim we took public debt figures from here. We did not, and the debt data we show comes from the World Bank. We probed the site directly: its Public Debt Management pages are reachable, but the debt documents they link — the yield curve and the outstanding-bonds schedule — both return 404 while the site is mid-migration. There is nothing machine-readable to read yet, so we read nothing and say so.',
   },
   {
     name: 'Nairobi Securities Exchange',

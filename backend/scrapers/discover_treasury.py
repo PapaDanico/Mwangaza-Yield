@@ -33,6 +33,24 @@ ahead of the World Bank. For a bond investor deciding whether to lend to this
 borrower, a year is the difference between a current picture and a historical
 one.
 
+WHAT THE FIRST TWO RUNS ESTABLISHED
+------------------------------------
+Run 1: the Treasury is reachable (HTTP 200) and links "Public Debt Management"
+from its home page. This probe then printed "not a PDF — inspect by hand" at
+the landing page and stopped, which told us nothing — the same failure as
+discover_prospectus.py, one level up. Fixed by following an index once.
+
+Run 2: following the index reached the PDMO's actual document list, and its
+debt documents are DEAD. "Treasury bonds Yield Curve" and "Outstanding
+Treasury bonds as at 30th June 2023" both 404; the only live PDF on the page
+is an expenditure requisition form containing none of the terms we want. The
+site is mid-migration — newsite.treasury.go.ke exists alongside
+www.treasury.go.ke/wp-content/uploads/2023/08/... paths that no longer
+resolve.
+
+So no Treasury parser has been written. There is nothing yet to parse, and
+writing an extractor against a 404 would be worse than having none.
+
 Read-only. Never gates CI.
 """
 import re
@@ -70,6 +88,23 @@ TARGETS = [
         # Figures worth extracting if the document proves readable.
         ["public debt", "debt to gdp", "debt-to-gdp", "domestic debt", "external debt",
          "debt service", "interest payment"],
+    ),
+    (
+        # The Treasury's own debt documents 404 (see the correction above), but
+        # CBK publishes government domestic debt in its Weekly Bulletin — and
+        # CBK is the one host this pipeline already reaches successfully every
+        # single day. A source we can actually keep reaching beats a better one
+        # that breaks.
+        "CBK Weekly Bulletin — government domestic debt",
+        [
+            "https://www.centralbank.go.ke/weekly-bulletin/",
+            "https://www.centralbank.go.ke/publications/weekly-bulletin/",
+            "https://www.centralbank.go.ke/statistics/public-debt/",
+            "https://www.centralbank.go.ke/publications/",
+        ],
+        re.compile(r"bulletin|debt|public\s*debt|statistical", re.I),
+        ["domestic debt", "public debt", "external debt", "debt service",
+         "government securities", "total debt"],
     ),
     (
         "KNBS — CPI / inflation",
@@ -132,7 +167,23 @@ def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
                 if child not in [f[1] for f in found]:
                     found.append((text, child))
         if not found:
-            print("        no documents linked from this index either")
+            print("        no file-extension links here — listing what IS on the page,")
+            print("        because an index yielding nothing is usually a filter problem")
+            print("        rather than an empty library:")
+            seen_txt = set()
+            shown = 0
+            for a in soup.find_all("a", href=True):
+                txt = " ".join(a.get_text().split())
+                if len(txt) < 6 or txt in seen_txt:
+                    continue
+                seen_txt.add(txt)
+                print(f"          - {txt[:70]:<72} {urljoin(url, a['href'])[:80]}")
+                shown += 1
+                if shown >= 25:
+                    print("          ... (truncated at 25)")
+                    break
+            if not shown:
+                print("          nothing link-like at all — the page is probably script-rendered")
             return
         print(f"        {len(found)} document(s) linked; inspecting the first 3:")
         for text, child in found[:3]:

@@ -4,6 +4,7 @@ import {
   RefreshCw, Landmark, Users, BarChart3, Target, GraduationCap, Flame, CalendarHeart, BookOpen,
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
+import EvidenceStrip from '@/components/landing/EvidenceStrip';
 
 const features = [
   { Icon: Calculator, title: 'What you actually earn', desc: 'Enter what you would pay and see the return after tax — the figure that reaches your bank account, not the one on the poster.' },
@@ -82,6 +83,10 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Evidence, before features: a first-time visitor has no reason to
+          believe the yield figures yet, so show the record underneath them. */}
+      <EvidenceStrip />
 
       {/* Features */}
       <section>

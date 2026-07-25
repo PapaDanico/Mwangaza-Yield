@@ -60,6 +60,22 @@ jobs:
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
     # network-open runner and prints a reachability report. Changes nothing.
+    #
+    # The job-level bound is not belt-and-braces. Thirteen of this job's
+    # seventeen steps set no timeout of their own, every one of them waits on a
+    # third party, and GitHub's default job limit is SIX HOURS. That is not
+    # hypothetical: "Probe government sources we credit but do not fetch"
+    # — Treasury, KNBS, IMF — hung for over thirty minutes on one run, holding
+    # its runner and every step behind it, including the multi-bond probe that
+    # was the reason for the dispatch. It also starved the runner pool, which
+    # made unrelated CI look slow and had me blaming my own dispatch rate.
+    #
+    # One bound on the job covers all seventeen steps and every step added
+    # later, which per-step timeouts do not: the step that hung was the one
+    # nobody had thought to bound. Twenty minutes is roughly twice a healthy
+    # run. This job only reports — nothing it produces is committed — so
+    # cutting it short costs a diagnostic, never data.
+    timeout-minutes: 20
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:

@@ -163,6 +163,34 @@ def main():
     check("and it reads the split coupon onto the right bond",
           via_header["FXD1/2022/003"]["couponRate"], 11.766)
 
+    print("a sentence must not be mistaken for a table header")
+    # A real file reads "The auction for FXD 1/2019/15 was cancelled." That
+    # prose names a code, so it scored as a header, its figures landed in its
+    # single column, and it TIED with the real "TENOR FXD1/2022/03" row. The
+    # tie went to whichever came first and the whole file was published under
+    # the leg the sentence says was cancelled.
+    cancelled = group_lines([
+        w("The", 40, 100), w("auction", 62, 100), w("statistics", 110, 100),
+        w("are", 175, 100), w("summarised", 200, 100), w("below.", 270, 100),
+        w("The", 320, 100), w("auction", 345, 100), w("for", 395, 100),
+        w("FXD", 415, 100), w("1/2019/15", 440, 100), w("was", 500, 100),
+        w("cancelled.", 525, 100),
+        w("TENOR", 40, 130), w("FXD1/2022/03", 170, 130),
+        w("Coupon", 40, 150), w("Rate", 80, 150), w("(%)", 110, 150),
+        w("1", 172, 150), w("1.766", 182, 150),
+    ])
+    ranked = header_candidates(cancelled, ["FXD1/2022/003", "FXD1/2019/015"])
+    check("the real header now outranks the sentence",
+          ranked[0][0], ["FXD1/2022/003"])
+    check("the sentence is still a candidate, just a worse one",
+          ["FXD1/2019/015"] in [c for c, _ in ranked], True)
+
+    from auction_results import read_fields as _rf
+    won = _rf(cancelled, ranked[0][0], ranked[0][1], "2023-04-24", "u")
+    check("so the coupon lands on the bond that was actually sold",
+          list(won), ["FXD1/2022/003"])
+    check("and never on the cancelled leg", "FXD1/2019/015" in won, False)
+
     print("split issue codes — the bug the first dry-run caught")
     # CBK splits codes across word boundaries. Matching word by word found one
     # issue in PDFs whose filename named two, and silently dropped the other.

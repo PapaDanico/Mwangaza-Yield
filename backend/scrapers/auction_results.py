@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 2
+PARSER_VERSION = 3
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -248,6 +248,32 @@ def codes_on_line(line: list) -> tuple:
     return codes, centres
 
 
+def code_density(line: list) -> float:
+    """Share of a line's characters that belong to an issue code.
+
+    The tie-break between candidate headers, and it exists because a SENTENCE
+    beat a table header. One file reads:
+
+        The auction statistics are summarised in the table below.
+        The auction for FXD 1/2019/15 was cancelled.
+
+    That prose names a code, so it scored as a header, its figures happened to
+    land in its one column, and it tied with the real "TENOR FXD1/2022/03" row.
+    The tie went to whichever came first, and the file's entire results were
+    published under FXD1/2019/15 — the leg the sentence says was CANCELLED.
+
+    Density separates them without any rule about wording: a header row is
+    almost entirely codes and a short label (0.67-0.79 across CBK's layouts),
+    a prose sentence is mostly words (0.13), and the document title sits
+    between (~0.55) because it carries "AND" and "DATED <date>".
+    """
+    text = " ".join(w["text"] for w in line)
+    if not text:
+        return 0.0
+    coded = sum(m.end() - m.start() for m in ISSUE_RE.finditer(text))
+    return coded / len(text)
+
+
 def header_candidates(lines: list, expected: list | None = None) -> list:
     """Every line that could be the column header, most promising first.
 
@@ -275,10 +301,9 @@ def header_candidates(lines: list, expected: list | None = None) -> list:
         if not codes:
             continue
         score = len(set(codes) & set(expected or [])) if expected else 0
-        spread = (max(centres) - min(centres)) if len(centres) > 1 else 0.0
-        scored.append((score, spread, codes, centres))
+        scored.append((score, code_density(line), codes, centres))
     scored.sort(key=lambda t: (-t[0], -t[1]))
-    return [(codes, centres) for _score, _spread, codes, centres in scored]
+    return [(codes, centres) for _score, _density, codes, centres in scored]
 
 
 def find_header(lines: list, expected: list | None = None) -> tuple:

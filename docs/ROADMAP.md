@@ -151,3 +151,39 @@ worse than none.
 3. `npm test` and `npm run build`.
 4. Open the production site on a phone, install to home screen, enable airplane mode,
    confirm the calculator still works.
+
+---
+
+## Done: accessibility audit (roadmap item 10) — 2026-07-25
+
+Audited all eight interactive pages for the things that actually stop someone using a
+screen reader: unlabelled controls, missing alt text, controls with no accessible name,
+skipped heading levels, duplicate ids, missing `lang`.
+
+**One systemic defect, everywhere.** Every form control in the app — 11 of them across
+the calculator, goals, ladder, T-bills and portfolio — had **no programmatic label**.
+The visible text sat in a `<label>` with no `htmlFor` and no wrapping, so a screen
+reader announced *"edit text, blank"* instead of *"Capital you have now"*. On a page
+where someone is entering how much of their savings to commit, that is not a minor
+finding.
+
+Fixed two ways, chosen per case rather than uniformly:
+- **Goals** wraps its control inside the label (`Field`), so one change fixed nine
+  inputs without touching a single call site.
+- **Calculator, T-bills and ladder** use explicit `id`/`htmlFor`, because several of
+  those labels are flex rows carrying a live value on the right, and wrapping would
+  have broken the layout.
+- **The portfolio file input** is visually hidden and driven by a button, so it has no
+  visible label to associate and takes an `aria-label` instead.
+
+Verified with Playwright's `getByLabel`, which resolves controls by the same accessible
+name a screen reader computes — all 11 now resolve. Tab order is sequential and focus
+outlines are present.
+
+Everything else came back clean: no missing alt text, no unnamed buttons or links, no
+heading-level jumps, no duplicate ids, `lang` present.
+
+**Not yet done:** contrast was verified at the token level during the rebrand but not
+re-checked per rendered component, and no test with an actual screen reader (NVDA,
+VoiceOver, TalkBack) has been run. Automated checks find missing labels; they do not
+tell you whether the page makes sense when read aloud.

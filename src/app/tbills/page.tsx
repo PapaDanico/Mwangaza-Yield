@@ -79,10 +79,11 @@ export default function TBillsPage() {
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="card space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink-soft">
+            <label htmlFor="tbill-amount" className="mb-1 block text-sm font-medium text-ink-soft">
               Investment amount (face value)
             </label>
             <input
+              id="tbill-amount"
               type="number" min={selected.minInvestmentKES} step={50_000} value={amount}
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               className={`num ${inputCls}`}

@@ -84,28 +84,31 @@ export default function LadderPage() {
       <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr]">
         <div className="card h-fit space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (KES)</label>
+            <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (KES)</label>
             <input
+              id="ladder-amount"
               type="number" min={100_000} step={50_000} value={amount}
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               className={`num ${inputCls}`}
             />
           </div>
           <div>
-            <label className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
+            <label htmlFor="ladder-horizon" className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
               <span>Horizon</span><span className="num text-gold-700">{horizon} years</span>
             </label>
             <input
+              id="ladder-horizon"
               type="range" min={2} max={25} step={1} value={horizon}
               onChange={(e) => setHorizon(Number(e.target.value))}
               className="w-full accent-gold-600"
             />
           </div>
           <div>
-            <label className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
+            <label htmlFor="ladder-rungs" className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
               <span>Rungs (bonds)</span><span className="num text-gold-700">{rungCount}</span>
             </label>
             <input
+              id="ladder-rungs"
               type="range" min={2} max={6} step={1} value={rungCount}
               onChange={(e) => setRungCount(Number(e.target.value))}
               className="w-full accent-gold-600"

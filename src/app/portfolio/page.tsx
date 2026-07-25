@@ -154,7 +154,7 @@ export default function PortfolioPage() {
               <Share2 size={15} /> Share
             </button>
           )}
-          <input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
+          <input ref={fileRef} type="file" accept=".csv" hidden aria-label="Import holdings from a CSV file" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
         </div>
       </div>
 

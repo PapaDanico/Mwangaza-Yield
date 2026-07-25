@@ -94,6 +94,16 @@ export interface ArchiveQuality {
   /** Rows still awaiting the newest parser. Zero when the archive is uniform —
    *  including when no row carries a version at all, which is not a rebuild. */
   stale: number;
+  /** Rows the NEWEST parser has read, and how many of those are complete.
+   *
+   *  Mid-rebuild these two numbers are the honest answer to "how good is this
+   *  data", and the archive-wide percentage is not. A field sitting at 86%
+   *  across the whole file while every row the current parser has touched
+   *  carries it says something quite specific: the gap is unfinished work, not
+   *  unreadable documents. Reporting only the lower number would understate the
+   *  dataset; reporting only the higher one would overstate it. Both, labelled,
+   *  is the only version that is true. */
+  atNewest: { records: number; complete: number; pct: number } | null;
 }
 
 /** A field counts as present only if it carries information. Zero is treated as
@@ -140,6 +150,18 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     .filter((v) => newest !== null && v.version < newest)
     .reduce((s, v) => s + v.records, 0);
 
+  const newestRows = records.filter(
+    (r) => (r as unknown as { parserVersion?: number }).parserVersion === newest
+  );
+  const atNewest =
+    newest === null || !newestRows.length
+      ? null
+      : {
+          records: newestRows.length,
+          complete: newestRows.filter(isComplete).length,
+          pct: Math.round((newestRows.filter(isComplete).length / newestRows.length) * 100),
+        };
+
   const complete = records.filter(isComplete).length;
 
   return {
@@ -168,6 +190,7 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     parserVersions: byParserVersion.map((v) => v.version),
     byParserVersion,
     stale,
+    atNewest,
   };
 }
 

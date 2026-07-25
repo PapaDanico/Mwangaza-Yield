@@ -99,6 +99,11 @@ jobs:
       # wrong axis, or a code spelling one regex away. This prints enough to
       # tell them apart instead of guessing, the same look-before-building step
       # that turned the MPC table into eighteen years of rate history.
+      - name: Probe why multi-bond auctions yield only one bond's figures
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 4
+        working-directory: backend/scrapers
+        run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
       - name: Probe why some 2020-2023 auction results parse to nothing
         working-directory: backend/scrapers
         run: python discover_old_layout.py

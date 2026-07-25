@@ -223,7 +223,32 @@ is running. The page says exactly that and points at the existing iCal export fo
 that genuinely cannot be missed. Anything stronger would be the one screen in the app
 claiming more than it can do.
 
-**VAPID keys — generated 2026-07-25. NOT INSTALLED. Push is dormant.**
+**Web push — PARKED 2026-07-25, by decision rather than by accident.**
+
+The sender is built, tested and dormant. No VAPID keys are installed, none will be
+installed for now, and the pair generated on 2026-07-25 has been destroyed unused — it
+was never entered anywhere, so it authorises nothing and is not a live secret.
+
+The reasoning, so this is not relitigated from scratch:
+
+- It only ever covered HALF the feature. The privacy boundary means coupon-due and
+  maturity alerts can never be server-pushed — they need holdings, which do not leave the
+  device. The sender adds auction-window and t-bill-threshold and nothing else.
+- The iCal export already does the valuable job, and does it better. "Do not miss the
+  auction window" is a date known a month ahead; a calendar entry fires offline, on every
+  device, without permission prompts. A push notification is the weaker instrument here.
+- iOS will not deliver to most of the audience anyway without the reader first installing
+  the PWA to their home screen, and there is no way to tell who did.
+- Nobody has subscribed. Switching it on would add a daily cron, an unauthenticated write
+  endpoint and blob storage to own — permanent operational surface for demand that has
+  not been demonstrated.
+
+The trigger to revisit is evidence, not a calendar: analytics showing readers returning
+to /alerts/, or somebody asking. If it is revived, generate the pair locally with the
+Netlify CLI so the private half never leaves the machine. Doing that costs nothing while
+nobody is subscribed, which is exactly why it is the right moment to have chosen.
+
+The section below is kept as the installation record for that day, not as a to-do.
 
 The heading here used to say "generated and installed", and it was wrong. The Netlify
 environment for `mwangazayield` holds four variables, all created by the Baseline and
@@ -258,14 +283,13 @@ and Mozilla inside every JWT, so it should be the address the project already pu
 The private key must never be in this repository, in a commit message, or in a build
 artefact. That rule holds and has held — nothing below is a key.
 
-It is worth being exact about where the current pair does live, because "only in
-Netlify's environment" was the intended arrangement and is not the actual one. The pair
-generated on 2026-07-25 was produced in an assistant session and passed through that
-session's transcript on its way to being handed over for manual entry. Until it is
-installed and that transcript is treated as spent, it is a candidate key rather than a
-deployed one. If that is not acceptable, generate a fresh pair locally with the Netlify
-CLI and never let the private half leave the machine — the cost of doing so is nil today,
-because nobody has subscribed yet.
+"Only in Netlify's environment" was the intended arrangement and never became the actual
+one. The pair generated on 2026-07-25 was produced in an assistant session and passed
+through that session's transcript on its way to manual entry, which never happened. It
+has since been destroyed and was never installed anywhere, so it grants no access to
+anything and is not a secret that needs protecting — but it is also not a key to reuse.
+Any future pair should be generated locally with the Netlify CLI so the private half
+never leaves the machine.
 
 Losing or rotating the key is survivable but not free once anyone has: every existing
 subscription becomes undeliverable and each reader has to opt in again.

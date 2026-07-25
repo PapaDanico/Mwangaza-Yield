@@ -39,7 +39,9 @@ jobs:
       - run: pip install -r backend/requirements.txt
       - name: Test the scraper parsers
         working-directory: backend/scrapers
-        run: python test_cbr_history.py
+        run: |
+          python test_cbr_history.py
+          python test_auction_results.py
 
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
@@ -74,6 +76,9 @@ jobs:
       - name: Probe CBK auction results (coupon rates, clearing yields)
         working-directory: backend/scrapers
         run: python discover_auction_results.py
+      - name: Dry-run the auction results parser
+        working-directory: backend/scrapers
+        run: python auction_results.py || echo "auction parser failed — see output above"
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py
@@ -117,6 +122,11 @@ jobs:
         id: registry
         working-directory: backend/scrapers
         run: python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
+      - name: Capture CBK auction results (coupon rates, clearing yields)
+        if: ${{ !inputs.test_alert }}
+        id: auctions
+        working-directory: backend/scrapers
+        run: python auction_results.py || echo "failed=auction-results" >> "$GITHUB_OUTPUT"
       - name: Capture CBK Central Bank Rate history
         if: ${{ !inputs.test_alert }}
         id: cbr
@@ -160,6 +170,7 @@ jobs:
               '${{ steps.macro.outputs.failed }}',
               '${{ steps.worldbank.outputs.failed }}',
               '${{ steps.registry.outputs.failed }}',
+              '${{ steps.auctions.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);

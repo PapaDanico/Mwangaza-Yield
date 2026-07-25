@@ -11,6 +11,7 @@ import { formatKES, formatPct } from '@/lib/financial-engine';
 import { cn, formatCompactKES } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
+import DataState from '@/components/shared/DataState';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -124,7 +125,7 @@ export default function GoalsPage() {
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
-  if (!bonds.length) return <div className="card h-64 animate-pulse" />;
+  if (!bonds.length) return <DataState />;
 
   const def = GOALS.find((g) => g.key === goal)!;
   const maxMonthly = Math.max(...income.monthlyIncomeKES, 1);

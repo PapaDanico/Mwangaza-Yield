@@ -61,6 +61,26 @@ SPECIMENS = [
     ("2026-04-06 — published: total bids 74.89bn against 40bn offered",
      "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/"
      "1664563265_RESULTS FXD1-2020-015 AND FXD1-2018-025 DATED 06-04-2026.pdf"),
+    # The one file the column-shift fix did NOT repair, and the reason this
+    # probe is still needed. Its bids row reads
+    #
+    #     Total bids Received (Kshs. M)   31,331.63   32,916.78   64,248.41
+    #
+    # so FXD2/2014/005 is 31,331.63, FXD3/2013/005 is 32,916.78, and 64,248.41
+    # is the unlabelled auction total. Three of the four shifted files now read
+    # correctly at v11. This one went from two wrong records to ONE record
+    # holding the total, with FXD2/2014/005 gone entirely — a different failure,
+    # not the old one.
+    #
+    # It matters that nothing in the repository objects to this. `sum_identity`
+    # needs three rows and there is now one; the leaked row label that exposed
+    # the original bug is gone. check_archive reports the file clean because a
+    # single plausible number has nothing to contradict. That is the limitation
+    # its docstring already claims, met in the wild.
+    ("2017-03-27 — published: FXD2/2014/005 bids 31,331.63, FXD3/2013/005 bids "
+     "32,916.78, auction total 64,248.41; we record ONE row at 64,248.40",
+     "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/"
+     "2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf"),
 ]
 
 

@@ -3,20 +3,21 @@
     "id": "res-fxd1-2008-020-None",
     "issueCode": "FXD1/2008/020",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/TreasuryBondResults/FXD2-2016-5FXD1-2008-20.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD_1_2008_20.pdf",
     "parserVersion": 4,
     "couponRate": 13.75,
-    "pricePer100": 95.297,
-    "amountOfferedKESM": 30000.0,
-    "bidsReceivedKESM": 30.0
+    "pricePer100": 99.668,
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 10879.86,
+    "bidsReceivedKESM": 20.2
   },
   {
     "id": "res-fxd1-2009-005-None",
     "issueCode": "FXD1/2009/005",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD1_2010_2.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD_3_2009_2.pdf",
     "parserVersion": 4,
-    "bidsReceivedKESM": 615.0
+    "amountOfferedKESM": 11000.0
   },
   {
     "id": "res-fxd1-2009-015-None",
@@ -74,12 +75,13 @@
     "id": "res-fxd1-2010-025-None",
     "issueCode": "FXD1/2010/025",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/25-YR-JUNE-2010.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2025%20yr%20re-opening%20July%202010.pdf",
     "parserVersion": 4,
     "couponRate": 11.25,
-    "pricePer100": 106.981,
-    "amountOfferedKESM": 7500.0,
-    "amountAcceptedKESM": 7500.0
+    "pricePer100": 113.88,
+    "amountOfferedKESM": 15000.0,
+    "amountAcceptedKESM": 14953.06,
+    "bidsReceivedKESM": 363.0
   },
   {
     "id": "res-fxd1-2011-001-None",
@@ -105,9 +107,10 @@
     "id": "res-fxd1-2011-005-None",
     "issueCode": "FXD1/2011/005",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20yr%20-%20March%202011.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20yr%20-%20January%202011.pdf",
     "parserVersion": 4,
-    "amountOfferedKESM": 18000.0
+    "amountOfferedKESM": 16000.0,
+    "bidsReceivedKESM": 5.0
   },
   {
     "id": "res-fxd1-2011-020-None",
@@ -143,24 +146,20 @@
     "id": "res-fxd1-2012-005-None",
     "issueCode": "FXD1/2012/005",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20year%20May%202012.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20year%20July%202012.pdf",
     "parserVersion": 4,
-    "pricePer100": 100.0,
-    "amountOfferedKESM": 3000.0,
-    "amountAcceptedKESM": 4979.59,
-    "bidsReceivedKESM": 6224.9
+    "pricePer100": 94.097
   },
   {
     "id": "res-fxd1-2012-010-None",
     "issueCode": "FXD1/2012/010",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/TreasuryBondResults/fxd1-2015-5fxd1-2012-10.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20year%20July%202012.pdf",
     "parserVersion": 4,
     "couponRate": 12.705,
-    "weightedAverageRate": 10.0,
-    "pricePer100": 96.045,
-    "amountOfferedKESM": 25000.0,
-    "bidsReceivedKESM": 25.0
+    "pricePer100": 95.02,
+    "amountOfferedKESM": 10000.0,
+    "bidsReceivedKESM": 10.0
   },
   {
     "id": "res-fxd1-2012-015-None",
@@ -177,10 +176,12 @@
     "id": "res-fxd1-2012-020-None",
     "issueCode": "FXD1/2012/020",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/results%205-%20year%20%2020year%20re-open%20dated%2023.06.2014.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Twenty-Year-Bonds-1-FXD-20.pdf",
     "parserVersion": 4,
-    "amountOfferedKESM": 30000.0,
-    "bidsReceivedKESM": 30417.0
+    "couponRate": 12.0,
+    "pricePer100": 88.48,
+    "amountOfferedKESM": 15000.0,
+    "bidsReceivedKESM": 15.0
   },
   {
     "id": "res-fxd1-2013-010-None",
@@ -196,11 +197,13 @@
     "id": "res-fxd1-2013-015-None",
     "issueCode": "FXD1/2013/015",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/results%202-%20year%20%2015%20year%20re-open%20dated%2022.12.2014.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/Results_15_year_Re-open_dated_February_2014.pdf",
     "parserVersion": 4,
     "couponRate": 11.25,
-    "pricePer100": 84.96,
-    "amountOfferedKESM": 20000.0
+    "pricePer100": 92.602,
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 14434.96,
+    "bidsReceivedKESM": 10.0
   },
   {
     "id": "res-fxd1-2014-002-None",
@@ -230,13 +233,13 @@
     "id": "res-fxd1-2014-010-None",
     "issueCode": "FXD1/2014/010",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/results%20ten%20year%20re-open%20dated%2029-09-2014.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/TreasuryBondResults/Results_10_year_dated_January_2014.pdf",
     "parserVersion": 4,
     "couponRate": 12.18,
     "pricePer100": 100.0,
-    "amountOfferedKESM": 15000.0,
-    "amountAcceptedKESM": 15490.1,
-    "bidsReceivedKESM": 15.0
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 15030.28,
+    "bidsReceivedKESM": 10.0
   },
   {
     "id": "res-fxd1-2015-005-None",
@@ -311,12 +314,9 @@
     "id": "res-fxd2-2010-005-None",
     "issueCode": "FXD2/2010/005",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%20of%202%205%20%2020%20years%20-%20June%202011.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20years%20-%20August%202011.pdf",
     "parserVersion": 4,
-    "couponRate": 7.439,
-    "pricePer100": 92.017,
-    "amountAcceptedKESM": 6741.13,
-    "bidsReceivedKESM": 9.0
+    "amountAcceptedKESM": 9.0
   },
   {
     "id": "res-fxd2-2010-010-None",
@@ -334,7 +334,7 @@
     "id": "res-fxd2-2010-015-None",
     "issueCode": "FXD2/2010/015",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD%204_2010_2%20%20FXD%202_2010_15.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20%2015%20year%20-%20December%202010.pdf",
     "parserVersion": 4,
     "amountOfferedKESM": 15000.0
   },
@@ -501,10 +501,12 @@
     "id": "res-fxd4-2011-002-None",
     "issueCode": "FXD4/2011/002",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/723814506_ Treasury Bond Results Results for 2 year tap sales.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20yr%20-%20November%202011.pdf",
     "parserVersion": 4,
-    "amountAcceptedKESM": 13463.75,
-    "bidsReceivedKESM": 13.46
+    "pricePer100": 100.0,
+    "amountOfferedKESM": 15000.0,
+    "amountAcceptedKESM": 9980.05,
+    "bidsReceivedKESM": 162.0
   },
   {
     "id": "res-fxd4-2013-002-None",
@@ -534,9 +536,10 @@
     "id": "res-ifb1-2011-012-None",
     "issueCode": "IFB1/2011/012",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2012%20yr%20tap%20sales.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/IFB1_2011_12.pdf",
     "parserVersion": 4,
-    "amountAcceptedKESM": 4822.69
+    "amountAcceptedKESM": 1341.02,
+    "bidsReceivedKESM": 1.34
   },
   {
     "id": "res-ifb1-2014-012-None",
@@ -590,10 +593,9 @@
     "id": "res-sdb1-2011-030-None",
     "issueCode": "SDB1/2011/030",
     "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20yr%20-%20March%202011.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20years%20-%20August%202011.pdf",
     "parserVersion": 4,
-    "couponRate": 7.0,
-    "amountAcceptedKESM": 10902.84
+    "amountOfferedKESM": 10000.0
   },
   {
     "id": "res-fxd2-2014-005-2014-06-30",
@@ -1384,7 +1386,7 @@
     "id": "res-fxd3-2019-005-2019-12-16",
     "issueCode": "FXD3/2019/005",
     "auctionDate": "2019-12-16",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1812777588_RESULTS FXD3-2019-5 DATED 16.12.2019.xlsx.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1354513376_RESULTS FXD3-2019-5 DATED 16.12.2019.pdf",
     "parserVersion": 4,
     "couponRate": 11.492,
     "weightedAverageRate": 11.583,
@@ -4018,26 +4020,18 @@
     "id": "res-fxd1-2018-020-2026-06-22",
     "issueCode": "FXD1/2018/020",
     "auctionDate": "2026-06-22",
-    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1312458656_RESULTS FXD1-2018-020 AND FXD1-2021-025 DATED 22-06-2026.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1690108982_TAP SALE RESULTS FXD1-2018-025 AND FXD1-2021-025 DATED 22-06-2026.pdf",
     "parserVersion": 4,
     "couponRate": 13.2,
-    "weightedAverageRate": 14.116,
-    "marketWeightedAverageRate": 14.116,
-    "pricePer100": 99.0155,
-    "amountAcceptedKESM": 19558.61,
-    "bidsReceivedKESM": 22676.86
+    "bidsReceivedKESM": 6387.35
   },
   {
     "id": "res-fxd1-2021-025-2026-06-22",
     "issueCode": "FXD1/2021/025",
     "auctionDate": "2026-06-22",
-    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1312458656_RESULTS FXD1-2018-020 AND FXD1-2021-025 DATED 22-06-2026.pdf",
+    "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1690108982_TAP SALE RESULTS FXD1-2018-025 AND FXD1-2021-025 DATED 22-06-2026.pdf",
     "parserVersion": 4,
-    "couponRate": 13.924,
-    "weightedAverageRate": 15.111,
-    "marketWeightedAverageRate": 15.111,
-    "pricePer100": 95.8704,
-    "amountOfferedKESM": 60000.0
+    "couponRate": 13.924
   },
   {
     "id": "res-fxd1-2021-020-2026-07-13",

@@ -6,7 +6,9 @@
     "unit": "% y/y",
     "asOf": "2025",
     "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE"
+    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
+    "note": "Whether the economy behind the borrowing is still expanding. Growth is what eventually pays debt down without new borrowing.",
+    "sentiment": "caution"
   },
   {
     "id": "wb-fi-res-totl-mo",
@@ -15,7 +17,9 @@
     "unit": "months",
     "asOf": "2024",
     "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/FI.RES.TOTL.MO?locations=KE"
+    "sourceUrl": "https://data.worldbank.org/indicator/FI.RES.TOTL.MO?locations=KE",
+    "note": "Months of imports the central bank could fund from its reserves. Below three is generally considered thin, and the statutory floor is four.",
+    "sentiment": "good"
   },
   {
     "id": "wb-ne-exp-gnfs-zs",
@@ -24,7 +28,9 @@
     "unit": "%",
     "asOf": "2025",
     "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/NE.EXP.GNFS.ZS?locations=KE"
+    "sourceUrl": "https://data.worldbank.org/indicator/NE.EXP.GNFS.ZS?locations=KE",
+    "note": "How much foreign currency the economy actually earns. External debt is repaid in dollars, and exports are where they come from.",
+    "sentiment": "watch"
   },
   {
     "id": "wb-bn-cab-xoka-gd-zs",
@@ -33,6 +39,8 @@
     "unit": "%",
     "asOf": "2024",
     "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/BN.CAB.XOKA.GD.ZS?locations=KE"
+    "sourceUrl": "https://data.worldbank.org/indicator/BN.CAB.XOKA.GD.ZS?locations=KE",
+    "note": "Negative means the country spends more abroad than it earns there and must borrow the difference. Persistent deficits pressure the shilling.",
+    "sentiment": "good"
   }
 ]

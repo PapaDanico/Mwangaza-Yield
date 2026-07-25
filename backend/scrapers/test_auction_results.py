@@ -560,6 +560,21 @@ def main():
     _, filled4 = attribute_auction_level(undated)
     check("two unrelated auctions are not merged by a shared null", filled4, 0)
 
+    print("a date separated by underscores is still a date")
+    # CBK writes DATED_21_03_2016 as often as DATED 21-03-2016. The old pattern
+    # anchored on \b, and `_` is a word character, so no boundary ever existed
+    # beside it — widening the separator class alone gained nothing.
+    check("underscore-separated filename date",
+          auction_date_from_name("RE-OPEN_FXD1-2013-10__FXD2-2013-15_DATED_21_03_2016.pdf"),
+          "2016-03-21")
+    check("hyphens still work", auction_date_from_name("X DATED 15-11-2021.pdf"), "2021-11-15")
+    check("dots still work", auction_date_from_name("X DATED 21.09.2020.pdf"), "2020-09-21")
+    # An issue code is not a date. FXD_1_2008_20 must not parse as one.
+    check("an issue code is not read as a date",
+          auction_date_from_name("FXD_1_2008_20.pdf"), None)
+    check("a bare year is not a date",
+          auction_date_from_name("Results_15_year_Re-open_dated_February_2014.pdf"), None)
+
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)
         for f in failures:

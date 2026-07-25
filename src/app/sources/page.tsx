@@ -20,8 +20,8 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     name: 'Central Bank of Kenya',
     url: 'https://www.centralbank.go.ke/',
     status: 'live',
-    used: 'Bond prospectuses, auction results, T-bill rates, CBR, exchange rates, reserves',
-    why: 'The primary authority for everything we compute. Published as public PDFs and tables.',
+    used: 'Bond prospectuses, auction results, T-bill rates, exchange rates, reserves, and the full Central Bank Rate history since 2008',
+    why: 'The primary authority for everything we compute. Published as public PDFs and tables. Every rate decision we chart links back to the MPC press release it came from, so you can check us against the original.',
   },
   {
     name: 'Kenya National Bureau of Statistics',
@@ -151,6 +151,11 @@ export default function SourcesPage() {
       <h2>Freshness and honesty</h2>
       <ul>
         <li>Auction results and rates carry the date of the auction they came from.</li>
+        <li>
+          The rate-cycle chart compares today against the level the <em>current</em> cycle
+          started from, not the 2011 record high. Measuring against the record would show a
+          fall that never happened as a single move.
+        </li>
         <li>Coupon dates are estimated from issue schedules and are labelled as estimates wherever they appear.</li>
         <li>Yields without a published auction print are interpolated from the prevailing curve, and say so.</li>
         <li>When the app is offline it shows a badge, so a cached figure is never mistaken for a live one.</li>

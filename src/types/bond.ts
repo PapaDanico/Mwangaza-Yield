@@ -49,6 +49,16 @@ export interface MacroIndicator {
   source: string;
 }
 
+export interface RateDecision {
+  id: string;
+  date: string;             // ISO date of the MPC decision
+  rate: number;             // CBR set at that meeting, %
+  title: string;            // CBK's own headline
+  url: string;              // the press release itself
+  move: 'start' | 'cut' | 'hike' | 'hold';
+  changeBps: number;        // vs the previous decision; computed, not parsed
+}
+
 export interface SecondaryTrade {
   isin: string;
   tradeDate: string;

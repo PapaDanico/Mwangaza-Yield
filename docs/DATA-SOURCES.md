@@ -259,3 +259,79 @@ https://www.cma.or.ke/                    -> HTTP 200, no matching PDFs linked
 
 Their statistics are either at an undiscovered path or rendered client-side. Not
 pursued further; revisit only if a specific document is identified by hand.
+
+## 10. CBK MPC press table — CONFIRMED extractable, now live (2026-07-25)
+
+The single most valuable finding of the July source review, and the one most likely to
+have been got wrong by assumption.
+
+**The question.** CBK's press listing renders a DataTables grid with Copy/CSV/Excel/PDF
+export buttons and 127 entries across 13 pages. A screenshot shows the *UI*. It does not
+show the *mechanism* — a CSV button is equally consistent with rows in the DOM, a JSON
+endpoint, or client-side rendering that `requests` cannot see. Each needs a different
+approach, and one of them is impossible without a headless browser.
+
+**The probe** (`discover_cbk_tables.py`):
+
+```
+=== MPC Press Releases (CBR history) ===
+  https://www.centralbank.go.ke/press/
+  HTTP 200, 203660 bytes
+  tables in DOM: 2
+  DataTables present: True
+  table 1: 301 rows in served HTML
+  table 2: 129 rows in served HTML
+    | 11/06/2008 | Inaugural Meeting of the Monetary Policy Committee
+  >>> 120 CBR mentions found in HTML; distinct values:
+      [18.0, 16.5, 13.0, 12.75, 12.5, 12.0, 11.5, 11.25, 11.0, 10.75, 10.5, 10.0, 9.75, 9.5, 9.25]
+```
+
+**Rows are in the served HTML.** No AJAX source is declared, no JavaScript is needed, no
+OCR is involved. Plain `requests` + BeautifulSoup reads eighteen years of rate decisions.
+
+**Captured** by `cbr_history_parser.py` into `public/data/cbr-history.json`:
+119 decisions, **1 December 2008 → 9 June 2026**, spanning 5.75%–18.00%.
+
+Three quirks the probe exposed, each handled explicitly:
+
+| Quirk | Handling |
+|---|---|
+| Dates are `dd/mm/yyyy` | `24/02/2009` proves day-first; parsed as such, not guessed |
+| Each decision appears in **two** tables | Deduplicated on ISO date |
+| CBK's wording varies across 18 years ("Retains", "lowers", "lowered", "Committee retains") | Direction and basis-point change are **computed from the previous rate**, never parsed from the verb |
+
+Two guards against silent corruption, both deliberate:
+
+- Rates outside **3–25%** are dropped as misparses (Kenya's real range is 5.75–18.00).
+- Fewer than **40 decisions** parsed is treated as a layout change and refuses to write.
+  Replacing a full history with a plausible-looking stub is worse than failing outright —
+  the stub would be believed.
+
+`test_cbr_history.py` covers all of the above against a fixture built from the real
+markup. It runs in CI on every pull request.
+
+### Why this was worth doing
+
+The app previously showed `CBR 8.75%` as a bare number. A number carries no information
+about whether it is high or low, rising or falling. The path does: Kenya is **ten cuts
+into an easing cycle from 13.00%, now held twice** — which is exactly the context a saver
+needs before locking money away for ten years, because the policy rate anchors the whole
+curve they are being quoted from.
+
+**One correctness note.** The headline comparison is against the level the *current run*
+started from (13.00%, June 2024), **not** the all-time high of 18.00% (December 2011).
+Anchoring on the record would describe a 9.25-point easing that never happened as a
+single move — it spans three separate cycles and fifteen years. The record high and low
+are still shown, labelled as history rather than as cycle. See `analyseCycle` in
+`src/lib/rate-cycle.ts`.
+
+### Other CBK tables probed at the same time
+
+| Page | Rows in served HTML | Verdict |
+|---|---|---|
+| Statistical Bulletin | 47 | Listing of PDF links only, no rate data inline |
+| Monthly Economic Indicators | 104 | Listing of PDF links only |
+| Weekly Bulletin | 934 | Listing only — the data is inside the PDFs (see §8) |
+
+All three are link indexes rather than data tables. They remain useful for *discovering*
+documents, which is how the Weekly Bulletin work in §8 would proceed.

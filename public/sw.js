@@ -1,7 +1,7 @@
 /* Mwangaza Yield service worker — offline-first app shell + stale-while-revalidate data.
    Bump VERSION whenever this file changes: activation drops the old cache, which is the
    only mechanism reclaiming stale hashed assets from previous deploys. */
-const VERSION = 'mwangaza-v6';
+const VERSION = 'mwangaza-v7';
 const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {

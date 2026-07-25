@@ -54,6 +54,9 @@ jobs:
       - name: Probe candidate sources (CBK Weekly Bulletin, CMA)
         working-directory: backend/scrapers
         run: python discover_sources.py
+      - name: Probe CBK HTML data tables (CBR history)
+        working-directory: backend/scrapers
+        run: python discover_cbk_tables.py
       - name: Dry-run the NSE parser
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers

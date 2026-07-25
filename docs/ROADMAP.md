@@ -87,6 +87,22 @@ July source review.
 CMA was probed at the same time and yielded nothing — `/statistics/` and
 `/market-statistics/` both 404, homepage links no matching PDFs.
 
+**Do not over-read the second probe (`f72a975`).** It reported 925 on-topic links and
+three PDFs with a text layer under centralbank.go.ke, which looks like confirmation but
+is not: the three it actually opened were `AuctionRulesGuidelines.pdf`, `BBP.pdf` and
+`Kenya-Master-Repurchase-Agreement.pdf`. Those *mention* "domestic debt" and "government
+securities" in prose; they carry no data tables. The only bulletin whose contents have
+ever been inspected here remains the 2016 one above. Until a current-year bulletin is
+opened and its debt table read, no parser should be written — the term-match is exactly
+the kind of evidence that misled `discover_prospectus.py` twice.
+
+Next iteration: fetch the dated URL pattern directly rather than crawling the landing
+page's generic document links.
+
+The other five targets in that probe are closed for now: National Treasury PDMO debt
+documents 404 (site mid-migration), Parliamentary Budget Office 404 on all four URLs,
+Controller of Budget 415, KNBS SSL verification failure, IMF 403.
+
 ---
 
 ## Done since this roadmap was written
@@ -195,6 +211,31 @@ what users already have is the most expensive change available and is not the pl
 Server-side scope is deliberately tiny: scheduling and delivery only. The calculation
 engine stays client-side and deterministic, which also keeps the CMA line clean — no
 advice, no funds flow.
+
+**Client half shipped 2026-07-25 — `/alerts/`.** Four rule kinds (auction window, coupon
+due, maturity, T-Bill threshold), evaluated by a pure function of `(rules, world, now)`
+in `src/lib/alerts.ts`, persisted in Dexie v7 with a delivery log keyed on stable event
+ids so nothing repeats. Free, no account, nothing leaves the device.
+
+It is deliberately under-promised on the page itself: with no sender, alerts surface
+*when the app is opened*, plus a banner if notification permission was granted while it
+is running. The page says exactly that and points at the existing iCal export for dates
+that genuinely cannot be missed. Anything stronger would be the one screen in the app
+claiming more than it can do.
+
+**Still to come, and what it needs:**
+- A VAPID key pair. Public half ships in the client bundle; private half is a secret on
+  the sender.
+- A decision on where the sender runs — a Netlify scheduled function is the recommended
+  fit: it already hosts the site, and the job is a daily cron that re-runs
+  `evaluateAlerts` against the same data files.
+- Push subscriptions, which are the first thing this app would ever store server-side.
+  That is the moment the "no account, no e-mail" promise needs restating precisely: an
+  endpoint is not an identity, and the free tier keeps working untouched for anyone who
+  never subscribes.
+
+`public/sw.js` already carries the `push` and `notificationclick` handlers, so the
+sender is the only missing piece. Nothing subscribes yet, so `push` never fires today.
 
 ### Ahead of it commercially: the auction archive
 350 parsed records across 125 issue codes, 2014 to today, that nobody else has because

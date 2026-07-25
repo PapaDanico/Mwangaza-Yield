@@ -1,6 +1,14 @@
 import Dexie, { type Table } from 'dexie';
 import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
 import type { SavedPlan } from './plans';
+import type { AlertRule } from './alerts';
+
+/** One event we have already shown, so opening the app again does not repeat it. */
+export interface AlertDelivery {
+  id: string;       // the AlertEvent id
+  deliveredAt: string;
+  seen: boolean;    // false until the reader opens the alerts page
+}
 
 class MwangazaDB extends Dexie {
   bonds!: Table<Bond, string>;
@@ -12,6 +20,8 @@ class MwangazaDB extends Dexie {
   plans!: Table<SavedPlan, string>;
   cbrHistory!: Table<RateDecision, string>;
   auctionResults!: Table<AuctionPrint, string>;
+  alertRules!: Table<AlertRule, string>;
+  alertLog!: Table<AlertDelivery, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -33,6 +43,10 @@ class MwangazaDB extends Dexie {
     });
     this.version(6).stores({
       auctionResults: 'id, issueCode, auctionDate',
+    });
+    this.version(7).stores({
+      alertRules: 'id, kind, enabled',
+      alertLog: 'id, deliveredAt, seen',
     });
   }
 }

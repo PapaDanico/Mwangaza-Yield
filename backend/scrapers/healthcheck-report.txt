@@ -1,1 +1,0 @@
-- Bond plausibility: FXD1/2012/15 couponRate=1.0 outside 6.0-30.0

@@ -68,6 +68,9 @@ jobs:
       - name: Probe CBK HTML data tables (CBR history)
         working-directory: backend/scrapers
         run: python discover_cbk_tables.py
+      - name: Probe secondary source shortlist (KIPPRA, Cbonds, AfricaFinancials, Bloomberg, NSE)
+        working-directory: backend/scrapers
+        run: python discover_secondary_sources.py
       - name: Dry-run the NSE parser
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers

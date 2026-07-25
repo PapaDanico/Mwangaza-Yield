@@ -16,6 +16,22 @@
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/251537971_RESULTS FOR RE-OPEN FXD1-2016-10  AND FXD1-2022-10 DATED 14-10-2024.pdf"
   },
   {
+    "isin": "KE4000001109",
+    "issueCode": "IFB1/2014/12",
+    "name": "12-Year Infrastructure Bond",
+    "category": "IFB",
+    "issueDate": "2014-10-27",
+    "maturityDate": "2026-10-12",
+    "tenorYears": 12.0,
+    "couponRate": 11.0,
+    "couponFrequencyPerYear": 2,
+    "ytmGross": 11.633,
+    "minInvestmentKES": 50000,
+    "taxExempt": true,
+    "ytmAsOf": null,
+    "source": "https://www.centralbank.go.ke//images/results%2012-year%20ifb1-2014-12%20dated%2027-10-2014.pdf"
+  },
+  {
     "isin": "KE7000006655",
     "issueCode": "FXD1/2021/5",
     "name": "5-Year Fixed Coupon Bond",

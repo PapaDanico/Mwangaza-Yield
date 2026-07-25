@@ -13,6 +13,7 @@ import os
 import sys
 
 from auction_results import (
+    NUMERIC_RE,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -87,6 +88,37 @@ def main():
     check("linear text finds four bogus numbers", naive, ["1", "1.277", "1", "2.873"])
     check("column reading finds the two real ones",
           sorted(assign_to_columns(COUPON, centres, label_x).values()), ["11.277", "12.873"])
+
+    print("a long row label must not contaminate the value it precedes")
+    # Reproduces the live failure exactly. A probe of CBK's own files showed
+    # narrow tables — column centres at 104 and 199 — where label_x lands at 64
+    # and the tail of a long label sits to the RIGHT of it. cell_value joins
+    # without a separator, so "(%)" was glued onto "13.9128" and the cell read
+    # "(%)13.9128", failed NUMERIC_RE, and was dropped. Every field went that
+    # way, so the file yielded nothing despite a header that parsed perfectly.
+    narrow_header = [w("TENOR", 30, 100), w("FXD1/2022/015", 78, 100),
+                     w("FXD1/2022/025", 173, 100)]
+    codes, narrow_centres = find_header(group_lines(narrow_header),
+                                        ["FXD1/2022/015", "FXD1/2022/025"])
+    check("the narrow header still parses", codes, ["FXD1/2022/015", "FXD1/2022/025"])
+    narrow_label_x = min(narrow_centres) - 40
+
+    # "Bids" and "(%)" sit right of the boundary — that is the whole hazard.
+    long_row = [w("Weighted", 20, 120), w("Average", 62, 120), w("Rate", 90, 120),
+                w("of", 108, 120), w("Accepted", 116, 120), w("Bids", 152, 120),
+                w("(%)", 168, 120),
+                w("13.9128", 105, 120), w("14.5384", 200, 120)]
+    contaminating = [x["text"] for x in long_row
+                     if not x["text"].replace(".", "").isdigit()
+                     and (x["x0"] + x["x1"]) / 2 >= narrow_label_x]
+    check("the fixture really does put label words past the boundary",
+          len(contaminating) > 0, True)
+
+    cells = assign_to_columns(long_row, narrow_centres, narrow_label_x)
+    check("the first value is clean", cells.get(0), "13.9128")
+    check("the second value is clean", cells.get(1), "14.5384")
+    check("both cells survive the numeric test",
+          all(NUMERIC_RE.match(v) for v in cells.values()), True)
 
     print("split issue codes — the bug the first dry-run caught")
     # CBK splits codes across word boundaries. Matching word by word found one

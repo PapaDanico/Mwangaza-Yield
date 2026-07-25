@@ -146,13 +146,39 @@ def cell_value(fragments: list) -> str:
     return joined
 
 
+# A fragment that could be part of a number. Anything else on a data row is
+# label text, whichever side of the boundary it happened to land on.
+VALUE_FRAGMENT_RE = re.compile(r"^[\d,]*\.?\d+$")
+
+
 def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
-    """Map a line's numeric fragments onto the column each one sits under."""
+    """Map a line's numeric fragments onto the column each one sits under.
+
+    Two filters, and the content one is what makes a cell trustworthy.
+
+    `cell_value` joins fragments WITHOUT a separator, because that is the only
+    way to put CBK's split digits back together — "1" + "3.9420" is 13.9420.
+    The cost is that a stray label word joins just as silently. `label_x` is a
+    positional guess, min(centres) - 40, and on narrow tables it is far too
+    permissive: with column centres at 104 and 199 the boundary sits at 64, and
+    a row reading "Weighted Average Rate of Accepted Bids (%) 13.9128" has
+    label words to the right of it. Those were glued onto the digits, so the
+    cell read "(%)13.9128", failed NUMERIC_RE and was dropped — every field,
+    which is how a file whose header parsed perfectly returned nothing at all.
+
+    Moving the boundary does NOT fix this, which is worth stating because it
+    was the obvious thing to try. Deriving it from the header's own left edge
+    instead of the magic 40 lands at or below 64 on these files — equally
+    permissive. What settles it is asking whether a fragment could be part of a
+    number before letting it into a cell.
+    """
     buckets: dict = {i: [] for i in range(len(centres))}
     for w in line:
         mid = (w["x0"] + w["x1"]) / 2
         if mid < label_x:  # part of the row label, not a value
             continue
+        if not VALUE_FRAGMENT_RE.match(w["text"]):
+            continue  # label text that reached past the boundary
         nearest = min(range(len(centres)), key=lambda i: abs(centres[i] - mid))
         buckets[nearest].append(w)
     return {i: cell_value(frs) for i, frs in buckets.items() if frs}

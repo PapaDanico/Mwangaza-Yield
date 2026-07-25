@@ -188,7 +188,7 @@ def describe(url: str, content: bytes) -> None:
             if not codes:
                 continue
             label_x = min(centres) - 40
-            print(f"      label_x = {label_x:.1f} (min centre {min(centres):.1f} - 40)")
+            print(f"      label_x = {label_x:.1f}")
             header_x0 = None
             for line in lines:
                 if codes_on_line_x0(line, codes):

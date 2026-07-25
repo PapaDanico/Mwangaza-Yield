@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useBondStore } from '@/stores/bondStore';
 import {
@@ -9,6 +9,8 @@ import {
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { cn, formatCompactKES } from '@/lib/utils';
+import { usePlanStore } from '@/stores/planStore';
+import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -60,6 +62,49 @@ export default function GoalsPage() {
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
   const [parkCapital, setParkCapital] = useState(500_000);
 
+  const { plans, load: loadPlans, save: savePlan, remove: removePlan } = usePlanStore();
+  const [activePlanId, setActivePlanId] = useState('');
+  const [justSaved, setJustSaved] = useState(false);
+  useEffect(() => { loadPlans(); }, [loadPlans]);
+
+  const currentInputs: PlanInputs = {
+    targetIncome, capital, monthly,
+    feeCapital, firstFeeYear, yearsOfFees, annualFee,
+    incomeCapital, parkCapital,
+  };
+
+  function applyPlan(id: string) {
+    setActivePlanId(id);
+    const p = plans.find((x) => x.id === id);
+    if (!p) return;
+    setGoal(p.goal);
+    const i = p.inputs;
+    if (i.targetIncome !== undefined) setTargetIncome(i.targetIncome);
+    if (i.capital !== undefined) setCapital(i.capital);
+    if (i.monthly !== undefined) setMonthly(i.monthly);
+    if (i.feeCapital !== undefined) setFeeCapital(i.feeCapital);
+    if (i.firstFeeYear !== undefined) setFirstFeeYear(i.firstFeeYear);
+    if (i.yearsOfFees !== undefined) setYearsOfFees(i.yearsOfFees);
+    if (i.annualFee !== undefined) setAnnualFee(i.annualFee);
+    if (i.incomeCapital !== undefined) setIncomeCapital(i.incomeCapital);
+    if (i.parkCapital !== undefined) setParkCapital(i.parkCapital);
+  }
+
+  async function handleSave() {
+    const existing = plans.find((p) => p.id === activePlanId);
+    const name = window.prompt(
+      'Name this plan',
+      existing?.name ?? suggestPlanName(goal, currentInputs)
+    );
+    if (name === null) return;
+    const now = new Date().toISOString();
+    const plan = makePlan(goal, currentInputs, name, now, existing?.id);
+    await savePlan(existing ? { ...plan, createdAt: existing.createdAt } : plan);
+    setActivePlanId(plan.id);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2200);
+  }
+
   const fire = useMemo(
     () => planFire(bonds, secondary, targetIncome, capital, monthly),
     [bonds, secondary, targetIncome, capital, monthly]
@@ -81,11 +126,45 @@ export default function GoalsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">Plan by objective</h1>
-        <p className="text-sm text-ink-muted">
-          Start from what the money is for. We&apos;ll shape the bonds around it.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Plan by objective</h1>
+          <p className="text-sm text-ink-muted">
+            Start from what the money is for. We&apos;ll shape the bonds around it.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Saved plans: unbounded list, one choice, no comparison — a dropdown. */}
+          {plans.length > 0 && (
+            <select
+              value={activePlanId}
+              onChange={(e) => applyPlan(e.target.value)}
+              aria-label="Saved plans"
+              className="max-w-[12rem] rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500"
+            >
+              <option value="">Saved plans…</option>
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+          {activePlanId && (
+            <button
+              onClick={() => { removePlan(activePlanId); setActivePlanId(''); }}
+              aria-label="Delete this plan"
+              className="rounded-xl border border-sand-400 p-2 text-ink-faint transition hover:border-red-400 hover:text-red-500"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-soft"
+          >
+            {justSaved ? <Check size={15} /> : <Save size={15} />}
+            {justSaved ? 'Saved' : activePlanId ? 'Update' : 'Save plan'}
+          </button>
+        </div>
       </div>
 
       {/* Mobile: a single control. The four cards are mode selection, not

@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 9
+PARSER_VERSION = 10
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -663,10 +663,39 @@ def _fit(records: dict, codes: list, density: float) -> tuple:
     return (len(records), _field_count(records), density)
 
 
-# How far into a line a label may start and still be a table row's label. A row
-# begins with its own name; two characters of slack absorbs a section marker like
-# "F." without admitting a sentence.
-LABEL_START_SLACK = 3
+def _looks_like_row(line: list) -> bool:
+    """Whether a line is a table ROW rather than a sentence that mentions one.
+
+    A row ends with its value. A sentence keeps talking:
+
+        Total Advertised Amount (Kes Million) 9,720.00          <- row
+        Total bids Received at Cost (Kshs. M) 13,463.75         <- row
+        the number of bids received was 877 amounting to
+            kshs 30.5 billion                                   <- sentence
+        below. All the 64 bids received were accepted and
+            fully allotted.                                     <- sentence
+
+    An earlier version asked instead how far into the line the LABEL began, on
+    the theory that a row starts with its own name. That is true of the row and
+    false of the regex: the bids pattern consumes "Total bids Received" from
+    position 0, but the offered pattern matches only "Advertised Amount" and so
+    starts at six, and the price pattern starts at eighteen inside "Adjusted
+    Average Price(Per KES 100.00)". Real rows were being filed as prose and
+    survived only because prose was still being read. The moment prose was
+    dropped, five fields went with it.
+
+    Where the label starts depends on how the pattern happens to be written.
+    Where the values sit is a fact about the document, so that is what this
+    asks.
+    """
+    last_value = last_word = -1
+    for i, w in enumerate(line):
+        text = w["text"]
+        if VALUE_FRAGMENT_RE.match(text):
+            last_value = i
+        elif any(c.isalpha() for c in text):
+            last_word = i
+    return last_value > last_word
 
 
 def _row_label(line: list, label_x: float) -> str:
@@ -680,12 +709,19 @@ def _row_label(line: list, label_x: float) -> str:
         total bids received at cost (kshs. m)
 
     Stops at the first word that could be a figure, so the label never carries
-    the number it labels.
+    the number it labels. The stop does NOT depend on `label_x`: a narrow table
+    puts that boundary well to the right, and twelve labels in the archive
+    swallowed their own value because of it — "total bids received (kshs. m)
+    31,331.63". Position decides what is a VALUE; it has no business deciding
+    where a label ends.
+
+    Only used for the bids row, where no legitimate label contains a bare
+    number. "Price per Kshs 100" would truncate at the 100, which is why this
+    is not applied to every field.
     """
     out = []
     for w in line:
-        mid = (w["x0"] + w["x1"]) / 2
-        if mid >= label_x and VALUE_FRAGMENT_RE.match(w["text"]):
+        if VALUE_FRAGMENT_RE.match(w["text"]):
             break
         out.append(w["text"])
     return " ".join(" ".join(out).split()).lower()
@@ -717,11 +753,24 @@ def _field_lines(lines: list, key: str, pattern) -> list:
     """
     reject = FIELD_EXCLUSIONS.get(key)
     prefer = FIELD_PREFERENCE.get(key)
-    # Three tiers, best first: the preferred row at the start of its line, then
-    # any other row at the start of its line, then prose. Two dimensions rather
-    # than one, because "at cost" beats "in face value" on meaning while both
-    # beat a sentence on being a row at all.
-    best, ordinary, prose = [], [], []
+    # Two tiers: the preferred row, then any other row. Both must be ROWS —
+    # their label starts the line.
+    #
+    # Prose is not a third tier any more, and keeping it as one was a mistake I
+    # argued for on the grounds that "some genuinely old layouts have nothing
+    # else". The archive disagrees. Four records took their bids from a sentence
+    # and every one is nonsense: 7.64, 191.0, 18.6 and 19.06 million shillings,
+    # off lines reading "bids received was 877 amounting to kshs 30.5 billion".
+    #
+    # The reason is structural, not bad luck. This parser reads values by
+    # assigning words to COLUMN CENTRES taken from a header. A sentence has no
+    # columns, so whichever word happens to fall nearest a centre becomes the
+    # value — that is a coincidence with the shape of an answer, not a reading.
+    # There is no case in the archive where prose produced a right figure.
+    #
+    # So a document that states a number only in a sentence yields nothing for
+    # that field, and says so. A gap is visible and a coincidence is not.
+    best, ordinary, dropped = [], [], 0
     for line in lines:
         text = " ".join(w["text"] for w in line)
         m = pattern.search(text)
@@ -729,13 +778,18 @@ def _field_lines(lines: list, key: str, pattern) -> list:
             continue
         if reject and reject.search(text):
             continue
-        if m.start() > LABEL_START_SLACK:
-            prose.append(line)
-        elif prefer and prefer.search(text):
+        if not _looks_like_row(line):
+            dropped += 1
+            continue
+        if prefer and prefer.search(text):
             best.append(line)
         else:
             ordinary.append(line)
-    return best + ordinary + prose
+    if dropped and not (best or ordinary):
+        print(f"[auctions] {key}: only prose mentions it ({dropped} line(s)) — "
+              f"leaving it unread rather than reading a sentence by column",
+              file=sys.stderr)
+    return best + ordinary
 
 
 # The heading of section A, which states the date the bond is dated from:

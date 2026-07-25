@@ -360,6 +360,8 @@ def main():
     p_rec = p_got.get("FXD4/2011/002", {})
     check("the table row wins over the sentence",
           p_rec.get("bidsReceivedKESM"), 13463.75)
+    check("and the label is the row's, without its own value in it",
+          p_rec.get("bidsLabel"), "total bids received at cost (kshs. m)")
     # Two near-miss rows sit directly above the real one. A face value is not a
     # cost and a count of bids is not an amount; no ordering rule makes them so.
     check("a face-value total is refused outright",
@@ -368,6 +370,55 @@ def main():
           p_rec.get("bidsReceivedKESM") != 546.0, True)
     check("nor is a count mentioned in passing in a sentence",
           p_rec.get("bidsReceivedKESM") != 64.0, True)
+
+    print("a row ends with its value; a sentence keeps talking")
+    from auction_results import _looks_like_row
+    # The discriminator, against real lines from CBK documents. An earlier rule
+    # asked how far into the line the LABEL began, which is a fact about how the
+    # regex happens to be written rather than about the document: the bids
+    # pattern starts at 0, the offered pattern at 6 inside "Total Advertised
+    # Amount", the price pattern at 18 inside "Adjusted Average Price(Per KES
+    # 100.00)". Real rows were filed as prose and survived only because prose
+    # was still being read.
+    for text, expected in [
+        ("Total Advertised Amount (Kes Million) 9,720.00", True),
+        ("Total bids Received at Cost (Kshs. M) 13,463.75", True),
+        ("Adjusted Average Price(Per KES 100.00) 100.215", True),
+        ("Coupon Rate(%) 11.492%", True),
+        ("Total Number of Bids Received 546", True),
+        ("the number of bids received was 877 amounting to kshs 30.5 billion", False),
+        ("of bids received was 737 amounting to", False),
+        ("below. All the 64 bids received were accepted and fully allotted.", False),
+    ]:
+        line = [w(t, 40 + i * 30, 100) for i, t in enumerate(text.split())]
+        check(f"{'row ' if expected else 'prose'}: {text[:44]}",
+              _looks_like_row(line), expected)
+
+    print("a sentence alone yields nothing — it is not a last resort")
+    # Four records in the archive took their bids from a sentence and every one
+    # is nonsense: 7.64, 191.0, 18.6, 19.06 million, off lines reading "bids
+    # received was 877 amounting to kshs 30.5 billion". The cause is structural.
+    # This parser reads values by assigning words to column centres, and a
+    # sentence has no columns, so whichever word lands nearest a centre becomes
+    # the value — a coincidence shaped like an answer.
+    #
+    # The sentence must be one FIELD_EXCLUSIONS does not already catch, and the
+    # first version of this fixture was not: it said "the number of bids
+    # received", which the count-exclusion rejects, so the test passed for a
+    # reason it did not claim and survived the mutant that removes the row gate.
+    # This one has no "number of", and its figure sits right of label_x where
+    # the column assignment would happily pick it up.
+    sentence_only = group_lines([
+        w("TENOR", 40, 100), w("FXD1/2011/5", 280, 100),
+        w("of", 40, 130), w("bids", 60, 130), w("received", 95, 130),
+        w("was", 150, 130), w("30.5", 300, 130), w("billion", 350, 130),
+    ])
+    s_codes, s_centres = find_header(sentence_only, ["FXD1/2011/005"])
+    s_got = _rf(sentence_only, s_codes, s_centres, "2011-01-31", "u")
+    check("no bids figure is invented from the sentence",
+          s_got.get("FXD1/2011/005", {}).get("bidsReceivedKESM"), None)
+    check("and no record is conjured just to hold the gap",
+          "FXD1/2011/005" in s_got, False)
 
     print("face value is second choice, not forbidden")
     # This cost 32 records. Excluding the face-value row outright — on the

@@ -25,19 +25,28 @@ These affect whether the numbers can be relied on. Nothing else matters more.
 coupon dates follow business-day conventions and shift for weekends and holidays. Every
 "next coupon date", the cash-flow calendar and the .ics exports inherit that
 approximation.
-**BLOCKED (probed 2026-07-25).** Prospectuses do carry "Interest Payment Dates" and are
-machine-readable — but only 2016 documents are reachable, the listing serves no table in
-its HTML, and the two-column layout bleeds text between fields. See `DATA-SOURCES.md` §12.
-**To unblock.** Find the current-year prospectus route; the listing is likely rendered
-client-side, so inspecting its network calls in a browser would settle it.
+**NOT ACTUALLY BLOCKED — the probe was reading the wrong documents (found 2026-07-25).**
+`discover_prospectus.py` selected PDFs whose NAME contains an issue code. Results files
+are named for their issues too, so all 506 files it inspected were auction RESULTS —
+documents that report what an auction cleared at and have no reason to state a coupon
+schedule. It reported "COUPON DATES: not found" and this item was marked blocked on that.
+
+Same shape as the `/securities/` path that answered 200 while serving a 2016 archive: a
+confident answer to a question never asked. The probe now selects on the upload PATH, and
+says plainly when a listing carries no prospectus-path PDFs rather than settling for
+whatever else is there.
+**Next.** Read the corrected probe's output: it reports how many issue-coded PDFs sit on
+a prospectus path versus the results path, and lists the upload segments actually
+present. That names the route instead of inferring it.
 **Done when.** A bond with a published schedule shows prospectus dates, and the UI
 distinguishes exact from estimated.
 
 ### 2. Day-count convention verified
 **Problem.** Accrued interest uses Actual/365 by assumption. The exact convention is
 stated in the prospectus and changes every settlement figure.
-**BLOCKED (probed 2026-07-25).** Stated in neither the prospectus nor the CBK Auction
-Rules & Guidelines. There may be no published statement to find.
+**Evidence retracted 2026-07-25.** The "not stated in the prospectus" half of this rests
+on the same broken probe — no prospectus was ever read. Only the CBK Auction Rules &
+Guidelines finding survives, and that document genuinely does not state a day count.
 **To unblock.** Stop hunting for a statement and test the behaviour: take one
 CBK-published settlement amount for a known bond and date, and see which convention
 reproduces it. The verification criterion becomes the method.

@@ -17,6 +17,22 @@ Neither is worth guessing at. This probe answers whether the prospectuses
 state them in a form software can read, BEFORE any parser is written. That
 sequence is the one lesson this project has learned the expensive way, twice.
 
+CORRECTION, 2026-07-25 — THIS PROBE HAD NEVER READ A PROSPECTUS
+---------------------------------------------------------------
+It selected PDFs whose NAME contains an issue code. Auction results are named
+for their issues too, so all 506 files it inspected were results — documents
+that report what an auction cleared at and have no reason to mention a coupon
+schedule or an accrual basis. It duly reported "COUPON DATES: not found" and
+"DAY COUNT: not found", and on that basis roadmap items 1 and 2 were recorded
+as BLOCKED.
+
+They were never blocked. They were never looked for. This is the same shape of
+error as the /securities/ path that answered 200 while serving a 2016 archive:
+a confident answer to a question that was never actually asked. Naming is not
+identity — the upload PATH is what separates a prospectus from a result, and
+the probe now says plainly when a listing carries no prospectus-path PDFs
+instead of quietly settling for whatever else is there.
+
 Read-only. Never gates CI.
 """
 import re
@@ -70,6 +86,19 @@ BOILERPLATE = re.compile(
 # A real prospectus is named for its issue: FXD1/2024/10, IFB1/2023/17 etc.
 ISSUE_RE = re.compile(r"(FXD|IFB|SDB)\s?\d?[/_-]?\d{4}", re.I)
 
+# Naming alone is NOT enough to identify a prospectus, and believing it was
+# made this probe answer a question it never asked. Results files are named for
+# their issues too, so "PDF whose name contains an issue code" matched 506
+# AUCTION RESULTS, none of which state a coupon schedule or a day-count basis —
+# they report what an auction cleared at. On that evidence the roadmap recorded
+# exact coupon dates and the day-count convention as BLOCKED. They were not
+# blocked; they were never looked for.
+#
+# Prospectuses and results live under different upload paths, so the path is
+# what distinguishes them.
+PROSPECTUS_PATH_RE = re.compile(r"treasury_bonds?_prospectus", re.I)
+RESULTS_PATH_RE = re.compile(r"historical_treasury_bond_results|[_/]RESULTS", re.I)
+
 
 def find_prospectus_pdfs(listing: str = LISTING) -> list:
     r = requests.get(listing, headers=UA, timeout=TIMEOUT)
@@ -96,7 +125,33 @@ def find_prospectus_pdfs(listing: str = LISTING) -> list:
             continue
         seen.add(href)
         out.append((href, label))
-    return out
+
+    prospectuses = [(h, l) for h, l in out if PROSPECTUS_PATH_RE.search(h)]
+    results = [(h, l) for h, l in out if RESULTS_PATH_RE.search(h)]
+    other = [(h, l) for h, l in out
+             if not PROSPECTUS_PATH_RE.search(h) and not RESULTS_PATH_RE.search(h)]
+    print(f"  issue-coded PDFs: {len(prospectuses)} on a prospectus path, "
+          f"{len(results)} on the results path, {len(other)} elsewhere")
+
+    if prospectuses:
+        return prospectuses
+
+    # Say so rather than quietly inspecting results files and reporting that
+    # prospectuses contain no coupon dates. Printing the paths that ARE present
+    # is what turns a dead end into the next lead.
+    print("  !! NO prospectus-path PDFs on this listing. This page carries "
+          "results, not prospectuses.")
+    buckets: dict = {}
+    for href, _label in out:
+        segment = href.split("/uploads/")[-1].split("/")[0] if "/uploads/" in href else "(not under /uploads/)"
+        buckets[segment] = buckets.get(segment, 0) + 1
+    for segment, count in sorted(buckets.items(), key=lambda kv: -kv[1])[:6]:
+        print(f"       {count:>4} under {segment}")
+    print("  Next: find the page that links the prospectus path, and point "
+          "LISTING at it. Do NOT infer the URL — the /securities/ path already "
+          "answered 200 with a 2016 archive and cost this project two wrong "
+          "conclusions.")
+    return other[:MAX_PDFS] if other else []
 
 
 def inspect(url: str, label: str) -> None:

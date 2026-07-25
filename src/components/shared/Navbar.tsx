@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calculator, Radar, Briefcase, Layers, Receipt } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfflineBadge from './OfflineBadge';
 
 const links = [
   { href: '/dashboard/', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/goals/', label: 'Goals', Icon: Target },
   { href: '/tbills/', label: 'T-Bills', Icon: Receipt },
   { href: '/ladder/', label: 'Ladder', Icon: Layers },
   { href: '/calculator/', label: 'Calculator', Icon: Calculator },
@@ -54,7 +55,7 @@ export default function Navbar() {
 
       {/* Mobile bottom nav */}
       <nav className="no-print fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand-300 bg-sand-50/95 py-2 backdrop-blur md:hidden">
-        {links.map(({ href, label, Icon }) => (
+        {links.filter((l) => l.href !== '/calculator/').map(({ href, label, Icon }) => (
           <Link
             key={href}
             href={href}

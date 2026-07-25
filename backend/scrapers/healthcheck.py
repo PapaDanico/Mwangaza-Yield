@@ -37,6 +37,11 @@ BUDGETS = [
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
     ("secondary.json", "Secondary trades", "tradeDate", 30, "NSE publishes daily"),
     ("context.json", "Sovereign context", "asOf", 400, "annual indicators"),
+    # The MPC meets roughly every two months, so a genuinely current history can
+    # still be ~70 days old. A broken capture is caught earlier and harder by the
+    # parser's own MIN_DECISIONS guard; this is the backstop for a capture that
+    # keeps succeeding while silently missing new meetings.
+    ("cbr-history.json", "CBR decision history", "date", 130, "MPC meets ~every 2 months"),
 ]
 
 

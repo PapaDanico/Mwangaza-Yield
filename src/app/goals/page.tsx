@@ -13,6 +13,7 @@ import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
 import GoalProgress from '@/components/shared/GoalProgress';
+import { yearsLabel } from '@/lib/years-label';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -54,6 +55,7 @@ export default function GoalsPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
   const tbills = useBondStore((s) => s.tbills);
+  const cbrHistory = useBondStore((s) => s.cbrHistory);
   const [goal, setGoal] = useState<GoalKey>('fire');
 
   // FIRE
@@ -120,8 +122,8 @@ export default function GoalsPage() {
   }
 
   const fire = useMemo(
-    () => planFire(bonds, secondary, targetIncome, capital, monthly),
-    [bonds, secondary, targetIncome, capital, monthly]
+    () => planFire(bonds, secondary, targetIncome, capital, monthly, cbrHistory),
+    [bonds, secondary, targetIncome, capital, monthly, cbrHistory]
   );
   const fees = useMemo(
     () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee),
@@ -243,7 +245,7 @@ export default function GoalsPage() {
               <input type="number" step={100_000} value={capital}
                 onChange={(e) => setCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
-            <Field label="Monthly contribution" hint="Reinvested at the same net yield each year.">
+            <Field label="Monthly contribution" hint="Reinvested at the cautious planning yield, not the best rate on the board.">
               <input type="number" step={10_000} value={monthly}
                 onChange={(e) => setMonthly(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
@@ -259,9 +261,21 @@ export default function GoalsPage() {
               </p>
               <p className="mt-1 text-sm text-ink-muted">
                 to draw {formatKES(fire.targetAnnualIncomeKES)} a year at{' '}
-                <span className="num font-semibold text-ink">{formatPct(fire.bestNetYield)}</span> net
-                {fire.bestBond && ` (${fire.bestBond.issueCode}${fire.bestBond.taxExempt ? ', tax-free' : ''})`}
+                <span className="num font-semibold text-ink">{formatPct(fire.planningNetYield)}</span> net
+                {fire.ladderRungs > 1 && ` — a ${fire.ladderRungs}-bond ladder, priced for a fall in rates`}
               </p>
+              {fire.requiredCapitalIfRatesHoldKES > 0
+                && fire.requiredCapitalIfRatesHoldKES < fire.requiredCapitalKES && (
+                <p className="mt-1 text-sm text-ink-muted">
+                  If rates instead hold near today&apos;s{' '}
+                  <span className="num">{formatPct(fire.currentLadderNetYield)}</span>, you would
+                  need{' '}
+                  <span className="num font-semibold text-mint-700">
+                    {formatCompactKES(fire.requiredCapitalIfRatesHoldKES)}
+                  </span>
+                  .
+                </p>
+              )}
 
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-ink-muted">
@@ -280,24 +294,66 @@ export default function GoalsPage() {
               <Stat label="Still to raise" value={formatCompactKES(fire.shortfallKES)} />
               <Stat
                 label="Years to target"
-                // Stepped monthly, so this is fractional. Printed to one place:
-                // "3.6" is the honest answer, and the raw 3.5833333333333335
-                // this replaced was neither readable nor that precise.
-                value={
-                  fire.yearsToTarget === null ? '—'
-                    : fire.yearsToTarget === 0 ? 'Funded'
-                    : fire.yearsToTarget < 1 ? `${Math.round(fire.yearsToTarget * 12)} months`
-                    : `${fire.yearsToTarget.toFixed(1)}`
-                }
+                // A range, not a point. Any single rate compounded for a decade
+                // is a claim about the future rate environment, and the CBR has
+                // run from 5.75% to 18% inside this app's own history. Written
+                // low to high; the disclosure says in words which end to plan
+                // on rather than leaving it to be read off the order.
+                value={yearsLabel(fire.yearsToTarget, fire.yearsIfRatesHold)}
                 accent="text-gold-700"
               />
             </div>
 
-            <p className="text-[11px] leading-relaxed text-ink-faint">
-              Assumes today&apos;s best net yield persists and every coupon is reinvested — bond
-              rates reset at each auction, so treat this as a bearing, not a forecast. Inflation is
-              not modelled; the target is stated in today&apos;s shillings.
-            </p>
+            <div className="rounded-xl border border-sand-300 bg-sand-200/60 p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">
+                What this assumes
+              </p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-soft">
+                {fire.ladderRungs > 1 ? (
+                  <>
+                    The headline figures price a{' '}
+                    <span className="num font-semibold">{fire.ladderRungs}-bond ladder</span> you
+                    could actually build, rather than the single highest-yielding bond, which no
+                    one can buy without limit.
+                  </>
+                ) : (
+                  // The ladder came back empty and the yield fell back to a single
+                  // bond. Claiming a diversified basis here would describe the
+                  // opposite of what was used.
+                  <>
+                    Not enough bonds are currently listed to build a ladder, so these figures rest
+                    on a single bond&apos;s yield. Treat them as indicative until the market has
+                    more paper on issue.
+                  </>
+                )}{' '}
+                {fire.downsidePp > 0 ? (
+                  <>
+                    That yield is then marked down{' '}
+                    <span className="num font-semibold">{fire.downsidePp.toFixed(2)} points</span>{' '}
+                    for reinvestment — the drop the Central Bank Rate has made within the published
+                    record. Where a range is shown it runs from today&apos;s rates holding up to
+                    that fall;{' '}
+                    <span className="font-semibold">plan on the higher figure</span>.
+                  </>
+                ) : (
+                  // No CBR history loaded, so no markdown was applied and the two
+                  // scenarios collapsed into one. Saying "deliberately cautious"
+                  // here would describe a haircut that is not in the numbers.
+                  <>
+                    Rate history is unavailable right now, so no allowance for falling reinvestment
+                    rates has been applied. These figures assume today&apos;s rates hold, which is
+                    the optimistic case — treat the timeline as a floor, not a plan.
+                  </>
+                )}
+              </p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
+                Bonds you already hold keep their coupon to maturity; it is what you buy NEXT that
+                reprices, which is why a long plan is a rate bet as much as a savings one. Every
+                coupon is assumed reinvested. Inflation is not modelled, so the target is in
+                today&apos;s shillings — at 5% inflation, money buys about half as much in 14
+                years. This is an estimate for planning, not advice or a forecast.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -306,7 +362,7 @@ export default function GoalsPage() {
         <GoalProgress
           plan={activePlan}
           targetKES={fire.requiredCapitalKES}
-          annualRatePct={fire.bestNetYield}
+          annualRatePct={fire.planningNetYield}
           startKES={activePlan.inputs.capital ?? 0}
           monthlyKES={activePlan.inputs.monthly ?? 0}
           onChange={savePlan}

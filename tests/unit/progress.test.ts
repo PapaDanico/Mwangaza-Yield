@@ -6,6 +6,8 @@ import {
   buildProgress,
 } from '../../src/lib/progress';
 import { withCheckpoint, withoutCheckpoint, type SavedPlan } from '../../src/lib/plans';
+import { analyseRateOutlook, conservativeYield } from '../../src/lib/rate-outlook';
+import { yearsLabel } from '../../src/lib/years-label';
 
 describe('projectPot', () => {
   it('leaves an untouched pot alone at a zero rate', () => {
@@ -230,5 +232,112 @@ describe('recording checkpoints on a plan', () => {
   it('leaves the plan itself untouched', () => {
     withCheckpoint(plan, '2026-07-01', 1_500_000, '2026-07-01');
     expect(plan.checkpoints).toBeUndefined();
+  });
+});
+
+describe('analyseRateOutlook', () => {
+  const mk = (date: string, rate: number) =>
+    ({ id: date, date, rate, title: '', url: '', move: 'hold' as const, changeBps: 0 });
+
+  it('measures the fall from today back to the record low', () => {
+    const o = analyseRateOutlook([mk('2020-01-01', 7), mk('2023-01-01', 12), mk('2026-06-01', 9)])!;
+    expect(o.currentCBR).toBe(9);
+    expect(o.troughCBR).toBe(7);
+    expect(o.downsidePp).toBe(2);
+    expect(o.troughDate).toBe('2020-01-01');
+  });
+
+  it('reads chronology from the dates, not the array order', () => {
+    const o = analyseRateOutlook([mk('2026-06-01', 9), mk('2020-01-01', 7)])!;
+    expect(o.currentCBR).toBe(9);
+  });
+
+  it('assumes no fall when today is already the low', () => {
+    const o = analyseRateOutlook([mk('2020-01-01', 12), mk('2026-06-01', 6)])!;
+    expect(o.downsidePp).toBe(0);
+  });
+
+  it('returns null when there is not enough record to claim anything', () => {
+    expect(analyseRateOutlook([])).toBeNull();
+    expect(analyseRateOutlook([mk('2026-06-01', 9)])).toBeNull();
+  });
+});
+
+describe('conservativeYield', () => {
+  const outlook = { currentCBR: 9, troughCBR: 6, downsidePp: 3, troughDate: '2020-01-01', decisionsConsidered: 2 };
+
+  it('subtracts points, it does not scale', () => {
+    // Scaling would treat the whole credit and term spread as if it collapsed
+    // with the policy rate: 16 * 6/9 = 10.7 rather than 13.
+    expect(conservativeYield(16, outlook)).toBe(13);
+  });
+
+  it('leaves the yield alone with no outlook to go on', () => {
+    expect(conservativeYield(16, null)).toBe(16);
+  });
+
+  it('floors at 1% rather than returning a plan that never completes', () => {
+    expect(conservativeYield(2, outlook)).toBe(1);
+  });
+});
+
+describe('yearsLabel — the range a reader actually sees', () => {
+  it('writes a range low to high', () => {
+    expect(yearsLabel(5.9, 4.4)).toBe('4.4–5.9');
+  });
+
+  it('collapses ends that round the same rather than faking precision', () => {
+    expect(yearsLabel(4.42, 4.44)).toBe('4.4');
+  });
+
+  it('does not mix units within one range', () => {
+    // Previously "11m–1.2", under a heading that says years. Both ends now
+    // take their unit from the larger value: decimal years here...
+    expect(yearsLabel(1.2, 0.92)).toBe('0.9–1.2');
+    // ...and months when the whole range sits inside a year.
+    expect(yearsLabel(0.9, 0.4)).toBe('5m–11m');
+  });
+
+  it('does not call a plan funded when only the optimistic case is', () => {
+    // Being funded if rates hold is not being funded.
+    expect(yearsLabel(1.8, 0)).toBe('1.8');
+  });
+
+  it('says funded only when both cases are', () => {
+    expect(yearsLabel(0, 0)).toBe('Funded');
+  });
+
+  it('marks a target unreachable on the cautious case', () => {
+    expect(yearsLabel(null, 4.4)).toBe('4.4+');
+  });
+
+  it('shows nothing rather than a guess when neither case resolves', () => {
+    expect(yearsLabel(null, null)).toBe('—');
+  });
+
+  it('falls back to the single figure it has', () => {
+    expect(yearsLabel(6.1, null)).toBe('6.1');
+  });
+
+  it('never renders a zero-month figure', () => {
+    expect(yearsLabel(0.02, 0.01)).toBe('1m');
+  });
+});
+
+describe('conservativeYield never inverts the pair', () => {
+  const outlook = { currentCBR: 9, troughCBR: 6, downsidePp: 3, troughDate: 'x', decisionsConsidered: 2 };
+
+  it('cannot exceed the yield it is being cautious about', () => {
+    // The 1% floor alone raised a 0.6% observed yield to 1%, making the
+    // "cautious" case demand LESS capital and finish sooner.
+    expect(conservativeYield(0.6, outlook)).toBeLessThanOrEqual(0.6);
+  });
+
+  it('still floors a normal yield at 1%', () => {
+    expect(conservativeYield(3, outlook)).toBe(1);
+  });
+
+  it('leaves an ordinary yield marked down by the full fall', () => {
+    expect(conservativeYield(16, outlook)).toBe(13);
   });
 });

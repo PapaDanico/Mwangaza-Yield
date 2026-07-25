@@ -2,11 +2,12 @@
 // covered in 2033, or an income that arrives every month, or to stop working.
 // Each planner turns a life goal into a concrete allocation over live paper.
 
-import type { Bond, SecondaryTrade, TBill } from '@/types/bond';
+import type { Bond, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
 import { computeBondInvestment, getCouponDates } from './financial-engine';
 import { buildLadder, type LadderPlan } from './ladder';
 import { computeTBill } from './tbills';
 import { monthsToTarget } from './progress';
+import { analyseRateOutlook, conservativeYield } from './rate-outlook';
 
 export type GoalKey = 'fire' | 'school-fees' | 'passive-income' | 'capital-preservation';
 
@@ -53,18 +54,41 @@ const priceOf = (b: Bond, secondary: SecondaryTrade[]) =>
 
 /* ------------------------------------------------------------------ FIRE */
 
+// The planning ladder. Long enough that the rungs span a real spread of
+// maturities rather than clustering at the short end, and few enough rungs that
+// each stays above the 50k step and the bonds' own minimums at ordinary sums.
+const LADDER_HORIZON_YEARS = 15;
+const LADDER_RUNGS = 5;
+
 export interface FirePlan {
   targetAnnualIncomeKES: number;
+  /**
+   * The rate the plan is BUILT on: a diversified ladder's blended net yield,
+   * marked down for the fall the policy rate has actually made on the record.
+   * Every headline figure below uses this one.
+   */
+  planningNetYield: number;
+  /** The same ladder at today's rates — the optimistic end of the range. */
+  currentLadderNetYield: number;
+  /** Points of assumed rate fall between the two, for the disclosure. */
+  downsidePp: number;
+  /** Highest single net yield on offer. Reported for context, NOT planned on. */
   bestNetYield: number;
   bestBond: Bond | null;
-  /** Capital needed so net coupons alone cover the target. */
+  /** Capital needed so net coupons alone cover the target, at the plan rate. */
   requiredCapitalKES: number;
+  /** The same, if today's rates held — always the smaller of the two. */
+  requiredCapitalIfRatesHoldKES: number;
   currentCapitalKES: number;
   incomeFromCurrentKES: number;
   coverageRatio: number;      // 0–1+ of target already funded
   shortfallKES: number;
-  /** Years to close the shortfall while contributing and reinvesting. */
+  /** Years to close the shortfall at the plan rate. The number to trust. */
   yearsToTarget: number | null;
+  /** Years if today's rates held. The optimistic end. */
+  yearsIfRatesHold: number | null;
+  /** How many distinct bonds the planning ladder actually used. */
+  ladderRungs: number;
 }
 
 export function planFire(
@@ -72,44 +96,77 @@ export function planFire(
   secondary: SecondaryTrade[],
   targetAnnualIncomeKES: number,
   currentCapitalKES: number,
-  monthlyContributionKES: number
+  monthlyContributionKES: number,
+  cbrHistory: RateDecision[] = []
 ): FirePlan {
-  // Long-horizon money should ride the highest sustainable net yield; tax-free
-  // IFBs usually win here precisely because WHT never touches them.
+  // The highest yield on the board, kept for context only. Planning on it was
+  // the old behaviour and it is not defensible over a horizon like this: it
+  // assumes unlimited quantity of ONE issue, bought at today's price, and
+  // reinvested at that same rate for decades. On the live data that was 18.45%
+  // against a 16.03% diversified ladder, and it cut the stated journey from 4.4
+  // years to 3.6 — an error in the direction that makes someone stop saving
+  // early. Under-saving costs the plan; over-saving only costs optionality.
   const ranked = bonds
     .map((bond) => ({ bond, netYTM: computeBondInvestment(bond, 100_000, priceOf(bond, secondary)).netYTM }))
     .sort((a, b) => b.netYTM - a.netYTM);
   const best = ranked[0] ?? null;
-  const netYield = best ? best.netYTM : 0;
-  const r = netYield / 100;
+
+  // Plan on a portfolio that can actually be built: the same ladder the Ladder
+  // Builder would construct, spread across maturity years so no single issue
+  // has to absorb everything. This is already what the school-fees planner
+  // uses, so FIRE stops being the odd one out.
+  //
+  // Sized on the capital in play, because the rung minimums bite at small
+  // amounts; a nominal million keeps the yield meaningful before any capital
+  // has been entered.
+  const ladder = buildLadder(
+    bonds,
+    secondary,
+    Math.max(1_000_000, currentCapitalKES),
+    LADDER_HORIZON_YEARS,
+    LADDER_RUNGS
+  );
+  const currentLadderNetYield = ladder.rungs.length
+    ? ladder.blendedNetYTM
+    : best?.netYTM ?? 0;
+
+  // Then mark it down by the fall the policy rate has actually made on the
+  // record. Held bonds keep their coupon, but an accumulation plan keeps
+  // buying, and reinvestment is where a long projection really breaks.
+  const outlook = analyseRateOutlook(cbrHistory);
+  const planningNetYield = conservativeYield(currentLadderNetYield, outlook);
+
+  const r = planningNetYield / 100;
+  const rHold = currentLadderNetYield / 100;
 
   const requiredCapitalKES = r > 0 ? targetAnnualIncomeKES / r : 0;
+  const requiredCapitalIfRatesHoldKES = rHold > 0 ? targetAnnualIncomeKES / rHold : 0;
   const incomeFromCurrentKES = currentCapitalKES * r;
   const shortfallKES = Math.max(0, requiredCapitalKES - currentCapitalKES);
 
-  // Future value of a growing pot, stepped monthly because that is how the
-  // contributions are actually made. This is the same projection the progress
-  // tracker measures recorded checkpoints against — deliberately one function,
-  // so a saver is never marked "behind" against a curve that differs from the
-  // one their plan was drawn with.
-  const months = monthsToTarget(
-    currentCapitalKES,
-    monthlyContributionKES,
-    netYield,
-    requiredCapitalKES
-  );
-  const yearsToTarget = months === null ? null : months / 12;
+  // Stepped monthly because that is how the contributions are actually made,
+  // and it is the same function the progress tracker measures checkpoints
+  // against — so a saver is never marked "behind" against a curve that differs
+  // from the one their plan was drawn with.
+  const months = monthsToTarget(currentCapitalKES, monthlyContributionKES, planningNetYield, requiredCapitalKES);
+  const monthsHold = monthsToTarget(currentCapitalKES, monthlyContributionKES, currentLadderNetYield, requiredCapitalIfRatesHoldKES);
 
   return {
     targetAnnualIncomeKES,
-    bestNetYield: netYield,
+    planningNetYield,
+    currentLadderNetYield,
+    downsidePp: outlook?.downsidePp ?? 0,
+    bestNetYield: best?.netYTM ?? 0,
     bestBond: best?.bond ?? null,
     requiredCapitalKES,
+    requiredCapitalIfRatesHoldKES,
     currentCapitalKES,
     incomeFromCurrentKES,
     coverageRatio: requiredCapitalKES > 0 ? currentCapitalKES / requiredCapitalKES : 0,
     shortfallKES,
-    yearsToTarget,
+    yearsToTarget: months === null ? null : months / 12,
+    yearsIfRatesHold: monthsHold === null ? null : monthsHold / 12,
+    ladderRungs: ladder.rungs.length,
   };
 }
 

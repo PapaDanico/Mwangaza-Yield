@@ -523,6 +523,49 @@ def find_result_pdfs() -> list:
     return out
 
 
+
+
+def attribute_auction_level(records: list) -> tuple:
+    """Give every bond in an auction the auction's own offered amount.
+
+    CBK advertises ONE amount for an auction, however many bonds it covers.
+    The table prints it once, so the column-assignment step hands it to
+    whichever bond it happens to sit above and the other bonds in the same
+    auction are left with nothing. That is not a gap in the data — the figure
+    was read, it just landed on one row — and it accounted for most of the
+    apparent incompleteness of this field: 59 of 130 records carried it while
+    57 of 76 AUCTIONS had it available.
+
+    So it is copied across the auction and marked `offeredScope: "auction"`,
+    which is the important half. A reader who sums this column across a
+    three-bond auction gets three times the government's borrowing target, and
+    a silent copy would make that mistake easier rather than harder. The flag
+    says, in the data itself, that these are not three facts but one.
+
+    Never applied where an auction's rows disagree: one auction in the archive
+    carries two different offered figures, and guessing which is the auction
+    total would be inventing an answer.
+    """
+    by_auction: dict = {}
+    for r in records:
+        key = r.get("auctionDate")
+        if key:
+            by_auction.setdefault(key, []).append(r)
+
+    filled = 0
+    for rows in by_auction.values():
+        values = {r["amountOfferedKESM"] for r in rows if r.get("amountOfferedKESM")}
+        if len(values) != 1:
+            continue  # nothing to copy, or the rows disagree — leave both alone
+        total = values.pop()
+        for r in rows:
+            if not r.get("amountOfferedKESM"):
+                r["amountOfferedKESM"] = total
+                filled += 1
+            r["offeredScope"] = "auction"
+    return records, filled
+
+
 def load_existing() -> tuple:
     """Every record already captured, and the PDFs that need no re-reading.
 
@@ -706,6 +749,11 @@ def main() -> None:
         unique[(r["issueCode"], r.get("auctionDate"))] = r
 
     final = sorted(unique.values(), key=lambda r: (r.get("auctionDate") or "", r["issueCode"]))
+    final, filled = attribute_auction_level(final)
+    if filled:
+        print(f"[auctions] {filled} record(s) given their auction's offered amount "
+              f"(marked offeredScope=auction — do not sum across a single auction)",
+              file=sys.stderr)
     with_coupon = [r for r in final if "couponRate" in r]
     bonds = {r["issueCode"] for r in final}
     # Count what was actually read, not what we were allowed to read — the run

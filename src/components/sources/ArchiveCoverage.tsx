@@ -31,8 +31,9 @@ function Bar({ pct }: { pct: number }) {
 }
 
 export default function ArchiveCoverage() {
-  const { records, issueCodes, complete, completePct, bidToCover, earliest, latest, fields } =
+  const { records, issueCodes, complete, completePct, bidToCover, earliest, latest, fields, stale } =
     quality;
+  const newest = quality.parserVersions[quality.parserVersions.length - 1];
 
   return (
     <section className="not-prose my-8 rounded-2xl border border-sand-300 bg-sand-50 p-5">
@@ -59,6 +60,24 @@ export default function ArchiveCoverage() {
           </div>
         ))}
       </dl>
+
+      {stale > 0 && (
+        // Shown only mid-rebuild, and it says which way the error runs. When the
+        // parser is fixed, the fix reaches a row only when that row is next
+        // fetched, so for a while the archive holds two readings of the same
+        // documents. Every figure above is then a floor: the rows still on the
+        // older parser can gain fields on re-read and cannot lose them. Leaving
+        // that unsaid would let a reader take a percentage measured mid-rebuild
+        // as the parser's ceiling, and judge the dataset on it.
+        <p className="mt-4 rounded-xl border border-gold-300 bg-gold-50 p-3 text-xs text-ink-soft">
+          <span className="font-semibold text-ink">Re-read in progress.</span>{' '}
+          <span className="num">{stale.toLocaleString()}</span> of{' '}
+          <span className="num">{records.toLocaleString()}</span> rows were produced by an earlier
+          version of the parser and are being re-read at version{' '}
+          <span className="num">{newest}</span> as each source PDF is next fetched. The percentages
+          here are therefore a floor: a re-read can fill a field, never empty one.
+        </p>
+      )}
 
       <ul className="mt-4 space-y-2.5">
         {fields.map((f) => (

@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 7
+PARSER_VERSION = 8
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -142,15 +142,48 @@ DAY_MONTH_YEAR_RE = re.compile(
     rf"(?<![\d\-/])(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH_ALT})\.?\s*,?\s*(\d{{4}})(?!\d)", re.I)
 
 # Rows we care about, and how to recognise them whatever CBK's wording that year.
+#
+# A TAP SALE states the same six facts under entirely different labels, and that
+# — not a missing figure — is why every one of the archive's 41 tap-sale records
+# was incomplete. Not one of them scored above zero, and the reason was never
+# that CBK withheld anything:
+#
+#     Total Advertised Amount (Kes Million)         9,720.00   amount offered
+#     Total Bids Accepted at Cost (Kes Million)     9,750.51   amount accepted
+#     Adjusted Average Price(Per Kes 100.00)         100.215   price per 100
+#     Allocated average rate for accepted bids (%)   11.492%   weighted avg rate
+#
+# The parser found the file, found the columns, and walked past five of six rows
+# looking for words that a tap sale does not use.
 FIELDS = [
     ("couponRate", re.compile(r"coupon\s*rate", re.I)),
-    ("weightedAverageRate", re.compile(r"weighted\s*average\s*(?:rate|yield)", re.I)),
+    ("weightedAverageRate",
+     re.compile(r"weighted\s*average\s*(?:rate|yield)|allocated\s*average\s*rate", re.I)),
     ("marketWeightedAverageRate", re.compile(r"market\s*weighted\s*average", re.I)),
-    ("pricePer100", re.compile(r"price\s*per\s*(?:kshs?)?\s*100", re.I)),
-    ("amountOfferedKESM", re.compile(r"amount\s*offered", re.I)),
-    ("amountAcceptedKESM", re.compile(r"amount\s*accepted", re.I)),
+    # "Price per Kshs 100 at average yield" and "Adjusted Average
+    # Price(Per KES 100.00)" — the bracket sits where the space used to.
+    ("pricePer100", re.compile(r"price\s*\(?\s*per\s*(?:kes|kshs?\.?)?\s*100", re.I)),
+    ("amountOfferedKESM", re.compile(r"amount\s*offered|advertised\s*amount", re.I)),
+    # "Amount Accepted", "Total Amount Accepted at cost", "Total Bids Accepted
+    # at Cost" — all the same fact.
+    ("amountAcceptedKESM", re.compile(r"(?:amount|bids?)\s*accepted", re.I)),
     ("bidsReceivedKESM", re.compile(r"(?:total\s*)?bids?\s*received", re.I)),
 ]
+
+# Lines that match a field's label and must still be refused, because they state
+# a DIFFERENT quantity in nearly the same words. Both of these are real rows
+# sitting directly above the one we want, in the same tap-sale tables:
+#
+#     Total bids Received in Face Value (Kshs. M)   5,838.75   <- not at cost
+#     Total Number of Bids Received                      273   <- a COUNT
+#
+# Without this the second reads as 273 million shillings of demand, and the
+# first as a fifth more money than was actually bid. Neither is a rounding
+# error; both are a different column entirely.
+FIELD_EXCLUSIONS = {
+    "bidsReceivedKESM": re.compile(r"face\s*value|number\s*of\s*bids", re.I),
+    "amountAcceptedKESM": re.compile(r"number\s*of\s*bids", re.I),
+}
 
 # Plausible bands. A value outside these means we read the wrong cell, and a
 # wrong coupon is worse than a missing one.
@@ -202,7 +235,12 @@ def cell_value(fragments: list) -> str:
     "1" + "1.277" -> "11.277". CBK's PDFs split digits inside a number, so
     joining WITHOUT a separator is the only reading that reproduces the page.
     """
-    joined = "".join(f["text"] for f in fragments).replace(",", "").strip()
+    # The trailing per-cent sign goes with the comma. Tap sales print their rates
+    # as "11.492%" where a primary auction prints "11.492", and a cell that keeps
+    # the sign fails NUMERIC_RE and is dropped — silently, after being read
+    # correctly. Every coupon and every clearing rate in the tap-sale files was
+    # lost this way.
+    joined = "".join(f["text"] for f in fragments).replace(",", "").replace("%", "").strip()
     return joined
 
 
@@ -215,7 +253,11 @@ def cell_value(fragments: list) -> str:
 # half left the cell reading "9128", silently, which is exactly the field loss
 # this filter exists to prevent. Requiring only that a fragment contain SOME
 # digit keeps both halves and still rejects "(%)", "Bids" and "Kshs.".
-VALUE_FRAGMENT_RE = re.compile(r"^(?=[\d,.]*\d)[\d,]*\.?\d*$")
+#
+# A trailing "%" is allowed for the same reason it is stripped in cell_value: a
+# tap sale writes "11.492%" where a primary auction writes "11.492", and the
+# fragment is otherwise identical.
+VALUE_FRAGMENT_RE = re.compile(r"^(?=[\d,.]*\d)[\d,]*\.?\d*%?$")
 
 
 def label_word_positions(line: list, span: tuple) -> set:
@@ -600,6 +642,49 @@ def _fit(records: dict, codes: list, density: float) -> tuple:
     return (len(records), _field_count(records), density)
 
 
+# How far into a line a label may start and still be a table row's label. A row
+# begins with its own name; two characters of slack absorbs a section marker like
+# "F." without admitting a sentence.
+LABEL_START_SLACK = 3
+
+
+def _field_lines(lines: list, key: str, pattern) -> list:
+    """Candidate lines for one field, table rows first, prose last.
+
+    A field's label can appear in a SENTENCE as easily as in a table, and CBK's
+    tap-sale files open with a paragraph that does exactly that:
+
+        The Central Bank of Kenya offered tap sales for 2-year Treasury Bond in
+        the month of December. The number of bids received was 546 amounting to
+        Kshs 13.46 Billion.
+
+    That contains "bids received", it appears above the table, and the old code
+    took the first line that matched — so the archive recorded 13.46 million
+    shillings of demand for an auction that drew 13.46 BILLION. Wrong by a
+    factor of a thousand, from a line that is not a row at all, and it looked
+    entirely plausible next to its neighbours.
+
+    A table row starts with its label; a sentence mentions it in passing. So
+    lines whose label begins at the start are preferred, and prose is kept only
+    as a fallback, because some genuinely old layouts have nothing else. Nothing
+    is discarded that used to be read — the order changes, not the set.
+
+    FIELD_EXCLUSIONS then drops the near-miss rows outright: a face-value total
+    and a count of bids are not amounts, and no ordering makes them so.
+    """
+    reject = FIELD_EXCLUSIONS.get(key)
+    at_start, elsewhere = [], []
+    for line in lines:
+        text = " ".join(w["text"] for w in line)
+        m = pattern.search(text)
+        if not m:
+            continue
+        if reject and reject.search(text):
+            continue
+        (at_start if m.start() <= LABEL_START_SLACK else elsewhere).append(line)
+    return at_start + elsewhere
+
+
 def read_fields(lines: list, codes: list, centres: list,
                 auction_date, source_url: str) -> dict:
     """Read every known field for one candidate column geometry."""
@@ -625,11 +710,9 @@ def read_fields(lines: list, codes: list, centres: list,
     records: dict = {}
     totals: dict = {}
     for key, pattern in FIELDS:
-        for line in lines:
+        for line in _field_lines(lines, key, pattern):
             text = " ".join(w["text"] for w in line)
             match = pattern.search(text)
-            if not match:
-                continue
             for idx, raw in assign_to_columns(
                 line, centres, label_x, label_word_positions(line, match.span())
             ).items():

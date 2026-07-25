@@ -298,6 +298,94 @@ def main():
     check("and no offered amount is conjured from a column that is not there",
           [r.get("amountOfferedKESM") for r in plain_got.values()], [None, None])
 
+    print("a tap sale states the same six facts in different words")
+    # Reconstructed from the live probe's output for
+    # "383409132_Results Tap Sale FXD3-2019-5 DATED 23-12-2019.pdf". Every field
+    # is printed; not one of the archive's 41 tap-sale records was complete,
+    # because the parser was looking for a primary auction's wording.
+    def row(label_words, value, top, vx=300):
+        out, x = [], 40
+        for t in label_words:
+            out.append(w(t, x, top))
+            x += 6 * len(t) + 4
+        out.append(num(value, vx, top))
+        return out
+
+    tap = group_lines([
+        w("Tenor", 40, 100), w("FXD3/2019/5", 280, 100),
+        *row(["Total", "Advertised", "Amount", "(Kes", "Million)"], "9,720.00", 130),
+        *row(["Total", "Bids", "Received", "at", "Cost", "(Kes", "Million)"], "9,750.51", 160),
+        *row(["Total", "Bids", "Accepted", "at", "Cost", "(Kes", "Million)"], "9,750.51", 190),
+        *row(["Allocated", "average", "rate", "for", "accepted", "bids", "(%)"], "11.492%", 220),
+        *row(["Adjusted", "Average", "Price(Per", "Kes", "100.00)"], "100.215", 250),
+        *row(["Coupon", "Rate(%)"], "11.492%", 280),
+    ])
+    tap_codes, tap_centres = find_header(tap, ["FXD3/2019/005"])
+    got = _rf(tap, tap_codes, tap_centres, "2019-12-23", "u")
+    rec = got.get("FXD3/2019/005", {})
+    check("advertised amount is the amount offered", rec.get("amountOfferedKESM"), 9720.0)
+    check("bids accepted at cost is the amount accepted",
+          rec.get("amountAcceptedKESM"), 9750.51)
+    check("bids received still reads", rec.get("bidsReceivedKESM"), 9750.51)
+    check("adjusted average price is the price per 100", rec.get("pricePer100"), 100.215)
+    check("allocated average rate is the weighted average",
+          rec.get("weightedAverageRate"), 11.492)
+    # The coupon was matched by label and then thrown away, every time, because
+    # the cell kept its per-cent sign and failed NUMERIC_RE.
+    check("a rate written with a per-cent sign survives", rec.get("couponRate"), 11.492)
+
+    print("a sentence about bids must not outrank the table row")
+    # CBK's tap-sale files open with a paragraph naming the same figures in
+    # BILLIONS. The old code took the first matching line, so the archive
+    # recorded 13.46 million where 13.46 billion was bid — wrong by a thousand,
+    # from a line that is not a row at all.
+    # The exact sentence from the 2014 two-bond tap file. It matters that this
+    # one carries no "number of", so FIELD_EXCLUSIONS does NOT catch it and the
+    # ordering rule is the only thing standing between us and reading 64 as the
+    # bids received. A first draft of this fixture omitted the word "bids" and
+    # so matched nothing, and the test passed for the wrong reason — mutating
+    # the ordering back is what exposed that.
+    prose = group_lines([
+        w("below.", 40, 100), w("All", 82, 100), w("the", 105, 100),
+        w("64", 130, 100), w("bids", 150, 100), w("received", 182, 100),
+        w("were", 235, 100), w("accepted", 268, 100), w("and", 320, 100),
+        w("fully", 345, 100), w("allotted.", 380, 100),
+        w("TENOR", 40, 160), w("FXD4/2011/2", 280, 160),
+        *row(["Total", "bids", "Received", "in", "Face", "Value", "(Kshs.", "M)"], "1,000.00", 190),
+        *row(["Total", "Number", "of", "Bids", "Received"], "546", 220),
+        *row(["Total", "bids", "Received", "at", "Cost", "(Kshs.", "M)"], "13,463.75", 250),
+    ])
+    p_codes, p_centres = find_header(prose, ["FXD4/2011/002"])
+    p_got = _rf(prose, p_codes, p_centres, "2011-12-01", "u")
+    p_rec = p_got.get("FXD4/2011/002", {})
+    check("the table row wins over the sentence",
+          p_rec.get("bidsReceivedKESM"), 13463.75)
+    # Two near-miss rows sit directly above the real one. A face value is not a
+    # cost and a count of bids is not an amount; no ordering rule makes them so.
+    check("a face-value total is refused outright",
+          p_rec.get("bidsReceivedKESM") != 1000.0, True)
+    check("and a count of bids is never read as money",
+          p_rec.get("bidsReceivedKESM") != 546.0, True)
+    check("nor is a count mentioned in passing in a sentence",
+          p_rec.get("bidsReceivedKESM") != 64.0, True)
+
+    print("a primary auction is unchanged by any of this")
+    primary = group_lines([
+        w("TENOR", 40, 100), w("FXD1/2022/03", 280, 100),
+        *row(["Total", "Amount", "Offered", "(Kshs.", "M)"], "30,000.00", 130),
+        *row(["Total", "bids", "Received", "at", "cost", "(Kshs.", "M)"], "7,328.96", 160),
+        *row(["Amount", "Accepted", "(Kshs.", "M)"], "1,757.09", 190),
+        *row(["Weighted", "Average", "Rate", "of", "Accepted", "Bids", "(%)"], "13.471", 220),
+        *row(["Price", "per", "Kshs", "100", "at", "average", "yield"], "97.583", 250),
+    ])
+    pr_codes, pr_centres = find_header(primary, ["FXD1/2022/003"])
+    pr = _rf(primary, pr_codes, pr_centres, "2023-04-24", "u").get("FXD1/2022/003", {})
+    check("offered still reads", pr.get("amountOfferedKESM"), 30000.0)
+    check("accepted still reads", pr.get("amountAcceptedKESM"), 1757.09)
+    check("bids still read", pr.get("bidsReceivedKESM"), 7328.96)
+    check("the weighted average still reads", pr.get("weightedAverageRate"), 13.471)
+    check("price per 100 still reads, bracket or no bracket", pr.get("pricePer100"), 97.583)
+
     print("codes_in_name — the cross-check on our own work")
     check("filename codes are recovered",
           codes_in_name("RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"),

@@ -59,8 +59,14 @@ def parse_date(text: str) -> str | None:
         897442093_MPC Press Release - Meeting of June 9 2025.pdf
 
     while the row is dated 2026-06-09 — the only one of 119 records whose
-    filename carries no matching year. The row is right and CBK's filename is a
-    typo: the MPC meets every two months and the surrounding decisions run
+    filename names a DIFFERENT year. Be precise about that, because the obvious
+    version of the check is noisy: 41 of these filenames carry no parseable year
+    at all, most of them early ones like MPC01122008.pdf where the digits run
+    together. Those are not disagreements, just a naming convention CBK dropped
+    around 2016. Exactly one filename contradicts its row.
+
+    The row is right and CBK's filename is a typo: the MPC meets every two
+    months and the surrounding decisions run
     2026-02-10, 2026-04-08, 2026-06-09; and June 2025 already has its own
     separate record, 2025-06-10, with its own press release.
 

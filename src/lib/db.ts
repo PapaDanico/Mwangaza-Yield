@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { Bond, AuctionSchedule, Holding, MacroIndicator, SecondaryTrade, TBill } from '@/types/bond';
+import type { SavedPlan } from './plans';
 
 class MwangazaDB extends Dexie {
   bonds!: Table<Bond, string>;
@@ -8,6 +9,7 @@ class MwangazaDB extends Dexie {
   macro!: Table<MacroIndicator, string>;
   secondary!: Table<SecondaryTrade, [string, string]>;
   tbills!: Table<TBill, string>;
+  plans!: Table<SavedPlan, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -20,6 +22,9 @@ class MwangazaDB extends Dexie {
     });
     this.version(3).stores({
       tbills: 'id, tenorDays, auctionDate',
+    });
+    this.version(4).stores({
+      plans: 'id, goal, updatedAt',
     });
   }
 }

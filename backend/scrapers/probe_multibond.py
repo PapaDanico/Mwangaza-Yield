@@ -115,6 +115,28 @@ def probe(label: str, url: str) -> None:
             codes, centres, density = cands[0]
             print(f"    chosen header: codes={codes}")
             print(f"                   centres={[round(c, 1) for c in centres]}  density={density}")
+
+            # EVERY line, with the x-centre of every numeric word.
+            #
+            # Printing only the lines that matched a field looked like economy
+            # and was not. Four attempts to rebuild this page locally from the
+            # matching lines alone produced four DIFFERENT results, none of them
+            # the one the archive holds — because the parser measures its value
+            # columns across the whole results section, so a line that matches
+            # nothing can still decide where the columns fall.
+            #
+            # A reproduction that needs the document is not a reproduction. This
+            # is what makes the page rebuildable away from the network, which
+            # matters here specifically: egress to centralbank.go.ke is blocked
+            # from the development sandbox, and Actions is the only route to it.
+            print("    all lines (numeric words shown as text@x-centre):")
+            for ln in lines:
+                parts = []
+                for w in ln:
+                    mid = round((w["x0"] + w["x1"]) / 2, 1)
+                    parts.append(f"{w['text']}@{mid}" if any(ch.isdigit() for ch in w["text"])
+                                 else w["text"])
+                print(f"        | {' '.join(parts)[:150]}")
             if len(codes) < 2:
                 print("    >>> ONE COLUMN ONLY — mechanism 1. Every value buckets to code[0]")
 

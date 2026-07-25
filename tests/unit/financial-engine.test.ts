@@ -144,3 +144,32 @@ describe('computeBondInvestment', () => {
     expect(r.settlementCostKES).toBeCloseTo((100_000 * r.dirtyPrice) / 100, 2);
   });
 });
+
+describe('tenor is the issued tenor, not a date calculation', () => {
+  // Real CBK data: FXD1/2022/10 runs 2022-05-16 to 2032-05-03. That span is
+  // 9.97 years, because settlement and business-day conventions shave a few
+  // days off. It is still a TEN-YEAR bond, issued and taxed as one.
+  //
+  // Deriving tenor from the dates would put it in the 15% withholding band
+  // instead of 10% and understate its net yield for every user. This test
+  // exists so that "correcting" tenorYears from the dates fails loudly.
+  const realTenYear: Bond = {
+    isin: 'KE7000009436', issueCode: 'FXD1/2022/10', name: 'FXD1/2022/10',
+    category: 'FXD', issueDate: '2022-05-16', maturityDate: '2032-05-03',
+    tenorYears: 10, couponRate: 13.49, couponFrequencyPerYear: 2,
+    ytmGross: 13.5, minInvestmentKES: 50_000, taxExempt: false,
+  };
+
+  it('taxes a ten-year bond at 10% even though its span is 9.97 years', () => {
+    const spanYears =
+      (new Date(realTenYear.maturityDate).getTime() - new Date(realTenYear.issueDate).getTime()) /
+      (365.25 * 86_400_000);
+    expect(spanYears).toBeLessThan(10);          // the trap
+    expect(determineWHTRate(realTenYear)).toBe(0.1); // the correct answer
+  });
+
+  it('would have overtaxed it had tenor been derived from the dates', () => {
+    const derived = { ...realTenYear, tenorYears: 9.97 };
+    expect(determineWHTRate(derived)).toBe(0.15);
+  });
+});

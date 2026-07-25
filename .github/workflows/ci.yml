@@ -109,6 +109,11 @@ jobs:
         id: worldbank
         working-directory: backend/scrapers
         run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
+      - name: Reconcile bonds against the CBK securities register
+        if: ${{ !inputs.test_alert }}
+        id: registry
+        working-directory: backend/scrapers
+        run: python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
       - name: Capture CBK Central Bank Rate history
         if: ${{ !inputs.test_alert }}
         id: cbr
@@ -151,6 +156,7 @@ jobs:
             const failed = [
               '${{ steps.macro.outputs.failed }}',
               '${{ steps.worldbank.outputs.failed }}',
+              '${{ steps.registry.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);

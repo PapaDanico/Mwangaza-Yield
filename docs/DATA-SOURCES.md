@@ -491,3 +491,56 @@ criterion; it now becomes the method rather than the confirmation.
 assumption, and coupon dates stay labelled as estimates — which is what they already
 say. We have not made anything worse by failing to confirm; we have only declined to
 build a parser on documents from 2016 using a convention we cannot verify.
+
+## 13. CBK securities register via DhowCSD — the correctness win (2026-07-25)
+
+The single most valuable dataset added to this project, and it fixes errors that were
+already live.
+
+**Source.** The **Securities** list on [DhowCSD](https://dhowcsd.centralbank.go.ke/),
+CBK's own central securities depository. Crucially it sits **outside the login** — the
+button appears next to "Create account", not behind it — so this is public reference
+data. The export carries no account number, no name, no balance and no holding: every
+row is a security the government has issued.
+
+643 securities; 157 outstanding on the export date (59 Treasury bonds, 98 Treasury
+bills); maturities from 2023 to 2056. Columns: issue number, ISIN, issuer, issue date,
+maturity date, type, individual nominal value, currency.
+
+### What it corrected
+
+**Every one of our nine bonds had a fabricated ISIN**, and **seven had wrong dates** —
+maturity off by up to **119 days** (IFB1/2022/19: we had 2041-05-27, the register says
+2041-01-28).
+
+That is not cosmetic. Maturity defines the remaining cash-flow schedule, so it moves
+**yield to maturity, the coupon calendar, .ics reminders, ladder rungs and every goal
+projection** built on them. 24 corrections applied by `registry.py`.
+
+### Two things it deliberately does NOT change
+
+**1. `tenorYears` — the trap worth naming.** The register's dates make FXD1/2022/10
+span **9.97 years** (2022-05-16 → 2032-05-03). Recomputing tenor from those dates would
+drop it below the ten-year threshold and move it from the **10% withholding band to the
+15% band**, understating its net yield for every user. The bond is *issued* as a
+ten-year bond and taxed as one; the missing days are settlement and business-day
+conventions, not a shorter loan. **The issue code carries the legal tenor, so the issue
+code wins.** Two tests in `financial-engine.test.ts` now fail if anyone "fixes" this.
+
+**2. `minInvestmentKES`.** The register's "Individual Nominal Value" reads 50,000 for
+most securities — matching the known CBK minimum — but **1** for a handful, including
+IFB1/2018/15. A nominal of 1 almost certainly denotes the unit denomination rather than
+the smallest permitted subscription, and writing it through would tell someone they can
+buy that bond for one shilling. Two plausible readings of a column is not enough to
+overwrite a user-facing figure, so ours stands.
+
+### Status and what is still missing
+
+The register publishes **no coupon rate and no yield** — those still come from
+prospectuses and auction results. It also gives us the full outstanding universe of
+**59 bonds against the 9 we currently ship**, which is the obvious next expansion.
+
+The reconciliation currently runs from a committed export
+(`backend/reference/dhowcsd-securities.csv`). `discover_secondary_sources.py` now probes
+whether the Securities list is fetchable without a session; if it is, this becomes
+automatic rather than manual.

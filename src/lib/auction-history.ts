@@ -25,7 +25,11 @@
  */
 import type { AuctionPrint } from '@/types/bond';
 
-const CODE_RE = /^([A-Z]+\d*)\/(\d{4})\/(\d+)$/;
+// The tenor is usually a whole number of years and is NOT always one: CBK
+// issued IFB1/2023/6.5 and IFB1/2024/8.5. A pattern of `\d+` matches those as
+// "6" and "8", which quietly points two tax-free infrastructure bonds at the
+// wrong history.
+const CODE_RE = /^([A-Z]+\d*)\/(\d{4})\/(\d{1,3}(?:\.\d+)?)$/;
 
 /**
  * `FXD1/2022/10` and `FXD1/2022/010` are the same bond.
@@ -39,7 +43,10 @@ const CODE_RE = /^([A-Z]+\d*)\/(\d{4})\/(\d+)$/;
 export function normaliseCode(code: string): string {
   const m = CODE_RE.exec(code.trim().toUpperCase().replace(/\s+/g, ''));
   if (!m) return code.trim().toUpperCase();
-  return `${m[1]}/${m[2]}/${String(Number(m[3])).padStart(3, '0')}`;
+  // Pad the whole-year part; keep any fraction exactly as issued, since
+  // rounding it would merge a 6.5-year bond with a 6-year one.
+  const [whole, frac] = m[3].split('.');
+  return `${m[1]}/${m[2]}/${whole.padStart(3, '0')}${frac ? `.${frac}` : ''}`;
 }
 
 /**

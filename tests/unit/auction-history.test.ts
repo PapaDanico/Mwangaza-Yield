@@ -27,6 +27,18 @@ describe('normaliseCode', () => {
     expect(normaliseCode('SDB1/2011/030')).toBe('SDB1/2011/030');
   });
 
+  it('keeps a fractional tenor instead of truncating it', () => {
+    // CBK issued IFB1/2023/6.5 and IFB1/2024/8.5. Reading the tenor as an
+    // integer turns both into different bonds that do not exist, and points
+    // two tax-free infrastructure bonds at the wrong auction history.
+    expect(normaliseCode('IFB1/2023/6.5')).toBe('IFB1/2023/006.5');
+    expect(normaliseCode('IFB1/2024/8.5')).toBe('IFB1/2024/008.5');
+  });
+
+  it('does not confuse a 6.5-year bond with a 6-year one', () => {
+    expect(normaliseCode('IFB1/2023/6.5')).not.toBe(normaliseCode('IFB1/2023/6'));
+  });
+
   it('is case- and whitespace-insensitive', () => {
     expect(normaliseCode(' fxd1/2022/10 ')).toBe('FXD1/2022/010');
   });

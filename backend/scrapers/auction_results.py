@@ -39,7 +39,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from common import DATA_DIR, write_dataset
+from common import DATA_DIR, normalise_issue_code, write_dataset
 
 LISTING = "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"
 UA = {
@@ -83,7 +83,8 @@ RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # to a forthcoming bond. Everything at or below this line is not a result.
 SECTION_B_RE = re.compile(r"\bFORTHCOMING\b|^\s*B\.\s", re.I)
 # Issue codes appear as FXD1-2021-005 in filenames and FXD1/2021/5 in the page.
-ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3})\b", re.I)
+# The tenor may carry a fraction: CBK issued IFB1/2023/6.5 and IFB1/2024/8.5.
+ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3}(?:\.\d)?)\b", re.I)
 # CBK dates its result files four different ways across the archive:
 #   DATED 15-11-2021 · DATED 21.09.2020 · DATED 19-7-2021 · DD 24.01.2022
 # The first version of this pattern accepted only DD-MM-YYYY, which left 23 of
@@ -117,7 +118,9 @@ NUMERIC_RE = re.compile(r"^-?[\d,]+(?:\.\d+)?$")
 
 
 def normalise_code(family: str, year: str, tenor: str) -> str:
-    return f"{family.upper().replace(' ', '')}/{year}/{int(tenor):03d}"
+    """Canonical issue code from a regex match. Delegates the padding rules
+    to common so the three files that need them cannot drift apart."""
+    return normalise_issue_code(f"{family.replace(' ', '')}/{year}/{tenor}")
 
 
 def group_lines(words: list, tolerance: float = 2.5) -> list:
@@ -311,7 +314,8 @@ def load_existing() -> tuple:
         print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
               f"starting fresh", file=sys.stderr)
         return [], set()
-    return repair_dates(records), {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+    records = repair_codes(repair_dates(records))
+    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
 
 
 def repair_dates(records: list) -> list:
@@ -340,6 +344,41 @@ def repair_dates(records: list) -> list:
         fixed += 1
     if fixed:
         print(f"[auctions] recovered the auction date for {fixed} existing "
+              f"record(s) from their filenames", file=sys.stderr)
+    return records
+
+
+def repair_codes(records: list) -> list:
+    """Restore fractional tenors the old pattern truncated.
+
+    Same shape of problem as repair_dates, same reason it is needed: a PDF is
+    read once, so widening the issue-code pattern would never reach the records
+    already captured under `IFB1/2023/006` — a bond that does not exist.
+
+    The correction is not a guess. CBK names the issues in the filename, so a
+    stored code is a truncation when the filename does NOT name it and names
+    exactly one code that differs from it only by a fraction. Anything less
+    clear-cut than that is left alone: a wrong issue code would attach one
+    bond's coupon to another, which is worse than a missing bond.
+    """
+    fixed = 0
+    for rec in records:
+        url = rec.get("sourceUrl")
+        if not url:
+            continue
+        named = codes_in_name(url)
+        code = rec.get("issueCode")
+        if not code or code in named:
+            continue  # the filename confirms it; nothing to correct
+        candidates = [c for c in named if "." in c and c.split(".")[0] == code]
+        if len(candidates) != 1:
+            continue  # ambiguous, or a different problem entirely
+        rec["issueCode"] = candidates[0]
+        rec["id"] = (f"res-{candidates[0].replace('/', '-').lower()}-"
+                     f"{rec.get('auctionDate')}")
+        fixed += 1
+    if fixed:
+        print(f"[auctions] restored the fractional tenor on {fixed} existing "
               f"record(s) from their filenames", file=sys.stderr)
     return records
 

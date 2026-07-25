@@ -179,6 +179,25 @@ def main():
     check("a reopening on a different date is kept",
           sorted(d for _, d in uniq), ["2021-11-15", "2023-04-10"])
 
+    print("fractional tenors")
+    # CBK issued IFB1/2023/6.5 and IFB1/2024/8.5. Every issue-code pattern in
+    # the pipeline assumed whole years, so those matched as "6" and "8" and
+    # never joined the securities register — two TAX-FREE infrastructure bonds
+    # invisible in an app built on the argument that they are the best deal
+    # available. It failed silently, listed alongside genuine data gaps.
+    check("a fractional tenor survives normalisation",
+          normalise_code("IFB1", "2023", "6.5"), "IFB1/2023/006.5")
+    check("6.5 years is not 6 years",
+          normalise_code("IFB1", "2023", "6.5") == normalise_code("IFB1", "2023", "6"), False)
+    check("whole tenors are unchanged",
+          normalise_code("FXD1", "2022", "10"), "FXD1/2022/010")
+    check("the filename spelling is read too",
+          codes_in_name("RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf"),
+          ["IFB1/2024/008.5"])
+    check("and CBK's other filename spelling",
+          codes_in_name("RESULTS NOVEMBER 2023 IFB1-2023-6.5 DATED 13-11-2023.pdf"),
+          ["IFB1/2023/006.5"])
+
     print("the auction date in the filename")
     # All four spellings CBK actually uses. The first version of the pattern
     # took only the first of these, which left 23 of 169 captured records with
@@ -229,6 +248,30 @@ def main():
           repaired[1]["auctionDate"], "2021-11-15")
     check("a filename with no date is left alone rather than guessed at",
           repaired[2]["auctionDate"], None)
+
+    print("restoring fractional tenors a previous run truncated")
+    stale = [
+        # Captured as IFB1/2023/006, a bond that does not exist.
+        {"id": "res-ifb1-2023-006-2023-11-13", "issueCode": "IFB1/2023/006",
+         "auctionDate": "2023-11-13",
+         "sourceUrl": "https://cbk/RESULTS NOVEMBER 2023 IFB1-2023-6.5 DATED 13-11-2023.pdf"},
+        # The filename confirms this one; it must not be touched.
+        {"id": "res-fxd1-2021-005-2021-11-15", "issueCode": "FXD1/2021/005",
+         "auctionDate": "2021-11-15",
+         "sourceUrl": "https://cbk/RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"},
+        # Filename names no fractional variant — leave it alone rather than guess.
+        {"id": "res-fxd9-1999-001-2021-01-01", "issueCode": "FXD9/1999/001",
+         "auctionDate": "2021-01-01",
+         "sourceUrl": "https://cbk/RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"},
+    ]
+    repaired = mod.repair_codes(stale)
+    check("a truncated fractional tenor is restored",
+          repaired[0]["issueCode"], "IFB1/2023/006.5")
+    check("and its id follows", repaired[0]["id"], "res-ifb1-2023-006.5-2023-11-13")
+    check("a code the filename confirms is untouched",
+          repaired[1]["issueCode"], "FXD1/2021/005")
+    check("an unexplained mismatch is left alone rather than guessed at",
+          repaired[2]["issueCode"], "FXD9/1999/001")
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

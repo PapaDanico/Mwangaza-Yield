@@ -873,8 +873,8 @@
     "amountOfferedKESM": 35000.0
   },
   {
-    "id": "res-ifb1-2023-006-2023-11-13",
-    "issueCode": "IFB1/2023/006",
+    "id": "res-ifb1-2023-006.5-2023-11-13",
+    "issueCode": "IFB1/2023/006.5",
     "auctionDate": "2023-11-13",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1162155513_RESULTS NOVEMBER 2023 IFB1-2023-6.5 DATED 13-11-2023.pdf",
     "couponRate": 17.9327,
@@ -886,8 +886,8 @@
     "bidsReceivedKESM": 88899.96
   },
   {
-    "id": "res-ifb1-2023-006-2023-12-11",
-    "issueCode": "IFB1/2023/006",
+    "id": "res-ifb1-2023-006.5-2023-12-11",
+    "issueCode": "IFB1/2023/006.5",
     "auctionDate": "2023-12-11",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/903550590_TAP SALE RESULTS TREASURY BOND ISSUE NOs. IFB1-2023-6.5 DATED 11-12-2023.pdf",
     "couponRate": 17.9327,
@@ -909,8 +909,8 @@
     "bidsReceivedKESM": 9308.35
   },
   {
-    "id": "res-ifb1-2024-008-2024-02-19",
-    "issueCode": "IFB1/2024/008",
+    "id": "res-ifb1-2024-008.5-2024-02-19",
+    "issueCode": "IFB1/2024/008.5",
     "auctionDate": "2024-02-19",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/84469011_RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf",
     "couponRate": 18.4607,

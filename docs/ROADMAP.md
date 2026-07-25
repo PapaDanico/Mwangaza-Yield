@@ -153,9 +153,24 @@ number the app exists to produce. Listing such a bond would put an uncalculable 
 front of someone, or invite a placeholder that looks real. The goal is coverage of bonds
 we can honestly price, not coverage.
 
-First run: **9 → 15 bonds**, with 44 outstanding bonds deliberately skipped and named in
-the log. Coverage is limited by how far back we read auction PDFs, not by the method —
-`MAX_PDFS` was raised from 12 to 80 (of 280 linked), which should price most of the 59.
+**9 → 15 → 46 of the 59 outstanding bonds.** The jump came from making the parse
+incremental: a daily job could only afford a dozen of 280 result PDFs and re-read the
+same dozen every day, which was the real ceiling. Reading each file once and keeping the
+result raised coverage and produced the yield history in the same change.
+
+**Two of those 46 were a bug, not a data gap.** `IFB1/2023/6.5` and `IFB1/2024/8.5` have
+FRACTIONAL tenors, and all three issue-code patterns in the pipeline assumed whole years —
+so they matched as "6" and "8", never joined the register, and sat in the "no auction
+result parsed yet" list looking like an ordinary gap. They are tax-free infrastructure
+bonds paying 17.93% and 18.46%, which is to say the two most attractive instruments in
+the entire dataset were invisible, silently, in an app whose central argument is that
+tax-free infrastructure bonds are the best deal available to a Kenyan retail investor.
+The padding rules now live in `common.py` so the next surprise is handled once rather
+than three times.
+
+The remaining 13 are named in the log every run. They are older IFBs whose auctions sit
+further back in the archive than we have read, plus two whose PDFs parsed without a
+coupon — the 2020-2023 layout defect.
 
 **The strongest validation of the whole pipeline:** all seven coupons that overlap our
 hand-curated figures matched exactly, including FXD1/2019/20 at 12.873% — the precise

@@ -32,19 +32,13 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from common import DATA_DIR
+from common import DATA_DIR, normalise_issue_code
 
 REGISTER = Path(__file__).resolve().parents[1] / "reference" / "dhowcsd-securities.csv"
 # The register zero-pads the tenor: our FXD1/2022/10 is its FXD1/2022/010.
-CODE_RE = re.compile(r"^([A-Z]+\d*)/(\d{4})/(\d+)$")
-
-
-def normalise(code: str) -> str:
-    m = CODE_RE.match(code.strip().upper().replace(" ", ""))
-    if not m:
-        return code.strip().upper()
-    family, year, tenor = m.groups()
-    return f"{family}/{year}/{int(tenor):03d}"
+# It can also be fractional (IFB1/2023/6.5), which is why the rule lives in
+# common rather than being spelled out again here.
+normalise = normalise_issue_code
 
 
 def load_register(path: Path) -> dict:

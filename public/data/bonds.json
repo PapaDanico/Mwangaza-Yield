@@ -224,6 +224,22 @@
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1338645632_RESULTS FXD4-2019-10 AND FXD1-2018-20 DATED 13-12-2021.pdf"
   },
   {
+    "isin": "KE8000006216",
+    "issueCode": "IFB1/2023/6.5",
+    "name": "6.5-Year Infrastructure Bond",
+    "category": "IFB",
+    "issueDate": "2023-11-13",
+    "maturityDate": "2030-05-06",
+    "tenorYears": 6.5,
+    "couponRate": 17.9327,
+    "couponFrequencyPerYear": 2,
+    "ytmGross": 17.9327,
+    "minInvestmentKES": 50000,
+    "taxExempt": true,
+    "ytmAsOf": "2023-12-11",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/903550590_TAP SALE RESULTS TREASURY BOND ISSUE NOs. IFB1-2023-6.5 DATED 11-12-2023.pdf"
+  },
+  {
     "isin": "KE8000005879",
     "issueCode": "IFB1/2023/7",
     "name": "7-Year Infrastructure Bond",
@@ -268,6 +284,22 @@
     "ytmGross": 13.2,
     "minInvestmentKES": 50000,
     "taxExempt": false
+  },
+  {
+    "isin": "KE8000006430",
+    "issueCode": "IFB1/2024/8.5",
+    "name": "8.5-Year Infrastructure Bond",
+    "category": "IFB",
+    "issueDate": "2024-02-19",
+    "maturityDate": "2032-08-09",
+    "tenorYears": 8.5,
+    "couponRate": 18.4607,
+    "couponFrequencyPerYear": 2,
+    "ytmGross": 18.6218,
+    "minInvestmentKES": 50000,
+    "taxExempt": true,
+    "ytmAsOf": "2024-02-19",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/84469011_RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf"
   },
   {
     "isin": "KE4000003949",

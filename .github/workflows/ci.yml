@@ -43,6 +43,7 @@ jobs:
           python test_cbr_history.py
           python test_auction_results.py
           python test_expand_universe.py
+          python test_worldbank.py
 
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
@@ -77,6 +78,9 @@ jobs:
       - name: Probe CBK auction results (coupon rates, clearing yields)
         working-directory: backend/scrapers
         run: python discover_auction_results.py
+      - name: Probe government sources we credit but do not fetch (Treasury, KNBS, IMF)
+        working-directory: backend/scrapers
+        run: python discover_treasury.py
       # A short budget on purpose. This job exists to prove the parser still
       # reads CBK's live tables, which a handful of files settles; building the
       # archive is refresh-data's work and its result is thrown away here. The

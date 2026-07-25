@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAlertStore } from '@/stores/alertStore';
 import OfflineBadge from './OfflineBadge';
 
 const links = [
@@ -18,6 +19,7 @@ const links = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const unseen = useAlertStore((s) => s.unseen);
   const isActive = (href: string) => pathname.startsWith(href.replace(/\/$/, ''));
 
   return (
@@ -47,8 +49,24 @@ export default function Navbar() {
               </Link>
             ))}
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
+            {/* The eighth nav item would have broken the mobile tab row, which
+                already shares 360px between seven. A header icon costs no width
+                on either layout and is reachable from every page. */}
+            <Link
+              href="/alerts/"
+              aria-label={unseen ? `Alerts — ${unseen} new` : 'Alerts'}
+              className={cn(
+                'relative rounded-lg p-2 transition-colors hover:bg-sand-200',
+                isActive('/alerts/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <Bell size={20} />
+              {unseen > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-gold-600 ring-2 ring-sand-100" />
+              )}
+            </Link>
           </div>
         </div>
       </header>

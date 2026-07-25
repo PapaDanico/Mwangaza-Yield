@@ -13,7 +13,7 @@ import os
 import sys
 
 from auction_results import (
-    NUMERIC_RE, header_candidates, _field_count, merge_page,
+    FIELDS, NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -427,6 +427,46 @@ def main():
     merge_page(doc, {"IFB1/2022/019": {"couponRate": 12.9}})
     check("a bond first seen on a later page is added",
           doc["IFB1/2022/019"]["couponRate"], 12.9)
+
+    print("a number inside a row LABEL is never read as a value")
+    # Straight from a CI run: pricePer100 came out as 10097.583 for
+    # FXD1/2019/015 and was dropped by the plausibility band — a real figure
+    # lost to a guard meant for corrupt ones. The line reads
+    #   "Price per Kshs 100 at average yield 97.583"
+    # and the 100 belongs to the label. No content rule can help: 100 is
+    # exactly as number-like as 97.583.
+    price_pat = dict(FIELDS)["pricePer100"]
+    cramped = [w("Price", 66, 200), w("per", 92, 200), w("Kshs", 112, 200), w("100", 148, 200),
+               w("at", 166, 200), w("average", 172, 200), w("yield", 176, 200),
+               w("97.583", 180, 200)]
+    centres, label_x = [105, 184], 64.6
+    span = price_pat.search(" ".join(x["text"] for x in cramped)).span()
+    skip = label_word_positions(cramped, span)
+    check("the label's own 100 is excluded",
+          assign_to_columns(cramped, centres, label_x, skip), {1: "97.583"})
+    check("without the fix it concatenates, as CI showed",
+          assign_to_columns(cramped, centres, label_x), {1: "10097.583"})
+
+    # The other way it fails, and the more dangerous one: when the label's 100
+    # falls nearest a DIFFERENT column it is recorded as a phantom price of
+    # exactly 100 — which sits inside the band and is never questioned.
+    spread = [w("Price", 66, 200), w("per", 92, 200), w("Kshs", 108, 200), w("100", 132, 200),
+              w("at", 150, 200), w("average", 160, 200), w("yield", 172, 200),
+              w("97.583", 180, 200)]
+    span2 = price_pat.search(" ".join(x["text"] for x in spread)).span()
+    check("a phantom 100 in the neighbouring column is excluded too",
+          assign_to_columns(spread, centres, label_x, label_word_positions(spread, span2)),
+          {1: "97.583"})
+    check("without the fix it silently passes the band",
+          assign_to_columns(spread, centres, label_x), {0: "100", 1: "97.583"})
+
+    print("label_word_positions")
+    simple = [w("Coupon", 40, 200), w("Rate", 80, 200), w("(%)", 110, 200), w("13.4", 300, 200)]
+    sp = dict(FIELDS)["couponRate"].search(" ".join(x["text"] for x in simple)).span()
+    check("covers only the matched label words",
+          sorted(simple[i]["text"] for i in label_word_positions(simple, sp)),
+          ["Coupon", "Rate"])
+    check("never excludes the value", 3 in label_word_positions(simple, sp), False)
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

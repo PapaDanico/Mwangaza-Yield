@@ -20,39 +20,33 @@ rate history in an afternoon. See `DATA-SOURCES.md` §10.
 
 These affect whether the numbers can be relied on. Nothing else matters more.
 
-### 1. Exact coupon dates from prospectuses
-**Problem.** Coupon dates are computed by adding months to the issue date. Real CBK
-coupon dates follow business-day conventions and shift for weekends and holidays. Every
-"next coupon date", the cash-flow calendar and the .ics exports inherit that
-approximation.
-**NOT ACTUALLY BLOCKED — the probe was reading the wrong documents (found 2026-07-25).**
-`discover_prospectus.py` selected PDFs whose NAME contains an issue code. Results files
-are named for their issues too, so all 506 files it inspected were auction RESULTS —
-documents that report what an auction cleared at and have no reason to state a coupon
-schedule. It reported "COUPON DATES: not found" and this item was marked blocked on that.
+### 1 & 2. Exact coupon dates and the day-count convention — SOLVED 2026-07-25
 
-Same shape as the `/securities/` path that answered 200 while serving a 2016 archive: a
-confident answer to a question never asked. The probe now selects on the upload PATH, and
-says plainly when a listing carries no prospectus-path PDFs rather than settling for
-whatever else is there.
-**Next.** Read the corrected probe's output: it reports how many issue-coded PDFs sit on
-a prospectus path versus the results path, and lists the upload segments actually
-present. That names the route instead of inferring it.
-**Done when.** A bond with a published schedule shows prospectus dates, and the UI
-distinguishes exact from estimated.
+Both were answered by the data we already ship, not by the prospectuses two probes
+had been hunting through.
 
-### 2. Day-count convention verified
-**Problem.** Accrued interest uses Actual/365 by assumption. The exact convention is
-stated in the prospectus and changes every settlement figure.
-**Evidence retracted 2026-07-25.** The "not stated in the prospectus" half of this rests
-on the same broken probe — no prospectus was ever read. Only the CBK Auction Rules &
-Guidelines finding survives, and that document genuinely does not state a day count.
-**To unblock.** Stop hunting for a statement and test the behaviour: take one
-CBK-published settlement amount for a known bond and date, and see which convention
-reproduces it. The verification criterion becomes the method.
-**Done when.** A hand-checked accrued-interest figure matches CBK's own for the same
-settlement date.
+Kenyan government securities run on a **364-day year**, and the evidence is
+unambiguous: bills are sold for 91, 182 and 364 days; every one of the 58 listed
+bonds is issued AND redeemed on a Monday; and the gap between the two is always an
+exact multiple of **182 days** — a ten-year bond runs 3,640 days, not 3,652, with no
+stub anywhere in the set.
 
+So the coupon period is 182 days and the year is 364. The two must agree, and only
+these do: a full period accrues 182/364 of the annual coupon, exactly the half-coupon
+that is paid. Under Actual/365 the day before payment you have accrued 49.86% of the
+annual coupon and the missing 0.14% appears from nowhere.
+
+**What it cost while wrong.** The schedule stepped six CALENDAR months, drifting up to
+37 days by the end of a thirty-year bond. `FXD2/2018/20` had its last coupon placed on
+a **Friday** — impossible for these bonds — missing the real Monday coupon entirely and
+claiming 176 days of accrual where 5 had run: KES 61,836 overstated per million.
+Mean error across all 58 bonds was KES 7,923 per million.
+
+A suite now checks the engine against every listed bond rather than against fixtures
+that agree with it by construction. If CBK ever issues a bond with a genuine stub
+period, it fails loudly instead of quietly answering wrong.
+
+---
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.
@@ -69,9 +63,15 @@ why we cannot fill it in for them.
 
 ## Next — features that compound
 
-### 6. Goal progress over time
-Saved plans are a snapshot. Storing a monthly progress point would turn Goals into
-something people open to watch a number move, which is what makes a tool a habit.
+### 6. Goal progress over time — SHIPPED 2026-07-25
+Plans carry checkpoints: one date, one figure. They report what the plan projected for
+that date, the gap either way, share of target funded, and — once two readings sit two
+months apart — the contribution rate actually being paid in, with a re-forecast on that
+pace rather than the promised one.
+
+Measured against the same cautious curve the plan is drawn with, so the two cannot
+diverge. That mattered: FIRE previously compounded the single best yield on the board,
+against which a disciplined saver would have read "Behind plan" forever.
 
 ### 7. Sovereign context expansion — CBK Weekly Bulletin CONFIRMED usable
 Probed 2026-07-25: the bulletin PDFs carry a real text layer (915 chars on page 1) and
@@ -86,6 +86,22 @@ July source review.
 
 CMA was probed at the same time and yielded nothing — `/statistics/` and
 `/market-statistics/` both 404, homepage links no matching PDFs.
+
+**Do not over-read the second probe (`f72a975`).** It reported 925 on-topic links and
+three PDFs with a text layer under centralbank.go.ke, which looks like confirmation but
+is not: the three it actually opened were `AuctionRulesGuidelines.pdf`, `BBP.pdf` and
+`Kenya-Master-Repurchase-Agreement.pdf`. Those *mention* "domestic debt" and "government
+securities" in prose; they carry no data tables. The only bulletin whose contents have
+ever been inspected here remains the 2016 one above. Until a current-year bulletin is
+opened and its debt table read, no parser should be written — the term-match is exactly
+the kind of evidence that misled `discover_prospectus.py` twice.
+
+Next iteration: fetch the dated URL pattern directly rather than crawling the landing
+page's generic document links.
+
+The other five targets in that probe are closed for now: National Treasury PDMO debt
+documents 404 (site mid-migration), Parliamentary Budget Office 404 on all four URLs,
+Controller of Budget 415, KNBS SSL verification failure, IMF 403.
 
 ---
 
@@ -161,6 +177,94 @@ path that explains it: ten cuts from 13.00%, now held twice.
 Deliberately anchored to the **current cycle**, not the 2011 record high — comparing
 today against 18.00% would present a 9.25-point easing that never happened as one move.
 This is the kind of detail that makes a chart either informative or quietly misleading.
+
+---
+
+## Revenue — decided 2026-07-25
+
+Three constraints, agreed before any of this is built. They are constraints, not
+preferences: each one closes off an easier path deliberately.
+
+**The free tier keeps its promise, word for word.** The landing page says "No account,
+no sign-up, no e-mail. What you hold stays on your phone and is never sent to us." That
+sentence stays true for everyone who does not opt in. It is the differentiator against
+every bank and broker app, and it is worth more than the revenue any change to it would
+raise.
+
+**Web push before SMS.** Same auction and coupon reminders, no phone number, no account,
+no PII beyond an opaque endpoint — so the promise survives nearly intact, the Data
+Protection Act surface shrinks to almost nothing, and per-message cost is zero rather
+than Twilio rates. Weaker reach, and iOS needs the PWA installed. It validates "does
+anyone want reminders" for a fraction of the build; SMS becomes an upgrade we are
+confident in rather than a bet.
+
+**No NSE licence yet**, so the swap calculator and the secondary-market
+discount/premium monitor are OUT of Phase 1. Both need live clean and dirty prices we
+are not permitted to hold. They can only run on user-entered prices, which the
+calculator already does. See item 3.
+
+### Phase 1 — alerts (web push)
+The only genuinely new Pro feature. iCal export, PDF reports and the YTM solver already
+ship free on `/ladder/`, `/portfolio/`, `/auctions/` and `/calculator/`; paywalling
+what users already have is the most expensive change available and is not the plan.
+
+Server-side scope is deliberately tiny: scheduling and delivery only. The calculation
+engine stays client-side and deterministic, which also keeps the CMA line clean — no
+advice, no funds flow.
+
+**Client half shipped 2026-07-25 — `/alerts/`.** Four rule kinds (auction window, coupon
+due, maturity, T-Bill threshold), evaluated by a pure function of `(rules, world, now)`
+in `src/lib/alerts.ts`, persisted in Dexie v7 with a delivery log keyed on stable event
+ids so nothing repeats. Free, no account, nothing leaves the device.
+
+It is deliberately under-promised on the page itself: with no sender, alerts surface
+*when the app is opened*, plus a banner if notification permission was granted while it
+is running. The page says exactly that and points at the existing iCal export for dates
+that genuinely cannot be missed. Anything stronger would be the one screen in the app
+claiming more than it can do.
+
+**VAPID keys — generated and installed 2026-07-25.** A P-256 pair (65-byte uncompressed
+point, 32-byte private scalar). Four environment variables were set on the Netlify
+project `mwangazayield`:
+
+| Variable | Scope | Secret | Purpose |
+|---|---|---|---|
+| `VAPID_PRIVATE_KEY` | functions | yes | Signs the JWT the push service verifies |
+| `VAPID_PUBLIC_KEY` | functions | no | Paired with the above by the sender |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | builds | no | Embedded in the client so it can subscribe |
+| `VAPID_SUBJECT` | functions, builds, runtime | no | `mailto:info@mwangazadigital.org` |
+
+The subject is the published support address, not a personal one — it travels to Google
+and Mozilla inside every JWT, so it should be the address the project already publishes.
+
+The private key exists **only** in Netlify's environment. It is not in this repository,
+in any commit message, or in any build artefact, and it must not be. Losing it is
+survivable but not free: every existing subscription becomes undeliverable and each
+reader has to opt in again.
+
+Read them back from Project configuration → Environment variables. The MCP write path
+reported success for all four but its read-back returned an empty list, so the values
+above are *asserted, not verified* — confirm in the UI before writing the sender.
+
+**Still to come, and what it needs:**
+- The sender itself. A Netlify scheduled function is the recommended fit: it already
+  hosts the site, and the job is a daily cron that re-runs `evaluateAlerts` against the
+  same data files.
+- Push subscriptions, which are the first thing this app would ever store server-side —
+  Netlify Blobs is the obvious home on the current plan. That is the moment the "no
+  account, no e-mail" promise needs restating precisely: an endpoint is not an identity,
+  and the free tier keeps working untouched for anyone who never subscribes.
+- No subscribe button ships until the sender does. A reader who opts in and then hears
+  nothing is worse off than one who was never offered.
+
+`public/sw.js` already carries the `push` and `notificationclick` handlers, so the
+sender is the only missing piece. Nothing subscribes yet, so `push` never fires today.
+
+### Ahead of it commercially: the auction archive
+350 parsed records across 125 issue codes, 2014 to today, that nobody else has because
+nobody else did the PDF work. Licensing it needs no accounts, no PII, no payment UX and
+no change to the consumer promise — the one revenue path with zero product tension. It
+is also already built.
 
 ---
 

@@ -1,8 +1,8 @@
 /* Mwangaza Yield service worker — offline-first app shell + stale-while-revalidate data.
    Bump VERSION whenever this file changes: activation drops the old cache, which is the
    only mechanism reclaiming stale hashed assets from previous deploys. */
-const VERSION = 'mwangaza-v8';
-const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/manifest.json', '/logo.svg', '/favicon.svg'];
+const VERSION = 'mwangaza-v9';
+const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/alerts/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(APP_SHELL)).then(() => self.skipWaiting()));
@@ -61,5 +61,51 @@ self.addEventListener('fetch', (e) => {
           return res;
         }).catch(() => caches.match('/'))
     )
+  );
+});
+
+/* ---------------------------------------------------------------------------
+   Notifications.
+
+   `notificationclick` matters today: the app raises banners itself through this
+   registration (Android refuses `new Notification()` from a page), and without
+   this handler tapping one does nothing at all.
+
+   `push` is here for the day a sender exists. It is deliberately defensive —
+   an empty or non-JSON payload still produces a banner rather than an
+   unhandled rejection in the service worker, which some browsers punish by
+   showing their own "site updated in the background" notice. Nothing subscribes
+   to push yet, so this never fires in production as shipped.
+--------------------------------------------------------------------------- */
+self.addEventListener('push', (e) => {
+  let payload = {};
+  try { payload = e.data ? e.data.json() : {}; } catch (_) { payload = {}; }
+  const title = payload.title || 'Mwangaza Yield';
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body: payload.body || 'Open the app for details.',
+      tag: payload.tag || 'mwangaza-push',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { href: payload.href || '/alerts/' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const href = (e.notification.data && e.notification.data.href) || '/alerts/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      // Reuse an open tab where we can; a second copy of the app is a worse
+      // answer than the one the reader already has.
+      for (const client of list) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(href).catch(() => {});
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(href);
+    })
   );
 });

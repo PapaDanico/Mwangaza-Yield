@@ -8,9 +8,9 @@ import SovereignContext from '@/components/dashboard/SovereignContext';
 import RateCycle from '@/components/dashboard/RateCycle';
 
 const actions = [
-  { href: '/calculator/', title: 'Net Yield Calculator', desc: 'After-tax returns per Kenyan WHT law', Icon: Calculator },
-  { href: '/auctions/', title: 'Auction Radar', desc: 'Countdowns, prospectuses, bid guidance', Icon: Radar },
-  { href: '/portfolio/', title: 'My Portfolio', desc: 'Import holdings, track coupons offline', Icon: Briefcase },
+  { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
+  { href: '/auctions/', title: 'What is on sale now', desc: 'Closing dates, official documents, how to bid', Icon: Radar },
+  { href: '/portfolio/', title: 'What you already hold', desc: 'Track your bonds and when they pay — offline', Icon: Briefcase },
 ];
 
 export default function DashboardPage() {
@@ -18,10 +18,10 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-ink">
-          Sovereign yields, <span className="text-gold-600">crystal clear.</span>
+          What Kenya is paying <span className="text-gold-600">savers today.</span>
         </h1>
         <p className="mt-1 text-sm text-ink-muted">
-          What your money can earn in Kenyan government bonds — after tax, today.
+          Every current government bond, ranked by what you would actually keep after tax.
         </p>
       </div>
 

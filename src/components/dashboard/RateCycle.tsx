@@ -8,6 +8,7 @@ import { ArrowDownRight, ArrowUpRight, ExternalLink, Minus } from 'lucide-react'
 import { useBondStore } from '@/stores/bondStore';
 import { analyseCycle, recentDecisions, describeCycle, whatItMeans, phaseLabel, monthYear } from '@/lib/rate-cycle';
 import { cn } from '@/lib/utils';
+import Term from '@/components/shared/Term';
 
 const RANGES = [
   { label: '2y', years: 2 },
@@ -56,9 +57,10 @@ export default function RateCycle() {
     <div className="card">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-ink">Where the policy rate is heading</h2>
+          <h2 className="font-semibold text-ink">Which way interest rates are moving</h2>
           <p className="text-xs text-ink-faint">
-            Every bond yield is priced off this rate · {cbrHistory.length} CBK decisions since{' '}
+            The <Term slug="central-bank-rate">Central Bank Rate</Term> sets the tone for every
+            other rate in Kenya · {cbrHistory.length} decisions since{' '}
             {cbrHistory[0]?.date.slice(0, 4)}
           </p>
         </div>

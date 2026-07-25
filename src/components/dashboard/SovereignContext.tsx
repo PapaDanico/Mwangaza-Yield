@@ -26,7 +26,7 @@ export default function SovereignContext() {
       <div className="mb-4">
         <h2 className="font-semibold text-ink">Can the borrower pay?</h2>
         <p className="text-xs text-ink-faint">
-          Sovereign health behind every Kenyan government security
+          You are lending to the Kenyan government. Here is how it is doing.
         </p>
       </div>
 

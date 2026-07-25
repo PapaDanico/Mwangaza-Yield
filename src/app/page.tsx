@@ -6,20 +6,20 @@ import {
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
 
 const features = [
-  { Icon: Calculator, title: 'Net Yield Engine', desc: 'Gross and after-tax YTM solved from your actual price — WHT 0/10/15% applied exactly as Kenyan law does.' },
-  { Icon: Receipt, title: 'Treasury Bills', desc: 'The quoted discount rate is never what you earn — see the true net yield on 91, 182 and 364-day bills, plus rollover projections.' },
-  { Icon: Layers, title: 'Ladder Builder', desc: 'Turn a lump sum into a stream of predictable payouts across staggered maturities — school fees, retirement, income.' },
-  { Icon: Radar, title: 'Auction Radar', desc: 'Every CBK offer with countdowns, prospectus links and a step-by-step DhowCSD bidding guide.' },
-  { Icon: CalendarCheck, title: 'Payout Calendar', desc: 'Every coupon and redemption on your phone calendar — one tap, with reminders the day before.' },
-  { Icon: WifiOff, title: 'Offline-first', desc: 'Installs like an app and works fully offline. Built for real Kenyan networks.' },
-  { Icon: LockKeyhole, title: 'Private by design', desc: 'No account. No sign-up. Your portfolio lives on your device and never leaves it.' },
-  { Icon: BookOpen, title: 'Tutorials', desc: 'Six short lessons from your first KES 50,000 to a full ladder — written for investors, not exam candidates.' },
+  { Icon: Calculator, title: 'What you actually earn', desc: 'Enter what you would pay and see the return after tax — the figure that reaches your bank account, not the one on the poster.' },
+  { Icon: Receipt, title: 'Treasury bills, translated', desc: 'A “9% discount rate” is not a 9% return. We do the conversion for 91, 182 and 364-day bills, and show what rolling them over would earn.' },
+  { Icon: Layers, title: 'Money that arrives on time', desc: 'Spread a lump sum so something matures each year — when school fees fall due, when you retire, when you need it.' },
+  { Icon: Radar, title: 'Never miss an offer', desc: 'Every Central Bank sale with the closing date, the official prospectus, and a walk-through of placing your bid on DhowCSD.' },
+  { Icon: CalendarCheck, title: 'Payments in your calendar', desc: 'Every interest payment and repayment date on your phone, with a reminder the day before. One tap.' },
+  { Icon: WifiOff, title: 'Works without a network', desc: 'Add it to your home screen and it keeps working on the matatu, in the shamba, wherever the signal goes.' },
+  { Icon: LockKeyhole, title: 'Yours alone', desc: 'No account, no sign-up, no e-mail. What you hold stays on your phone and is never sent to us.' },
+  { Icon: BookOpen, title: 'Learn as you go', desc: 'Six short lessons from your first KES 50,000 to a full ladder — plus every term explained in plain English.' },
 ];
 
 const steps = [
-  { n: '01', title: 'See what bonds really pay', desc: 'The dashboard ranks live CBK issues by net-of-tax yield — tax-free IFBs against taxable FXDs, at market prices.' },
-  { n: '02', title: 'Plan your investment', desc: 'Size a single bond in the calculator or build a full ladder — exact settlement cost, coupons and payout dates before you bid.' },
-  { n: '03', title: 'Bid on DhowCSD & track', desc: 'Follow the built-in bidding guide, then import your holdings and watch net income arrive on schedule.' },
+  { n: '01', title: 'See what is really on offer', desc: 'We rank every current government bond by what it pays you after tax — so the tax-free ones and the taxable ones can finally be compared honestly.' },
+  { n: '02', title: 'Shape it around your life', desc: 'Say what the money is for and how much you have. We work out the cost, the payment dates and what lands in your hand.' },
+  { n: '03', title: 'Place your bid, then relax', desc: 'Follow the step-by-step guide on DhowCSD, record what you bought, and let the app tell you when each payment is coming.' },
 ];
 
 export default function LandingPage() {
@@ -30,42 +30,43 @@ export default function LandingPage() {
         <div>
           <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-sand-400 bg-sand-50 px-3 py-1 text-xs font-medium text-ink-soft">
             <span className="h-1.5 w-1.5 rounded-full bg-mint-600" />
-            Live CBK, NSE &amp; KNBS data · Free
+            Built on public CBK, NSE &amp; KNBS data · Always free
           </p>
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink md:text-6xl">
-            Sovereign yields,
+            When you lend to Kenya,
             <br />
-            <span className="text-gold-600">crystal clear.</span>
+            <span className="text-gold-600">know what you earn.</span>
           </h1>
           <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">
-            Intelligence layer for Kenya&apos;s bond market
+            Government bonds, made plain
           </p>
           <p className="mt-5 max-w-lg text-lg text-ink-muted">
-            The intelligence layer for Kenya&apos;s bond market. Know exactly what a government
-            bond pays <em>after tax</em> — before you bid a single shilling on DhowCSD.
+            Buying a government bond means lending your money to your own country, and being
+            paid for it. We show you exactly what one pays <em>after tax</em> — in plain
+            language, before you commit a single shilling.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/dashboard/"
               className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 font-display text-sm font-semibold text-sand-50 shadow-card transition hover:bg-ink-soft"
             >
-              Open the app <ArrowRight size={16} />
+              See today&apos;s rates <ArrowRight size={16} />
             </Link>
             <Link
               href="/goals/"
               className="inline-flex items-center gap-2 rounded-xl border border-sand-400 bg-sand-50 px-6 py-3 font-display text-sm font-semibold text-ink transition hover:border-gold-500"
             >
-              Plan by objective
+              Start with a goal
             </Link>
           </div>
 
           {/* Trust markers, per the brand board's poster footer */}
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-sand-300 pt-5">
             {[
-              { Icon: RefreshCw, label: 'Daily updates' },
-              { Icon: Landmark, label: 'CBK source data' },
-              { Icon: Users, label: 'Retail focused' },
-              { Icon: BarChart3, label: 'Data-driven' },
+              { Icon: RefreshCw, label: 'Refreshed every weekday' },
+              { Icon: Landmark, label: 'Official CBK figures' },
+              { Icon: Users, label: 'For ordinary savers' },
+              { Icon: BarChart3, label: 'Every source named' },
             ].map(({ Icon, label }) => (
               <span key={label} className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
                 <Icon size={13} className="text-gold-600" /> {label}
@@ -85,10 +86,11 @@ export default function LandingPage() {
       {/* Features */}
       <section>
         <h2 className="text-center text-2xl font-bold text-ink md:text-3xl">
-          Everything between you and a confident bid
+          Everything you need. No finance degree required.
         </h2>
-        <p className="mx-auto mt-2 max-w-md text-center text-sm text-ink-muted">
-          Institutional-grade fixed-income analytics, sized for a phone and a KES 50,000 minimum.
+        <p className="mx-auto mt-2 max-w-lg text-center text-sm text-ink-muted">
+          The same analysis banks run on their trading desks, rebuilt for a phone, a KES 50,000
+          starting balance, and someone who has never bought a bond before.
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ Icon, title, desc }) => (
@@ -112,15 +114,16 @@ export default function LandingPage() {
           Nobody wants a bond. They want the thing it pays for.
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-center text-sm text-sand-300/70">
-          Tell us the objective and we shape the maturities, the tax treatment and the payout
-          months around it.
+          A school term. A quiet retirement. Rent covered without working for it. Tell us what
+          you are saving towards, and we will shape the dates, the taxes and the payments
+          around your life instead of the other way round.
         </p>
         <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { Icon: Flame, title: 'Financial independence', desc: 'The capital needed to live off net coupons — and how far today’s money gets you.' },
-            { Icon: GraduationCap, title: 'School fees', desc: 'Maturities matched to the years fees fall due, so principal lands with the invoice.' },
-            { Icon: CalendarHeart, title: 'Passive income', desc: 'Bonds with complementary coupon months, for income most months of the year.' },
-            { Icon: LockKeyhole, title: 'Capital preservation', desc: 'Short Treasury bills that stay liquid and still earn.' },
+            { Icon: Flame, title: 'Freedom from a payslip', desc: 'How much you would need invested to live on the interest alone — and how close today’s savings already are.' },
+            { Icon: GraduationCap, title: 'School fees', desc: 'Bonds chosen to repay in the years the fees fall due, so the money arrives with the invoice.' },
+            { Icon: CalendarHeart, title: 'Income you don’t work for', desc: 'Bonds that pay in different months, combined so something arrives most months of the year.' },
+            { Icon: LockKeyhole, title: 'Keeping it safe', desc: 'Short Treasury bills for money you may need soon, that still earn while it waits.' },
           ].map(({ Icon, title, desc }) => (
             <div key={title} className="rounded-2xl border border-sand-300/15 bg-sand-50/[0.03] p-5">
               <Icon size={20} className="text-gold-500" />
@@ -134,7 +137,7 @@ export default function LandingPage() {
             href="/goals/"
             className="inline-flex items-center gap-2 rounded-xl bg-gold-500 px-6 py-3 font-display text-sm font-bold text-treasury-dark transition hover:bg-gold-300"
           >
-            <Target size={16} /> Plan by objective
+            <Target size={16} /> Start with a goal
           </Link>
         </div>
       </section>
@@ -156,17 +159,18 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="overflow-hidden rounded-3xl bg-treasury-navy px-8 py-12 text-center shadow-card md:py-16">
         <h2 className="font-display text-2xl font-bold text-sand-50 md:text-3xl">
-          Your money deserves better than guesswork.
+          Mwangaza means light. That is the whole idea.
         </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm text-sand-300/80">
-          Free, offline-capable, and private. Add it to your home screen and carry Kenya&apos;s
-          bond market in your pocket.
+        <p className="mx-auto mt-3 max-w-lg text-sm text-sand-300/80">
+          Kenya&apos;s bond market has been open to ordinary savers for years — most people were
+          simply never shown the door. It is free, it works offline, and it asks nothing of you.
+          Add it to your home screen and have a look around.
         </p>
         <Link
           href="/dashboard/"
           className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gold-500 px-7 py-3 font-display text-sm font-bold text-treasury-dark transition hover:bg-gold-300"
         >
-          Get started — it&apos;s free <ArrowRight size={16} />
+          Have a look — it&apos;s free <ArrowRight size={16} />
         </Link>
       </section>
     </div>

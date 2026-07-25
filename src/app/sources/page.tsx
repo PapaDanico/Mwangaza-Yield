@@ -48,8 +48,8 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     name: 'Nairobi Securities Exchange',
     url: 'https://www.nse.co.ke/',
     status: 'reference',
-    used: 'Linked only — the free daily list is a scanned image',
-    why: 'Verified July 2026: the Daily Bond Price List is published as scanned images with no text layer, so it cannot be read by software. We will not OCR it — a misread digit in a bond price is a wrong number stated with full confidence. Bulk machine-readable data requires a commercial licence.',
+    used: 'Linked only — we are not permitted to republish it',
+    why: 'Two separate blocks, verified July 2026. The free Daily Bond Price List is published as scanned images with no text layer, so software cannot read it, and we will not OCR it — a misread digit in a bond price is a wrong number stated with full confidence. More decisively, the NSE Data Services terms state their data is proprietary, may not be copied, stored or distributed, and may not be used to develop a product, except for your own personal use. We respect that. Look up a price there yourself and enter it in our calculator — that is personal use, and it stays on your device.',
   },
   {
     name: 'IMF — Kenya country page',
@@ -73,6 +73,13 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     why: 'Useful for timeliness, always superseded by the CBK original once available.',
   },
   {
+    name: 'KIPPRA',
+    url: 'https://kippra.or.ke/',
+    status: 'reference',
+    used: 'Background reading on Kenyan public finance',
+    why: 'Kenya’s public-policy research institute publishes genuinely useful analysis — the Kenya Economic Report and similar. It is prose and PDFs rather than structured data, and it is all rights reserved, so we cite and link rather than ingest.',
+  },
+  {
     name: 'Trading Economics',
     url: 'https://tradingeconomics.com/kenya',
     status: 'declined',
@@ -85,6 +92,27 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     status: 'declined',
     used: '—',
     why: 'Unofficial or scraping-restricted endpoints. We will not build a money tool on an interface that can vanish or that we are not permitted to use.',
+  },
+  {
+    name: 'Cbonds',
+    url: 'https://cbonds.com/',
+    status: 'declined',
+    used: '—',
+    why: 'A paid subscription service. Their Kenya page did not resolve when probed, and even if it had, redistributing licensed bond data in a free public app is not something a subscription permits.',
+  },
+  {
+    name: 'AfricaFinancials',
+    url: 'https://africanfinancials.com/',
+    status: 'declined',
+    used: '—',
+    why: 'Returns HTTP 403 to automated requests, and its focus is listed-company financial statements rather than government bond pricing. Neither permitted nor particularly relevant to what we compute.',
+  },
+  {
+    name: 'Bloomberg',
+    url: 'https://www.bloomberg.com/',
+    status: 'declined',
+    used: '—',
+    why: 'Blocks automated access and licenses its market data commercially at terminal prices. Excellent journalism, entirely unavailable to a free app — and republishing it would be straightforwardly unlawful.',
   },
   {
     name: 'Central Depository & Settlement Corporation',

@@ -92,7 +92,7 @@ export default function CalculatorPage() {
 
           <div>
             <label className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
-              <span>Clean price (per 100)</span>
+              <span>Price you would pay (per 100)</span>
               <span className="num text-gold-700">{price.toFixed(2)}</span>
             </label>
             <input
@@ -100,13 +100,34 @@ export default function CalculatorPage() {
               onChange={(e) => setPrice(Number(e.target.value))}
               className="w-full accent-gold-600"
             />
-            {lastTrade && (
+            {lastTrade ? (
               <button
                 onClick={() => setPrice(lastTrade.price)}
                 className="mt-1 text-xs text-gold-700 underline-offset-2 hover:underline"
               >
                 Use last traded price: {lastTrade.price.toFixed(2)} ({lastTrade.tradeDate})
               </button>
+            ) : (
+              // Silence here would be the dishonest option: 100 looks like a
+              // market price and is really just a default. The NSE terms permit
+              // the USER to look a price up for personal use — they simply do
+              // not permit us to fetch it for them. So we say so and hand them
+              // the link.
+              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
+                We are showing <span className="num">100</span> because we have no traded price
+                for this bond — that is a placeholder, not the market. The Nairobi Securities
+                Exchange licenses its prices and does not permit us to republish them, but you
+                may look one up for your own use:{' '}
+                <a
+                  href="https://www.nse.co.ke/dataservices/market-statistics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold-700 hover:underline"
+                >
+                  NSE Market Statistics
+                </a>
+                . Drag the slider to whatever you find — it stays on your phone.
+              </p>
             )}
           </div>
         </div>

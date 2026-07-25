@@ -41,10 +41,14 @@ settlement date.
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.
-**Options, in order.** Buy NSE's machine-readable feed once there is revenue; ask NSE
-to publish the daily list as text (their source data is already digital — this is a
-formatting choice); or hand-enter the handful of actively traded issues weekly.
-**Interim.** Make the par fallback explicit in the UI rather than silent.
+**Now settled (2026-07-25).** The blocker is legal, not technical. NSE's Market Statistics
+page does serve tables in plain HTML — but its terms forbid copying, storing, redistributing
+*or building a product on* the data, except for personal use. See `DATA-SOURCES.md` §11.
+**Options, in order.** (a) Let the USER fetch and enter a price — explicitly permitted as
+personal use, and it never leaves their device; (b) request written permission, which the
+terms contemplate; (c) buy the licence once there is revenue.
+**Interim.** Make the par fallback explicit in the UI rather than silent, and say plainly
+why we cannot fill it in for them.
 
 ---
 

@@ -335,3 +335,57 @@ are still shown, labelled as history rather than as cycle. See `analyseCycle` in
 
 All three are link indexes rather than data tables. They remain useful for *discovering*
 documents, which is how the Weekly Bulletin work in §8 would proceed.
+
+## 11. Secondary-source shortlist — probed 2026-07-25
+
+Evaluated against **two** questions, because the second one kills more candidates than
+the first: *can software read it*, and *are we permitted to redistribute it*. This app
+ships static files to the public, so "available" and "usable" are very different words.
+
+| Source | Reachable | Machine-readable | Permitted | Verdict |
+|---|---|---|---|---|
+| KIPPRA | HTTP 200 | Prose + PDFs, 0 data tables | All rights reserved | **Cite and link** |
+| Cbonds | HTTP 404 on the Kenya page | — | Paid subscription | **Declined** |
+| AfricaFinancials | HTTP 403 to bots | — | — | **Declined** |
+| Bloomberg | HTTP 403 to bots | — | Commercially licensed | **Declined** |
+| NSE Data Services | HTTP 200, 6 tables, 32 rows in HTML | **Yes** | **No** | **Declined on terms** |
+
+### The NSE dropdown: technically yes, legally no
+
+The Market Statistics page (Bonds Statistics tab, with the tenor dropdown — TWO YEAR
+BONDS, and so on) does serve tables in plain HTML: **6 tables, 32 rows**, no OCR needed.
+So the technical answer to "can we extract this?" is *largely yes*.
+
+That is not the answer that matters. The same page carries this notice, and our probe
+detected every one of these phrases in the served HTML:
+
+> All data and information provided by the NSE … is **proprietary to the NSE**. You **may
+> not copy, reproduce, modify, reformat, download, store, distribute, publish or transmit**
+> any data and information, **except for your personal use**. For the avoidance of doubt,
+> you **may not develop or create any product that uses, is based on, or is developed in
+> connection with** any of the data and information available on this site. You are **not
+> permitted** (except where you have been given express written permission by the NSE) to
+> use the data and information for **commercial gain**.
+
+Detected markers: `proprietary to`, `may not copy`, `except for your personal use`,
+`not permitted`, `commercial gain`.
+
+That prohibition is broader than redistribution. It forbids *building a product on* the
+data at all. Scraping it would put the project — and anyone relying on it — in the wrong,
+and a tool asking people to trust it with their savings cannot be casual about whose
+rules it follows.
+
+**Three legitimate routes remain, in order of preference:**
+
+1. **Personal use, by the user.** The terms explicitly permit personal use. A saver may
+   look up a price on NSE and type it into our calculator — and because we have no server,
+   that number never leaves their phone. This fits the architecture exactly.
+2. **Written permission.** The terms contemplate it ("except where you have been given
+   express written permission"). Worth a letter to `dataservices@nse.co.ke` once the app
+   has users to point at.
+3. **A commercial licence.** Their Market Data Pricelist is published. A question for the
+   day there is revenue, not before.
+
+**What we will not do:** scrape it quietly and hope. The disclaimer is unambiguous, it is
+printed directly beneath the very table in question, and pleading that it was technically
+easy is not a defence.

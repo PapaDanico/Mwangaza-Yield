@@ -116,20 +116,38 @@ def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
 
 
 def find_header(lines: list) -> tuple:
-    """Locate the row naming the issues; it defines the column geometry."""
+    """Locate the row naming the issues; it defines the column geometry.
+
+    Matches against the JOINED line rather than word by word. The first dry-run
+    matched each word separately and so found only one issue in PDFs whose
+    filename named two — CBK splits a code like "FXD1/2019/20" across word
+    boundaries often enough that per-word matching silently loses half the
+    bonds. Under-extraction is quieter than a wrong number and just as wrong.
+    """
     for line in lines:
-        text = " ".join(w["text"] for w in line)
-        hits = list(ISSUE_RE.finditer(text))
-        if len(hits) >= 1:
-            codes, centres = [], []
-            for w in line:
-                m = ISSUE_RE.search(w["text"])
-                if m:
-                    codes.append(normalise_code(*m.groups()))
-                    centres.append((w["x0"] + w["x1"]) / 2)
-            if codes:
-                return codes, centres
+        spans, pos, parts = [], 0, []
+        for w in line:
+            parts.append(w["text"])
+            spans.append((pos, pos + len(w["text"]), w))
+            pos += len(w["text"]) + 1  # the joining space
+        text = " ".join(parts)
+
+        codes, centres = [], []
+        for m in ISSUE_RE.finditer(text):
+            start, end = m.span()
+            owners = [w for (ws, we, w) in spans if ws < end and we > start]
+            if not owners:
+                continue
+            codes.append(normalise_code(*m.groups()))
+            centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
+        if codes:
+            return codes, centres
     return [], []
+
+
+def codes_in_name(url: str) -> list:
+    """Issue codes named in the filename — the cross-check on what we found."""
+    return [normalise_code(*m.groups()) for m in ISSUE_RE.finditer(url)]
 
 
 def parse_pdf(content: bytes, source_url: str) -> list:
@@ -149,6 +167,7 @@ def parse_pdf(content: bytes, source_url: str) -> list:
         except ValueError:
             auction_date = None
 
+    expected = codes_in_name(source_url)
     records: dict = {}
     for words in pages:
         if not words:
@@ -183,6 +202,14 @@ def parse_pdf(content: bytes, source_url: str) -> list:
                     })
                     rec.setdefault(key, value)
                 break
+
+    # CBK names the issues in the filename, so we can check our own work. If
+    # the header yielded fewer, we have silently dropped a bond — say so
+    # rather than return a tidy-looking partial result.
+    missing = [c for c in expected if c not in records]
+    if missing:
+        print(f"[auctions] {source_url[-58:]}: filename names {len(expected)} issue(s), "
+              f"parsed {len(records)} — MISSING {missing}", file=sys.stderr)
     return list(records.values())
 
 

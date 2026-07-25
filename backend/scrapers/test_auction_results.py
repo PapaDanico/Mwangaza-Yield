@@ -12,7 +12,8 @@ wrong. These tests exist to keep that from ever shipping.
 import sys
 
 from auction_results import (
-    assign_to_columns, cell_value, find_header, group_lines, normalise_code,
+    assign_to_columns, cell_value, codes_in_name, find_header, group_lines,
+    normalise_code,
 )
 
 failures = []
@@ -85,6 +86,25 @@ def main():
     check("linear text finds four bogus numbers", naive, ["1", "1.277", "1", "2.873"])
     check("column reading finds the two real ones",
           sorted(assign_to_columns(COUPON, centres, label_x).values()), ["11.277", "12.873"])
+
+    print("split issue codes — the bug the first dry-run caught")
+    # CBK splits codes across word boundaries. Matching word by word found one
+    # issue in PDFs whose filename named two, and silently dropped the other.
+    split_header = [w("Tenor", 40, 200),
+                    w("FXD1/2019/", 285, 200), w("20", 340, 200),
+                    w("FXD1/2022/", 400, 200), w("25", 455, 200)]
+    codes, centres = find_header(group_lines(split_header))
+    check("both codes found despite the split", codes, ["FXD1/2019/020", "FXD1/2022/025"])
+    check("two column centres from split words", len(centres), 2)
+    check("centres stay ordered", centres[0] < centres[1], True)
+
+    print("codes_in_name — the cross-check on our own work")
+    check("filename codes are recovered",
+          codes_in_name("RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"),
+          ["FXD1/2019/020", "FXD1/2022/025"])
+    check("a single-issue filename gives one",
+          codes_in_name("SWITCH RESULTS FXD1-2012-020 DATED 15-07-2026.pdf"),
+          ["FXD1/2012/020"])
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

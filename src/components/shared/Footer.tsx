@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
-import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
+import { MessageCircle, Mail } from 'lucide-react';
+import { CBK_WHATSAPP_CHANNEL, SUPPORT_EMAIL } from '@/lib/share';
 
 const COLUMNS = [
   {
@@ -61,7 +61,7 @@ export default function Footer() {
               A free, private tool that shows what Kenyan government bonds really pay once tax is
               taken off — so an ordinary saver can decide with the same clarity a bank does.
             </p>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               <a
                 href={CBK_WHATSAPP_CHANNEL}
                 target="_blank"
@@ -69,6 +69,12 @@ export default function Footer() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3 py-1.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
               >
                 <MessageCircle size={13} /> CBK on WhatsApp
+              </a>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/25 px-3 py-1.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
+              >
+                <Mail size={13} /> Contact us
               </a>
             </div>
           </div>

@@ -4,13 +4,18 @@ import { useMemo, useState } from 'react';
 import { useBondStore } from '@/stores/bondStore';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
 
-function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Row({ label, value, accent, hint }: {
+  label: string; value: string; accent?: boolean; hint?: string;
+}) {
   return (
-    <div className="flex items-baseline justify-between border-b border-sand-300/70 py-2 last:border-0">
-      <span className="text-sm text-ink-muted">{label}</span>
-      <span className={`num text-sm font-semibold ${accent ? 'text-base text-gold-700' : 'text-ink'}`}>
-        {value}
-      </span>
+    <div className="border-b border-sand-300/70 py-2 last:border-0">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm text-ink-muted">{label}</span>
+        <span className={`num shrink-0 text-sm font-semibold ${accent ? 'text-base text-gold-700' : 'text-ink'}`}>
+          {value}
+        </span>
+      </div>
+      {hint && <p className="mt-0.5 max-w-[34ch] text-[11px] leading-snug text-ink-faint">{hint}</p>}
     </div>
   );
 }
@@ -38,9 +43,10 @@ export default function CalculatorPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Net Yield Calculator</h1>
+        <h1 className="text-2xl font-bold text-ink">What would this bond pay me?</h1>
         <p className="text-sm text-ink-muted">
-          After-tax economics of any listed bond — WHT applied per Kenyan tax law.
+          Pick a bond, say how much you would put in, and see what actually reaches you once
+          Kenyan tax is taken off.
         </p>
       </div>
 
@@ -137,19 +143,28 @@ export default function CalculatorPage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-semibold text-ink">{bond.issueCode}</h2>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${bond.taxExempt ? 'bg-mint-500/15 text-mint-700' : 'bg-sand-200 text-ink-soft'}`}>
-                WHT {formatPct(result.whtRate * 100, 0)}
+                Tax {formatPct(result.whtRate * 100, 0)}
               </span>
             </div>
-            <Row label="Net yield (after tax)" value={formatPct(result.netYTM)} accent />
-            <Row label="Gross yield (YTM)" value={formatPct(result.grossYTM)} />
-            <Row label="Tax drag" value={`${result.taxDragBps.toFixed(0)} bps`} />
-            <Row label="Accrued interest / 100" value={result.accruedInterestPer100.toFixed(4)} />
-            <Row label="Dirty price" value={result.dirtyPrice.toFixed(4)} />
-            <Row label="Total settlement cost" value={formatKES(result.settlementCostKES)} />
-            <Row label="Semi-annual net coupon" value={formatKES(result.netCouponPerPeriodKES)} />
-            <Row label="Net annual income" value={formatKES(result.netAnnualIncomeKES)} />
-            <Row label="Net current yield" value={formatPct(result.currentYieldNet)} />
-            <Row label="Next coupon date" value={result.nextCouponDate ?? '—'} />
+            <Row label="What you actually earn" value={formatPct(result.netYTM)} accent
+              hint="Your yearly return after tax, if you hold this bond to the end. This is the number to compare against anything else." />
+            <Row label="Before tax" value={formatPct(result.grossYTM)}
+              hint="The figure most places quote. It is not what you keep." />
+            <Row label="Lost to tax" value={`${(result.taxDragBps / 100).toFixed(2)} pp`}
+              hint="The gap between the two figures above. Infrastructure bonds have none." />
+            <Row label="Interest owed to the seller" value={result.accruedInterestPer100.toFixed(2)}
+              hint="Per KES 100. Interest built up since the last payment — you repay it now and get it back at the next coupon." />
+            <Row label="Price including that interest" value={result.dirtyPrice.toFixed(2)}
+              hint="Called the dirty price. Per KES 100 of face value." />
+            <Row label="Total you would pay" value={formatKES(result.settlementCostKES)}
+              hint="What leaves your account on settlement day." />
+            <Row label="Paid to you every six months" value={formatKES(result.netCouponPerPeriodKES)}
+              hint="After tax." />
+            <Row label="Paid to you each year" value={formatKES(result.netAnnualIncomeKES)} />
+            <Row label="Yearly income as a % of your outlay" value={formatPct(result.currentYieldNet)}
+              hint="Income only — it ignores any gain or loss when the bond is repaid." />
+            <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
+              hint="Estimated by adding six months to the issue date; CBK shifts payments off weekends and holidays." />
             <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
               Accrued interest uses Actual/365. Yields are solved from your price on the remaining
               cash-flow schedule; net YTM taxes coupons at the WHT rate (principal redemption is

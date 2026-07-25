@@ -33,9 +33,10 @@ export default function TBillsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Treasury Bills</h1>
+        <h1 className="text-2xl font-bold text-ink">Lending for months, not years</h1>
         <p className="text-sm text-ink-muted">
-          Short-term government paper — 91, 182 and 364 days, auctioned every Thursday.
+          Treasury bills run 91, 182 or 364 days. You pay less than KES 100 now and are repaid
+          the full 100 at the end — the gap is your interest. Sold every Thursday.
         </p>
       </div>
 
@@ -125,14 +126,17 @@ export default function TBillsPage() {
         <div className="card">
           <h2 className="mb-3 font-semibold text-ink">{selected.tenorDays}-day bill breakdown</h2>
           {[
-            ['Net effective yield', formatPct(result.netEAY), true],
-            ['Gross effective yield', formatPct(result.grossEAY), false],
-            ['Quoted discount rate', formatPct(result.discountRate, 4), false],
-            ['Purchase price / 100', result.pricePer100.toFixed(4), false],
-            ['Gross interest earned', formatKES(result.grossInterestKES), false],
-            ['Withholding tax (15%)', `−${formatKES(result.whtKES)}`, false],
-            ['Net interest', formatKES(result.netInterestKES), false],
-            ['Tax drag', `${result.taxDragBps.toFixed(0)} bps`, false],
+            ['What you actually earn', formatPct(result.netEAY), true],
+            ['Before tax', formatPct(result.grossEAY), false],
+            ['The advertised rate', formatPct(result.discountRate, 2), false],
+            ['What you pay per KES 100', result.pricePer100.toFixed(2), false],
+            ['Interest earned', formatKES(result.grossInterestKES), false],
+            ['Tax taken off (15%)', `−${formatKES(result.whtKES)}`, false],
+            ['Interest you keep', formatKES(result.netInterestKES), false],
+            // Named and scaled to match the calculator — the same concept must
+            // not appear as "Tax drag / bps" on one page and "Lost to tax / pp"
+            // on another.
+            ['Lost to tax', `${(result.taxDragBps / 100).toFixed(2)} pp`, false],
           ].map(([label, value, accent]) => (
             <div key={label as string} className="flex items-baseline justify-between border-b border-sand-300/70 py-2 last:border-0">
               <span className="text-sm text-ink-muted">{label as string}</span>

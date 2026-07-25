@@ -55,9 +55,10 @@ export default function LadderPage() {
 
       <div className="no-print flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Ladder Builder</h1>
+          <h1 className="text-2xl font-bold text-ink">Money that arrives year after year</h1>
           <p className="text-sm text-ink-muted">
-            Spread a lump sum across staggered maturities for a predictable net-of-tax income stream.
+            Rather than tying everything up until one distant date, spread it so a bond repays
+            each year. Bankers call this a ladder.
           </p>
         </div>
         {plan.rungs.length > 0 && (

@@ -389,3 +389,105 @@ rules it follows.
 **What we will not do:** scrape it quietly and hope. The disclaimer is unambiguous, it is
 printed directly beneath the very table in question, and pleading that it was technically
 easy is not a defence.
+
+## 12. Prospectus probe — coupon dates yes, day count no (2026-07-25)
+
+Roadmap items 1 and 2 assumed both facts lived in the prospectus. Probing found that
+only one does.
+
+**52 issue-coded prospectus PDFs** found once the probe was scoped to the listing table
+(its first run inspected sidebar boilerplate instead — see below). Three inspected:
+
+| Document | Text | Tables | Day count | Interest payment dates |
+|---|---|---|---|---|
+| Aug 2016 — FXD 1/2016/10 | 4,056 chars | 0 | **not stated** | present |
+| Jul 2016 — FXD 2/2016/5 | 5,996 chars | 2 | **not stated** | present |
+| Jun 2016 — FXD 2/2016/2 | 7,962 chars | 4 | **not stated** | present |
+
+### What this changes
+
+**Item 1 (exact coupon dates) — plausible, with a caveat.** Every prospectus carries an
+"Interest Payment Dates" section and 27–167 date strings. But one extracted line reads:
+
+```
+| Interest Payment Dates: as a last resort at 3% above the prevailing
+```
+
+That is text bleed from a two-column layout — `pdfplumber` interleaved columns and
+stitched half of one sentence onto the heading of another. **Naive line-based regex on
+these PDFs will produce confident nonsense.** Any parser must be table-aware
+(`extract_tables`), and must reject rows that fail a sanity check rather than trusting
+what it stitched together. This is exactly the failure mode that makes a wrong coupon
+date look authoritative.
+
+**Item 2 (day-count convention) — not answerable here.** None of the three states it.
+On reflection that is correct design rather than an omission: a prospectus sells *one
+issue*, whereas the convention governs *every* issue and belongs in the rules. So the
+probe now also inspects the **CBK Auction Rules & Guidelines** — one of the very PDFs
+the prospectus hunt filters out as boilerplate. Wrong document for that question,
+plausibly the right one for this.
+
+Until it is confirmed from an authoritative statement, Actual/365 remains an
+**assumption**, and the calculator continues to label it as one.
+
+### Two lessons recorded
+
+1. **The 2016 problem, again.** The listing surfaces 2016 archives — exactly what the
+   Weekly Bulletin probe hit in §8. CBK's DataTables listings appear to serve oldest
+   first. The current-year listing must be located before any parser ships, or we would
+   confidently parse decade-old schedules.
+2. **"The first PDFs on the page" is not "the PDFs the page is about."** The probe's
+   first run inspected `AuctionRulesGuidelines.pdf`, `BBP.pdf` and the Master Repurchase
+   Agreement — sidebar links present on every CBK page, which is why they had turned up
+   in every probe that day. The tell was that the same three files kept appearing
+   regardless of which page was being probed.
+
+### Follow-up: the rules document does not state it either (same day)
+
+The hypothesis in §12 — that the day-count convention belongs in the rules rather than in
+an individual prospectus — was reasonable and **wrong**. Probed:
+
+```
+--- CBK Auction Rules & Guidelines
+    7 page(s), 13495 chars, 0 table(s)
+        DAY COUNT: not found
+    >>> COUPON DATES: 1 hit(s) — ['coupon payment date']
+        BUSINESS DAY RULE: not found
+    date-like strings in document: 0
+```
+
+It mentions coupon payment dates in passing and never defines the accrual basis. So the
+convention is stated in **neither** the prospectus nor the auction rules.
+
+A second finding, arguably more important:
+
+```
+  scanning 272 link(s) from the whole page (no table found)
+  52 prospectus PDF(s) matched an issue code
+```
+
+**The prospectus listing serves no `<table>` at all.** Unlike `/press/` (§10), this page
+does not ship its grid in the HTML — so the 52 matches are archive links scattered
+through the page, and every one of them is from 2016. The current-year prospectuses are
+not reachable by this route.
+
+### Verdict: roadmap items 1 and 2 are BLOCKED, not ready
+
+Neither is buildable today, and knowing that is the point of probing first:
+
+| Item | Blocker |
+|---|---|
+| Exact coupon dates | Only 2016 documents reachable; listing not in served HTML; two-column text bleeds between fields |
+| Day-count convention | Stated in no CBK document we can find |
+
+**What would unblock them.** For coupon dates: locate the current-year prospectus route
+(the listing is likely rendered client-side, so an inspection of its network calls in a
+browser would settle it). For the day count: stop looking for a statement and test the
+behaviour instead — take one CBK-published settlement amount for a known bond and date,
+and check which convention reproduces it. That was always this item's "done when"
+criterion; it now becomes the method rather than the confirmation.
+
+**Meanwhile nothing changes for users.** Actual/365 stays an explicit, labelled
+assumption, and coupon dates stay labelled as estimates — which is what they already
+say. We have not made anything worse by failing to confirm; we have only declined to
+build a parser on documents from 2016 using a convention we cannot verify.

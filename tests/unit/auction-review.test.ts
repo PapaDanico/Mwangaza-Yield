@@ -316,11 +316,31 @@ describe('auctionKind — what kind of sale this was', () => {
       .toBe('switch');
   });
 
+  it('reads TAPSALE written as one word', () => {
+    // Seven real files in the archive spell it this way, and the first version
+    // of this function — which required a boundary on BOTH sides of TAP —
+    // filed all ten of their records as primary auctions. Nothing wrong reached
+    // a reader, but only because those files parse too poorly to clear the
+    // completeness guard; fixing the tap-sale layout would have switched them
+    // on silently. These are the real names, verbatim.
+    for (const name of [
+      '/uploads/x/1505731384_TAPSALE RESULTS FOR TREASURY BONDS ISSUE NOs. FXD1-2020-015 DATED 23-01-2023.pdf',
+      '/uploads/x/1702657889_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NO. IFB1-2023-017 DATED 20-03-2023.pdf',
+      '/uploads/x/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-020 DATED 25-08-2025.pdf',
+    ]) {
+      expect(auctionKind(name)).toBe('tap');
+    }
+  });
+
   it('does not mistake a word merely containing "tap" for a tap sale', () => {
     // "ADAPTATION", "TAPERED" — the word boundary is what keeps this from
     // silently excluding real auctions from the only statistic that counts them.
     expect(auctionKind('/uploads/x/RESULTS GREEN ADAPTATION BOND DATED 01-01-2026.pdf'))
       .toBe('primary');
+    // Only SALE may follow. Allowing any trailing letters would readmit
+    // ADAPTATION through the other side of the same rule.
+    expect(auctionKind('/uploads/x/RESULTS TAPERED BOND DATED 01-01-2026.pdf')).toBe('primary');
+    expect(auctionKind('/uploads/x/RESULTS BOOTSTRAP BOND DATED 01-01-2026.pdf')).toBe('primary');
   });
 
   it('survives a malformed escape rather than throwing', () => {

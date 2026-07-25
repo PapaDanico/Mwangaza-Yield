@@ -182,12 +182,22 @@ export function auctionKind(sourceUrl?: string): AuctionKind {
   if (upper.includes('SWITCH')) return 'switch';
   // Letter boundaries, not \b. CBK prefixes these files with a numeric id and
   // an underscore — "838376338_TAP SALE RESULTS" — and `_` is a WORD character,
-  // so \b never fires beside it and the tap went unrecognised. This is the
-  // second time that exact trap has bitten this codebase; the date pattern in
-  // the parser carries the same scar. A bare `includes` is not the answer
-  // either: it would classify a green ADAPTATION bond as a tap sale and quietly
-  // drop a real auction out of the only statistic that counts them.
-  if (/(?<![A-Z])TAP(?![A-Z])/.test(upper)) return 'tap';
+  // so \b never fires beside it and the tap went unrecognised. The parser's date
+  // pattern carries the same scar.
+  //
+  // But a boundary on BOTH sides was too strict, and the first version of this
+  // shipped with that fault: CBK writes "TAPSALE" as one word about as often as
+  // "TAP SALE" — seven files in the archive, ten records — and every one of them
+  // was filed as a primary auction. Nothing wrong reached a reader, but only by
+  // luck: those files parse so poorly that the completeness guard rejected them
+  // before any ratio was computed. Fixing the tap-sale table layout would have
+  // silently switched them on.
+  //
+  // So the trailing boundary allows SALE specifically, and nothing else. A bare
+  // `includes` would file a green ADAPTATION bond as a tap sale and drop a real
+  // auction out of the only statistic that counts them; allowing any following
+  // letters would do the same. Both failure directions are tested.
+  if (/(?<![A-Z])TAP(?:SALE)?(?![A-Z])/.test(upper)) return 'tap';
   return 'primary';
 }
 

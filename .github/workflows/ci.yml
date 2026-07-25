@@ -110,6 +110,12 @@ jobs:
         timeout-minutes: 5
         working-directory: backend/scrapers
         run: python probe_undated.py || echo "undated probe failed — see output above"
+
+      - name: Probe why no tap sale has ever parsed completely
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 4
+        working-directory: backend/scrapers
+        run: python probe_tapsale.py || echo "tap-sale probe failed — see output above"
       - name: Probe why some 2020-2023 auction results parse to nothing
         working-directory: backend/scrapers
         run: python discover_old_layout.py

@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppInit />
         <Navbar />
         <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 md:pb-10">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 pb-24 pt-2 text-xs text-ink-faint md:pb-8">
+        <footer className="no-print mx-auto max-w-6xl px-4 pb-24 pt-2 text-xs text-ink-faint md:pb-8">
           Mwangaza Yield provides analytics for education only — not investment advice. Verify all
           figures against official CBK/NSE publications before investing.
         </footer>

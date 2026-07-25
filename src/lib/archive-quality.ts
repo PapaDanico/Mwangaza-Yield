@@ -38,11 +38,15 @@ export type CoreField = (typeof CORE_FIELDS)[number];
 export const FIELD_LABELS: Record<CoreField, string> = {
   // Called "value date" because that is what it is. CBK dates a results file
   // and its section-A heading from the Monday the bond is dated FROM, not the
-  // day bidding closed: 297 of 303 dated records fall on a Monday, the six
-  // exceptions are switch auctions and a buyback, and one tap-sale document
-  // says so outright — "Settlement remains Monday 30th, June 2014" under a
-  // filename reading "Dated 30.06.2014". Kenyan bonds auction on a Wednesday
-  // and value the following Monday.
+  // day bidding closed. One tap-sale document says so outright — "Settlement
+  // remains Monday 30th, June 2014" under a filename reading "Dated
+  // 30.06.2014" — and the weekday distribution says the same thing about the
+  // whole archive: see `valueDates`, which counts it rather than restating it.
+  // Kenyan bonds auction on a Wednesday and value the following Monday.
+  //
+  // This comment used to carry the count itself, "297 of 303 dated records".
+  // That was true the day it was written and drifted to 372 of 378 without
+  // anyone touching the line, which is the argument for computing it.
   //
   // The JSON key stays `auctionDate`, because renaming a published field breaks
   // anyone already reading it for the sake of a label. The label is where the

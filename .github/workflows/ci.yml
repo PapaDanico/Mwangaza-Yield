@@ -169,6 +169,23 @@ jobs:
           git add public/data/*.json
           git diff --cached --quiet && exit 0
           git commit -m "chore(data): daily refresh $(date -u +%F)"
+          # This job spends up to ten minutes reading PDFs before it gets here,
+          # which is a wide window for someone to push. A bare push loses the
+          # whole run to a non-fast-forward — it happened, costing 120 files of
+          # work — so rebase onto whatever arrived and try again.
+          for attempt in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "push rejected (attempt $attempt) — rebasing onto the new tip"
+            git pull --rebase origin "$GITHUB_REF_NAME" || {
+              echo "rebase hit a conflict in the data files."
+              echo "NOT resolving it automatically: a conflict here means someone"
+              echo "edited data this job also regenerated, and picking a side"
+              echo "silently is how a hand-checked figure gets overwritten."
+              echo "Nothing is lost — these PDFs stay unread and the next run"
+              echo "re-derives them."
+              exit 1
+            }
+          done
           git push
 
       - name: Check data freshness

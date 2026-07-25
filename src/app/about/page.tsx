@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { SUPPORT_EMAIL } from '@/lib/share';
 
 export const metadata: Metadata = { title: 'About us — Mwangaza Yield' };
 
@@ -57,11 +58,12 @@ export default function AboutPage() {
         data if we wanted to.
       </p>
 
-      <h2>Get involved</h2>
+      <h2>Get in touch</h2>
       <p>
-        The source is public on{' '}
-        <a href="https://github.com/PapaDanico/Mwangaza-Yield" target="_blank" rel="noopener noreferrer">GitHub</a>.
-        Corrections to the maths or the data are especially welcome — see <a href="/support/">Support</a>.
+        Corrections to the maths or the data are especially welcome — a wrong number helps nobody,
+        and the people most likely to spot one are the people using it. Write to{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>, or see{' '}
+        <a href="/support/">Support</a> for what to include.
       </p>
     </Prose>
   );

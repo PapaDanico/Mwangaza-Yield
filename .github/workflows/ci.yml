@@ -71,6 +71,9 @@ jobs:
       - name: Probe secondary source shortlist (KIPPRA, Cbonds, AfricaFinancials, Bloomberg, NSE)
         working-directory: backend/scrapers
         run: python discover_secondary_sources.py
+      - name: Probe CBK auction results (coupon rates, clearing yields)
+        working-directory: backend/scrapers
+        run: python discover_auction_results.py
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py

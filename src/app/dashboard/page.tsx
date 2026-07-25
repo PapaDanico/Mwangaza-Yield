@@ -4,6 +4,7 @@ import AuctionBanner from '@/components/dashboard/AuctionBanner';
 import TopYields from '@/components/dashboard/TopYields';
 import YieldCurveChart from '@/components/dashboard/YieldCurveChart';
 import MacroPanel from '@/components/dashboard/MacroPanel';
+import SovereignContext from '@/components/dashboard/SovereignContext';
 
 const actions = [
   { href: '/calculator/', title: 'Net Yield Calculator', desc: 'After-tax returns per Kenyan WHT law', Icon: Calculator },
@@ -27,6 +28,7 @@ export default function DashboardPage() {
       <AuctionBanner />
       <MacroPanel />
       <YieldCurveChart />
+      <SovereignContext />
 
       <div className="grid gap-3 md:grid-cols-3">
         {actions.map(({ href, title, desc, Icon }) => (

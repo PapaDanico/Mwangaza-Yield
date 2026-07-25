@@ -70,6 +70,18 @@ export interface TBill {
   source: string;
 }
 
+export interface ContextIndicator {
+  id: string;
+  label: string;
+  value: number;
+  unit: string;
+  asOf: string;
+  source: string;
+  sourceUrl: string;
+  note: string;
+  sentiment: 'good' | 'caution' | 'watch';
+}
+
 export interface DataBundle {
   bonds: Bond[];
   auctions: AuctionSchedule[];

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Bond, AuctionSchedule, MacroIndicator, SecondaryTrade, TBill } from '@/types/bond';
+import type { Bond, AuctionSchedule, MacroIndicator, SecondaryTrade, TBill, ContextIndicator } from '@/types/bond';
 import { db } from '@/lib/db';
 
 interface BondState {
@@ -8,6 +8,7 @@ interface BondState {
   macro: MacroIndicator[];
   secondary: SecondaryTrade[];
   tbills: TBill[];
+  context: ContextIndicator[];
   loaded: boolean;
   offline: boolean;
   fetchData: () => Promise<void>;
@@ -25,6 +26,7 @@ export const useBondStore = create<BondState>((set) => ({
   macro: [],
   secondary: [],
   tbills: [],
+  context: [],
   loaded: false,
   offline: false,
   fetchData: async () => {
@@ -48,7 +50,9 @@ export const useBondStore = create<BondState>((set) => ({
         loadJSON<SecondaryTrade[]>('/data/secondary.json'),
         loadJSON<TBill[]>('/data/tbills.json'),
       ]);
-      set({ bonds, auctions, macro, secondary, tbills, loaded: true, offline: false });
+      // Sovereign context is supplementary — never let it break market data.
+      const context = await loadJSON<ContextIndicator[]>('/data/context.json').catch(() => []);
+      set({ bonds, auctions, macro, secondary, tbills, context, loaded: true, offline: false });
       // Replace, don't merge: retired issues must not linger from old datasets.
       await db
         .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills], async () => {

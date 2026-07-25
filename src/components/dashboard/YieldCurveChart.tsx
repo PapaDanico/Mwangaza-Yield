@@ -34,13 +34,50 @@ export default function YieldCurveChart() {
 
   if (!data.length) return <DataState />;
 
+  /* HOW OLD ARE THESE POINTS, AND WHY IT DECIDES WHAT WE MAY SAY
+   *
+   * `ytmGross` is not a live yield. It is the clearing yield from the last
+   * auction of that particular bond, and a bond is only auctioned when the
+   * government wants to borrow at that tenor — so a point is as old as the last
+   * time this maturity was sold. Measured on the shipped data: twelve of the
+   * twenty-three plotted points were over two years old and seven carried no
+   * date at all, the oldest being February 2017 sitting on the 12-year mark.
+   *
+   * There is no fixing that by computing harder. A current yield needs a
+   * current price, NSE licenses its prices, and this project does not
+   * republish them — so for a bond that has not been auctioned lately the
+   * honest position is that we do not know today's yield.
+   *
+   * What we must not do is narrate a market from it. The shape text below read
+   * the 3-year point at 18.39% — which cleared in June 2024, near the peak of
+   * the tightening — against a 30-year point from 2026, called the curve
+   * INVERTED, and told the reader this "typically a sign the market expects
+   * rates to fall" and that "locking in a long bond now is a bet on exactly
+   * that". Every part of that is an artefact of comparing two different years,
+   * and the last part is a forecast, which is a line this project does not
+   * cross.
+   *
+   * So the narration is gated on the points being roughly contemporaneous. When
+   * they are not, the chart says what it is showing instead of what it thinks
+   * it means. */
+  const ages = [...fxd, ...ifb]
+    .map((b) => b.ytmAsOf)
+    .filter((d): d is string => Boolean(d))
+    .map((d) => Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000));
+  const undated = fxd.length + ifb.length - ages.length;
+  const stale = ages.filter((d) => d > 365).length;
+  // Contemporaneous enough to read as a curve: nothing over a year old, and
+  // nothing whose age we cannot check at all.
+  const contemporaneous = ages.length > 0 && stale === 0 && undated === 0;
+
   // Describe the SHAPE in words, because the shape is the point and most
   // readers have never been told what to look for. Derived from the two ends
   // of the taxable curve — the comparison a saver is actually making.
   const withYield = data.filter((d) => d.fxd != null);
   const short = withYield[0];
   const long = withYield[withYield.length - 1];
-  const spread = short && long && short !== long ? long.fxd! - short.fxd! : null;
+  const spread =
+    contemporaneous && short && long && short !== long ? long.fxd! - short.fxd! : null;
   const shape =
     spread == null
       ? null
@@ -69,10 +106,39 @@ export default function YieldCurveChart() {
       <h2 className="mb-1 font-semibold text-ink">
         What the government pays for different loan lengths
       </h2>
-      <p className="mb-4 text-xs text-ink-faint">
+      <p className="mb-2 text-xs text-ink-faint">
         Bankers call this the <Term slug="yield-curve">yield curve</Term>. Each dot is one bond:
         how many years it runs, and what it pays.
       </p>
+      {!contemporaneous && (
+        // Shown whenever the dots are not from the same period, which on the
+        // current data is always. A reader comparing two dots is entitled to
+        // know they were not measured on the same day — and in the worst case
+        // are nine years apart.
+        <p className="mb-4 rounded-xl border border-gold-300 bg-gold-50 p-3 text-xs text-ink-soft">
+          <span className="font-semibold text-ink">These dots are not from the same day.</span>{' '}
+          Each is the yield at that bond&apos;s most recent auction, and a bond is only auctioned
+          when the government chooses to borrow at that length.
+          {stale > 0 && (
+            <>
+              {' '}
+              <span className="num">{stale}</span> of{' '}
+              <span className="num">{ages.length + undated}</span> are more than a year old
+            </>
+          )}
+          {undated > 0 && (
+            <>
+              {stale > 0 ? ', and ' : ' '}
+              <span className="num">{undated}</span> carr{undated === 1 ? 'ies' : 'y'} no auction
+              date at all
+            </>
+          )}
+          . So read each dot as &ldquo;what this bond paid when it was last sold&rdquo;, not as
+          today&apos;s market. We do not describe the curve&apos;s shape while that is true,
+          because a slope measured across different years says more about when each bond was
+          auctioned than about what lenders want now.
+        </p>
+      )}
       <div className="h-64">
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>

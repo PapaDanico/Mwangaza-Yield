@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+import { usePriceStore } from '@/stores/priceStore';
+import { makePriceResolver } from '@/lib/prices';
 import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
 import type { Bond } from '@/types/bond';
 
@@ -15,10 +17,16 @@ interface Ranked {
 export default function TopYields() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const userPrices = usePriceStore((s) => s.userPrices);
   if (!bonds.length) return null;
 
+  // Ranked from the price book like everywhere else. Left on the old par-only
+  // fallback, the dashboard would name a "best yield" the calculator and ladder
+  // disagreed with the moment a reader recorded a price — and this tile is the
+  // first number anyone sees.
+  const priceInfoOf = makePriceResolver(secondary, userPrices);
   const ranked: Ranked[] = bonds.map((bond) => {
-    const price = secondary.find((t) => t.isin === bond.isin)?.price ?? 100;
+    const { price } = priceInfoOf(bond);
     return { bond, price, netYTM: computeBondInvestment(bond, 100_000, price).netYTM };
   });
   const best = (pool: Ranked[]) => pool.sort((a, b) => b.netYTM - a.netYTM)[0];

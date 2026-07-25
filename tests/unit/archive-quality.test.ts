@@ -132,7 +132,11 @@ describe('the real archive, measured rather than described', () => {
   const q = assessArchive(archive as unknown as AuctionPrint[]);
 
   it('has records to assess', () => {
-    expect(q.records).toBeGreaterThan(300);
+    // Not pinned to a snapshot: the parser legitimately drops records it can no
+    // longer attribute, and version 5 cut the archive from 350 to 130 doing
+    // exactly that. A threshold tied to the old count would report an
+    // improvement as a failure.
+    expect(q.records).toBeGreaterThan(50);
   });
 
   it('never reports more complete records than records', () => {

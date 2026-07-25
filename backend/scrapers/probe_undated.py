@@ -37,6 +37,7 @@ import re
 import sys
 import time
 from io import BytesIO
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -71,6 +72,16 @@ MONTH_ONLY_RE = re.compile(rf"(?:{MONTHS})\D{{0,12}}(\d{{4}})", re.I)
 
 MAX_FILES = int(sys.argv[1]) if len(sys.argv) > 1 else 12
 BUDGET_SECONDS = 150
+
+# The heading of section A, which every one of the twelve files read so far
+# carries and which states a date: "A.RESULTS OF TREASURY BOND ISSUE NO.
+# FXD 1/2009/15 YEAR VALUE DATED 26/10/2009".
+#
+# Whether the word VALUE is present varies file to file, and that is the open
+# question — see cross_check below.
+RESULTS_DATED_RE = re.compile(
+    r"RESULTS\s+OF\b.{0,120}?\b(VALUE\s+)?DATED\s+(\d{1,2})\s*/\s*(\d{1,2})\s*/\s*(\d{4})",
+    re.I | re.S)
 
 
 def undated_urls() -> list:
@@ -142,6 +153,79 @@ def probe(url: str) -> None:
         print("    no line uses the words 'dated', 'auction date' or 'value date'")
 
 
+def cross_check(limit: int = 8) -> None:
+    """Does the body's "RESULTS OF ... DATED" agree with the filename's date?
+
+    THE QUESTION THIS SETTLES
+    -------------------------
+    Every undated file read so far states a date on its section-A heading, so
+    the 43 undated records could be dated from the document. Before doing that,
+    one thing has to be established rather than assumed: WHICH date that is.
+
+    Some headings read "YEAR VALUE DATED 26/10/2009" and others just "DATED
+    21/09/2009". A value date is a SETTLEMENT date. Kenyan bonds are auctioned
+    on a Wednesday and settle the following Monday, so if the heading states
+    settlement, filling `auctionDate` from it would put two different kinds of
+    date in one column — silently, and across the oldest third of the archive.
+
+    Guessing which it is would be the same mistake that produced a published
+    claim of undersubscription. So this measures it instead, on files where BOTH
+    dates exist: the filename's date is known to be the auction date, and if the
+    body's heading matches it on file after file, the heading is the auction
+    date too. Where they differ, the difference is printed — a consistent gap of
+    a few days would say plainly that the heading is settlement.
+    """
+    try:
+        records = json.loads(ARCHIVE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return
+    seen, pairs = set(), []
+    for r in records:
+        u, d = r.get("sourceUrl"), r.get("auctionDate")
+        if u and d and u not in seen:
+            seen.add(u)
+            pairs.append((u, d))
+    pairs.sort(key=lambda p: p[1])  # oldest first — nearest the undated files
+
+    print(f"\n=== Cross-check: body heading vs filename date, {limit} dated file(s) ===")
+    print("    The filename's date IS the auction date. If the heading matches it,")
+    print("    the heading can date the 43 files that have no filename date.\n")
+    agree = differ = absent = 0
+    for url, filename_date in pairs[:limit]:
+        try:
+            r = requests.get(url, headers=UA, timeout=45)
+            r.raise_for_status()
+            import pdfplumber
+            with pdfplumber.open(BytesIO(r.content)) as pdf:
+                text = "\n".join((p.extract_text() or "") for p in pdf.pages[:2])
+        except Exception as exc:  # noqa: BLE001
+            print(f"  {filename_date}  unreachable: {exc.__class__.__name__}")
+            continue
+
+        m = RESULTS_DATED_RE.search(text)
+        if not m:
+            absent += 1
+            print(f"  {filename_date}  no 'RESULTS OF ... DATED' heading in this file")
+            continue
+        has_value, d, mo, y = m.group(1), *m.groups()[1:]
+        body = f"{y}-{int(mo):02d}-{int(d):02d}"
+        word = "VALUE DATED" if has_value else "DATED"
+        if body == filename_date:
+            agree += 1
+            print(f"  {filename_date}  heading says {body} ({word})  MATCH")
+        else:
+            differ += 1
+            try:
+                gap = (datetime.fromisoformat(body).date()
+                       - datetime.fromisoformat(filename_date).date()).days
+            except ValueError:
+                gap = "?"
+            print(f"  {filename_date}  heading says {body} ({word})  DIFFERS by {gap} day(s)")
+    print(f"\n  {agree} match, {differ} differ, {absent} without the heading.")
+    print("  Fill auctionDate from the body ONLY if these agree. A consistent")
+    print("  positive gap means the heading is a settlement date, not an auction date.")
+
+
 def main() -> None:
     print("Probing whether undated auction PDFs carry their date in the body.\n"
           "This decides nothing and writes nothing — a month is not a date, and\n"
@@ -159,6 +243,11 @@ def main() -> None:
             probe(url)
         except Exception as exc:  # noqa: BLE001 — a probe must never take CI down
             print(f"    !! probe raised {exc.__class__.__name__}: {exc}")
+
+    try:
+        cross_check()
+    except Exception as exc:  # noqa: BLE001
+        print(f"  !! cross-check raised {exc.__class__.__name__}: {exc}")
 
 
 if __name__ == "__main__":

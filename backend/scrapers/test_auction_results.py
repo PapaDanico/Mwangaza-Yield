@@ -38,8 +38,19 @@ HEADER = [w("Tenor", 40, 100), w("FXD1/2021/5", 290, 100), w("FXD1/2019/20", 405
 COUPON = [w("Coupon", 40, 120), w("Rate", 80, 120), w("(%)", 110, 120),
           w("1", 296, 120), w("1.277", 303, 120),      # 11.277, split
           w("1", 416, 120), w("2.873", 423, 120)]      # 12.873, split
+# The real row, with the words CBK actually puts between the label's "100" and
+# the figures: "Price per Kshs 100 at average yield 97.583". An earlier version
+# of this fixture omitted them, which put the label's number hard against the
+# values and made the row unlike anything in the archive.
 PRICE = [w("Price", 40, 140), w("per", 72, 140), w("Kshs", 95, 140), w("100", 125, 140),
+         w("at", 152, 140), w("average", 170, 140), w("yield", 220, 140),
          w("100.000", 292, 140), w("97.632", 410, 140)]
+
+# The hazard the fixture above no longer covers: a label ending in a number with
+# NOTHING between it and the figures. No positional rule separates those, which
+# is why `skip` exists — the caller knows which words its own pattern consumed.
+PRICE_ADJACENT = [w("Price", 40, 170), w("per", 72, 170), w("Kshs", 95, 170),
+                  w("100", 125, 170), w("100.000", 292, 170), w("97.632", 410, 170)]
 
 
 def main():
@@ -76,6 +87,20 @@ def main():
 
     cells = assign_to_columns(PRICE, centres, label_x)
     check("prices land in their own columns", (cells[0], cells[1]), ("100.000", "97.632"))
+
+    # Values are the run that ENDS the row, so the label's own "100" is left
+    # outside it by the words that follow. This holds with no `skip` at all.
+    from auction_results import value_start_x
+    check("the value run starts after the label's last word",
+          value_start_x(PRICE) > PRICE[3]["x0"], True)
+
+    # Where the label's number is adjacent to the figures, only `skip` can tell
+    # them apart, and the caller always has it.
+    span = (0, len("Price per Kshs 100"))
+    adj = assign_to_columns(PRICE_ADJACENT, centres, label_x,
+                            label_word_positions(PRICE_ADJACENT, span))
+    check("an adjacent label number is excluded by skip",
+          (adj[0], adj[1]), ("100.000", "97.632"))
 
     print("label words never become data")
     # "Coupon", "Rate", "(%)" all sit left of label_x and must be ignored.
@@ -362,6 +387,26 @@ def main():
           p_rec.get("bidsReceivedKESM"), 13463.75)
     check("and the label is the row's, without its own value in it",
           p_rec.get("bidsLabel"), "total bids received at cost (kshs. m)")
+
+    # A NARROW table, which is the shape that actually produced twelve labels
+    # containing their own figure. The old stop was `mid >= label_x`, and
+    # label_x is min(header centres) - 40 — on a narrow table that boundary sits
+    # RIGHT of the value, so the scan never stopped and swallowed the number.
+    # The fixture above does not reproduce this: its value sits comfortably
+    # right of label_x, so restoring the old stop leaves it passing.
+    narrow = group_lines([
+        w("TENOR", 40, 100), w("FXD1/2017/10", 264, 100),
+        w("Total", 40, 130), w("bids", 75, 130), w("Received", 105, 130),
+        w("(Kshs.", 165, 130), w("M)", 205, 130), num("31,331.63", 250, 130),
+    ])
+    n_codes, n_centres = find_header(narrow, ["FXD1/2017/010"])
+    check("label_x really does sit right of the value here",
+          min(n_centres) - 40 > 250, True)
+    n_rec = _rf(narrow, n_codes, n_centres, "2017-01-01", "u").get("FXD1/2017/010", {})
+    check("a narrow table's label still stops before its figure",
+          n_rec.get("bidsLabel"), "total bids received (kshs. m)")
+    check("and the figure itself is read rather than lost to the boundary",
+          n_rec.get("bidsReceivedKESM"), 31331.63)
     # Two near-miss rows sit directly above the real one. A face value is not a
     # cost and a count of bids is not an amount; no ordering rule makes them so.
     check("a face-value total is refused outright",
@@ -370,6 +415,45 @@ def main():
           p_rec.get("bidsReceivedKESM") != 546.0, True)
     check("nor is a count mentioned in passing in a sentence",
           p_rec.get("bidsReceivedKESM") != 64.0, True)
+
+    print("an indented header must not shift every bond's figure")
+    # 2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf, and three
+    # more files like it. The issue codes sit RIGHT of the first value column,
+    # so a page-wide boundary of min(centres) - 40 fell between the first and
+    # second figures and discarded the first. Two columns were then measured
+    # where three exist, two columns matched two codes exactly, the geometry was
+    # accepted, and every bond took its neighbour's number:
+    #
+    #   FXD2/2014/005  recorded 32,916.78   (the other bond's bids)
+    #   FXD3/2013/005  recorded 64,248.40   (the auction total)
+    #
+    # 31,331.63 + 32,916.78 = 64,248.41. Nothing in the data contradicted it —
+    # two bonds, two plausible figures, a total that never appeared. It was
+    # found only because the row label had accidentally kept the lost number.
+    indented = group_lines([
+        w("TENOR", 40, 100), w("FXD2/2014/5", 330, 100), w("FXD3/2013/5", 430, 100),
+        w("Total", 40, 130), w("Amount", 75, 130), w("Offered", 125, 130),
+        w("(Kshs.", 175, 130), w("M)", 215, 130),
+        num("15,000.00", 255, 130), num("15,000.00", 360, 130), num("30,000.00", 470, 130),
+        w("Total", 40, 160), w("bids", 75, 160), w("Received", 105, 160),
+        w("(Kshs.", 165, 160), w("M)", 205, 160),
+        num("31,331.63", 255, 160), num("32,916.78", 360, 160), num("64,248.41", 470, 160),
+        w("Amount", 40, 190), w("Accepted", 80, 190), w("(Kshs.", 140, 190), w("M)", 180, 190),
+        num("11,901.09", 255, 190), num("24,864.00", 360, 190), num("36,765.09", 470, 190),
+    ])
+    i_codes, i_centres = find_header(indented, ["FXD2/2014/005", "FXD3/2013/005"])
+    check("the header sits right of the first value column",
+          min(i_centres) - 40 > 255, True)
+    i_got = _rf(indented, i_codes, i_centres, "2017-03-27", "u")
+    check("the first bond keeps its own bids",
+          i_got.get("FXD2/2014/005", {}).get("bidsReceivedKESM"), 31331.63)
+    check("the second bond is not handed the total",
+          i_got.get("FXD3/2013/005", {}).get("bidsReceivedKESM"), 32916.78)
+    check("nor does the total reach any bond",
+          64248.41 in [r.get("bidsReceivedKESM") for r in i_got.values()], False)
+    check("accepted shifts the same way and is fixed the same way",
+          [i_got[c].get("amountAcceptedKESM") for c in
+           ("FXD2/2014/005", "FXD3/2013/005")], [11901.09, 24864.0])
 
     print("a row ends with its value; a sentence keeps talking")
     from auction_results import _looks_like_row

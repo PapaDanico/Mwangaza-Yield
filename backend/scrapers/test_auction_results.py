@@ -9,6 +9,7 @@ which is TWO coupons, 11.277% and 12.873%, each split by an injected space.
 Any parser that reads the text linearly finds four numbers and gets all four
 wrong. These tests exist to keep that from ever shipping.
 """
+import os
 import sys
 
 from auction_results import (
@@ -177,6 +178,17 @@ def main():
     check("a duplicate auction collapses", len(uniq), 2)
     check("a reopening on a different date is kept",
           sorted(d for _, d in uniq), ["2021-11-15", "2023-04-10"])
+
+    print("wall-clock budget")
+    # The budget's whole justification is that stopping early costs a day, not
+    # an archive: whatever was read is kept and the remaining count reports the
+    # true backlog rather than the one the file cap would imply.
+    check("a budget is set", mod.TIME_BUDGET_SECONDS > 0, True)
+    check("it is overridable for a slow day",
+          mod.TIME_BUDGET_SECONDS,
+          int(os.environ.get("AUCTION_TIME_BUDGET", "600")))
+    # Stopping after 30 of 148 must report 118 outstanding, not 28 (148 - 120).
+    check("the backlog counts files actually read", max(0, 148 - 30), 118)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

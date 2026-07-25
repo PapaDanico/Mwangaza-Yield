@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { Bond, AuctionSchedule, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
+import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
 import type { SavedPlan } from './plans';
 
 class MwangazaDB extends Dexie {
@@ -11,6 +11,7 @@ class MwangazaDB extends Dexie {
   tbills!: Table<TBill, string>;
   plans!: Table<SavedPlan, string>;
   cbrHistory!: Table<RateDecision, string>;
+  auctionResults!: Table<AuctionPrint, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -29,6 +30,9 @@ class MwangazaDB extends Dexie {
     });
     this.version(5).stores({
       cbrHistory: 'id, date',
+    });
+    this.version(6).stores({
+      auctionResults: 'id, issueCode, auctionDate',
     });
   }
 }

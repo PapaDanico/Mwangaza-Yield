@@ -59,6 +59,26 @@ export interface RateDecision {
   changeBps: number;        // vs the previous decision; computed, not parsed
 }
 
+/**
+ * One bond's line in one published CBK auction result. The archive accumulates
+ * — a print from 2021 is as true today as it was then — so these build up into
+ * a per-bond yield history. Every field beyond the identity is optional because
+ * CBK's own tables omit columns from one result sheet to the next.
+ */
+export interface AuctionPrint {
+  id: string;
+  issueCode: string;
+  auctionDate: string;
+  couponRate?: number;
+  weightedAverageRate?: number;        // accepted bids — what buyers actually got
+  marketWeightedAverageRate?: number;  // all bids, accepted or not
+  pricePer100?: number;
+  amountOfferedKESM?: number;          // per AUCTION, which may cover several bonds
+  amountAcceptedKESM?: number;
+  bidsReceivedKESM?: number;
+  sourceUrl?: string;
+}
+
 export interface SecondaryTrade {
   isin: string;
   tradeDate: string;

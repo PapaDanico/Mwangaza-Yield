@@ -77,8 +77,17 @@ jobs:
       - name: Probe CBK auction results (coupon rates, clearing yields)
         working-directory: backend/scrapers
         run: python discover_auction_results.py
+      # A short budget on purpose. This job exists to prove the parser still
+      # reads CBK's live tables, which a handful of files settles; building the
+      # archive is refresh-data's work and its result is thrown away here. The
+      # two jobs run concurrently, and on the first incremental dispatch they
+      # raced each other through 280 PDFs — one finished in five minutes while
+      # the other was still going at twenty-eight. Reading fewer files here
+      # makes the check faster AND the real run reliable.
       - name: Dry-run the auction results parser
         working-directory: backend/scrapers
+        env:
+          AUCTION_TIME_BUDGET: 90
         run: python auction_results.py || echo "auction parser failed — see output above"
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers

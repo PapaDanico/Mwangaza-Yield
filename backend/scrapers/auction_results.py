@@ -28,8 +28,10 @@ fragments within a column are joined. "1" and "1.277" sitting in the same
 column become "11.277" because that is what the page actually shows.
 """
 import json
+import os
 import re
 import sys
+import time
 from datetime import datetime
 from io import BytesIO
 from urllib.parse import urljoin
@@ -60,6 +62,19 @@ TIMEOUT = 60
 # The accumulating file is also the yield history roadmap item 4 asked for —
 # every auction print we have ever read, kept rather than discarded.
 MAX_NEW_PER_RUN = 120
+
+# A count is not a time bound. 120 files at a 60-second timeout is a two-hour
+# worst case, and the first dispatch of the incremental parser demonstrated the
+# problem: two jobs read the archive concurrently, one finished the same 120
+# files in five minutes and the other was still going twenty minutes later —
+# CBK evidently rations concurrent readers. A daily job must not be able to run
+# for hours because a server got slow.
+#
+# Stopping early is *free* here, and only because parsing is incremental:
+# whatever was read is kept, and the next run resumes at the next unread file.
+# Before that change this budget would have meant permanently losing the tail
+# of the archive; now it means arriving a day later.
+TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -289,7 +304,13 @@ def main() -> None:
     if not fresh:
         print("[auctions] archive fully parsed — nothing new", file=sys.stderr)
 
+    deadline = time.monotonic() + TIME_BUDGET_SECONDS
+    read = 0
     for url in fresh[:MAX_NEW_PER_RUN]:
+        if time.monotonic() > deadline:
+            print(f"[auctions] {TIME_BUDGET_SECONDS}s budget spent after {read} file(s) — "
+                  f"stopping here; the next run resumes at the next unread file", file=sys.stderr)
+            break
         try:
             resp = requests.get(url, headers=UA, timeout=TIMEOUT)
             resp.raise_for_status()
@@ -297,6 +318,8 @@ def main() -> None:
         except Exception as exc:  # noqa: BLE001 — one bad PDF must not lose the rest
             print(f"[auctions] {url[-60:]}: {exc.__class__.__name__}", file=sys.stderr)
             continue
+        finally:
+            read += 1
         print(f"[auctions] {url[-60:]}: {len(got)} issue(s)", file=sys.stderr)
         records.extend(got)
 
@@ -309,7 +332,9 @@ def main() -> None:
     final = sorted(unique.values(), key=lambda r: (r["auctionDate"] or "", r["issueCode"]))
     with_coupon = [r for r in final if "couponRate" in r]
     bonds = {r["issueCode"] for r in final}
-    remaining = max(0, len(fresh) - MAX_NEW_PER_RUN)
+    # Count what was actually read, not what we were allowed to read — the run
+    # may have stopped on the clock well before the file cap.
+    remaining = max(0, len(fresh) - read)
     print(f"[auctions] {len(final)} record(s) across {len(bonds)} bond(s), "
           f"{len(with_coupon)} with a coupon rate", file=sys.stderr)
     if remaining:

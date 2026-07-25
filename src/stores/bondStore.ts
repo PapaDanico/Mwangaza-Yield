@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Bond, AuctionSchedule, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
+import type { Bond, AuctionSchedule, AuctionPrint, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
 import { db } from '@/lib/db';
 
 interface BondState {
@@ -10,6 +10,7 @@ interface BondState {
   tbills: TBill[];
   context: ContextIndicator[];
   cbrHistory: RateDecision[];
+  auctionResults: AuctionPrint[];
   loaded: boolean;
   offline: boolean;
   fetchData: () => Promise<void>;
@@ -29,20 +30,22 @@ export const useBondStore = create<BondState>((set) => ({
   tbills: [],
   context: [],
   cbrHistory: [],
+  auctionResults: [],
   loaded: false,
   offline: false,
   fetchData: async () => {
     // Offline-first: serve IndexedDB immediately, then refresh from network.
     try {
-      const [bonds, auctions, macro, secondary, tbills, cbrHistory] = await Promise.all([
+      const [bonds, auctions, macro, secondary, tbills, cbrHistory, auctionResults] = await Promise.all([
         db.bonds.toArray(),
         db.auctions.toArray(),
         db.macro.toArray(),
         db.secondary.toArray(),
         db.tbills.toArray(),
         db.cbrHistory.toArray(),
+        db.auctionResults.toArray(),
       ]);
-      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, cbrHistory, loaded: true });
+      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, cbrHistory, auctionResults, loaded: true });
     } catch { /* IndexedDB unavailable (SSR/private mode) — fall through */ }
 
     try {
@@ -56,15 +59,16 @@ export const useBondStore = create<BondState>((set) => ({
       // Sovereign context and rate history are supplementary — never let them
       // break market data. A missing history hides one panel; a rejected
       // Promise.all would blank the whole dashboard.
-      const [context, cbrHistory] = await Promise.all([
+      const [context, cbrHistory, auctionResults] = await Promise.all([
         loadJSON<ContextIndicator[]>('/data/context.json').catch(() => []),
         loadJSON<RateDecision[]>('/data/cbr-history.json').catch(() => []),
+        loadJSON<AuctionPrint[]>('/data/auction-results.json').catch(() => []),
       ]);
-      set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, loaded: true, offline: false });
+      set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, loaded: true, offline: false });
       // Replace, don't merge: retired issues must not linger from old datasets.
       await db
-        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.cbrHistory], async () => {
-          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.cbrHistory.clear()]);
+        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.cbrHistory, db.auctionResults], async () => {
+          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.cbrHistory.clear(), db.auctionResults.clear()]);
           await Promise.all([
             db.bonds.bulkPut(bonds),
             db.auctions.bulkPut(auctions),
@@ -72,6 +76,7 @@ export const useBondStore = create<BondState>((set) => ({
             db.secondary.bulkPut(secondary),
             db.tbills.bulkPut(tbills),
             db.cbrHistory.bulkPut(cbrHistory),
+            db.auctionResults.bulkPut(auctionResults),
           ]);
         })
         .catch(() => {});

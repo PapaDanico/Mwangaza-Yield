@@ -44,6 +44,17 @@
     "sentiment": "good"
   },
   {
+    "id": "wb-gc-xpn-intp-rv-zs",
+    "label": "Interest / government revenue",
+    "value": 24.28,
+    "unit": "%",
+    "asOf": "2023",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/GC.XPN.INTP.RV.ZS?locations=KE",
+    "note": "The share of every shilling collected in tax already committed to interest before a single service is funded. This is the measure that tightens first, and it deteriorates long before anything is missed.",
+    "sentiment": "good"
+  },
+  {
     "id": "wb-dt-dod-dect-gn-zs",
     "label": "External debt / GNI",
     "value": 34.99,

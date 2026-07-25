@@ -10,7 +10,19 @@ export interface Bond {
   tenorYears: number;
   couponRate: number;       // % p.a., e.g. 16.0
   couponFrequencyPerYear: number; // typically 2
-  ytmGross: number;         // latest gross YTM %
+  /** Gross yield at this bond's MOST RECENT AUCTION — not a live market yield.
+   *
+   *  The comment here used to read "latest gross YTM %", which is true only if
+   *  "latest" is read as "the last time anyone auctioned this bond". A bond is
+   *  auctioned when the government wants to borrow at that tenor, so on the
+   *  shipped data these range from ten days old to nine years, and the reader
+   *  of a chart built from them has no way to tell which. Anything presenting
+   *  this as current has to say how old it is — see YieldCurveChart. */
+  ytmGross: number;
+  /** The value date of the auction `ytmGross` came from. Absent on bonds seeded
+   *  before the archive existed, which is why staleness checks must treat a
+   *  missing date as unknown rather than as fresh. */
+  ytmAsOf?: string;
   minInvestmentKES: number;
   taxExempt: boolean;       // IFBs are WHT-exempt
 }

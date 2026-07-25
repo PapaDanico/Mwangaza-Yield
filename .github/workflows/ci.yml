@@ -44,6 +44,18 @@ jobs:
           python test_auction_results.py
           python test_expand_universe.py
           python test_worldbank.py
+          python test_check_archive.py
+      # Every other check in this repository asks whether a source is REACHABLE
+      # or whether data is FRESH. Neither would have caught the worst bug found
+      # so far, because it produced values that were individually plausible and
+      # collectively impossible — one bond recorded with the auction's total,
+      # and nothing in the archive disagreeing. This looks for contradictions
+      # instead of gaps, and gates only on records the CURRENT parser produced,
+      # so a version bump awaiting its re-read cannot block the very change that
+      # repairs it.
+      - name: Check the auction archive for contradictions
+        working-directory: backend/scrapers
+        run: python check_archive.py
 
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
@@ -235,6 +247,17 @@ jobs:
           HEALTHCHECK_STRICT: ${{ inputs.test_alert && '1' || '0' }}
         run: python healthcheck.py
 
+      # Deliberately AFTER the freshness check rather than before it, so that
+      # healthcheck-report.txt exists when the alert step below reads it. A
+      # contradiction found here raises the same issue a stale source does,
+      # which is right: both mean the published figures should not be trusted,
+      # and this one means they are actively wrong rather than merely old.
+      - name: Check the auction archive for contradictions
+        id: integrity
+        if: ${{ !cancelled() && !inputs.test_alert }}
+        working-directory: backend/scrapers
+        run: python check_archive.py 2>&1 | tee archive-integrity.txt; exit "${PIPESTATUS[0]}"
+
       - name: Raise an alert
         if: failure()
         uses: actions/github-script@v7
@@ -245,6 +268,17 @@ jobs:
             try {
               detail = fs.readFileSync('backend/scrapers/healthcheck-report.txt', 'utf8');
             } catch { detail = '(no freshness report — a scraper step failed before the check ran)'; }
+
+            // A contradiction is a different animal from staleness and deserves
+            // to be named as one: stale data is old and says so, a contradiction
+            // is a wrong figure wearing the clothes of a right one.
+            const brokeIntegrity = '${{ steps.integrity.outcome }}' === 'failure';
+            let integrity = '';
+            if (brokeIntegrity) {
+              try {
+                integrity = fs.readFileSync('backend/scrapers/archive-integrity.txt', 'utf8');
+              } catch { integrity = '(the check failed but wrote no report)'; }
+            }
 
             const failed = [
               '${{ steps.macro.outputs.failed }}',
@@ -260,8 +294,21 @@ jobs:
             const body = [
               '## Data pipeline needs attention',
               '',
-              failed.length ? `**Scrapers that failed:** ${failed.join(', ')}` : '**All scrapers exited cleanly** — this is a freshness problem, not a crash.',
+              failed.length
+                ? `**Scrapers that failed:** ${failed.join(', ')}`
+                : brokeIntegrity
+                  ? '**All scrapers exited cleanly, and the archive still contradicts itself.** This is not a crash and not a freshness problem.'
+                  : '**All scrapers exited cleanly** — this is a freshness problem, not a crash.',
               '',
+              ...(brokeIntegrity ? [
+                '**Archive contradictions** — figures the current parser produced that cannot all be true:',
+                '```',
+                integrity.trim(),
+                '```',
+                '',
+                'Unlike a gap, this data is already published and already wrong. Treat it ahead of anything else in this issue.',
+                '',
+              ] : []),
               '**Freshness report:**',
               '```',
               detail.trim(),
@@ -269,7 +316,9 @@ jobs:
               '',
               `[View the run](${run})`,
               '',
-              'The app keeps serving the last good data (see `carry_forward`), so nothing is broken for users yet — but the figures are ageing. Run the `validate-sources` job to see which sources are reachable.',
+              brokeIntegrity
+                ? 'The app is serving these figures now. `carry_forward` does not help here — it preserves the last good data, and a contradiction means the newest data was not good.'
+                : 'The app keeps serving the last good data (see `carry_forward`), so nothing is broken for users yet — but the figures are ageing. Run the `validate-sources` job to see which sources are reachable.',
             ].join('\n');
 
             const label = 'scraper-alert';

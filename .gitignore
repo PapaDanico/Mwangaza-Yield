@@ -6,3 +6,4 @@ next-env.d.ts
 .env*.local
 __pycache__/
 healthcheck-report.txt
+archive-integrity.txt

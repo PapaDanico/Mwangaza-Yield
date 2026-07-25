@@ -30,7 +30,13 @@ export default function Navbar() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="" className="h-9 w-9 rounded-xl" />
             <span className="font-display text-lg font-bold tracking-tight text-ink">
-              Mwangaza <span className="text-gold-600">Yield</span>
+              {/* gold-700, not gold-600: on the sand header the lighter gold
+                  measures 2.87:1, which fails WCAG AA at this size (18px bold
+                  needs 4.5:1, and it misses even the 3:1 large-text bar). 700
+                  measures 4.53:1 and is already the gold this app uses for
+                  every other piece of text, so the wordmark now matches the
+                  body rather than introducing a second, unreadable gold. */}
+              Mwangaza <span className="text-gold-700">Yield</span>
             </span>
           </Link>
           <nav className="ml-8 hidden gap-1 md:flex">

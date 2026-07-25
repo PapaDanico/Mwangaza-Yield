@@ -71,7 +71,10 @@ export default function RateCycle() {
               onClick={() => setYears(r.years)}
               aria-pressed={years === r.years}
               className={cn(
-                'rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors',
+                // min-h/min-w bring the chip to a 44px target without changing
+                // its visual weight — at 32x25 it was well under half the
+                // recommended minimum, on the segmented control readers use most.
+                'min-h-[44px] min-w-[44px] rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors',
                 years === r.years ? 'bg-sand-50 text-ink shadow-sm' : 'text-ink-muted hover:text-ink',
               )}
             >

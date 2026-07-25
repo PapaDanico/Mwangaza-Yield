@@ -228,30 +228,35 @@ export default function PricesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => save(bond.isin)}
-                    className="rounded-xl bg-ink px-4 py-2 text-sm font-medium text-sand-50 hover:bg-ink-soft"
+                    className="min-h-[44px] rounded-xl bg-ink px-4 py-2 text-sm font-medium text-sand-50 hover:bg-ink-soft"
                   >
                     Save price
                   </button>
                   <button
                     onClick={() => { setEditing(null); setError(''); }}
-                    className="rounded-xl border border-sand-400 px-4 py-2 text-sm font-medium text-ink-muted hover:bg-sand-200"
+                    className="min-h-[44px] rounded-xl border border-sand-400 px-4 py-2 text-sm font-medium text-ink-muted hover:bg-sand-200"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="mt-2 flex items-center gap-3">
+              // -my-1 keeps the row's visual height while the padding grows each
+              // control to a 44px touch target. These are the two most repeated
+              // taps in the app — 58 bonds, two actions each — and at 20px tall
+              // they were under half the recommended minimum on the phones this
+              // audience actually uses.
+              <div className="-my-1 mt-1 flex items-center gap-1">
                 <button
                   onClick={() => beginEdit(bond, info.price)}
-                  className="text-sm font-medium text-gold-700 underline-offset-2 hover:underline"
+                  className="flex min-h-[44px] items-center pr-3 text-sm font-medium text-gold-700 underline-offset-2 hover:underline"
                 >
                   {info.source === 'user' ? 'Update price' : 'Record a price'}
                 </button>
                 {info.source === 'user' && (
                   <button
                     onClick={() => removePrice(bond.isin)}
-                    className="inline-flex items-center gap-1 text-sm text-ink-faint hover:text-red-700"
+                    className="inline-flex min-h-[44px] items-center gap-1 px-3 text-sm text-ink-faint hover:text-red-700"
                     aria-label={`Remove your price for ${bond.issueCode}`}
                   >
                     <Trash2 size={14} /> Remove

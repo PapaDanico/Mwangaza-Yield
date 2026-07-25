@@ -45,6 +45,7 @@ jobs:
           python test_expand_universe.py
           python test_worldbank.py
           python test_check_archive.py
+          python test_healthcheck.py
       # Every other check in this repository asks whether a source is REACHABLE
       # or whether data is FRESH. Neither would have caught the worst bug found
       # so far, because it produced values that were individually plausible and

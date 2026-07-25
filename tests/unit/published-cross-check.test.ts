@@ -23,7 +23,14 @@ import type { AuctionPrint } from '../../src/types/bond';
  */
 const PRINTS = archive as unknown as AuctionPrint[];
 const BN = 1_000; // records are KES millions; the press reports billions
-const TOL = 0.05; // 50 million, comfortably inside rounding to one decimal
+/**
+ * 60 million. The press rounds to one decimal of a billion, so a perfectly
+ * correct parse can differ from a reported figure by up to 0.05bn from rounding
+ * alone — 79.943 read against a reported 79.9. A tolerance of exactly 0.05
+ * would sit on that boundary and fail an accurate reading on nothing but where
+ * the rounding fell.
+ */
+const TOL = 0.06;
 
 interface PublishedBond {
   issueCode: string;

@@ -89,6 +89,37 @@ describe('assessArchive', () => {
     expect(assessArchive(mixed).parserVersions).toEqual([4, 5]);
   });
 
+  it('counts how many rows each parser version produced', () => {
+    const mixed = [
+      { ...rec({ id: 'x' }), parserVersion: 5 },
+      { ...rec({ id: 'y' }), parserVersion: 6 },
+      { ...rec({ id: 'z' }), parserVersion: 6 },
+    ] as unknown as AuctionPrint[];
+    const q = assessArchive(mixed);
+    expect(q.byParserVersion).toEqual([
+      { version: 5, records: 1 },
+      { version: 6, records: 2 },
+    ]);
+    // One row is behind the newest parser and will gain fields when re-read.
+    expect(q.stale).toBe(1);
+  });
+
+  it('reports nothing stale when every row came from the same parser', () => {
+    const uniform = [
+      { ...rec({ id: 'x' }), parserVersion: 6 },
+      { ...rec({ id: 'y' }), parserVersion: 6 },
+    ] as unknown as AuctionPrint[];
+    expect(assessArchive(uniform).stale).toBe(0);
+  });
+
+  it('does not call unstamped rows stale — they are not awaiting anything', () => {
+    // Rows predating version stamping have no pending re-read. Counting them
+    // would put a permanent "rebuild in progress" banner on the page.
+    const q = assessArchive(sample);
+    expect(q.stale).toBe(0);
+    expect(q.byParserVersion).toEqual([]);
+  });
+
   it('survives an empty archive without dividing by zero', () => {
     const q = assessArchive([]);
     expect(q.completePct).toBe(0);

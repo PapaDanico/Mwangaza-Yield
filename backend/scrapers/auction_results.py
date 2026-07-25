@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 6
+PARSER_VERSION = 7
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -257,6 +257,120 @@ def assign_to_columns(line: list, centres: list, label_x: float,
     return {i: cell_value(frs) for i, frs in buckets.items() if frs}
 
 
+# How close two x-centres must be to belong to the same column, when the header
+# gives no spacing to scale from. Fragments of one number sit a few points
+# apart; CBK's narrowest columns are about 80 apart.
+DEFAULT_COLUMN_GAP = 40.0
+
+# How far the total column may sit from the sum of the bond columns and still be
+# called a total. Half a percent absorbs CBK's rounding without admitting a
+# column that is merely the same order of magnitude.
+TOTAL_TOLERANCE = 0.005
+
+# How many rows must add up before the rightmost column is believed to be a
+# total. One coincidence is cheap; two rows agreeing to within half a percent on
+# figures in the tens of billions is not.
+TOTAL_EVIDENCE_ROWS = 2
+
+
+def _field_span(line: list):
+    """The label span of the first field pattern this line matches, or None."""
+    text = " ".join(w["text"] for w in line)
+    for _key, pattern in FIELDS:
+        m = pattern.search(text)
+        if m:
+            return m.span()
+    return None
+
+
+def value_columns(lines: list, centres: list, label_x: float) -> list:
+    """The table's value columns, measured from the VALUES rather than the header.
+
+    The header fixes the columns by where the issue codes sit, which is close
+    but not the same thing: codes are centred text and figures are right
+    aligned, so on CBK's layouts the values sit some 35 points right of the code
+    above them. Nearest-centre assignment absorbs that — until the table has a
+    column the header never names.
+
+    It usually does. The rightmost column of a multi-bond results table is the
+    auction TOTAL, and the header lists only the bonds:
+
+        header                        FXD3/2019/015      FXD1/2018/025
+        centres                            285.5             399.1
+        Amount Accepted (Kshs. M)      54,786.72         45,748.83     100,535.55
+        x-centres                          321.2             433.8         518.4
+
+    With two centres the total has nowhere of its own to go. It falls to the
+    nearest, which is the second bond's, and `cell_value` joins it to the figure
+    already there — "45748.83100535.55" — which then fails NUMERIC_RE and is
+    dropped. The second bond of every multi-bond auction lost its accepted
+    amount and its bids this way, and lost them silently: the first bond parsed
+    perfectly, so the file looked read.
+
+    Clustering the value positions finds three columns where the header knew of
+    two, which is what lets the caller recognise a total and set it aside. The
+    split threshold scales off the header's own spacing, because the fragments
+    of one split number ("1" + "3.9420") are a few points apart while columns
+    are tens of points apart, and how many tens differs by layout.
+    """
+    xs = []
+    for line in lines:
+        span = _field_span(line)
+        if span is None:
+            continue
+        skip = label_word_positions(line, span)
+        for pos, w in enumerate(line):
+            if pos in skip:
+                continue
+            mid = (w["x0"] + w["x1"]) / 2
+            if mid >= label_x and VALUE_FRAGMENT_RE.match(w["text"]):
+                xs.append(mid)
+    if not xs:
+        return []
+
+    ordered = sorted(centres)
+    gaps = [b - a for a, b in zip(ordered, ordered[1:])]
+    min_gap = max(20.0, 0.4 * min(gaps)) if gaps else DEFAULT_COLUMN_GAP
+
+    xs.sort()
+    groups = [[xs[0]]]
+    for x in xs[1:]:
+        if x - groups[-1][-1] > min_gap:
+            groups.append([])
+        groups[-1].append(x)
+    return [sum(g) / len(g) for g in groups]
+
+
+def totals_confirmed(lines: list, cols: list, label_x: float) -> bool:
+    """Whether the rightmost column really is the sum of the ones before it.
+
+    An extra column is not evidence of a total by itself — it could be a bond
+    the header failed to name, in which case discarding it would throw away real
+    figures. So this asks the document: on rows where every column carries a
+    number, does the last equal the others added up?
+
+    Requiring TOTAL_EVIDENCE_ROWS such rows rather than one is what keeps a
+    coincidence from being read as structure. Rows that do NOT add up are simply
+    not evidence, and do not veto: a rate row's rightmost cell may be an
+    aggregate weighted average, which is a total in CBK's sense and not a sum.
+    """
+    agreeing = 0
+    for line in lines:
+        span = _field_span(line)
+        if span is None:
+            continue
+        cells = assign_to_columns(line, cols, label_x, label_word_positions(line, span))
+        if len(cells) != len(cols):
+            continue
+        if not all(NUMERIC_RE.match(v) for v in cells.values()):
+            continue
+        values = [float(cells[i]) for i in range(len(cols))]
+        total, parts = values[-1], values[:-1]
+        if total and abs(total - sum(parts)) <= TOTAL_TOLERANCE * abs(total):
+            agreeing += 1
+    return agreeing >= TOTAL_EVIDENCE_ROWS
+
+
 def results_section(lines: list) -> list:
     """Drop everything from the 'FORTHCOMING ISSUES' heading downwards."""
     for i, line in enumerate(lines):
@@ -390,9 +504,19 @@ def auction_date_from_name(url: str):
 MAX_HEADER_TRIES = 4
 
 
+FIELD_KEYS = {key for key, _pattern in FIELDS}
+
+
 def _field_count(records: dict) -> int:
-    """Numeric fields recovered under one candidate geometry."""
-    return sum(len(r) - 5 for r in records.values())  # minus the identity keys
+    """Numeric fields recovered under one candidate geometry.
+
+    Counts the fields by name rather than subtracting a fixed number of identity
+    keys. The subtraction was already off by one wherever `bidsLabel` was
+    recorded, and `offeredScope` would have made it off by two — so a geometry
+    that happened to read a bids row scored a free point against one that read a
+    coupon, for no reason connected to how well it explained the page.
+    """
+    return sum(len(FIELD_KEYS & set(r)) for r in records.values())
 
 
 def _fit(records: dict, codes: list, density: float) -> tuple:
@@ -426,9 +550,26 @@ def read_fields(lines: list, codes: list, centres: list,
                 auction_date, source_url: str) -> dict:
     """Read every known field for one candidate column geometry."""
     # Values sit to the right of the row labels; anchor on the leftmost column
-    # centre so label words are never mistaken for data.
+    # centre so label words are never mistaken for data. Computed from the
+    # HEADER's leftmost column and not recomputed below, because the measured
+    # value columns all sit right of it by construction — deriving the boundary
+    # from them would let it drift rightwards over the labels it exists to
+    # exclude.
     label_x = min(centres) - 40
+
+    # Prefer the geometry the values themselves show, and only where it is
+    # legible: exactly one column per bond, or one per bond plus a total the
+    # document confirms by arithmetic. Anything else and the header's geometry
+    # stands, which is the behaviour every file has had until now.
+    measured = value_columns(lines, centres, label_x)
+    total_idx = None
+    if len(measured) == len(codes):
+        centres = measured
+    elif len(measured) == len(codes) + 1 and totals_confirmed(lines, measured, label_x):
+        centres, total_idx = measured, len(measured) - 1
+
     records: dict = {}
+    totals: dict = {}
     for key, pattern in FIELDS:
         for line in lines:
             text = " ".join(w["text"] for w in line)
@@ -438,13 +579,19 @@ def read_fields(lines: list, codes: list, centres: list,
             for idx, raw in assign_to_columns(
                 line, centres, label_x, label_word_positions(line, match.span())
             ).items():
-                if idx >= len(codes) or not NUMERIC_RE.match(raw):
+                if not NUMERIC_RE.match(raw):
                     continue
                 value = float(raw)
                 lo_hi = BANDS.get(key)
                 if lo_hi and not (lo_hi[0] <= value <= lo_hi[1]):
-                    print(f"[auctions] {codes[idx]} {key}={value} outside "
+                    who = codes[idx] if idx < len(codes) else "auction total"
+                    print(f"[auctions] {who} {key}={value} outside "
                           f"{lo_hi} — dropping", file=sys.stderr)
+                    continue
+                if idx == total_idx:
+                    totals[key] = value
+                    continue
+                if idx >= len(codes):
                     continue
                 rec = records.setdefault(codes[idx], {
                     "id": f"res-{codes[idx].replace('/', '-').lower()}-{auction_date}",
@@ -472,6 +619,32 @@ def read_fields(lines: list, codes: list, centres: list,
                 if key == "bidsReceivedKESM":
                     rec.setdefault("bidsLabel", " ".join(match.group(0).split()).lower())
             break
+
+    # One field, and one only, may be taken from the total column.
+    #
+    # CBK advertises a single amount for an auction however many bonds it
+    # covers, and on these layouts it is printed once — in the total column,
+    # with the bond columns on that row left empty. The published record settles
+    # that it is auction-wide: February's two legs were reported at 267.59% and
+    # 159.89% performance, and both only reconcile against the SAME 50bn.
+    #
+    # Nothing else comes from there. Accepted amounts and bids are per bond —
+    # the same reporting has the legs summing to the auction's total — so
+    # spreading a total across bonds would manufacture figures. Reading a
+    # partial numerator against a whole denominator is precisely what produced a
+    # published claim that Kenyan auctions run undersubscribed when the record
+    # says the opposite, and the rule that prevents a repeat is narrow by
+    # design: a total is an auction fact only where a source outside this
+    # repository says so.
+    #
+    # A per-bond figure always wins. If a bond's own column carried an offered
+    # amount, the total is not consulted for it.
+    offered = totals.get("amountOfferedKESM")
+    if offered is not None:
+        for rec in records.values():
+            if not rec.get("amountOfferedKESM"):
+                rec["amountOfferedKESM"] = offered
+                rec["offeredScope"] = "auction"
     return records
 
 

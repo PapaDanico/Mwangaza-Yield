@@ -202,6 +202,102 @@ def main():
     check("two column centres from split words", len(centres), 2)
     check("centres stay ordered", centres[0] < centres[1], True)
 
+    print("the total column — why the second bond of every auction was empty")
+    # Reconstructed from the live probe's output for the 16 February 2026
+    # auction, x-positions and all. The header names two bonds; the table has
+    # THREE value columns, because the rightmost is the auction total and CBK
+    # does not name it. With two centres the total fell to the nearest, which
+    # was the second bond's, and cell_value glued it onto the figure already
+    # there — "45748.83100535.55" — which failed NUMERIC_RE and was dropped.
+    #
+    # Published for this auction: 15y bids 133.8bn accepted 54.8bn, 25y bids
+    # 79.9bn, 100.5bn raised in total. The second leg's figures were in the
+    # document all along.
+    def num(text, centre, top):
+        """A right-aligned figure, positioned by its centre as the probe reports it."""
+        half = 3 * len(text)
+        return {"text": text, "x0": centre - half, "x1": centre + half, "top": top}
+
+    feb = group_lines([
+        w("TENOR", 40, 100), w("FXD3/2019/015", 240, 100), w("FXD1/2018/025", 355, 100),
+        w("Total", 40, 130), w("Amount", 70, 130), w("Offered", 120, 130),
+        w("(Kshs.", 165, 130), w("M)", 200, 130), num("50,000.00", 520.5, 130),
+        w("Amount", 40, 160), w("Accepted", 80, 160), w("(Kshs.", 140, 160), w("M)", 175, 160),
+        num("54,786.72", 321.2, 160), num("45,748.83", 433.8, 160), num("100,535.55", 518.4, 160),
+        w("Total", 40, 190), w("bids", 70, 190), w("Received", 100, 190), w("at", 155, 190),
+        w("cost", 172, 190), w("(Kshs.", 200, 190), w("M)", 235, 190),
+        num("133,792.51", 319.1, 190), num("79,943.37", 433.8, 190), num("213,735.88", 518.4, 190),
+    ])
+    feb_codes, feb_centres = find_header(feb, ["FXD3/2019/015", "FXD1/2018/025"])
+    check("the header still names two bonds", feb_codes,
+          ["FXD3/2019/015", "FXD1/2018/025"])
+
+    from auction_results import value_columns, totals_confirmed
+    measured = value_columns(feb, feb_centres, min(feb_centres) - 40)
+    check("but the values show three columns", len(measured), 3)
+    check("and the document confirms the third is a total",
+          totals_confirmed(feb, measured, min(feb_centres) - 40), True)
+
+    got = _rf(feb, feb_codes, feb_centres, "2026-02-16", "u")
+    check("the first leg is unchanged",
+          (got["FXD3/2019/015"]["amountAcceptedKESM"],
+           got["FXD3/2019/015"]["bidsReceivedKESM"]), (54786.72, 133792.51))
+    # .get, not [] — before the fix these keys are ABSENT, and a test for a
+    # silent gap should report the gap rather than crash on it.
+    second = got.get("FXD1/2018/025", {})
+    check("the second leg now carries its own figures",
+          (second.get("amountAcceptedKESM"), second.get("bidsReceivedKESM")),
+          (45748.83, 79943.37))
+    check("published 25y bids 79.9bn — we read 79.94bn",
+          round((second.get("bidsReceivedKESM") or 0) / 1000, 1), 79.9)
+    check("published 100.5bn raised — our two legs sum to it",
+          round((got["FXD3/2019/015"]["amountAcceptedKESM"]
+                 + (second.get("amountAcceptedKESM") or 0)) / 1000, 1), 100.5)
+
+    # The total itself must never become a bond's figure. 213,735.88 is the
+    # auction's bids; hanging it on a leg is the arithmetic that produced a
+    # published claim of undersubscription.
+    check("the total is not attributed to any bond",
+          213735.88 in [r.get("bidsReceivedKESM") for r in got.values()], False)
+
+    # Offered is the one exception, and only because the published performance
+    # rates — 267.59% and 159.89% — reconcile against the same 50bn.
+    check("both bonds take the auction's offered amount",
+          [r.get("amountOfferedKESM") for r in got.values()], [50000.0, 50000.0])
+    check("and both say it is shared, not theirs",
+          {r.get("offeredScope") for r in got.values()}, {"auction"})
+
+    print("an unnamed extra column is not assumed to be a total")
+    # Same shape, but the third column does not add up. It could be a bond the
+    # header failed to name, and discarding real figures is worse than the
+    # geometry we already had — so the header's reading stands.
+    odd = group_lines([
+        w("TENOR", 40, 100), w("FXD3/2019/015", 240, 100), w("FXD1/2018/025", 355, 100),
+        w("Amount", 40, 160), w("Accepted", 80, 160), w("(Kshs.", 140, 160), w("M)", 175, 160),
+        num("54,786.72", 321.2, 160), num("45,748.83", 433.8, 160), num("11,000.00", 518.4, 160),
+        w("Total", 40, 190), w("bids", 70, 190), w("Received", 100, 190),
+        w("(Kshs.", 200, 190), w("M)", 235, 190),
+        num("133,792.51", 319.1, 190), num("79,943.37", 433.8, 190), num("22,000.00", 518.4, 190),
+    ])
+    odd_codes, odd_centres = find_header(odd, ["FXD3/2019/015", "FXD1/2018/025"])
+    measured_odd = value_columns(odd, odd_centres, min(odd_centres) - 40)
+    check("three columns are still measured", len(measured_odd), 3)
+    check("but nothing confirms a total",
+          totals_confirmed(odd, measured_odd, min(odd_centres) - 40), False)
+
+    print("a two-bond table with no total column is read exactly as before")
+    plain = group_lines([
+        w("TENOR", 40, 100), w("FXD3/2019/015", 240, 100), w("FXD1/2018/025", 355, 100),
+        w("Amount", 40, 160), w("Accepted", 80, 160), w("(Kshs.", 140, 160), w("M)", 175, 160),
+        num("54,786.72", 321.2, 160), num("45,748.83", 433.8, 160),
+    ])
+    plain_codes, plain_centres = find_header(plain, ["FXD3/2019/015", "FXD1/2018/025"])
+    plain_got = _rf(plain, plain_codes, plain_centres, "2026-02-16", "u")
+    check("both bonds read, neither invented",
+          [r.get("amountAcceptedKESM") for r in plain_got.values()], [54786.72, 45748.83])
+    check("and no offered amount is conjured from a column that is not there",
+          [r.get("amountOfferedKESM") for r in plain_got.values()], [None, None])
+
     print("codes_in_name — the cross-check on our own work")
     check("filename codes are recovered",
           codes_in_name("RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"),

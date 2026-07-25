@@ -73,6 +73,16 @@ export interface ArchiveQuality {
   /** Parser versions present. More than one means a refresh is half-done and
    *  some rows were produced by a parser we have since fixed. */
   parserVersions: number[];
+  /** How many rows each parser version produced, oldest version first.
+   *
+   *  The bare list says a rebuild is under way; this says how much of one is
+   *  left, which is the difference between a caveat and a measurement. A reader
+   *  looking at a field sitting at 60% deserves to know whether that is what the
+   *  parser can do or what it has done so far. */
+  byParserVersion: { version: number; records: number }[];
+  /** Rows still awaiting the newest parser. Zero when the archive is uniform —
+   *  including when no row carries a version at all, which is not a rebuild. */
+  stale: number;
 }
 
 /** A field counts as present only if it carries information. Zero is treated as
@@ -104,11 +114,20 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     byYearMap.set(y, row);
   }
 
-  const versions = new Set<number>();
+  const versionCounts = new Map<number, number>();
   for (const r of records) {
     const v = (r as unknown as { parserVersion?: number }).parserVersion;
-    if (typeof v === 'number') versions.add(v);
+    if (typeof v === 'number') versionCounts.set(v, (versionCounts.get(v) ?? 0) + 1);
   }
+  const byParserVersion = Array.from(versionCounts.entries())
+    .map(([version, n]) => ({ version, records: n }))
+    .sort((a, b) => a.version - b.version);
+  // Everything below the newest version is stale. Rows with no version at all
+  // are not counted: they predate stamping and no refresh is pending on them.
+  const newest = byParserVersion.length ? byParserVersion[byParserVersion.length - 1].version : null;
+  const stale = byParserVersion
+    .filter((v) => newest !== null && v.version < newest)
+    .reduce((s, v) => s + v.records, 0);
 
   const complete = records.filter(isComplete).length;
 
@@ -135,7 +154,9 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     byYear: Array.from(byYearMap.entries())
       .map(([year, v]) => ({ year, ...v }))
       .sort((a, b) => a.year.localeCompare(b.year)),
-    parserVersions: Array.from(versions).sort((a, b) => a - b),
+    parserVersions: byParserVersion.map((v) => v.version),
+    byParserVersion,
+    stale,
   };
 }
 

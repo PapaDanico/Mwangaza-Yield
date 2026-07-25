@@ -89,6 +89,13 @@ export default function AlertsPage() {
 
   const marketRulesOn = rules.filter((r) => r.enabled && SERVER_DELIVERABLE.includes(r.kind as never));
 
+  // Where push applies it is the only consent this page should ask for —
+  // subscribing requests notification permission on the way through. Rendering
+  // both left two cards stacked, one saying "send me market alerts" and the
+  // next "banners are on for this device", which reads as two settings for one
+  // thing.
+  const showPushCard = pushConfigured() && push !== 'unsupported' && push !== 'unconfigured';
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-24">
       <h1 className="font-display text-3xl font-bold text-ink">Alerts</h1>
@@ -123,10 +130,8 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      {/* Push, when a sender is configured for this build. Where it applies it
-          supersedes the plain permission card below, because subscribing asks
-          for permission anyway and two consent buttons is one too many. */}
-      {pushConfigured() && push !== 'unsupported' && push !== 'unconfigured' && (
+      {/* Push, when a sender is configured for this build. */}
+      {showPushCard && (
         <div className="card mt-4">
           <div className="flex flex-wrap items-center gap-3">
             {push === 'on' ? (
@@ -167,7 +172,11 @@ export default function AlertsPage() {
         </div>
       )}
 
-      {/* Permission */}
+      {/* Local banners only. Shown when push is unavailable — on iOS before the
+          app is added to the Home Screen, in a browser without PushManager, or
+          in a build with no sender configured. Then permission still buys the
+          reader something: banners while the app is open. */}
+      {!showPushCard && (
       <div className="card mt-4 flex flex-wrap items-center gap-3">
         {permission === 'granted' ? (
           <>
@@ -206,6 +215,7 @@ export default function AlertsPage() {
           </>
         )}
       </div>
+      )}
 
       {/* What's due */}
       <h2 className="mt-8 font-display text-xl font-bold text-ink">What&apos;s coming</h2>

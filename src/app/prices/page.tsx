@@ -7,7 +7,7 @@ import type { Bond } from '@/types/bond';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice, MIN_PRICE, MAX_PRICE, isPlausiblePrice } from '@/lib/prices';
-import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
+import { computeBondInvestment, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
 
@@ -44,9 +44,13 @@ export default function PricesPage() {
       .filter((b) => !q || b.issueCode.toLowerCase().includes(q) || b.name.toLowerCase().includes(q))
       .map((b) => {
         const info = resolvePrice(b, secondary, userPrices);
+        const daysToMaturity = Math.round(
+          (new Date(b.maturityDate).getTime() - Date.now()) / 86_400_000
+        );
         return {
           bond: b,
           info,
+          daysToMaturity,
           netYTM: computeBondInvestment(b, 100_000, info.price).netYTM,
         };
       })
@@ -58,6 +62,18 @@ export default function PricesPage() {
   }, [bonds, secondary, userPrices, query]);
 
   const priced = userPrices.length;
+
+  // Never print the solver's own ceiling as though it were measured — the same
+  // guard the calculator uses. Without it this page will happily render a
+  // pinned solve as a flat figure.
+  const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
+
+  // A discount on paper that redeems in weeks annualises enormously: driving
+  // the live app, a 92.50 price on a bond 60 days out printed 169.80% net,
+  // which is arithmetically exact and reads like a fortune. The calculator
+  // already refuses to DEFAULT to such a bond for this reason; a price book has
+  // to list them all, so it says so beside the number instead.
+  const SHORT_DATED_DAYS = 365;
 
   function beginEdit(bond: Bond, current: number) {
     setEditing(bond.isin);
@@ -140,7 +156,7 @@ export default function PricesPage() {
       </div>
 
       <div className="space-y-2">
-        {rows.map(({ bond, info, netYTM }) => (
+        {rows.map(({ bond, info, netYTM, daysToMaturity }) => (
           <div key={bond.isin} className="card">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <div className="min-w-0">
@@ -153,9 +169,16 @@ export default function PricesPage() {
               <div className="flex shrink-0 items-center gap-2">
                 <PriceBadge info={info} />
                 <span className="num text-sm font-semibold text-ink">{info.price.toFixed(2)}</span>
-                <span className="num text-sm text-gold-700">{formatPct(netYTM)} net</span>
+                <span className="num text-sm text-gold-700">{pct(netYTM)} net</span>
               </div>
             </div>
+            {daysToMaturity > 0 && daysToMaturity < SHORT_DATED_DAYS && (
+              <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+                Redeems in {daysToMaturity} days — at that range the yield is dominated by the
+                repayment rather than the coupon, so a small discount annualises to a very large
+                number. It is not an income you can hold.
+              </p>
+            )}
 
             {editing === bond.isin ? (
               <div className="mt-3 space-y-2 border-t border-sand-300 pt-3">

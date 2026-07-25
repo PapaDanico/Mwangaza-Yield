@@ -130,8 +130,9 @@ export default function LadderPage() {
           <p className="text-[11px] leading-relaxed text-ink-faint">
             Rungs are spread across the horizon — best net yield in each window, one bond per
             maturity year, tax-free IFBs competing on equal footing. Where the market has no paper
-            in a window, the next-best yield fills in. Equal split in KES 50k steps at last traded
-            prices. Educational planning — actual auction allocations vary.
+            in a window, the next-best yield fills in. Equal split in KES 50k steps, priced from
+            your price book where you have recorded one and par where nobody has.
+            Educational planning — actual auction allocations vary.
           </p>
         </div>
 

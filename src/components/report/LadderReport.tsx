@@ -53,8 +53,14 @@ export default function LadderReport({
         {formatKES(plan.totalCostKES)} over {horizon} years
       </h2>
       <p className="mt-1 text-xs text-ink-muted">
-        A staggered portfolio of Kenyan government bonds, priced at last traded levels and
-        stated net of withholding tax.
+        A staggered portfolio of Kenyan government bonds, stated net of withholding tax.
+        {/* This sheet is the thing someone prints and carries to a broker, so
+            the price basis has to survive leaving the screen. A report that
+            says only "priced at last traded levels" is a false claim when
+            most rungs are sitting on the par placeholder. */}
+        {plan.priceCoverage.parFallback > 0
+          ? ` ${plan.priceCoverage.parFallback} of ${plan.priceCoverage.total} rungs are priced at par 100 — a placeholder, not the market — so the yields shown are indicative only.`
+          : ' Priced from recorded market prices.'}
       </p>
 
       <div className="mt-5 grid grid-cols-3 gap-3">

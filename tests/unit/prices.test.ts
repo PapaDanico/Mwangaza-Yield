@@ -110,6 +110,21 @@ describe('summarisePriceCoverage', () => {
   });
 });
 
+describe('par is a placeholder, never a valuation', () => {
+  // The portfolio's mark-to-market column keys off `source !== 'par'`. If par
+  // ever started reporting as a priced source, the app would begin telling
+  // people their bonds are worth 100 — a claim about their money rather than a
+  // disclosed default. This is the test that stops that regression.
+  it('reports par as its own source so callers can refuse to value on it', () => {
+    expect(resolvePrice(bond, [], [], asOf).source).toBe('par');
+  });
+
+  it('reports a real source whenever one exists', () => {
+    expect(resolvePrice(bond, [trade(bond.isin, '2026-07-20', 97)], [], asOf).source).toBe('market');
+    expect(resolvePrice(bond, [], [mine(bond.isin, 95, '2026-07-24')], asOf).source).toBe('user');
+  });
+});
+
 describe('describeProvenance', () => {
   it('says par is a placeholder in as many words', () => {
     expect(describeProvenance(resolvePrice(bond, [], [], asOf))).toMatch(/placeholder/i);

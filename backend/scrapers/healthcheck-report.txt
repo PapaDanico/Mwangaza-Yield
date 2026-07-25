@@ -1,1 +1,1 @@
-- Sovereign context: newest 'asOf' is 570 days old, budget 400d (annual indicators)
+- Bond plausibility: FXD1/2012/15 couponRate=1.0 outside 6.0-30.0

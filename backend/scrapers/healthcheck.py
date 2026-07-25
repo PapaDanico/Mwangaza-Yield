@@ -80,6 +80,51 @@ def newest_in_field(payload, field: str) -> date | None:
     return best
 
 
+# Freshness is not the only way a dataset goes wrong, and it is not the way that
+# actually reached users. FXD1/2012/15 was published with a 1% coupon on a
+# fifteen-year Kenyan government bond — "11.000" with its leading digit lost to
+# CBK's split-digit rendering. Every freshness budget was green the whole time,
+# because the number was current. It was just wrong.
+#
+# So the app's own output is checked for values that cannot exist. These bounds
+# are deliberately generous: the job is to catch a digit that fell off, not to
+# second-guess the market. Across every coupon and clearing rate in the archive
+# back to 2014 the lowest genuine figure is 7.78%.
+PLAUSIBLE = [
+    ("couponRate", 6.0, 30.0),
+    ("ytmGross", 5.0, 35.0),
+    ("tenorYears", 0.5, 40.0),
+]
+
+
+def check_bonds_are_plausible(problems: list, rows: list) -> None:
+    path = Path(DATA_DIR) / "bonds.json"
+    if not path.exists():
+        problems.append("Bond plausibility: bonds.json is MISSING")
+        return
+    try:
+        bonds = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        problems.append(f"Bond plausibility: bonds.json unreadable ({exc.__class__.__name__})")
+        return
+
+    offences = []
+    for bond in bonds:
+        for field, lo, hi in PLAUSIBLE:
+            value = bond.get(field)
+            if value is None:
+                continue
+            if not (lo <= value <= hi):
+                offences.append(f"{bond.get('issueCode')} {field}={value} outside {lo}-{hi}")
+
+    if offences:
+        rows.append(f"{'IMPLAUSIBLE':<9} Bond figures  {len(offences)} bad value(s)")
+        for offence in offences:
+            problems.append(f"Bond plausibility: {offence}")
+    else:
+        rows.append(f"{'OK':<9} Bond figures  {len(bonds)} bond(s), all within plausible bounds")
+
+
 def main() -> None:
     today = date.today()
     problems: list[str] = []
@@ -117,7 +162,9 @@ def main() -> None:
                 f"{label}: newest '{field}' is {age} days old, budget {max_age}d ({rationale})"
             )
 
-    print("=== DATA FRESHNESS ===")
+    check_bonds_are_plausible(problems, rows)
+
+    print("=== DATA HEALTH ===")
     for row in rows:
         print(row)
 

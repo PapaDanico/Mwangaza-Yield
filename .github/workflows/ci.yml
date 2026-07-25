@@ -170,15 +170,40 @@ jobs:
       # separate fetches, each pulling more lines, never got back far enough,
       # while the probes that matter less were read every time. A diagnostic
       # nobody can retrieve is not a diagnostic.
-      - name: Probe why multi-bond auctions yield only one bond's figures
-        if: ${{ !inputs.test_alert }}
-        timeout-minutes: 4
-        working-directory: backend/scrapers
-        run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
-
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py
+
+  probe-multibond:
+    # The multi-bond probe on its own, because sharing a job with nineteen other
+    # network-bound steps made it unobtainable twice in a row.
+    #
+    # First it ran FIRST, and this job's log is fetched by tail, so its output
+    # sat beyond reach — three fetches pulling more lines each time never got
+    # back to it. Moving it last fixed that and produced the answer.
+    #
+    # Then, moved last, it became hostage to everything ahead of it: the
+    # Treasury/KNBS/IMF probe hung for over thirty minutes on one run, and the
+    # CBK Weekly Bulletin probe on the next, so the job's own timeout now
+    # expires before step twenty is reached. A bound that protects the runner
+    # pool does not deliver a diagnostic.
+    #
+    # Alone it has one dependency — the CBK results PDFs it reads — and a log
+    # short enough that the tail IS the output. It reads two or three documents
+    # and writes nothing, so it can also be run on its own without paying for
+    # the full source sweep.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - name: Probe why multi-bond auctions yield only one bond's figures
+        working-directory: backend/scrapers
+        run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.

@@ -42,7 +42,7 @@ import requests
 
 from auction_results import (
     FIELDS, assign_to_columns, codes_on_line, group_lines, header_candidates,
-    label_word_positions, results_section,
+    label_word_positions, read_fields, results_section,
 )
 
 UA = {
@@ -115,6 +115,28 @@ def probe(label: str, url: str) -> None:
             codes, centres, density = cands[0]
             print(f"    chosen header: codes={codes}")
             print(f"                   centres={[round(c, 1) for c in centres]}  density={density}")
+
+            # EVERY line, with the x-centre of every numeric word.
+            #
+            # Printing only the lines that matched a field looked like economy
+            # and was not. Four attempts to rebuild this page locally from the
+            # matching lines alone produced four DIFFERENT results, none of them
+            # the one the archive holds — because the parser measures its value
+            # columns across the whole results section, so a line that matches
+            # nothing can still decide where the columns fall.
+            #
+            # A reproduction that needs the document is not a reproduction. This
+            # is what makes the page rebuildable away from the network, which
+            # matters here specifically: egress to centralbank.go.ke is blocked
+            # from the development sandbox, and Actions is the only route to it.
+            print("    all lines (numeric words shown as text@x-centre):")
+            for ln in lines:
+                parts = []
+                for w in ln:
+                    mid = round((w["x0"] + w["x1"]) / 2, 1)
+                    parts.append(f"{w['text']}@{mid}" if any(ch.isdigit() for ch in w["text"])
+                                 else w["text"])
+                print(f"        | {' '.join(parts)[:150]}")
             if len(codes) < 2:
                 print("    >>> ONE COLUMN ONLY — mechanism 1. Every value buckets to code[0]")
 
@@ -142,7 +164,43 @@ def probe(label: str, url: str) -> None:
                         print("        (read_fields breaks here — a wrapped second line "
                               "would never be read)")
                 if hits > 1:
-                    print(f"    [{key}] {hits} matching lines exist; read_fields uses the first only")
+                    print(f"    [{key}] {hits} matching lines exist")
+
+            # Everything above is a RAW view: it calls assign_to_columns with
+            # label_x = min(centres) - 40, which is the page-wide boundary the
+            # parser stopped using in v11. It shows the geometry, and it is
+            # useful for that, but it is NOT what production does.
+            #
+            # Reading it as though it were cost real time. Its bucket lines for
+            # 27-03-2017 read {0: '31331.63', 1: '32916.7864248.40'} — two
+            # figures concatenated in the second bucket — which invites the
+            # conclusion that the total column collides with the second bond.
+            # Production resolves that through value_columns and value_start_x
+            # and may well not collide at all. Two separate wrong diagnoses of
+            # this file came out of reasoning from the raw view, and an attempt
+            # to reproduce the failure from these numbers alone produced a THIRD
+            # outcome that matched neither the archive nor the theory.
+            #
+            # So the production path is printed beside it. What the archive
+            # actually holds has to be explainable by THIS block, not by the one
+            # above.
+            print("    --- what the production path returns (read_fields) ---")
+            try:
+                got = read_fields(lines, codes, centres, None, url)
+            except Exception as exc:  # noqa: BLE001
+                print(f"        read_fields raised {exc.__class__.__name__}: {exc}")
+                continue
+            if not got:
+                print("        NOTHING — no bond took a single field from this page")
+            for code in codes:
+                rec = got.get(code)
+                if rec is None:
+                    print(f"        {code}: NO RECORD — this bond is dropped")
+                    continue
+                shown = {k: v for k, v in rec.items()
+                         if k in ("amountOfferedKESM", "amountAcceptedKESM",
+                                  "bidsReceivedKESM", "couponRate")}
+                print(f"        {code}: {shown}")
 
 
 def main() -> None:

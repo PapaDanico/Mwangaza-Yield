@@ -6,6 +6,7 @@ import {
 import { useBondStore } from '@/stores/bondStore';
 import Term from '@/components/shared/Term';
 import type { Bond } from '@/types/bond';
+import DataState from '@/components/shared/DataState';
 
 export default function YieldCurveChart() {
   const bonds = useBondStore((s) => s.bonds);
@@ -31,7 +32,7 @@ export default function YieldCurveChart() {
   }
   const data = Array.from(points.values()).sort((a, b) => a.tenor - b.tenor);
 
-  if (!data.length) return <div className="card h-72 animate-pulse" />;
+  if (!data.length) return <DataState />;
 
   // Describe the SHAPE in words, because the shape is the point and most
   // readers have never been told what to look for. Derived from the two ends

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useBondStore } from '@/stores/bondStore';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
+import DataState from '@/components/shared/DataState';
 
 function Row({ label, value, accent, hint }: {
   label: string; value: string; accent?: boolean; hint?: string;
@@ -35,7 +36,7 @@ export default function CalculatorPage() {
     [bond, amount, price]
   );
 
-  if (!bond) return <div className="card h-64 animate-pulse" />;
+  if (!bond) return <DataState />;
 
   const inputCls =
     'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';

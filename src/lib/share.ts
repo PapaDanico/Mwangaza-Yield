@@ -7,7 +7,7 @@ import type { LadderPlan } from './ladder';
 /** CBK publishes auction announcements here — the most reliable primary feed. */
 export const CBK_WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029Va5HrcD4dTnNnTguwc24';
 
-const FOOTER = 'via Mwangaza Yield — sovereign yields, crystal clear';
+const FOOTER = 'via Mwangaza Yield — government bonds, made plain';
 
 /**
  * WhatsApp renders *bold* and _italic_ from plain text, so summaries are

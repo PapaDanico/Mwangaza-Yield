@@ -6,6 +6,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { computeTBill, projectRollover } from '@/lib/tbills';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { formatCompactKES } from '@/lib/utils';
+import DataState from '@/components/shared/DataState';
 
 export default function TBillsPage() {
   const tbills = useBondStore((s) => s.tbills);
@@ -25,7 +26,7 @@ export default function TBillsPage() {
     [selected, amount, rolloverMonths]
   );
 
-  if (!selected || !result || !rollover) return <div className="card h-64 animate-pulse" />;
+  if (!selected || !result || !rollover) return <DataState label="Treasury bill" />;
 
   const inputCls =
     'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';

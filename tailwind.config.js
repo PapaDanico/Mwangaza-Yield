@@ -15,10 +15,12 @@ module.exports = {
         ink: {
           DEFAULT: '#0A192F', // treasury navy as text
           soft: '#31445F',
-          muted: '#67737F',
+          muted: '#64748B',   // brand Slate Gray — 4.60:1 on sand-50, passes AA
           faint: '#726D5C',   // warm earthy muted — AA on sand-50 at small sizes
         },
+        // Brand palette: Treasury Navy, Sun Gold, Emerald Mint, Slate Gray
         treasury: { navy: '#0A192F', dark: '#020C1B' },
+        slate: { 500: '#64748B' },
         gold: { 300: '#FCD34D', 500: '#F59E0B', 600: '#D97706', 700: '#B45309' },
         mint: { 500: '#10B981', 600: '#059669', 700: '#047857' },
       },

@@ -36,7 +36,18 @@ export const CORE_FIELDS = [
 export type CoreField = (typeof CORE_FIELDS)[number];
 
 export const FIELD_LABELS: Record<CoreField, string> = {
-  auctionDate: 'Auction date',
+  // Called "value date" because that is what it is. CBK dates a results file
+  // and its section-A heading from the Monday the bond is dated FROM, not the
+  // day bidding closed: 297 of 303 dated records fall on a Monday, the six
+  // exceptions are switch auctions and a buyback, and one tap-sale document
+  // says so outright — "Settlement remains Monday 30th, June 2014" under a
+  // filename reading "Dated 30.06.2014". Kenyan bonds auction on a Wednesday
+  // and value the following Monday.
+  //
+  // The JSON key stays `auctionDate`, because renaming a published field breaks
+  // anyone already reading it for the sake of a label. The label is where the
+  // correction belongs.
+  auctionDate: 'Value date',
   couponRate: 'Coupon rate',
   pricePer100: 'Price per 100',
   amountOfferedKESM: 'Amount offered',
@@ -170,6 +181,11 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
  * this dataset worse than nothing.
  */
 export function archiveToCSV(records: AuctionPrint[]): string {
+  // `auctionDate` is exported under its true name. A CSV is the form a licensee
+  // loads without reading a word of documentation, so a column header that says
+  // "auction date" while holding the value date is the one place the misnomer
+  // would do real damage. The JSON key is unchanged — see FIELD_LABELS.
+  const HEADERS: Record<string, string> = { auctionDate: 'valueDate' };
   const cols = [
     'issueCode',
     'auctionDate',
@@ -189,7 +205,7 @@ export function archiveToCSV(records: AuctionPrint[]): string {
 
   const rows = [...records].sort((a, b) => (b.auctionDate ?? '').localeCompare(a.auctionDate ?? ''));
   return [
-    cols.join(','),
+    cols.map((c) => HEADERS[c] ?? c).join(','),
     ...rows.map((r) => cols.map((c) => esc((r as unknown as Record<string, unknown>)[c])).join(',')),
   ].join('\n');
 }

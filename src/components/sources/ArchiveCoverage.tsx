@@ -96,6 +96,15 @@ export default function ArchiveCoverage() {
       </ul>
 
       <p className="mt-4 text-xs text-ink-muted">
+        <span className="font-semibold text-ink-soft">On the value date:</span> the JSON key is
+        called <code className="num">auctionDate</code>, and it holds the date CBK dates the bond
+        from — the Monday — not the Wednesday bidding closed. 297 of the {records} records land on
+        a Monday and the exceptions are switch auctions. The key keeps its name so that anything
+        already reading the file does not break; this note is the correction. If you need the day
+        an auction actually closed, that is in the forthcoming-auction feed, not here.
+      </p>
+
+      <p className="mt-3 text-xs text-ink-muted">
         A field counts as present only if it carries a figure. Zero is read as
         &ldquo;unparsed&rdquo;, not as data — no Kenyan auction offers, accepts or prices at zero,
         so a nought in these columns is a line the parser could not read rather than a fact about

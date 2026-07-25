@@ -135,9 +135,23 @@ describe('archiveToCSV', () => {
       rec({ id: 'new', auctionDate: '2026-01-05' }),
     ]);
     const lines = csv.split('\n');
-    expect(lines[0].startsWith('issueCode,auctionDate')).toBe(true);
+    expect(lines[0].startsWith('issueCode,valueDate')).toBe(true);
     expect(lines[1]).toContain('2026-01-05');
     expect(lines[2]).toContain('2020-01-06');
+  });
+
+  it('names the date column what it actually holds', () => {
+    // The JSON key is `auctionDate` and stays that way, because renaming a
+    // published field breaks anyone already reading it. But the value is the
+    // date CBK dates the bond FROM — the Monday — not the Wednesday bidding
+    // closed: 297 of 303 dated records land on a Monday, and one tap-sale
+    // document says outright that its filename date is the settlement date.
+    //
+    // A CSV is the form a licensee opens without reading any documentation, so
+    // it is the one place the misnomer would do real damage.
+    const header = archiveToCSV([rec({})]).split('\n')[0];
+    expect(header).toContain('valueDate');
+    expect(header).not.toContain('auctionDate');
   });
 
   it('leaves a gap empty rather than writing a zero into it', () => {

@@ -1,4 +1,5 @@
 """Scrape headline macro indicators (CBR, CPI, USD/KES) into macro.json."""
+import json
 import re
 import sys
 from datetime import date
@@ -6,10 +7,10 @@ from datetime import date
 import requests
 from bs4 import BeautifulSoup
 
-from common import write_dataset
+from common import DATA_DIR, write_dataset
 
-# CBK returns 403 to non-browser clients (verified 2026-07 — see docs/DATA-SOURCES.md),
-# so present a standard browser UA.
+# CBK is reachable from code (all endpoints HTTP 200, verified 2026-07-25 on a
+# network-open runner). A browser UA is sent as good manners, not necessity.
 UA = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
@@ -61,8 +62,33 @@ def scrape() -> list:
     if cpi_value:
         records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi_value[0],
                         "date": today, "unit": "% y/y", "source": cpi_value[1]})
-    else:
-        print("CPI unavailable from both KNBS and CBK — keeping existing value", file=sys.stderr)
+
+    return carry_forward(records)
+
+
+def carry_forward(records: list) -> list:
+    """Keep indicators this run could not refresh.
+
+    Without this, a partial scrape REPLACES the dataset and silently deletes
+    whatever it failed to fetch — e.g. losing CPI from the app entirely because
+    KNBS was down that morning. A stale indicator, clearly dated, beats a
+    missing one.
+    """
+    path = DATA_DIR / "macro.json"
+    if not path.exists():
+        return records
+    try:
+        existing = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return records
+
+    fresh = {r["indicator"] for r in records}
+    for old in existing:
+        if old.get("indicator") not in fresh:
+            print(f"[macro] carrying forward {old.get('indicator')} from {old.get('date')}",
+                  file=sys.stderr)
+            records.append(old)
+    return records
 
     return records
 

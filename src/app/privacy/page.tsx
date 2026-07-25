@@ -21,6 +21,7 @@ export default function PrivacyPage() {
       <h2>What we store, and where</h2>
       <ul>
         <li><strong>Your portfolio and imported CSV data</strong> — stored locally in your browser only. Clearing your browser data or tapping &ldquo;Clear all holdings&rdquo; deletes it permanently. We cannot recover it, because we never had it.</li>
+        <li><strong>Prices you record</strong> — the bond prices you look up and save in your price book stay in the same local database as your holdings. They are never uploaded, and we never fetch prices on your behalf: the Nairobi Securities Exchange licenses its price data and does not permit us to republish it.</li>
         <li><strong>Market data</strong> — bond, bill, auction and macro figures are downloaded to your device and cached so the app works offline. This is public information flowing to you, not data flowing from you.</li>
         <li><strong>No cookies</strong> are set for tracking, advertising or profiling.</li>
       </ul>

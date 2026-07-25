@@ -1,8 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Bond } from '@/types/bond';
 import { useBondStore } from '@/stores/bondStore';
+import { usePriceStore } from '@/stores/priceStore';
+import { resolvePrice } from '@/lib/prices';
+import { PriceBadge } from '@/components/shared/PriceProvenance';
 import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import { nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
@@ -40,9 +43,14 @@ function Row({ label, value, accent, hint }: {
 export default function CalculatorPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const userPrices = usePriceStore((s) => s.userPrices);
+  const savePrice = usePriceStore((s) => s.setPrice);
   const [isin, setIsin] = useState('');
   const [amount, setAmount] = useState(1_000_000);
   const [price, setPrice] = useState(100);
+  // Cleared whenever the price moves, so the confirmation always refers to the
+  // number currently on screen rather than the last one saved.
+  const [saved, setSaved] = useState(false);
 
   // bonds.json is ordered by maturity, so bonds[0] is whatever redeems SOONEST
   // — and defaulting to it meant every first-time visitor landed on the least
@@ -69,6 +77,19 @@ export default function CalculatorPage() {
 
   const bond = bonds.find((b) => b.isin === isin) ?? defaultBond;
   const lastTrade = secondary.find((t) => t.isin === bond?.isin);
+  const priceInfo = useMemo(
+    () => (bond ? resolvePrice(bond, secondary, userPrices) : null),
+    [bond, secondary, userPrices]
+  );
+
+  // Start the slider at whatever we actually know about this bond — the price
+  // the reader recorded, else the last print — instead of anchoring every visit
+  // to par. Re-runs on bond change, which is the whole point: switching issues
+  // used to silently carry the previous bond's price across.
+  useEffect(() => {
+    if (priceInfo) setPrice(priceInfo.price);
+    setSaved(false);
+  }, [priceInfo]);
 
   const result = useMemo(
     () => (bond ? computeBondInvestment(bond, amount, price) : null),
@@ -199,18 +220,55 @@ export default function CalculatorPage() {
 
           <div>
             <label htmlFor="calc-price" className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
-              <span>Price you would pay (per 100)</span>
+              <span className="flex items-center gap-1.5">
+                Price you would pay (per 100)
+                {priceInfo && <PriceBadge info={priceInfo} />}
+              </span>
               <span className="num text-gold-700">{price.toFixed(2)}</span>
             </label>
             <input
               id="calc-price"
               type="range" min={70} max={120} step={0.05} value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
+              onChange={(e) => { setPrice(Number(e.target.value)); setSaved(false); }}
               className="w-full accent-gold-600"
             />
-            {lastTrade ? (
+
+            {/* The slider was a dead end: someone looked a price up, dragged to
+                it, read the yield and lost the number the moment they left. The
+                ladder and every goal plan went on quoting par for the same
+                bond. Keeping it costs one tap and makes the whole app agree. */}
+            {bond && Math.abs(price - (priceInfo?.price ?? 100)) > 0.005 && (
               <button
-                onClick={() => setPrice(lastTrade.price)}
+                onClick={async () => {
+                  const ok = await savePrice({
+                    isin: bond.isin,
+                    price,
+                    observedOn: new Date().toISOString().slice(0, 10),
+                  });
+                  setSaved(ok);
+                }}
+                className="mt-2 rounded-xl bg-ink px-3 py-1.5 text-xs font-medium text-sand-50 hover:bg-ink-soft"
+              >
+                Keep {price.toFixed(2)} as this bond&apos;s price
+              </button>
+            )}
+            {saved && (
+              <p className="mt-1.5 text-[11px] text-emerald-800">
+                Saved. Your ladder and goal plans now price {bond?.issueCode} at{' '}
+                <span className="num">{price.toFixed(2)}</span>.
+              </p>
+            )}
+            {priceInfo?.source === 'user' ? (
+              <p className="mt-1 text-xs text-ink-muted">
+                Using the price you recorded on {priceInfo.asOfDate}
+                {priceInfo.stale && ' — over a month old, worth checking'}.{' '}
+                <a href="/prices/" className="text-gold-700 underline-offset-2 hover:underline">
+                  Price book
+                </a>
+              </p>
+            ) : lastTrade ? (
+              <button
+                onClick={() => { setPrice(lastTrade.price); setSaved(false); }}
                 className="mt-1 text-xs text-gold-700 underline-offset-2 hover:underline"
               >
                 Use last traded price: {lastTrade.price.toFixed(2)} ({lastTrade.tradeDate})
@@ -234,7 +292,8 @@ export default function CalculatorPage() {
                 >
                   NSE Market Statistics
                 </a>
-                . Drag the slider to whatever you find — it stays on your phone.
+                . Drag the slider to whatever you find and keep it — it stays on your phone, and
+                every other page will use it too.
               </p>
             )}
           </div>

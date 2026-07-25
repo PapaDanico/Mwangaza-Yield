@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
 import type { SavedPlan } from './plans';
 import type { AlertRule } from './alerts';
+import type { UserPrice } from './prices';
 
 /** One event we have already shown, so opening the app again does not repeat it. */
 export interface AlertDelivery {
@@ -22,6 +23,8 @@ class MwangazaDB extends Dexie {
   auctionResults!: Table<AuctionPrint, string>;
   alertRules!: Table<AlertRule, string>;
   alertLog!: Table<AlertDelivery, string>;
+  /** Prices the reader looked up themselves. Never synced, never transmitted. */
+  userPrices!: Table<UserPrice, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -47,6 +50,16 @@ class MwangazaDB extends Dexie {
     this.version(7).stores({
       alertRules: 'id, kind, enabled',
       alertLog: 'id, deliveredAt, seen',
+    });
+    // Keyed by ISIN: one current price per bond. Superseding a price replaces
+    // it rather than appending, because the reader wants "what it costs now",
+    // not a personal trade history they never asked to keep.
+    //
+    // Deliberately NOT part of the dataset-refresh transaction in bondStore —
+    // published tables are cleared and replaced on every refresh, and this one
+    // is the reader's own work. Losing it to a data update would be a bug.
+    this.version(8).stores({
+      userPrices: 'isin, observedOn, updatedAt',
     });
   }
 }

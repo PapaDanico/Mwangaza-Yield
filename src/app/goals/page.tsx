@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useBondStore } from '@/stores/bondStore';
+import { usePriceStore } from '@/stores/priceStore';
+import { CoverageNotice } from '@/components/shared/PriceProvenance';
 import {
   GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
 } from '@/lib/goals';
@@ -57,6 +59,7 @@ export default function GoalsPage() {
   const secondary = useBondStore((s) => s.secondary);
   const tbills = useBondStore((s) => s.tbills);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
+  const userPrices = usePriceStore((s) => s.userPrices);
   const [goal, setGoal] = useState<GoalKey>('fire');
 
   // FIRE
@@ -123,16 +126,16 @@ export default function GoalsPage() {
   }
 
   const fire = useMemo(
-    () => planFire(bonds, secondary, targetIncome, capital, monthly, cbrHistory),
-    [bonds, secondary, targetIncome, capital, monthly, cbrHistory]
+    () => planFire(bonds, secondary, targetIncome, capital, monthly, cbrHistory, userPrices),
+    [bonds, secondary, userPrices, targetIncome, capital, monthly, cbrHistory]
   );
   const fees = useMemo(
-    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee),
-    [bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee]
+    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices),
+    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee]
   );
   const income = useMemo(
-    () => planPassiveIncome(bonds, secondary, incomeCapital, 3),
-    [bonds, secondary, incomeCapital]
+    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices),
+    [bonds, secondary, userPrices, incomeCapital]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
@@ -265,6 +268,10 @@ export default function GoalsPage() {
                 <span className="num font-semibold text-ink">{formatPct(fire.planningNetYield)}</span> net
                 {fire.ladderRungs > 1 && ` — a ${fire.ladderRungs}-bond ladder, priced for a fall in rates`}
               </p>
+              {/* The capital target is a division by the ladder's yield, so a
+                  ladder priced at par understates the number the reader has to
+                  reach. That belongs next to the figure, not in a footnote. */}
+              <div className="mt-3"><CoverageNotice coverage={fire.priceCoverage} /></div>
               {fire.requiredCapitalIfRatesHoldKES > 0
                 && fire.requiredCapitalIfRatesHoldKES < fire.requiredCapitalKES && (
                 <p className="mt-1 text-sm text-ink-muted">

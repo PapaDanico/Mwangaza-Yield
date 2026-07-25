@@ -8,6 +8,7 @@ import { buildLadder, type LadderPlan } from './ladder';
 import { computeTBill } from './tbills';
 import { monthsToTarget } from './progress';
 import { analyseRateOutlook, conservativeYield } from './rate-outlook';
+import { resolvePrice, type PriceCoverage, type UserPrice } from './prices';
 
 export type GoalKey = 'fire' | 'school-fees' | 'passive-income' | 'capital-preservation';
 
@@ -49,8 +50,11 @@ export const GOALS: GoalDefinition[] = [
   },
 ];
 
-const priceOf = (b: Bond, secondary: SecondaryTrade[]) =>
-  secondary.find((t) => t.isin === b.isin)?.price ?? 100;
+// The reader's own price book outranks a published print, which outranks par.
+// See `prices.ts` — the ordering is deliberate and the provenance travels with
+// the number so no planner can present a placeholder as though it were market.
+const priceOf = (b: Bond, secondary: SecondaryTrade[], userPrices: UserPrice[] = []) =>
+  resolvePrice(b, secondary, userPrices).price;
 
 /* ------------------------------------------------------------------ FIRE */
 
@@ -89,6 +93,8 @@ export interface FirePlan {
   yearsIfRatesHold: number | null;
   /** How many distinct bonds the planning ladder actually used. */
   ladderRungs: number;
+  /** How much of the planning ladder rests on real prices vs the par placeholder. */
+  priceCoverage: PriceCoverage;
 }
 
 export function planFire(
@@ -97,7 +103,8 @@ export function planFire(
   targetAnnualIncomeKES: number,
   currentCapitalKES: number,
   monthlyContributionKES: number,
-  cbrHistory: RateDecision[] = []
+  cbrHistory: RateDecision[] = [],
+  userPrices: UserPrice[] = []
 ): FirePlan {
   // The highest yield on the board, kept for context only. Planning on it was
   // the old behaviour and it is not defensible over a horizon like this: it
@@ -107,7 +114,7 @@ export function planFire(
   // years to 3.6 — an error in the direction that makes someone stop saving
   // early. Under-saving costs the plan; over-saving only costs optionality.
   const ranked = bonds
-    .map((bond) => ({ bond, netYTM: computeBondInvestment(bond, 100_000, priceOf(bond, secondary)).netYTM }))
+    .map((bond) => ({ bond, netYTM: computeBondInvestment(bond, 100_000, priceOf(bond, secondary, userPrices)).netYTM }))
     .sort((a, b) => b.netYTM - a.netYTM);
   const best = ranked[0] ?? null;
 
@@ -124,7 +131,9 @@ export function planFire(
     secondary,
     Math.max(1_000_000, currentCapitalKES),
     LADDER_HORIZON_YEARS,
-    LADDER_RUNGS
+    LADDER_RUNGS,
+    new Date(),
+    userPrices
   );
   const currentLadderNetYield = ladder.rungs.length
     ? ladder.blendedNetYTM
@@ -167,6 +176,7 @@ export function planFire(
     yearsToTarget: months === null ? null : months / 12,
     yearsIfRatesHold: monthsHold === null ? null : monthsHold / 12,
     ladderRungs: ladder.rungs.length,
+    priceCoverage: ladder.priceCoverage,
   };
 }
 
@@ -201,7 +211,8 @@ export function planSchoolFees(
   firstFeeYear: number,
   yearsOfFees: number,
   annualFeeKES: number,
-  asOf: Date = new Date()
+  asOf: Date = new Date(),
+  userPrices: UserPrice[] = []
 ): SchoolFeesPlan {
   // Clamped HERE, not only in the form. `min` and `max` on a number input are
   // form-validation hints; typing or pasting past them sets the value anyway.
@@ -218,7 +229,7 @@ export function planSchoolFees(
   const lastFeeYear = firstFeeYear + yearsOfFees - 1;
   const horizonYears = Math.max(1, lastFeeYear - asOf.getFullYear() + 1);
   // One rung per fee year: principal should land the year the invoice does.
-  const ladder = buildLadder(bonds, secondary, capitalKES, horizonYears, Math.min(6, yearsOfFees), asOf);
+  const ladder = buildLadder(bonds, secondary, capitalKES, horizonYears, Math.min(6, yearsOfFees), asOf, userPrices);
 
   const years: FeeYear[] = [];
   for (let i = 0; i < yearsOfFees; i++) {
@@ -278,7 +289,8 @@ export function planPassiveIncome(
   bonds: Bond[],
   secondary: SecondaryTrade[],
   capitalKES: number,
-  maxHoldings = 3
+  maxHoldings = 3,
+  userPrices: UserPrice[] = []
 ): IncomePlan {
   // Greedy: repeatedly take the bond that adds the most *new* payout months,
   // breaking ties on net yield. Spreading beats a marginally higher coupon
@@ -286,7 +298,7 @@ export function planPassiveIncome(
   const pool = bonds.map((bond) => ({
     bond,
     months: couponMonths(bond),
-    netYTM: computeBondInvestment(bond, 100_000, priceOf(bond, secondary)).netYTM,
+    netYTM: computeBondInvestment(bond, 100_000, priceOf(bond, secondary, userPrices)).netYTM,
   }));
 
   const chosen: typeof pool = [];
@@ -304,7 +316,7 @@ export function planPassiveIncome(
   const per = Math.max(0, Math.floor(capitalKES / Math.max(1, chosen.length) / 50_000) * 50_000);
   const monthlyIncomeKES = Array(12).fill(0);
   const holdings = chosen.map((c) => {
-    const r = computeBondInvestment(c.bond, per, priceOf(c.bond, secondary));
+    const r = computeBondInvestment(c.bond, per, priceOf(c.bond, secondary, userPrices));
     for (const m of c.months) monthlyIncomeKES[m] += r.netCouponPerPeriodKES;
     return { bond: c.bond, faceValueKES: per, netCouponKES: r.netCouponPerPeriodKES, months: c.months };
   });

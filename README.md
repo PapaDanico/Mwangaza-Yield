@@ -40,9 +40,17 @@ The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary
 triggers Netlify to redeploy. **Fail-safe contract:** a scraper that extracts nothing exits
 non-zero and leaves the previous file untouched — stale-but-valid beats empty.
 
-⚠️ `public/data/` currently contains a **sample dataset**. Before launch, validate each scraper
-against the live CBK/NSE sources (formats change without notice) and set the
-`NSE_DAILY_TRADE_URL` repository variable.
+`public/data/` holds **live scraped data**, refreshed by the weekday cron and cross-checked in CI
+(`published-cross-check`, `schedule-vs-dataset`, `check_archive.py`). Source formats change without
+notice, so the `validate-sources` job probes them on every run.
+
+⚠️ **`secondary.json` is deliberately empty.** The Nairobi Securities Exchange licenses its price
+data and its terms do not permit republication, so the app ships no market prices. Anywhere a price
+is missing, planners fall back to par 100 — always labelled as a placeholder, never presented as the
+market (`src/lib/prices.ts`). Readers may look prices up for their own use and record them in the
+**price book** (`/prices`), which is stored only on their device and takes precedence over
+everything else. Setting the `NSE_DAILY_TRADE_URL` repository variable enables the trade scraper for
+anyone who holds a licence permitting it.
 
 ## Disclaimer
 

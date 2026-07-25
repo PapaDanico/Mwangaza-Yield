@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import OfflineBadge from './OfflineBadge';
@@ -51,6 +51,19 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
+            {/* Same reasoning as Alerts below: the price book earns a place on
+                every page — it changes every yield in the app — but not 40px of
+                a 360px tab row. */}
+            <Link
+              href="/prices/"
+              aria-label="Your price book"
+              className={cn(
+                'rounded-lg p-2 transition-colors hover:bg-sand-200',
+                isActive('/prices/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <Tag size={20} />
+            </Link>
             {/* The eighth nav item would have broken the mobile tab row, which
                 already shares 360px between seven. A header icon costs no width
                 on either layout and is reachable from every page. */}

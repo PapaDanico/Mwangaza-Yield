@@ -33,6 +33,25 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+      # The unit suite proves the maths; this proves the reader sees it. Every
+      # defect found in the July review was invisible to 382 unit tests — a
+      # mark-to-market column that had never rendered for anybody, a yield
+      # printed without the guard the calculator applies, and copy claiming
+      # prices we do not hold. All three are page-level facts, so they need a
+      # page. Runs AFTER build because it serves ./out.
+      #
+      # The browser build is tied to the playwright-core version: install a
+      # different one and launch() fails looking for a revision that is not
+      # there. Deriving the version from the installed package means a future
+      # dependency bump cannot silently break this job.
+      - name: Install Chromium for the browser smoke tests
+        run: |
+          PW=$(node -p "require('playwright-core/package.json').version")
+          npx --yes "playwright@${PW}" install --with-deps chromium
+      - name: Browser smoke tests
+        run: npm run test:e2e
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -45,6 +64,7 @@ jobs:
           python test_expand_universe.py
           python test_worldbank.py
           python test_check_archive.py
+          python test_healthcheck.py
       # Every other check in this repository asks whether a source is REACHABLE
       # or whether data is FRESH. Neither would have caught the worst bug found
       # so far, because it produced values that were individually plausible and

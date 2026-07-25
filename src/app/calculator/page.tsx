@@ -178,7 +178,10 @@ export default function CalculatorPage() {
                 <button
                   key={v}
                   onClick={() => setAmount(v)}
-                  className={`num rounded-full border px-3 py-1 text-xs transition ${
+                  // 44px minimum: these amount presets are the fastest way into
+                  // the calculator and were 55x26, small enough to mis-tap on a
+                  // phone — which is the device this app is built for.
+                  className={`num min-h-[44px] rounded-full border px-4 py-1 text-xs transition ${
                     amount === v
                       ? 'border-gold-600 bg-gold-500/15 text-gold-700'
                       : 'border-sand-400 text-ink-muted hover:border-ink-muted'
@@ -247,7 +250,7 @@ export default function CalculatorPage() {
                   });
                   setSaved(ok);
                 }}
-                className="mt-2 rounded-xl bg-ink px-3 py-1.5 text-xs font-medium text-sand-50 hover:bg-ink-soft"
+                className="mt-2 min-h-[44px] rounded-xl bg-ink px-4 py-2 text-xs font-medium text-sand-50 hover:bg-ink-soft"
               >
                 Keep {price.toFixed(2)} as this bond&apos;s price
               </button>

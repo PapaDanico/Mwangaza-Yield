@@ -6,12 +6,20 @@ file — stale-but-valid data always beats empty data. CI surfaces the
 failure; the app keeps serving the last good dataset.
 """
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "public" / "data"
+# The published dataset. Overridable so a test can point the checkers at a
+# throwaway copy instead of the real files — without an override, verifying
+# how healthcheck.py treats (say) an empty secondary.json means mutating the
+# dataset the site actually ships.
+DATA_DIR = Path(
+    os.environ.get("MWANGAZA_DATA_DIR")
+    or Path(__file__).resolve().parents[2] / "public" / "data"
+)
 
 # ---------------------------------------------------------------------------
 # Issue codes

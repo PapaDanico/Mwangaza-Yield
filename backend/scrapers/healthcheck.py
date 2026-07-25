@@ -30,11 +30,26 @@ from common import DATA_DIR
 # broken on the day it was needed.
 STRICT = os.environ.get("HEALTHCHECK_STRICT") == "1"
 
+# Sources whose ABSENCE is a deliberate product decision rather than a fault.
+# An empty file here is fine; a populated one is held to its budget as normal.
+OPTIONAL_IF_EMPTY = {"secondary.json"}
+
 # (filename, human name, date field, max age in days, why that budget)
 BUDGETS = [
     ("meta.json", "Pipeline last ran", "generatedAt", 7, "refresh runs every weekday"),
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
+    # Secondary trades are OPTIONAL_IF_EMPTY (see below). We ship this file
+    # empty on purpose: the NSE licenses its price data and its terms forbid
+    # republication, so there is nothing to be fresh. Held as an ordinary
+    # budget, this line failed on every single run — and because the refresh
+    # job opens a GitHub issue on failure, it would have raised a daily alarm
+    # about a condition that cannot be fixed. That is precisely the wolf-crying
+    # the context.json budget below was widened to avoid, except permanent.
+    #
+    # The signal is still worth keeping for anyone who holds a licence and sets
+    # NSE_DAILY_TRADE_URL: once the file HAS trades, going stale is a real
+    # fault and is reported as one.
     ("secondary.json", "Secondary trades", "tradeDate", 30, "NSE publishes daily"),
     # World Bank annual indicators are dated by VINTAGE, not by fetch date: the
     # newest Kenya figure on 2026-07-25 is "2025", which reads as 570 days old
@@ -155,6 +170,13 @@ def main() -> None:
         except (json.JSONDecodeError, OSError) as exc:
             problems.append(f"{label}: {filename} unreadable ({exc.__class__.__name__})")
             rows.append(f"{'CORRUPT':<9} {label}")
+            continue
+
+        # An empty optional source is the expected shipped state, not a fault.
+        # Reported so it stays visible in the health table — silence would be
+        # its own failure mode — but it raises no alarm.
+        if filename in OPTIONAL_IF_EMPTY and not payload:
+            rows.append(f"{'NOT SET':<9} {label}  (empty by design — no licence to publish)")
             continue
 
         newest = newest_in_field(payload, field)

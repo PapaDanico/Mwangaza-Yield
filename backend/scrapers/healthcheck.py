@@ -112,7 +112,16 @@ def check_bonds_are_plausible(problems: list, rows: list) -> None:
     for bond in bonds:
         for field, lo, hi in PLAUSIBLE:
             value = bond.get(field)
+            # Missing is not the same as fine. Every field here is required to
+            # price a bond at all, so absence is a defect, not an exemption —
+            # and skipping it was a hole in this very guard: a null coupon
+            # renders as a confident "0.00%" in the calculator and would have
+            # passed the check that exists to catch exactly that.
             if value is None:
+                offences.append(f"{bond.get('issueCode')} {field} is missing")
+                continue
+            if not isinstance(value, (int, float)) or isinstance(value, bool):
+                offences.append(f"{bond.get('issueCode')} {field}={value!r} is not a number")
                 continue
             if not (lo <= value <= hi):
                 offences.append(f"{bond.get('issueCode')} {field}={value} outside {lo}-{hi}")

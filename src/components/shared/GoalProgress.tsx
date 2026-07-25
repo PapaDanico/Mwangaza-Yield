@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { formatKES } from '@/lib/financial-engine';
-import { formatCompactKES } from '@/lib/utils';
+import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { buildProgress, projectPot, monthsBetween, type ProgressStatus } from '@/lib/progress';
 import { withCheckpoint, withoutCheckpoint, type SavedPlan } from '@/lib/plans';
 
@@ -199,7 +199,7 @@ export default function GoalProgress({
             <input
               id="cp-amount" type="number" min={0} step={10_000}
               value={amount || ''} placeholder="0"
-              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
               onKeyDown={(e) => e.key === 'Enter' && record()}
               className="num w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500"
             />

@@ -8,7 +8,7 @@ import {
   GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
-import { cn, formatCompactKES } from '@/lib/utils';
+import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
@@ -237,15 +237,15 @@ export default function GoalsPage() {
           <div className="card h-fit space-y-4">
             <Field label="Annual income you want (today's money)">
               <input type="number" step={50_000} value={targetIncome}
-                onChange={(e) => setTargetIncome(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setTargetIncome(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Capital you have now">
               <input type="number" step={100_000} value={capital}
-                onChange={(e) => setCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Monthly contribution" hint="Reinvested at the same net yield each year.">
               <input type="number" step={10_000} value={monthly}
-                onChange={(e) => setMonthly(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setMonthly(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
 
@@ -319,11 +319,11 @@ export default function GoalsPage() {
           <div className="card h-fit space-y-4">
             <Field label="Capital to invest now">
               <input type="number" step={100_000} value={feeCapital}
-                onChange={(e) => setFeeCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setFeeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="First year fees are due">
               <input type="number" value={firstFeeYear}
-                onChange={(e) => setFirstFeeYear(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setFirstFeeYear(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Years of fees">
               <input type="number" min={1} max={8} value={yearsOfFees}
@@ -331,7 +331,7 @@ export default function GoalsPage() {
             </Field>
             <Field label="Fees per year">
               <input type="number" step={50_000} value={annualFee}
-                onChange={(e) => setAnnualFee(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setAnnualFee(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
 
@@ -408,7 +408,7 @@ export default function GoalsPage() {
             <div className="card h-fit space-y-4">
               <Field label="Capital to invest" hint="Split across up to three bonds with complementary coupon months.">
                 <input type="number" step={100_000} value={incomeCapital}
-                  onChange={(e) => setIncomeCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                  onChange={(e) => setIncomeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Average monthly" value={formatCompactKES(income.averageMonthlyKES)} accent="text-mint-700" />
@@ -481,7 +481,7 @@ export default function GoalsPage() {
           <div className="card h-fit space-y-4">
             <Field label="Amount to park" hint="Treasury bill minimum is KES 100,000.">
               <input type="number" step={50_000} value={parkCapital}
-                onChange={(e) => setParkCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setParkCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
           <div className="space-y-4">

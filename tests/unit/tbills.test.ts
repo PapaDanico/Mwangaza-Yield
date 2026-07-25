@@ -80,3 +80,30 @@ describe('bestTBill', () => {
   });
   it('returns null with no bills', () => expect(bestTBill([])).toBeNull());
 });
+
+describe('a yield is a rate, not an amount', () => {
+  it('survives an empty amount box', () => {
+    // Number('') is 0, which the number input invites on every clear. Deriving
+    // the yields from costKES made that 0/0 and put "NaN%" on the page as the
+    // headline "what you actually earn" figure.
+    const r = computeTBill(0, 9.5, 91);
+    expect(Number.isFinite(r.grossEAY)).toBe(true);
+    expect(Number.isFinite(r.netEAY)).toBe(true);
+    expect(Number.isFinite(r.taxDragBps)).toBe(true);
+    expect(Number.isFinite(r.quoteGapBps)).toBe(true);
+    expect(r.netEAY).toBeGreaterThan(0);
+  });
+
+  it('reports the same yield whatever the amount', () => {
+    const small = computeTBill(1, 9.5, 91);
+    const large = computeTBill(50_000_000, 9.5, 91);
+    expect(small.grossEAY).toBeCloseTo(large.grossEAY, 10);
+    expect(small.netEAY).toBeCloseTo(large.netEAY, 10);
+  });
+
+  it('still nets below gross, and both above the quoted rate', () => {
+    const r = computeTBill(1_000_000, 9.5, 364);
+    expect(r.netEAY).toBeLessThan(r.grossEAY);
+    expect(r.grossEAY).toBeGreaterThan(r.discountRate);
+  });
+});

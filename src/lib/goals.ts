@@ -115,6 +115,11 @@ export function planFire(
 
 /* ----------------------------------------------------------- School fees */
 
+/** The form offers 1–8; the planner enforces it so nothing else can exceed it. */
+export const MAX_FEE_YEARS = 8;
+/** Fees more than a working lifetime away are a typo, not a plan. */
+export const MAX_YEARS_AHEAD = 40;
+
 export interface FeeYear {
   year: number;
   feeKES: number;
@@ -141,6 +146,18 @@ export function planSchoolFees(
   annualFeeKES: number,
   asOf: Date = new Date()
 ): SchoolFeesPlan {
+  // Clamped HERE, not only in the form. `min` and `max` on a number input are
+  // form-validation hints; typing or pasting past them sets the value anyway.
+  // "Years of fees" then drives a loop that allocates a FeeYear and renders a
+  // table row per iteration, so a stray 1000000 built a million rows and wedged
+  // the tab hard enough that reloading the page timed out. A planner that can
+  // be hung by its own arguments is the library's problem, not the form's.
+  const years_ = Math.min(MAX_FEE_YEARS, Math.max(1, Math.floor(yearsOfFees) || 1));
+  const thisYear = asOf.getFullYear();
+  const first_ = Math.min(thisYear + MAX_YEARS_AHEAD, Math.max(thisYear, Math.floor(firstFeeYear) || thisYear));
+  yearsOfFees = years_;
+  firstFeeYear = first_;
+
   const lastFeeYear = firstFeeYear + yearsOfFees - 1;
   const horizonYears = Math.max(1, lastFeeYear - asOf.getFullYear() + 1);
   // One rung per fee year: principal should land the year the invoice does.

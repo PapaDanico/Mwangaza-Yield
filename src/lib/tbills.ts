@@ -54,8 +54,15 @@ export function computeTBill(
   const netInterestKES = grossInterestKES - whtKES;
   const netProceedsKES = costKES + netInterestKES;
 
-  const grossEAY = (Math.pow(faceValueKES / costKES, YEAR_DAYS / tenorDays) - 1) * 100;
-  const netEAY = (Math.pow(netProceedsKES / costKES, YEAR_DAYS / tenorDays) - 1) * 100;
+  // Derived from the PRICE, not the amount. A yield does not depend on how much
+  // you buy — a 91-day bill at 97.7 returns the same percentage on one shilling
+  // as on ten million — and dividing by the amount meant that clearing the
+  // amount box, which the number input invites since Number('') is 0, made
+  // costKES zero and every yield on the page 0/0. The T-bill screen rendered
+  // "NaN%" as the headline "what you actually earn" figure.
+  const netPer100 = 100 - (100 - pricePer100) * TBILL_WHT_RATE;
+  const grossEAY = (Math.pow(100 / pricePer100, YEAR_DAYS / tenorDays) - 1) * 100;
+  const netEAY = (Math.pow(netPer100 / pricePer100, YEAR_DAYS / tenorDays) - 1) * 100;
 
   return {
     tenorDays,

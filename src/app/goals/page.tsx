@@ -12,6 +12,7 @@ import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
+import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
 import { yearsLabel } from '@/lib/years-label';
 
@@ -573,6 +574,22 @@ export default function GoalsPage() {
           </div>
         </div>
       )}
+
+      {/* Every plan on this page ends in a monthly contribution, and this app
+          has no view at all on where that money comes from. Sending someone
+          away to answer that is more useful than pretending the question does
+          not exist. */}
+      <div className="mt-8">
+        <WiderView
+          wider={{
+            question: 'Can you actually free up that monthly contribution?',
+            answer:
+              'This page works out what to buy and what it pays. It knows nothing about your budget, your loans or your emergency fund — and a plan to invest monthly is worth little if a 24% loan is running alongside it. JiPange has twenty-seven calculators for exactly that side of the question.',
+            href: 'https://jipangefinance.org/',
+            label: 'Open JiPange',
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -83,8 +83,19 @@ export async function subscribePush(rules: AlertRule[]): Promise<PushState | 'de
 
   try {
     const reg = await navigator.serviceWorker.ready;
+
+    // Whether THIS call created the subscription decides what may be torn down
+    // if the registration fails. An earlier version unsubscribed either way,
+    // which quietly broke delivery for the readers most engaged with the
+    // feature: someone already subscribed who pressed the button again — after
+    // changing a rule, or because a transient error had shown the switch as
+    // off — handed us their existing subscription, and one failed POST
+    // destroyed it. The sender still held that endpoint, pushed to it the next
+    // morning, took the 410 and pruned it. Alerts simply stopped, and the only
+    // thing the reader was told was "try again shortly".
+    const existing = await reg.pushManager.getSubscription();
     const sub =
-      (await reg.pushManager.getSubscription()) ??
+      existing ??
       (await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
@@ -99,7 +110,10 @@ export async function subscribePush(rules: AlertRule[]): Promise<PushState | 'de
       rules: publicRules(rules),
     });
     if (!ok) {
-      await sub.unsubscribe().catch(() => {});
+      // Undo only what this call built. A pre-existing subscription is left
+      // alone: the sender may well still have it on file, so leaving it is
+      // recoverable and destroying it is not.
+      if (!existing) await sub.unsubscribe().catch(() => {});
       return 'failed';
     }
     return 'on';

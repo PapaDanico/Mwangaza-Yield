@@ -46,7 +46,13 @@ UA = {
     "Accept-Language": "en-KE,en;q=0.9",
 }
 TIMEOUT = 60
-MAX_PDFS = 12
+# 280 results PDFs are linked. Twelve covered three months and priced 13 of the
+# 59 outstanding bonds; most of the rest were last auctioned earlier than that.
+# 80 reaches back roughly two years at ~4s each — a few minutes in a job that
+# runs once a day, in exchange for most of the universe becoming priceable.
+# Deliberately not unbounded: coverage past a couple of years buys bonds that
+# have already matured.
+MAX_PDFS = 80
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING

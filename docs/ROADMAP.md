@@ -128,6 +128,27 @@ worse than none.
 
 ---
 
+## Done: the universe expansion — 2026-07-25
+
+`expand_universe.py` joins the securities register (which bonds exist, with exact
+identity and dates) to auction results (coupon and clearing yield). Neither source is
+sufficient alone: the register publishes no coupon, and the results do not enumerate the
+universe.
+
+**Its governing rule: a bond without a coupon rate is not added.** No coupon means no
+cash-flow schedule — so no yield, no accrued interest, no settlement cost, which is every
+number the app exists to produce. Listing such a bond would put an uncalculable row in
+front of someone, or invite a placeholder that looks real. The goal is coverage of bonds
+we can honestly price, not coverage.
+
+First run: **9 → 15 bonds**, with 44 outstanding bonds deliberately skipped and named in
+the log. Coverage is limited by how far back we read auction PDFs, not by the method —
+`MAX_PDFS` was raised from 12 to 80 (of 280 linked), which should price most of the 59.
+
+**The strongest validation of the whole pipeline:** all seven coupons that overlap our
+hand-curated figures matched exactly, including FXD1/2019/20 at 12.873% — the precise
+value predicted when decoding `1 2.873` from the split PDF text.
+
 ## Explicitly not doing
 
 - **OCR of the NSE scanned price list.** OCR confuses digits; a misread bond price is a

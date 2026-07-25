@@ -36,7 +36,14 @@ BUDGETS = [
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
     ("secondary.json", "Secondary trades", "tradeDate", 30, "NSE publishes daily"),
-    ("context.json", "Sovereign context", "asOf", 400, "annual indicators"),
+    # World Bank annual indicators are dated by VINTAGE, not by fetch date: the
+    # newest Kenya figure on 2026-07-25 is "2025", which reads as 570 days old
+    # and is nonetheless the freshest that exists. National accounts are
+    # typically published 12-24 months after their reference year, so a budget
+    # tighter than that alarms on normal behaviour — and an alarm that cries
+    # wolf is one people learn to ignore. 900 days still catches a feed that
+    # has genuinely stopped, which is the only thing worth waking someone for.
+    ("context.json", "Sovereign context", "asOf", 900, "annual data lags its reference year"),
     # The MPC meets roughly every two months, so a genuinely current history can
     # still be ~70 days old. A broken capture is caught earlier and harder by the
     # parser's own MIN_DECISIONS guard; this is the backstop for a capture that

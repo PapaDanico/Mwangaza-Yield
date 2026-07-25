@@ -108,7 +108,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 11
+PARSER_VERSION = 12
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -118,7 +118,31 @@ RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 SECTION_B_RE = re.compile(r"\bFORTHCOMING\b|^\s*B\.\s", re.I)
 # Issue codes appear as FXD1-2021-005 in filenames and FXD1/2021/5 in the page.
 # The tenor may carry a fraction: CBK issued IFB1/2023/6.5 and IFB1/2024/8.5.
-ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3}(?:\.\d)?)\b", re.I)
+#
+# NOT `\b`, and this is the THIRD time that distinction has cost this project
+# real data. `_` is a WORD character, so `\b` does not fire between it and a
+# letter — and CBK prefixes almost every filename with an upload id and an
+# underscore:
+#
+#     2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf
+#                ^ no word boundary here, so the FIRST bond was invisible
+#
+# The consequence was quiet and specific. `codes_in_name` feeds `find_header`
+# the codes it should expect to find, so on every "A AND B" filename the hint
+# named only B. For 27-03-2017 that left the parser looking for one bond in a
+# two-bond table; it settled on a single-column header and recorded the
+# unlabelled auction total, 64,248.40, as FXD3/2013/005's bids. The bond that
+# should have carried 31,331.63 was dropped entirely.
+#
+# Measured before changing: across every filename in the archive this gains 21
+# issue codes and loses none.
+#
+# The same guard replaces the trailing `\b` for symmetry — a code followed by an
+# underscore has the identical problem, and "RE-OPEN_FXD1-2013-10__FXD2-2013-15"
+# is a real filename in this archive that hits both ends at once.
+ISSUE_RE = re.compile(
+    r"(?<![A-Za-z0-9])((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?"
+    r"(\d{1,3}(?:\.\d)?)(?![A-Za-z0-9])", re.I)
 # CBK dates its result files four different ways across the archive:
 #   DATED 15-11-2021 · DATED 21.09.2020 · DATED 19-7-2021 · DD 24.01.2022
 # The first version of this pattern accepted only DD-MM-YYYY, which left 23 of

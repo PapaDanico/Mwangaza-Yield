@@ -606,6 +606,37 @@ def main():
           codes_in_name("SWITCH RESULTS FXD1-2012-020 DATED 15-07-2026.pdf"),
           ["FXD1/2012/020"])
 
+    # `_` is a WORD character, so `\b` never fires between it and a letter, and
+    # CBK prefixes almost every filename with an upload id and an underscore.
+    # The first bond of every "A AND B" filename was therefore invisible to this
+    # function, which is what feeds `find_header` the codes it should expect.
+    #
+    # The damage was specific rather than general: on 27-03-2017 the hint named
+    # only the second bond, so the parser looked for one bond in a two-bond
+    # table, settled on a single-column header, and recorded the unlabelled
+    # auction total 64,248.40 as FXD3/2013/005's bids. The bond that should have
+    # carried 31,331.63 was dropped. Across the whole archive the guard recovers
+    # 21 issue codes and loses none.
+    #
+    # This is the THIRD time this project has been bitten by `_` being a word
+    # character — the date pattern first, then TAPSALE, now here.
+    check("an upload id and underscore do not hide the first bond",
+          codes_in_name("2010223716_FXD2-2014-5 AND FXD3-2013-5 DATED 27-03-2017.pdf"),
+          ["FXD2/2014/005", "FXD3/2013/005"])
+    check("nor on the file that made this visible",
+          codes_in_name("1394544047_FXD3-2008-10 AND FXD1-2009-10 DATED 24.04.2017.pdf"),
+          ["FXD3/2008/010", "FXD1/2009/010"])
+    # Underscores on BOTH sides of a code, which is a real filename here.
+    check("underscores after a code hide it just as well",
+          codes_in_name("RE-OPEN_FXD1-2013-10__FXD2-2013-15_DATED_21_03_2016.pdf"),
+          ["FXD1/2013/010", "FXD2/2013/015"])
+    # The guard must still refuse a code welded to a longer token, which is the
+    # whole reason a boundary was there in the first place.
+    check("a code running into letters is still refused",
+          codes_in_name("XFXD1-2019-020 DATED 27-07-2026.pdf"), [])
+    check("and a tenor running into more digits is still refused",
+          codes_in_name("RESULTS FXD1-2019-0201 DATED 27-07-2026.pdf"), [])
+
     print("section B must never be read as results")
     # These PDFs carry "A." the auction just held and "B. FORTHCOMING TREASURY
     # BOND(S) ISSUE(S)" naming NEXT month's bonds. The second dry-run proved we

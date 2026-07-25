@@ -114,18 +114,6 @@ jobs:
           AUCTION_TIME_BUDGET: 90
           AUCTION_MAX_FILES: 25
         run: python auction_results.py || echo "auction parser failed — see output above"
-      # About one file in ten from 2020-2023 parses to nothing. Three very
-      # different causes are possible — a scan with no text layer (which the
-      # no-OCR policy would settle), a header the parser looks for along the
-      # wrong axis, or a code spelling one regex away. This prints enough to
-      # tell them apart instead of guessing, the same look-before-building step
-      # that turned the MPC table into eighteen years of rate history.
-      - name: Probe why multi-bond auctions yield only one bond's figures
-        if: ${{ !inputs.test_alert }}
-        timeout-minutes: 4
-        working-directory: backend/scrapers
-        run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
-
       - name: Probe whether undated auctions carry their date in the document
         if: ${{ !inputs.test_alert }}
         timeout-minutes: 5
@@ -153,6 +141,25 @@ jobs:
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
         run: python nse_parser.py || echo "NSE parser failed — see output above"
+      # About one file in ten from 2020-2023 parses to nothing. Three very
+      # different causes are possible — a scan with no text layer (which the
+      # no-OCR policy would settle), a header the parser looks for along the
+      # wrong axis, or a code spelling one regex away. This prints enough to
+      # tell them apart instead of guessing, the same look-before-building step
+      # that turned the MPC table into eighteen years of rate history.
+      #
+      # MOVED TO LAST, and the reason is mundane and cost me an afternoon. This
+      # job's log is read through an API that returns the TAIL. Running first
+      # among nine probes put this one's output permanently out of reach: three
+      # separate fetches, each pulling more lines, never got back far enough,
+      # while the probes that matter less were read every time. A diagnostic
+      # nobody can retrieve is not a diagnostic.
+      - name: Probe why multi-bond auctions yield only one bond's figures
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 4
+        working-directory: backend/scrapers
+        run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
+
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py

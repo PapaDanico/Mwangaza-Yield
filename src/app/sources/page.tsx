@@ -35,8 +35,8 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     name: 'World Bank Open Data',
     url: 'https://data.worldbank.org/country/kenya',
     status: 'live',
-    used: 'GDP growth, reserves, external position — and the public debt figures: debt to GDP, interest to revenue, external debt to GNI, debt service to exports',
-    why: 'Free, keyless, versioned JSON API under CC BY 4.0 — the only major source on our list we may lawfully redistribute. Its debt series are authoritative but compiled from national submissions, so they lag by a year or more.',
+    used: 'GDP growth, reserves (import cover), exports as a share of GDP, and the current account balance. Four figures — not the debt ones.',
+    why: 'Free, keyless, versioned JSON API under CC BY 4.0 — the only major source on our list we may lawfully redistribute. This entry used to claim we also took public debt figures from here: debt to GDP, interest to revenue, external debt to GNI, debt service to exports. We ask the API for all four and it returns no observation for Kenya against any of them, so the app has never shown one. The scraper is right to skip what does not exist; the claim was wrong to stay on this page. Kenya’s debt numbers are published — the Treasury’s own bulletins and the Controller of Budget carry them — but we do not yet read a source that serves them in a form software can parse, so we show none.',
   },
   {
     name: 'National Treasury',

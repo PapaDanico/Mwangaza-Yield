@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import type { Bond } from '@/types/bond';
 import { useBondStore } from '@/stores/bondStore';
-import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
+import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 
@@ -29,7 +30,30 @@ export default function CalculatorPage() {
   const [amount, setAmount] = useState(1_000_000);
   const [price, setPrice] = useState(100);
 
-  const bond = bonds.find((b) => b.isin === isin) ?? bonds[0];
+  // bonds.json is ordered by maturity, so bonds[0] is whatever redeems SOONEST
+  // — and defaulting to it meant every first-time visitor landed on the least
+  // representative bond in the set. On one live dataset that was a bond 23 days
+  // from redemption: its "yearly return" is dominated by an imminent repayment
+  // rather than by its coupon, and nudging the price slider swung the answer
+  // from 10.83% to 45.75% because a small discount over three weeks annualises
+  // enormously. All correct arithmetic, and a terrible first impression of what
+  // the tool does.
+  //
+  // Default instead to the best net yield with at least a year to run, which is
+  // both representative and the number this app exists to surface.
+  const defaultBond = useMemo(() => {
+    const aYearOut = new Date();
+    aYearOut.setFullYear(aYearOut.getFullYear() + 1);
+    const longEnough = bonds.filter((b) => new Date(b.maturityDate) > aYearOut);
+    const pool = longEnough.length ? longEnough : bonds;
+    return pool.reduce<Bond | undefined>((best, b) => {
+      const net = computeBondInvestment(b, 100_000, 100).netYTM;
+      const bestNet = best ? computeBondInvestment(best, 100_000, 100).netYTM : -Infinity;
+      return net > bestNet ? b : best;
+    }, undefined);
+  }, [bonds]);
+
+  const bond = bonds.find((b) => b.isin === isin) ?? defaultBond;
   const lastTrade = secondary.find((t) => t.isin === bond?.isin);
 
   const result = useMemo(
@@ -38,6 +62,9 @@ export default function CalculatorPage() {
   );
 
   if (!bond) return <DataState />;
+
+  // Never print the solver's own ceiling as though it were measured.
+  const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
 
   const inputCls =
     'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
@@ -151,9 +178,9 @@ export default function CalculatorPage() {
                 Tax {formatPct(result.whtRate * 100, 0)}
               </span>
             </div>
-            <Row label="What you actually earn" value={formatPct(result.netYTM)} accent
+            <Row label="What you actually earn" value={pct(result.netYTM)} accent
               hint="Your yearly return after tax, if you hold this bond to the end. This is the number to compare against anything else." />
-            <Row label="Before tax" value={formatPct(result.grossYTM)}
+            <Row label="Before tax" value={pct(result.grossYTM)}
               hint="The figure most places quote. It is not what you keep." />
             <Row label="Lost to tax" value={`${(result.taxDragBps / 100).toFixed(2)} pp`}
               hint="The gap between the two figures above. Infrastructure bonds have none." />

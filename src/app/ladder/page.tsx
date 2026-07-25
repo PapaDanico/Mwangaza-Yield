@@ -81,7 +81,15 @@ export default function LadderPage() {
         )}
       </div>
 
-      <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr]">
+      {/* min-w-0 on the items is what makes the inner overflow-x-auto containers
+          work. A grid item defaults to min-width:auto, so it refuses to shrink
+          below its content's min-content — here a results table (499px) and the
+          payout chart (538px). The column therefore sized to 538px inside a
+          420px viewport and the WHOLE PAGE scrolled sideways, dragging the form
+          card, the amount input and both sliders off-screen with it. The
+          scroll containers were already there; they just never got the chance
+          to engage. 194px of overflow at 360px, on a phone-first app. */}
+      <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr] [&>*]:min-w-0">
         <div className="card h-fit space-y-4">
           <div>
             <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (KES)</label>
@@ -132,7 +140,14 @@ export default function LadderPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-3 gap-3">
+              {/* Three across only once there is room. Forced to grid-cols-3 at
+                  every width, the three figures' min-content (~538px, monospace
+                  and unbreakable) set the width of the single grid column this
+                  shares with the form above — so the amount input and both
+                  sliders were dragged off-screen too. The page overflowed by
+                  134px at 420 and 194px at 360, on an app whose readers are on
+                  phones. min-w-0 lets each card shrink rather than push. */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 [&>*]:min-w-0">
                 <div className="card p-4">
                   <p className="text-xs text-ink-muted">Blended net yield</p>
                   <p className="num mt-1 text-lg font-bold text-gold-700">{formatPct(plan.blendedNetYTM)}</p>

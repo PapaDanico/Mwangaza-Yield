@@ -39,6 +39,7 @@ from urllib.parse import unquote
 from auction_results import PARSER_VERSION
 
 ARCHIVE = Path(__file__).resolve().parents[2] / "public" / "data" / "auction-results.json"
+FORTHCOMING = Path(__file__).resolve().parents[2] / "public" / "data" / "auctions.json"
 
 # How close two figures must be to call one the sum of the others. CBK rounds to
 # two decimals, and a three-bond sum can drift a cent.
@@ -238,12 +239,84 @@ def filename_names_a_bond_we_lost(records: list) -> list:
     return out
 
 
+def forthcoming_disagrees_with_archive(records: list) -> list:
+    """auctions.json says one thing about an auction; the archive says another.
+
+    The forthcoming-auction feed is the only dataset here that nothing checked,
+    and it is hand-maintained while everything around it is machine-parsed. Both
+    of the figures it carries are rendered on /auctions/ — `amountOfferedKES` as
+    "Amount offered", `bondName` as the subtitle — so an error in it is a wrong
+    number in front of a reader, not an internal untidiness.
+
+    It had drifted, and not subtly:
+
+        switch 15-07-2026   said KES 754M offered   archive: 10,000M
+                            said 754M accepted      archive:  7,954.71M
+
+    An order of magnitude, and the "754" looks like 7,954.71 with digits lost.
+    The three-way on 13-07-2026 claimed 63.28B accepted where the three legs sum
+    to 70.60B.
+
+    Only `amountOfferedKES` is checked, because it is the one figure both files
+    hold in a comparable form. It is compared against the archive's
+    `amountOfferedKESM` for the same auction date, which is stored per auction
+    rather than per bond — so every leg carries the same value and any one of
+    them settles it.
+
+    Skipped where the archive has nothing for that date: a genuinely forthcoming
+    auction has not been read yet, and absence there is expected rather than
+    suspicious. Gating on it would fail the build for the feed doing its job.
+    """
+    try:
+        feed = json.loads(FORTHCOMING.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"auctions.json unreadable: {exc.__class__.__name__}: {exc}"]
+
+    offered_by_date = collections.defaultdict(set)
+    for r in records:
+        if r.get("auctionDate") and r.get("amountOfferedKESM"):
+            offered_by_date[r["auctionDate"]].add(round(r["amountOfferedKESM"], 2))
+
+    out = []
+    for entry in feed:
+        claimed = entry.get("amountOfferedKES")
+        if not claimed:
+            continue
+        # Try BOTH dates, and require only that ONE of them lines up.
+        #
+        # The first draft keyed on settlementDate alone, reasoning that the
+        # archive stores the value date and the feed calls that settlement. It
+        # is true of the ordinary auctions and false often enough to matter: a
+        # SWITCH is dated from the day it is held, so the feed's auctionDate is
+        # what the archive holds. Keying on one field reported a real auction as
+        # wrong because its settlement date happened to be the value date of a
+        # DIFFERENT auction — the tap sale a week later, offering 15bn against
+        # the 40bn this entry describes.
+        #
+        # A check whose first finding is its own false positive teaches the
+        # reader to skip it. So this asks the weaker, true question: does the
+        # offered amount agree with the archive on EITHER of the dates this
+        # entry claims? A mismatch then means the figure is wrong, not that the
+        # calendar convention differs.
+        candidates = [entry.get("auctionDate"), entry.get("settlementDate")]
+        archived = {v for d in candidates if d for v in offered_by_date.get(d, ())}
+        if not archived:
+            continue
+        if round(claimed / 1_000_000, 2) not in archived:
+            out.append(
+                f"{entry.get('id')}: says {claimed / 1e9:,.2f}B offered, archive has "
+                f"{sorted(f'{v / 1000:,.2f}B' for v in archived)} on "
+                f"{[d for d in candidates if d]}")
+    return out
+
+
 CHECKS = [
     ("one bond holding the sum of the others", sum_identity),
     ("accepted exceeding bids received", accepted_within_bids),
     ("a row label carrying its own figure", label_kept_its_value),
     ("a duplicated (issue code, value date)", duplicate_keys),
     ("an implausible bid-to-cover", implausible_cover),
+    ("auctions.json disagreeing with the archive", forthcoming_disagrees_with_archive),
 ]
 
 

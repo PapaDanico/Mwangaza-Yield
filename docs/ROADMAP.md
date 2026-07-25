@@ -20,39 +20,33 @@ rate history in an afternoon. See `DATA-SOURCES.md` §10.
 
 These affect whether the numbers can be relied on. Nothing else matters more.
 
-### 1. Exact coupon dates from prospectuses
-**Problem.** Coupon dates are computed by adding months to the issue date. Real CBK
-coupon dates follow business-day conventions and shift for weekends and holidays. Every
-"next coupon date", the cash-flow calendar and the .ics exports inherit that
-approximation.
-**NOT ACTUALLY BLOCKED — the probe was reading the wrong documents (found 2026-07-25).**
-`discover_prospectus.py` selected PDFs whose NAME contains an issue code. Results files
-are named for their issues too, so all 506 files it inspected were auction RESULTS —
-documents that report what an auction cleared at and have no reason to state a coupon
-schedule. It reported "COUPON DATES: not found" and this item was marked blocked on that.
+### 1 & 2. Exact coupon dates and the day-count convention — SOLVED 2026-07-25
 
-Same shape as the `/securities/` path that answered 200 while serving a 2016 archive: a
-confident answer to a question never asked. The probe now selects on the upload PATH, and
-says plainly when a listing carries no prospectus-path PDFs rather than settling for
-whatever else is there.
-**Next.** Read the corrected probe's output: it reports how many issue-coded PDFs sit on
-a prospectus path versus the results path, and lists the upload segments actually
-present. That names the route instead of inferring it.
-**Done when.** A bond with a published schedule shows prospectus dates, and the UI
-distinguishes exact from estimated.
+Both were answered by the data we already ship, not by the prospectuses two probes
+had been hunting through.
 
-### 2. Day-count convention verified
-**Problem.** Accrued interest uses Actual/365 by assumption. The exact convention is
-stated in the prospectus and changes every settlement figure.
-**Evidence retracted 2026-07-25.** The "not stated in the prospectus" half of this rests
-on the same broken probe — no prospectus was ever read. Only the CBK Auction Rules &
-Guidelines finding survives, and that document genuinely does not state a day count.
-**To unblock.** Stop hunting for a statement and test the behaviour: take one
-CBK-published settlement amount for a known bond and date, and see which convention
-reproduces it. The verification criterion becomes the method.
-**Done when.** A hand-checked accrued-interest figure matches CBK's own for the same
-settlement date.
+Kenyan government securities run on a **364-day year**, and the evidence is
+unambiguous: bills are sold for 91, 182 and 364 days; every one of the 58 listed
+bonds is issued AND redeemed on a Monday; and the gap between the two is always an
+exact multiple of **182 days** — a ten-year bond runs 3,640 days, not 3,652, with no
+stub anywhere in the set.
 
+So the coupon period is 182 days and the year is 364. The two must agree, and only
+these do: a full period accrues 182/364 of the annual coupon, exactly the half-coupon
+that is paid. Under Actual/365 the day before payment you have accrued 49.86% of the
+annual coupon and the missing 0.14% appears from nowhere.
+
+**What it cost while wrong.** The schedule stepped six CALENDAR months, drifting up to
+37 days by the end of a thirty-year bond. `FXD2/2018/20` had its last coupon placed on
+a **Friday** — impossible for these bonds — missing the real Monday coupon entirely and
+claiming 176 days of accrual where 5 had run: KES 61,836 overstated per million.
+Mean error across all 58 bonds was KES 7,923 per million.
+
+A suite now checks the engine against every listed bond rather than against fixtures
+that agree with it by construction. If CBK ever issues a bond with a genuine stub
+period, it fails loudly instead of quietly answering wrong.
+
+---
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.
@@ -69,9 +63,15 @@ why we cannot fill it in for them.
 
 ## Next — features that compound
 
-### 6. Goal progress over time
-Saved plans are a snapshot. Storing a monthly progress point would turn Goals into
-something people open to watch a number move, which is what makes a tool a habit.
+### 6. Goal progress over time — SHIPPED 2026-07-25
+Plans carry checkpoints: one date, one figure. They report what the plan projected for
+that date, the gap either way, share of target funded, and — once two readings sit two
+months apart — the contribution rate actually being paid in, with a re-forecast on that
+pace rather than the promised one.
+
+Measured against the same cautious curve the plan is drawn with, so the two cannot
+diverge. That mattered: FIRE previously compounded the single best yield on the board,
+against which a disciplined saver would have read "Behind plan" forever.
 
 ### 7. Sovereign context expansion — CBK Weekly Bulletin CONFIRMED usable
 Probed 2026-07-25: the bulletin PDFs carry a real text layer (915 chars on page 1) and
@@ -161,6 +161,46 @@ path that explains it: ten cuts from 13.00%, now held twice.
 Deliberately anchored to the **current cycle**, not the 2011 record high — comparing
 today against 18.00% would present a 9.25-point easing that never happened as one move.
 This is the kind of detail that makes a chart either informative or quietly misleading.
+
+---
+
+## Revenue — decided 2026-07-25
+
+Three constraints, agreed before any of this is built. They are constraints, not
+preferences: each one closes off an easier path deliberately.
+
+**The free tier keeps its promise, word for word.** The landing page says "No account,
+no sign-up, no e-mail. What you hold stays on your phone and is never sent to us." That
+sentence stays true for everyone who does not opt in. It is the differentiator against
+every bank and broker app, and it is worth more than the revenue any change to it would
+raise.
+
+**Web push before SMS.** Same auction and coupon reminders, no phone number, no account,
+no PII beyond an opaque endpoint — so the promise survives nearly intact, the Data
+Protection Act surface shrinks to almost nothing, and per-message cost is zero rather
+than Twilio rates. Weaker reach, and iOS needs the PWA installed. It validates "does
+anyone want reminders" for a fraction of the build; SMS becomes an upgrade we are
+confident in rather than a bet.
+
+**No NSE licence yet**, so the swap calculator and the secondary-market
+discount/premium monitor are OUT of Phase 1. Both need live clean and dirty prices we
+are not permitted to hold. They can only run on user-entered prices, which the
+calculator already does. See item 3.
+
+### Phase 1 — alerts (web push)
+The only genuinely new Pro feature. iCal export, PDF reports and the YTM solver already
+ship free on `/ladder/`, `/portfolio/`, `/auctions/` and `/calculator/`; paywalling
+what users already have is the most expensive change available and is not the plan.
+
+Server-side scope is deliberately tiny: scheduling and delivery only. The calculation
+engine stays client-side and deterministic, which also keeps the CMA line clean — no
+advice, no funds flow.
+
+### Ahead of it commercially: the auction archive
+350 parsed records across 125 issue codes, 2014 to today, that nobody else has because
+nobody else did the PDF work. Licensing it needs no accounts, no PII, no payment UX and
+no change to the consumer promise — the one revenue path with zero product tension. It
+is also already built.
 
 ---
 

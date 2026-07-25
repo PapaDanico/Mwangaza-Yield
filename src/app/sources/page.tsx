@@ -48,8 +48,8 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     name: 'Nairobi Securities Exchange',
     url: 'https://www.nse.co.ke/',
     status: 'reference',
-    used: 'Secondary market prices (free daily list only)',
-    why: 'Bulk end-of-day data requires a commercial licence. We use only the free daily publication and link to the NSE for the rest.',
+    used: 'Linked only — the free daily list is a scanned image',
+    why: 'Verified July 2026: the Daily Bond Price List is published as scanned images with no text layer, so it cannot be read by software. We will not OCR it — a misread digit in a bond price is a wrong number stated with full confidence. Bulk machine-readable data requires a commercial licence.',
   },
   {
     name: 'IMF — Kenya country page',

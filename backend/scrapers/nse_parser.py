@@ -87,16 +87,37 @@ def parse_rows(pdf_bytes: bytes) -> list:
     return trades
 
 
+def has_text_layer(pdf_bytes: bytes) -> bool:
+    with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+        return any(page.chars for page in pdf.pages)
+
+
 def main() -> None:
     url = find_price_list_url()
     print(f"[nse] price list: {url}", file=sys.stderr)
     resp = requests.get(url, headers=UA, timeout=TIMEOUT)
     resp.raise_for_status()
 
+    if not has_text_layer(resp.content):
+        # Verified 2026-07-25: NSE publishes this as scanned images (0 chars,
+        # 1 full-page image per page). No parser can read it, and we will not
+        # OCR it — OCR confuses digits, and a misread bond price is a wrong
+        # number shown with full confidence to someone investing their savings.
+        #
+        # Exit 0 rather than failing: a known, permanent limitation should not
+        # raise a daily alert and train people to ignore alerts. The check
+        # stays in place so that if NSE ever ships a text-layer PDF, this
+        # scraper starts working on its own and we find out immediately.
+        print("[nse] SKIPPED — price list is a scanned image, not machine-readable.",
+              file=sys.stderr)
+        print("[nse] Existing secondary.json left untouched. See docs/DATA-SOURCES.md.",
+              file=sys.stderr)
+        return
+
+    print("[nse] text layer detected — NSE may have changed format, parsing.", file=sys.stderr)
     rows = parse_rows(resp.content)
     if not rows:
-        # Fail loudly with evidence rather than silently emitting nothing.
-        print("[nse] no rows matched — first page text follows for diagnosis:", file=sys.stderr)
+        print("[nse] text present but no rows matched — first page follows:", file=sys.stderr)
         with pdfplumber.open(BytesIO(resp.content)) as pdf:
             print((pdf.pages[0].extract_text() or "")[:1500], file=sys.stderr)
 

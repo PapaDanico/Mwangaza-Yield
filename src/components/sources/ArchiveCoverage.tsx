@@ -76,6 +76,18 @@ export default function ArchiveCoverage() {
           version of the parser and are being re-read at version{' '}
           <span className="num">{newest}</span> as each source PDF is next fetched. The percentages
           here are therefore a floor: a re-read can fill a field, never empty one.
+          {quality.atNewest && (
+            <>
+              {' '}
+              How much of a floor is measurable rather than a matter of trust — of the{' '}
+              <span className="num">{quality.atNewest.records.toLocaleString()}</span> rows the
+              current parser has already read,{' '}
+              <span className="num">{quality.atNewest.complete.toLocaleString()}</span> are complete
+              on all six fields, or <span className="num">{quality.atNewest.pct}%</span>. The
+              difference between that and the figure below is unfinished work, not unreadable
+              documents.
+            </>
+          )}
         </p>
       )}
 

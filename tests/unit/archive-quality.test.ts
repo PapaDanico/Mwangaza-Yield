@@ -104,6 +104,28 @@ describe('assessArchive', () => {
     expect(q.stale).toBe(1);
   });
 
+  it('reports how the NEWEST parser is doing, separately from the archive', () => {
+    // Mid-rebuild the archive-wide figure describes a half-finished job, not the
+    // parser. Both numbers are needed: one alone understates the dataset, the
+    // other alone overstates it.
+    const mixed = [
+      { ...rec({ id: 'a' }), parserVersion: 8, amountAcceptedKESM: undefined },
+      { ...rec({ id: 'b' }), parserVersion: 9 },
+      { ...rec({ id: 'c' }), parserVersion: 9 },
+      { ...rec({ id: 'd' }), parserVersion: 9, bidsReceivedKESM: undefined },
+    ] as unknown as AuctionPrint[];
+    const q = assessArchive(mixed);
+    expect(q.completePct).toBe(50); // two of four, archive-wide
+    expect(q.atNewest).toEqual({ records: 3, complete: 2, pct: 67 });
+  });
+
+  it('has no newest-parser figure when nothing carries a version', () => {
+    // Rows predating version stamping are not a rebuild, so there is no
+    // "current parser" subset to report and claiming one would be invention.
+    expect(assessArchive(sample).atNewest).toBeNull();
+    expect(assessArchive([]).atNewest).toBeNull();
+  });
+
   it('reports nothing stale when every row came from the same parser', () => {
     const uniform = [
       { ...rec({ id: 'x' }), parserVersion: 6 },

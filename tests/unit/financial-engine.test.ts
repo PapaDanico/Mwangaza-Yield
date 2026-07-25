@@ -27,7 +27,12 @@ const fxd10: Bond = {
 };
 
 const ifb: Bond = { ...fxd10, issueCode: 'IFB1/2023/17', category: 'IFB', tenorYears: 17, taxExempt: true, couponRate: 14.399, ytmGross: 17.9 };
-const fxd5: Bond = { ...fxd10, issueCode: 'FXD1/2024/5', tenorYears: 5, maturityDate: '2029-02-12' };
+// Five years is TEN coupon periods of 182 days, so a bond issued 12 Feb 2024
+// matures 5 Feb 2029 — not 12 Feb 2029. The calendar-anniversary date this
+// fixture used before is one no Kenyan bond can have: it is 1,827 days out,
+// which is not a whole number of periods, so it would land the final coupon
+// off the Monday grid every issue in the real dataset sits on.
+const fxd5: Bond = { ...fxd10, issueCode: 'FXD1/2024/5', tenorYears: 5, maturityDate: '2029-02-05' };
 
 describe('determineWHTRate', () => {
   it('IFB exempt', () => expect(determineWHTRate(ifb)).toBe(0));
@@ -37,15 +42,24 @@ describe('determineWHTRate', () => {
 
 describe('coupon dates', () => {
   it('semi-annual schedule ends at maturity', () => {
-    const dates = getCouponDates(new Date('2024-02-12'), new Date('2029-02-12'), 2);
+    const dates = getCouponDates(new Date('2024-02-12'), new Date('2029-02-05'), 2);
     expect(dates.length).toBe(10);
     expect(dates[0].toISOString().slice(0, 10)).toBe('2024-08-12');
-    expect(dates[dates.length - 1].toISOString().slice(0, 10)).toBe('2029-02-12');
+    expect(dates[dates.length - 1].toISOString().slice(0, 10)).toBe('2029-02-05');
+  });
+  it('every date is a Monday, 182 days apart', () => {
+    // Not decoration: this is the property the whole schedule rests on. Every
+    // bond in the live dataset is issued and redeemed on a Monday, and the gap
+    // between the two is always a whole multiple of 182 days.
+    const dates = getCouponDates(new Date('2024-02-12'), new Date('2029-02-05'), 2);
+    expect(dates.every((d) => d.getUTCDay() === 1)).toBe(true);
+    const gaps = dates.slice(1).map((d, i) => (d.getTime() - dates[i].getTime()) / 86_400_000);
+    expect(new Set(gaps)).toEqual(new Set([182]));
   });
   it('last/next around settlement', () => {
     const settle = new Date('2025-03-01');
-    expect(getLastCouponDate(fxd5, settle).toISOString().slice(0, 10)).toBe('2025-02-12');
-    expect(getNextCouponDate(fxd5, settle)!.toISOString().slice(0, 10)).toBe('2025-08-12');
+    expect(getLastCouponDate(fxd5, settle).toISOString().slice(0, 10)).toBe('2025-02-10');
+    expect(getNextCouponDate(fxd5, settle)!.toISOString().slice(0, 10)).toBe('2025-08-11');
   });
   it('before first coupon, last = issue date', () => {
     const settle = new Date('2024-05-01');
@@ -53,13 +67,21 @@ describe('coupon dates', () => {
   });
 });
 
-describe('accrued interest (Act/365)', () => {
+describe('accrued interest (Act/364)', () => {
   it('zero on coupon date', () => {
-    expect(calculateAccruedInterest(fxd5, new Date('2025-02-12'))).toBeCloseTo(0, 8);
+    expect(calculateAccruedInterest(fxd5, new Date('2025-02-10'))).toBeCloseTo(0, 8);
   });
   it('30 days accrual', () => {
-    // 16% * 30/365 = 1.3151 per 100
-    expect(calculateAccruedInterest(fxd5, new Date('2025-03-14'))).toBeCloseTo((16 * 30) / 365, 4);
+    // 16% * 30/364 = 1.3187 per 100
+    expect(calculateAccruedInterest(fxd5, new Date('2025-03-12'))).toBeCloseTo((16 * 30) / 364, 4);
+  });
+  it('a full period accrues exactly the half-coupon that gets paid', () => {
+    // The reason the year has to be 364 rather than 365. On the day the coupon
+    // falls due the holder has accrued 182/364 = half the annual coupon, which
+    // is precisely the cheque. Under Act/365 they would have accrued 49.86% of
+    // it and the missing 0.14% would appear from nowhere on payment day.
+    const dayBefore = calculateAccruedInterest(fxd5, new Date('2025-08-10'));
+    expect(dayBefore + fxd5.couponRate / 364).toBeCloseTo(fxd5.couponRate / 2, 10);
   });
 });
 

@@ -46,8 +46,8 @@ export default function DisclaimerPage() {
 
       <h2>Limits of our calculations</h2>
       <ul>
-        <li>Coupon dates are estimated from issue schedules and are not adjusted for weekends, public holidays or business-day conventions.</li>
-        <li>Accrued interest uses an Actual/365 convention; confirm the exact basis in the prospectus.</li>
+        <li>Coupon dates run in exact 182-day steps from the issue date, which places every one on a Monday. They are not further adjusted for public holidays, so a payment CBK moves to the next working day will show here on the holiday itself.</li>
+        <li>Accrued interest uses an Actual/364 convention, matching the 182-day coupon period. Verify against the prospectus for any bond whose schedule looks irregular.</li>
         <li>Yields without a published auction print are estimates from the prevailing curve.</li>
         <li>Projections assume rates hold and coupons are reinvested. Neither is guaranteed.</li>
         <li>Fees, levies and bank charges applicable to your own account are not modelled.</li>

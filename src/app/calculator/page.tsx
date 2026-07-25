@@ -210,12 +210,13 @@ export default function CalculatorPage() {
             <Row label="Yearly income as a % of your outlay" value={formatPct(result.currentYieldNet)}
               hint="Income only — it ignores any gain or loss when the bond is repaid." />
             <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
-              hint="Estimated by adding six months to the issue date; CBK shifts payments off weekends and holidays." />
+              hint="Every 182 days from the issue date, which is why these always fall on a Monday." />
             <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
-              Accrued interest uses Actual/365. Yields are solved from your price on the remaining
-              cash-flow schedule; net YTM taxes coupons at the WHT rate (principal redemption is
-              untaxed). Coupon dates are estimated from the issue schedule — confirm exact dates in
-              the prospectus.
+              Accrued interest uses Actual/364, and coupon dates run in exact 182-day steps from
+              issue — the basis Kenyan government bonds are built on, which is why a ten-year bond
+              runs 3,640 days and every payment lands on a Monday. Yields are solved from your
+              price on the remaining cash-flow schedule; net YTM taxes coupons at the WHT rate
+              (principal redemption is untaxed).
             </p>
           </div>
         )}

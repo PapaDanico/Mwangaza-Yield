@@ -90,7 +90,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 5
+PARSER_VERSION = 6
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -108,7 +108,11 @@ ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{
 # history, and a latent bug besides: the deduplication key is
 # (issue code, auction date), so two undated auctions of the SAME bond would
 # have silently collapsed into one. That had not happened yet. It would have.
-DATE_IN_NAME_RE = re.compile(r"\b(\d{1,2})[-.](\d{1,2})[-.](\d{2,4})\b")
+# Anchored on DIGIT boundaries, not word boundaries. `_` is a word
+# character, so \b is silent beside it and DATED_21_03_2016 never matched
+# however many separators the class accepted — widening [-.] to [-._]
+# alone gained nothing, which is what sent us looking at the anchors.
+DATE_IN_NAME_RE = re.compile(r"(?<!\d)(\d{1,2})[-._](\d{1,2})[-._](\d{2,4})(?!\d)")
 
 # Rows we care about, and how to recognise them whatever CBK's wording that year.
 FIELDS = [

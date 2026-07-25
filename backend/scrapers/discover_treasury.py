@@ -107,6 +107,39 @@ TARGETS = [
          "government securities", "total debt"],
     ),
     (
+        # Parliament's own budget office. Independent of the executive, which
+        # matters here: the PBO exists to give legislators an unfiltered read
+        # on the fiscal position, so its debt analysis is written to be argued
+        # with rather than to reassure. Its Budget Watch and budget options
+        # papers carry debt stock, debt service and sustainability commentary.
+        "Parliamentary Budget Office — fiscal and debt analysis",
+        [
+            "http://www.parliament.go.ke/the-national-assembly/parliamentary-budget-office",
+            "https://www.parliament.go.ke/the-national-assembly/parliamentary-budget-office",
+            "http://www.parliament.go.ke/index.php/the-national-assembly/parliamentary-budget-office",
+            "https://www.parliament.go.ke/publications",
+        ],
+        re.compile(r"budget\s*watch|budget\s*options|pbo|debt|fiscal|unpacking", re.I),
+        ["public debt", "debt service", "debt sustainability", "domestic debt",
+         "external debt", "debt stock", "interest payment"],
+    ),
+    (
+        # The Controller of Budget authorises every withdrawal from the
+        # Consolidated Fund and reports quarterly on what was actually spent.
+        # Its Budget Implementation Review Reports therefore carry debt service
+        # as an OUTTURN rather than a projection — what was really paid, not
+        # what was budgeted, which is the harder number to find anywhere else.
+        "Controller of Budget — budget implementation (debt service outturn)",
+        [
+            "https://cob.go.ke/reports/national-government-budget-implementation-review-reports/",
+            "https://cob.go.ke/reports/",
+            "https://cob.go.ke/",
+        ],
+        re.compile(r"implementation|birr|report|debt|annual|quarter", re.I),
+        ["public debt", "debt service", "domestic debt", "external debt",
+         "consolidated fund", "interest payment"],
+    ),
+    (
         "KNBS — CPI / inflation",
         [
             "https://www.knbs.or.ke/",

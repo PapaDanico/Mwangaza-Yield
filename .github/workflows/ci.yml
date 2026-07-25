@@ -51,6 +51,10 @@ jobs:
       - name: Discover NSE downloadable files
         working-directory: backend/scrapers
         run: python discover_nse.py
+      - name: Dry-run the NSE parser
+        if: ${{ !inputs.validate_only }}
+        working-directory: backend/scrapers
+        run: python nse_parser.py || echo "NSE parser failed — see output above"
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py
@@ -86,8 +90,6 @@ jobs:
         if: ${{ !inputs.test_alert }}
         id: nse
         working-directory: backend/scrapers
-        env:
-          NSE_DAILY_TRADE_URL: ${{ vars.NSE_DAILY_TRADE_URL }}
         run: python nse_parser.py || echo "failed=nse" >> "$GITHUB_OUTPUT"
       - name: Commit updated data
         if: ${{ !inputs.test_alert }}

@@ -40,10 +40,27 @@ Rates captured 16 Jul 2026 auction: 91d **8.7986%**, 182d **8.9695%**, 364d **9.
 
 ## 2. NSE — secondary market
 
-- Daily Bond Price List: `nse.co.ke/bonds-statistics/` (downloadable, format varies).
-- Bulk end-of-day data (Excel/CSV) is a **paid subscription** via `dataservices@nse.co.ke`
-  (`nse.co.ke/dataservices/`). The free daily price list is the realistic v1 source.
-- Set the repo variable `NSE_DAILY_TRADE_URL` to the current price-list URL once confirmed.
+Probed live 2026-07-25 (`discover_nse.py`). The free Daily Bond Price List is linked from
+`nse.co.ke/bonds-statistics/` as:
+
+```
+https://www.nse.co.ke/wp-content/uploads/BondPrices_24-JUL-2026.pdf
+"Download Daily Bond Price List"
+```
+
+Two consequences that killed the original design:
+
+- **It is a PDF, not a spreadsheet.** `nse_parser.py` previously called
+  `pd.read_excel()` and would have failed every single day.
+- **The filename is date-stamped.** A fixed `NSE_DAILY_TRADE_URL` repo variable would go
+  stale within 24 hours by construction, so that variable is **not used and should not be
+  set**. The parser discovers the current link from the listing page on each run and reads
+  the PDF with `pdfplumber` (already a dependency for CBK prospectuses).
+- `NSE_BONDS_PAGE` overrides the listing page only if NSE relocates it.
+
+Bulk end-of-day data remains a **paid subscription** via `dataservices@nse.co.ke`; the
+dataservices page links only policy and pricing PDFs. The free daily list is the realistic
+source.
 
 ## 3. KNBS — inflation
 

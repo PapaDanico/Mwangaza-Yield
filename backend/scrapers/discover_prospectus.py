@@ -139,7 +139,24 @@ def inspect(url: str, label: str) -> None:
     print(f"    date-like strings in document: {len(dates)}")
 
 
+# Probed 2026-07-25: three prospectuses stated "Interest Payment Dates" but NONE
+# stated a day-count convention. On reflection that is the right design — a
+# prospectus sells one issue, while the convention governs every issue and
+# belongs in the rules. So look where rules live. (These are the very PDFs the
+# prospectus hunt excludes as boilerplate; wrong for that question, likely
+# right for this one.)
+CONVENTION_DOCS = [
+    ("CBK Auction Rules & Guidelines",
+     "https://www.centralbank.go.ke/wp-content/uploads/2024/06/AuctionRulesGuidelines.pdf"),
+]
+
+
 def main() -> None:
+    print("=== PART 2: where the day-count convention should live ===")
+    for label, url in CONVENTION_DOCS:
+        inspect(url, label)
+
+    print("\n=== PART 1: individual prospectuses ===")
     pdfs = find_prospectus_pdfs()
     if not pdfs:
         print("!! no issue-coded prospectus PDFs found — the listing may be "

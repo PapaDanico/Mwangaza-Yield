@@ -34,7 +34,7 @@ import sys
 import time
 from datetime import date, datetime
 from io import BytesIO
-from urllib.parse import urljoin
+from urllib.parse import unquote, urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -113,6 +113,33 @@ ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{
 # however many separators the class accepted — widening [-.] to [-._]
 # alone gained nothing, which is what sent us looking at the anchors.
 DATE_IN_NAME_RE = re.compile(r"(?<!\d)(\d{1,2})[-._](\d{1,2})[-._](\d{2,4})(?!\d)")
+
+# Some of the older files spell the month: "results 5 year dated november 25th
+# 2013". That is a concrete date and can be read exactly — unlike the sixteen
+# files carrying a month and a year with no day at all, which stay undated
+# because writing the first of the month would put a day in the field that no
+# document anywhere claims.
+MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july",
+               "august", "september", "october", "november", "december"]
+# Full name, three-letter abbreviation, and "sept" — which is neither, and is
+# how CBK writes September about as often as "Sep". Longest alternative first so
+# "september" is not consumed as "sep" with a dangling "tember".
+_MONTH_FORMS = sorted(
+    {f for m in MONTH_NAMES for f in (m, m[:3])} | {"sept"}, key=len, reverse=True)
+_MONTH_ALT = "|".join(_MONTH_FORMS)
+
+# Month first. No guard is needed: a tenor never precedes its own month.
+MONTH_DAY_YEAR_RE = re.compile(
+    rf"({_MONTH_ALT})\.?\s+(\d{{1,2}})(?:st|nd|rd|th)?\s*,?\s*(\d{{4}})(?!\d)", re.I)
+
+# Day first, and the lookbehind is the whole point. An issue code ends in its
+# TENOR — FXD1-2019-15 — so "15 March 2021" in a filename may be a fifteen-year
+# bond auctioned in March rather than an auction held on the 15th. Refusing a
+# day that runs on from a digit or a separator costs one real date in the
+# current archive ("fxd 4-2013-2 december 2013") and prevents a whole class of
+# confident wrong answers. A missing date is visible; a wrong one is not.
+DAY_MONTH_YEAR_RE = re.compile(
+    rf"(?<![\d\-/])(\d{{1,2}})(?:st|nd|rd|th)?\s+({_MONTH_ALT})\.?\s*,?\s*(\d{{4}})(?!\d)", re.I)
 
 # Rows we care about, and how to recognise them whatever CBK's wording that year.
 FIELDS = [
@@ -484,8 +511,35 @@ def auction_date_from_name(url: str):
     from being mistaken for the day it was sold.
     """
     best = None
-    for m in DATE_IN_NAME_RE.finditer(url):
+    # Decode first. CBK's older filenames carry spaces, so the listing's hrefs
+    # arrive percent-encoded, and %20 puts a DIGIT immediately before the date:
+    #
+    #     results%20fxd1-2014-5%20dated%2028.04.2014.pdf
+    #                                      ^^ the 0 of %20
+    #
+    # The pattern refuses a date that runs on from a digit — that guard is what
+    # keeps a tenor like FXD1-2012-020 from being read as one — so "28.04.2014"
+    # was rejected for being preceded by an encoding artefact rather than by
+    # anything in the name. Four files lost a full, exact, unambiguous date this
+    # way and became undated records, invisible to the year tables and sharing a
+    # deduplication key with every other undated auction of the same bond.
+    name = unquote(url)
+
+    # Every candidate from every shape, kept with its position so that "last
+    # wins" still means last in the STRING and not last pattern to be tried.
+    candidates = []
+    for m in DATE_IN_NAME_RE.finditer(name):
         d, mo, y = (int(g) for g in m.groups())
+        candidates.append((m.start(), d, mo, y))
+    for pattern, order in ((MONTH_DAY_YEAR_RE, "mdy"), (DAY_MONTH_YEAR_RE, "dmy")):
+        for m in pattern.finditer(name):
+            month_word, day = (m.group(1), m.group(2)) if order == "mdy" \
+                else (m.group(2), m.group(1))
+            mo = MONTH_NAMES.index(
+                next(n for n in MONTH_NAMES if n.startswith(month_word[:3].lower()))) + 1
+            candidates.append((m.start(), int(day), mo, int(m.group(3))))
+
+    for _pos, d, mo, y in sorted(candidates):
         # "28.12.20" is 2020. Two-digit years are unambiguous here: this archive
         # starts in 2019 and CBK is not publishing auctions from 1920.
         if y < 100:

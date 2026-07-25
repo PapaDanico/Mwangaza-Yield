@@ -51,6 +51,9 @@ jobs:
       - name: Discover NSE downloadable files
         working-directory: backend/scrapers
         run: python discover_nse.py
+      - name: Probe candidate sources (CBK Weekly Bulletin, CMA)
+        working-directory: backend/scrapers
+        run: python discover_sources.py
       - name: Dry-run the NSE parser
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers

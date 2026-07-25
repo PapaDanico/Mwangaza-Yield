@@ -76,6 +76,22 @@ MAX_NEW_PER_RUN = 120
 # of the archive; now it means arriving a day later.
 TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 
+# Stamp every record with the extraction logic that produced it.
+#
+# Parsing each PDF once is what made full coverage affordable, and it has one
+# sharp edge: a record is never re-derived, so a parser BUG outlives its fix.
+# That is not hypothetical. Records captured before the column-geometry fix
+# attribute a coupon to the wrong bond — one file's 11.766 was hung on the leg
+# of the auction that had been cancelled — and no amount of correct code
+# afterwards revisits them. The archive silently preserves the mistakes of
+# whatever parser was running that day.
+#
+# Bumping this makes the next run treat older records as unread and re-derive
+# them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
+# different column rule, a changed guard — and leave it alone for changes that
+# only affect which files are fetched or how fast.
+PARSER_VERSION = 2
+
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
 # TREASURY BOND(S) ISSUE(S)" naming NEXT month's bonds. The second dry-run
@@ -107,10 +123,23 @@ FIELDS = [
 
 # Plausible bands. A value outside these means we read the wrong cell, and a
 # wrong coupon is worse than a missing one.
+#
+# The rate floor was 0.5 and let ten artefacts through, five of them exactly
+# 1.0 — the signature of "11.000" losing its leading digit to CBK's split-digit
+# rendering. One of those reached production: FXD1/2012/15 was published with a
+# 1% coupon on a fifteen-year Kenyan government bond, which is not a number
+# that exists.
+#
+# 6.0 is evidence, not instinct. Across 276 captured coupons and every clearing
+# rate in the archive back to 2014, the lowest genuine figure is 7.78%; every
+# value below 6 is a truncation artefact (1.0, 1.619, 1.855, 2.0, 2.5, 5.0 —
+# that last one the bond's TENOR read as its coupon). The floor sits below the
+# real minimum with room to spare and above every artefact.
+RATE_FLOOR, RATE_CEILING = 6.0, 30.0
 BANDS = {
-    "couponRate": (0.5, 30.0),
-    "weightedAverageRate": (0.5, 30.0),
-    "marketWeightedAverageRate": (0.5, 30.0),
+    "couponRate": (RATE_FLOOR, RATE_CEILING),
+    "weightedAverageRate": (RATE_FLOOR, RATE_CEILING),
+    "marketWeightedAverageRate": (RATE_FLOOR, RATE_CEILING),
     "pricePer100": (40.0, 160.0),
 }
 
@@ -294,7 +323,7 @@ MAX_HEADER_TRIES = 4
 
 def _field_count(records: dict) -> int:
     """Numeric fields recovered under one candidate geometry."""
-    return sum(len(r) - 4 for r in records.values())  # minus id/code/date/url
+    return sum(len(r) - 5 for r in records.values())  # minus the identity keys
 
 
 def _fit(records: dict, codes: list) -> tuple:
@@ -344,6 +373,7 @@ def read_fields(lines: list, codes: list, centres: list,
                     "issueCode": codes[idx],
                     "auctionDate": auction_date,
                     "sourceUrl": source_url,
+                    "parserVersion": PARSER_VERSION,
                 })
                 rec.setdefault(key, value)
             break
@@ -415,8 +445,14 @@ def load_existing() -> tuple:
         print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
               f"starting fresh", file=sys.stderr)
         return [], set()
-    records = repair_codes(repair_dates(records))
-    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+    fresh = [r for r in records if r.get("parserVersion") == PARSER_VERSION]
+    stale = len(records) - len(fresh)
+    if stale:
+        print(f"[auctions] {stale} record(s) came from an older parser "
+              f"(< v{PARSER_VERSION}) — discarding so their PDFs are read again",
+              file=sys.stderr)
+    fresh = repair_codes(repair_dates(fresh))
+    return fresh, {r.get("sourceUrl") for r in fresh if r.get("sourceUrl")}
 
 
 def repair_dates(records: list) -> list:

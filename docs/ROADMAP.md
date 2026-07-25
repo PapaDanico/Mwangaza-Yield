@@ -173,10 +173,6 @@ already does, and hand-writing a host redirect in `netlify.toml` would duplicate
 risking the per-PR `deploy-preview-*` hostnames. Worth confirming the primary domain is
 set to `mwangazayield.org` there.
 
-### 9. Swahili
-The audience is Kenyan; the app is English-only. Not a translation of jargon — a
-rewrite of the explanations in the language people think about money in.
-
 ### 10. Accessibility audit
 Contrast has been checked at the token level. Screen-reader flow, focus order and
 keyboard traps have not been.
@@ -236,6 +232,11 @@ value predicted when decoding `1 2.873` from the split PDF text.
 - **Any source needing an API key**, until there is a server to hold one. Today no key
   means no server, no server means no account, and no account means portfolios never
   leave the device.
+- **A Swahili edition.** Dropped 2026-07-25 at the owner's direction. Worth noting what
+  this does NOT change: the plain-language work stands on its own merits. The glossary,
+  the "what this means for you" panels and the refusal to write "clearing yield" without
+  explaining it were never a substitute for translation — they exist because most readers
+  meet a bond for the first time here, in whatever language.
 
 ---
 

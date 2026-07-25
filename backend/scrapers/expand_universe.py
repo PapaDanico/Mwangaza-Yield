@@ -59,15 +59,22 @@ def load_register(today: date) -> dict:
     return out
 
 
-def load_auction_facts() -> dict:
-    """Newest coupon and clearing rate per issue code."""
+def load_auction_facts() -> tuple:
+    """The newest auction per code, plus EVERY auction per code.
+
+    Both are needed because they answer different questions: the clearing
+    yield belongs to the latest auction, while the coupon belongs to the bond
+    and is cross-checked across all of them.
+    """
     path = DATA_DIR / "auction-results.json"
     if not path.exists():
         print(f"[expand] {path} missing — run auction_results.py first", file=sys.stderr)
-        return {}
+        return {}, {}
     facts: dict = {}
+    every: dict = {}
     for rec in json.loads(path.read_text()):
         code = normalise(rec["issueCode"])
+        every.setdefault(code, []).append(rec)
         current = facts.get(code)
         # Prefer the most recent auction: a reopened bond keeps its coupon but
         # its clearing yield moves. On the SAME date CBK sometimes publishes two
@@ -81,11 +88,44 @@ def load_auction_facts() -> dict:
             if not (newer or fuller):
                 continue
         facts[code] = rec
-    return facts
+    return facts, every
 
 
-def build_bond(code: str, reg: dict, auction: dict) -> dict | None:
-    coupon = auction.get("couponRate")
+def coupon_for(code: str, records: list) -> float | None:
+    """The bond's coupon, taken from every auction that ever reported it.
+
+    A fixed-coupon bond has ONE coupon for its whole life — a reopening sells
+    more of the same security and inherits it. So the coupon is a property of
+    the BOND, while the clearing yield is a property of an AUCTION, and reading
+    both off "the most recent record" conflates them.
+
+    That conflation shipped a wrong number. FXD1/2012/15 reported 11.0 in June
+    2019 and 1.0 in December 2020, the latter being "11.000" with its leading
+    digit lost to CBK's split-digit rendering. Preferring the newest record
+    published the 1.0 — a 1% coupon on a fifteen-year Kenyan government bond.
+
+    Disagreement is itself the signal, so this takes the value the auctions
+    agree on most often rather than the latest one. Ties break toward the
+    larger, because the failure mode is losing a leading digit, never gaining
+    one.
+    """
+    seen = [r["couponRate"] for r in records if r.get("couponRate") is not None]
+    if not seen:
+        return None
+    tally: dict = {}
+    for value in seen:
+        tally[value] = tally.get(value, 0) + 1
+    best = max(tally.items(), key=lambda kv: (kv[1], kv[0]))
+    if len(tally) > 1:
+        print(f"[expand] {code}: auctions disagree on the coupon {sorted(tally)} "
+              f"— taking {best[0]}", file=sys.stderr)
+    return best[0]
+
+
+def build_bond(code: str, reg: dict, auction: dict,
+               coupon: float | None = None) -> dict | None:
+    if coupon is None:
+        coupon = auction.get("couponRate")
     if coupon is None:
         return None  # see the module docstring — this is the whole rule
 
@@ -125,13 +165,30 @@ def build_bond(code: str, reg: dict, auction: dict) -> dict | None:
 def main() -> None:
     today = date.today()
     register = load_register(today)
-    facts = load_auction_facts()
+    facts, every = load_auction_facts()
     print(f"[expand] {len(register)} outstanding bond(s) in the register, "
           f"{len(facts)} with auction facts", file=sys.stderr)
 
     path = DATA_DIR / "bonds.json"
     existing = json.loads(path.read_text())
     have = {normalise(b["issueCode"]) for b in existing}
+
+    # Correct bonds we listed on an earlier run. Without this the file only
+    # ever grows: a value captured under a looser guard stays forever, because
+    # nothing revisits a bond once it is in the list. That is how a 1% coupon
+    # on a fifteen-year government bond survived into production — the record it
+    # came from was later rejected, and the listing never noticed.
+    for bond in existing:
+        code = normalise(bond["issueCode"])
+        agreed = coupon_for(code, every.get(code, []))
+        if agreed is None or agreed == bond.get("couponRate"):
+            continue
+        print(f"[expand] {bond['issueCode']}: correcting coupon "
+              f"{bond.get('couponRate')} -> {agreed}", file=sys.stderr)
+        # The yield was solved from the wrong coupon, so it is no better.
+        if bond.get("ytmGross") == bond.get("couponRate"):
+            bond["ytmGross"] = agreed
+        bond["couponRate"] = agreed
 
     added, skipped_no_coupon = [], []
     for code, reg in sorted(register.items()):
@@ -141,7 +198,7 @@ def main() -> None:
         if not auction:
             skipped_no_coupon.append(code)
             continue
-        bond = build_bond(code, reg, auction)
+        bond = build_bond(code, reg, auction, coupon_for(code, every.get(code, [])))
         if bond is None:
             skipped_no_coupon.append(code)
             continue
@@ -158,10 +215,6 @@ def main() -> None:
     for b in added:
         print(f"[expand]  + {b['issueCode']:<16} coupon {b['couponRate']}%  "
               f"ytm {b['ytmGross']}%  matures {b['maturityDate']}", file=sys.stderr)
-
-    if not added:
-        print("[expand] nothing to add", file=sys.stderr)
-        return
 
     merged = existing + added
     merged.sort(key=lambda b: (b["maturityDate"], b["issueCode"]))

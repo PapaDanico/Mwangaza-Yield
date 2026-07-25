@@ -223,11 +223,14 @@ def main():
         recs, seen = mod.load_existing()
         check("an absent file starts empty", (recs, seen), ([], set()))
 
+        from auction_results import PARSER_VERSION as _PV
         (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
             {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
-             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf"},
+             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf",
+             "parserVersion": _PV},
             {"issueCode": "FXD1/2019/020", "auctionDate": "2021-11-15",
-             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf"},
+             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf",
+             "parserVersion": _PV},
         ]))
         recs, seen = mod.load_existing()
         check("existing records are recovered", len(recs), 2)
@@ -347,6 +350,40 @@ def main():
           repaired[1]["issueCode"], "FXD1/2021/005")
     check("an unexplained mismatch is left alone rather than guessed at",
           repaired[2]["issueCode"], "FXD9/1999/001")
+
+    print("the rate band must reject truncated digits")
+    from auction_results import BANDS, RATE_FLOOR
+    # Every value below 6 in the live archive is an artefact of CBK's
+    # split-digit rendering — 1.0, 1.619, 1.855, 2.0, 2.5 and a 5.0 that was
+    # the bond's TENOR read as its coupon. The lowest genuine figure anywhere
+    # in the archive, back to 2014, is a 7.78% clearing rate.
+    lo, hi = BANDS["couponRate"]
+    for artefact in (1.0, 1.619, 1.855, 2.0, 2.5, 5.0):
+        check(f"{artefact} is rejected as a truncation", lo <= artefact <= hi, False)
+    for genuine in (7.78, 11.0, 12.873, 18.4607):
+        check(f"{genuine} is accepted", lo <= genuine <= hi, True)
+    check("the floor sits below the lowest genuine figure", RATE_FLOOR < 7.78, True)
+
+    print("a parser change must invalidate what the old parser wrote")
+    from auction_results import PARSER_VERSION
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.DATA_DIR = _Path(tmp)
+        (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
+            {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
+             "couponRate": 11.277, "sourceUrl": "https://cbk/new.pdf",
+             "parserVersion": PARSER_VERSION},
+            # Written before the column-geometry fix: its coupon may be hung on
+            # the wrong bond, and no later correctness revisits it.
+            {"issueCode": "FXD1/2019/015", "auctionDate": "2023-04-24",
+             "couponRate": 11.766, "sourceUrl": "https://cbk/old.pdf"},
+        ]))
+        recs, seen = mod.load_existing()
+        check("records from the current parser are kept", len(recs), 1)
+        check("records from an older parser are discarded", 
+              [r["issueCode"] for r in recs], ["FXD1/2021/005"])
+        check("and their PDF is no longer marked as read",
+              seen, {"https://cbk/new.pdf"})
+    mod.DATA_DIR = original
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

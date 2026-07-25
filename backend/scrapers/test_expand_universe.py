@@ -8,7 +8,7 @@ someone, or invite a placeholder coupon that looks real.
 """
 import sys
 
-from expand_universe import build_bond, display_code, normalise
+from expand_universe import coupon_for, build_bond, display_code, normalise
 
 failures = []
 
@@ -60,6 +60,29 @@ def main():
     print("yield falls back to the coupon only when no clearing rate exists")
     par = build_bond("FXD1/2022/010", REG, {"couponRate": 13.49, "auctionDate": "2026-07-13"})
     check("ytm falls back to the coupon", par["ytmGross"], 13.49)
+
+    print("the coupon belongs to the BOND, not to the latest auction")
+    # The wrong number that reached production. FXD1/2012/15 reported 11.0 in
+    # June 2019 and 1.0 in December 2020 — the latter being "11.000" with its
+    # leading digit lost to CBK's split-digit rendering. Taking the newest
+    # record published a 1% coupon on a fifteen-year Kenyan government bond.
+    history = [
+        {"couponRate": 11.0, "auctionDate": "2019-06-17"},
+        {"couponRate": 1.0, "auctionDate": "2020-12-14"},
+        {"auctionDate": "2020-12-28"},
+    ]
+    check("a disagreement resolves toward the larger, never the truncated",
+          coupon_for("FXD1/2012/015", history), 11.0)
+    check("agreement is left alone",
+          coupon_for("X", [{"couponRate": 12.5}, {"couponRate": 12.5}]), 12.5)
+    check("the most-reported value wins over a lone outlier",
+          coupon_for("X", [{"couponRate": 13.0}, {"couponRate": 13.0},
+                           {"couponRate": 14.0}]), 13.0)
+    check("no coupon anywhere stays None", coupon_for("X", [{"auctionDate": "2020-01-01"}]), None)
+
+    # And the bond still refuses to be listed when nothing reported a coupon.
+    check("a bond with no coupon is not built",
+          build_bond("FXD1/2012/015", REG, {"auctionDate": "2020-12-28"}, None), None)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

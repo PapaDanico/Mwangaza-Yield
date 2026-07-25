@@ -14,6 +14,7 @@ they are, and why "lock in now" is a live question rather than a slogan.
 Each row carries the decision date and the press release URL, so every point
 on the chart is one click from CBK's own words.
 """
+import json
 import re
 import sys
 from datetime import datetime
@@ -22,7 +23,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from common import write_dataset
+from common import DATA_DIR, write_dataset
 
 PRESS_URL = "https://www.centralbank.go.ke/press/"
 UA = {
@@ -121,6 +122,40 @@ def annotate_moves(decisions: list) -> list:
     return decisions
 
 
+def reconcile_macro(latest: dict) -> None:
+    """Stamp macro.json's CBR record with the date the rate was actually set.
+
+    macro_parser scrapes the current CBR off CBK's homepage and dates it
+    `today`, because that is all a homepage scrape can know. That makes the
+    dashboard tile read "CBR 8.75% · 25 July" when the MPC set it on 9 June —
+    a rate presented as six weeks newer than it is, sitting directly above a
+    panel that states the real date. We now have the authoritative decision, so
+    we correct it.
+
+    Fails soft: a problem here must never cost us the history we just captured.
+    """
+    path = DATA_DIR / "macro.json"
+    try:
+        records = json.loads(path.read_text())
+        changed = False
+        for rec in records:
+            if rec.get("indicator") != "CBR":
+                continue
+            if rec.get("date") != latest["date"] or rec.get("value") != latest["rate"]:
+                rec["date"] = latest["date"]
+                rec["value"] = latest["rate"]
+                rec["id"] = f"cbr-{latest['date']}"
+                rec["source"] = "CBK MPC"
+                changed = True
+        if changed:
+            path.write_text(json.dumps(records, indent=2))
+            print(f"[cbr] macro.json CBR restamped to the {latest['date']} decision",
+                  file=sys.stderr)
+    except (OSError, json.JSONDecodeError, KeyError) as exc:
+        print(f"[cbr] could not reconcile macro.json ({exc.__class__.__name__}) — "
+              f"history still written", file=sys.stderr)
+
+
 def main() -> None:
     resp = requests.get(PRESS_URL, headers=UA, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -139,6 +174,7 @@ def main() -> None:
           f"-> {last['date']} ({last['rate']}%)", file=sys.stderr)
 
     write_dataset("cbr-history", decisions)
+    reconcile_macro(last)
 
 
 if __name__ == "__main__":

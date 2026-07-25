@@ -68,6 +68,36 @@ def main() -> None:
     check("an unchanged rate is a hold", annotate_moves([
         {"date": "a", "rate": 8.75}, {"date": "b", "rate": 8.75}])[1]["move"], "hold")
 
+    print("reconcile_macro")
+    import json as _json
+    import tempfile
+    from pathlib import Path
+
+    import cbr_history_parser as mod
+
+    original = mod.DATA_DIR
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.DATA_DIR = Path(tmp)
+        macro = Path(tmp) / "macro.json"
+        macro.write_text(_json.dumps([
+            {"id": "cbr-2026-07-25", "indicator": "CBR", "value": 8.75, "date": "2026-07-25",
+             "unit": "%", "source": "CBK"},
+            {"id": "cpi-2026-07", "indicator": "CPI", "value": 6.4, "date": "2026-06-30",
+             "unit": "% y/y", "source": "KNBS"},
+        ]))
+        mod.reconcile_macro({"date": "2026-06-09", "rate": 8.75})
+        out = _json.loads(macro.read_text())
+        check("the CBR record carries the decision date, not the scrape date",
+              out[0]["date"], "2026-06-09")
+        check("its id follows the corrected date", out[0]["id"], "cbr-2026-06-09")
+        check("other indicators are untouched", out[1]["date"], "2026-06-30")
+
+        # A missing or unreadable macro.json must not cost us the history.
+        mod.DATA_DIR = Path(tmp) / "nope"
+        mod.reconcile_macro({"date": "2026-06-09", "rate": 8.75})
+        print("  ok  a missing macro.json fails soft")
+    mod.DATA_DIR = original
+
     print("guards")
     # A rate outside Kenya's historical band means we misread the row.
     check("an implausible rate is dropped", extract_decisions(

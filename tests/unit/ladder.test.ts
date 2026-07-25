@@ -63,6 +63,19 @@ describe('buildLadder', () => {
     expect(small.rungs.every((r) => r.faceValueKES >= r.bond.minInvestmentKES)).toBe(true);
   });
 
+  it('spreads rungs across the horizon rather than clumping at the short end', () => {
+    // Five bonds bunched in 2027-2029 plus one long 2044; over a 20y horizon with
+    // 2 rungs the far bucket must be represented.
+    const spread = [
+      mkBond('FXD1/A', '2027-01-10', 13),
+      mkBond('FXD1/B', '2028-01-10', 13.2),
+      mkBond('FXD1/C', '2029-01-10', 13.4),
+      mkBond('FXD1/D', '2044-01-10', 12.0),
+    ];
+    const plan2 = buildLadder(spread, [], 2_000_000, 20, 2, asOf);
+    expect(plan2.rungs.map((r) => r.bond.issueCode)).toContain('FXD1/D');
+  });
+
   it('empty when nothing matures within horizon', () => {
     const none = buildLadder([mkBond('FXD1/2022/Z', '2050-01-01', 14)], [], 1_000_000, 5, 5, asOf);
     expect(none.rungs.length).toBe(0);

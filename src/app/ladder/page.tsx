@@ -84,9 +84,10 @@ export default function LadderPage() {
             />
           </div>
           <p className="text-[11px] leading-relaxed text-ink-faint">
-            One bond per maturity year, highest net yield first (tax-free IFBs compete on equal
-            footing). Equal split in KES 50k steps at last traded prices. Educational planning —
-            actual auction allocations vary.
+            Rungs are spread across the horizon — best net yield in each window, one bond per
+            maturity year, tax-free IFBs competing on equal footing. Where the market has no paper
+            in a window, the next-best yield fills in. Equal split in KES 50k steps at last traded
+            prices. Educational planning — actual auction allocations vary.
           </p>
         </div>
 
@@ -94,8 +95,9 @@ export default function LadderPage() {
           {plan.rungs.length === 0 ? (
             <div className="card py-12 text-center text-sm text-ink-muted">
               <Layers size={22} className="mx-auto mb-3 text-ink-faint" />
-              No listed bonds mature within {horizon} years at this amount — extend the horizon or
-              increase the amount.
+              Nothing to allocate: either no listed bonds mature within {horizon} years, or{' '}
+              {formatKES(amount)} split {rungCount} ways falls below the bonds&apos; minimums.
+              Extend the horizon, raise the amount, or use fewer rungs.
             </div>
           ) : (
             <>

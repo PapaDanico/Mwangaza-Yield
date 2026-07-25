@@ -53,14 +53,33 @@ export function buildLadder(
     .map((b) => ({ bond: b, price: priceOf(b), netYTM: computeBondInvestment(b, STEP, priceOf(b), asOf).netYTM }))
     .sort((a, x) => x.netYTM - a.netYTM);
 
-  const byYear = new Map<number, (typeof candidates)[number]>();
+  // Spread rungs ACROSS the horizon: split it into `maxRungs` equal windows and
+  // take the best net yield in each. Taking the first N by date instead would
+  // clump every rung at the short end and ignore the horizon the user set.
+  const spanMs = horizonEnd.getTime() - asOf.getTime();
+  const chosen = new Map<number, (typeof candidates)[number]>();
   for (const c of candidates) {
-    const y = new Date(c.bond.maturityDate).getFullYear();
-    if (!byYear.has(y)) byYear.set(y, c);
+    const t = new Date(c.bond.maturityDate).getTime() - asOf.getTime();
+    const bucket = Math.min(maxRungs - 1, Math.floor((t / spanMs) * maxRungs));
+    const held = chosen.get(bucket);
+    if (!held || c.netYTM > held.netYTM) chosen.set(bucket, c);
   }
-  const picked = Array.from(byYear.values())
-    .sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate))
-    .slice(0, maxRungs);
+  const picked = Array.from(chosen.values());
+
+  // Buckets can be empty when the market has no paper in that window (Kenya's
+  // curve is sparse at the short end). Backfill up to maxRungs with the best
+  // remaining yields, still one bond per maturity year.
+  if (picked.length < maxRungs) {
+    const takenYears = new Set(picked.map((c) => new Date(c.bond.maturityDate).getFullYear()));
+    for (const c of candidates) {
+      if (picked.length >= maxRungs) break;
+      const y = new Date(c.bond.maturityDate).getFullYear();
+      if (takenYears.has(y)) continue;
+      takenYears.add(y);
+      picked.push(c);
+    }
+  }
+  picked.sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
 
   if (!picked.length) {
     return { rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0, yearlyPayouts: [], unallocatedKES: totalKES };

@@ -13,7 +13,7 @@ import os
 import sys
 
 from auction_results import (
-    FIELDS, NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
+    attribute_auction_level, FIELDS, NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -519,6 +519,46 @@ def main():
     check("only fully-current documents are skipped", sorted(_seen), ["u2"])
     check("stale documents queue for re-reading",
           sorted({"u1", "u2", "u3"} - set(_seen)), ["u1", "u3"])
+
+    print("an auction's offered amount belongs to every bond in it")
+    rows = [
+        {"issueCode": "FXD1/2022/010", "auctionDate": "2026-07-13", "amountOfferedKESM": 70000.0},
+        {"issueCode": "FXD1/2021/020", "auctionDate": "2026-07-13"},
+        {"issueCode": "FXD1/2026/030", "auctionDate": "2026-07-13"},
+    ]
+    out, filled = attribute_auction_level(rows)
+    check("the other bonds receive it", filled, 2)
+    check("every row now carries the auction total",
+          [r.get("amountOfferedKESM") for r in out], [70000.0] * 3)
+    check("and every row is marked auction-scoped",
+          {r.get("offeredScope") for r in out}, {"auction"})
+
+    # The flag is the point. Summing this column across one auction reports the
+    # government seeking 210bn when it sought 70bn — the exact error that made
+    # the withdrawn auction note wrong. Copying the figure without saying it is
+    # shared would make that mistake easier, not harder.
+    print("rows that disagree are left alone rather than guessed at")
+    conflicting = [
+        {"issueCode": "A", "auctionDate": "2026-01-05", "amountOfferedKESM": 30000.0},
+        {"issueCode": "B", "auctionDate": "2026-01-05", "amountOfferedKESM": 12000.0},
+        {"issueCode": "C", "auctionDate": "2026-01-05"},
+    ]
+    out2, filled2 = attribute_auction_level(conflicting)
+    check("nothing is filled in", filled2, 0)
+    check("the empty row stays empty", out2[2].get("amountOfferedKESM"), None)
+    check("and no scope claim is made", out2[2].get("offeredScope"), None)
+
+    print("an auction with no offered figure gains nothing from thin air")
+    none_rows = [{"issueCode": "A", "auctionDate": "2026-02-02"},
+                 {"issueCode": "B", "auctionDate": "2026-02-02"}]
+    _, filled3 = attribute_auction_level(none_rows)
+    check("still empty", filled3, 0)
+
+    print("undated records are never grouped together")
+    undated = [{"issueCode": "A", "auctionDate": None, "amountOfferedKESM": 5000.0},
+               {"issueCode": "B", "auctionDate": None}]
+    _, filled4 = attribute_auction_level(undated)
+    check("two unrelated auctions are not merged by a shared null", filled4, 0)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

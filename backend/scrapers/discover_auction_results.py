@@ -32,12 +32,26 @@ UA = {
 }
 TIMEOUT = 45
 
+# Corrected 2026-07-25. The first three of these were INVENTED and all 404'd,
+# while /securities/treasury-bonds/ is a legacy path that still answers 200 and
+# quietly serves stale content. The live section is /bills-bonds/, found by
+# searching the web rather than guessing — which is what should have happened
+# first. Results PDFs live under /uploads/historical_treasury_bond_results/.
 PAGES = [
-    ("Treasury bonds landing", "https://www.centralbank.go.ke/securities/treasury-bonds/"),
-    ("Treasury bond results", "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/"),
-    ("Treasury bill results", "https://www.centralbank.go.ke/securities/treasury-bills/treasury-bills-results/"),
-    ("Auction results (alt path)", "https://www.centralbank.go.ke/auction-results/"),
+    ("Bills & Bonds hub", "https://www.centralbank.go.ke/bills-bonds/"),
+    ("Treasury bonds (LIVE path)", "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"),
+    ("Treasury bills (LIVE path)", "https://www.centralbank.go.ke/bills-bonds/treasury-bills/"),
+    ("Interest rates statistics", "https://www.centralbank.go.ke/statistics/interest-rates/"),
+    ("Treasury bonds (LEGACY path, for comparison)",
+     "https://www.centralbank.go.ke/securities/treasury-bonds/"),
 ]
+
+# A known-good results PDF, to confirm the numbers inside are machine-readable
+# before any parser is written.
+SAMPLE_RESULT_PDF = (
+    "https://www.centralbank.go.ke/uploads/historical_treasury_bond_results/"
+    "1276816915_RESULTS%20FXD1-2021-005%20AND%20FXD1-2019-020%20DATED%2015-11-2021.pdf"
+)
 
 # The vocabulary of an auction result. If these appear in the served HTML, the
 # numbers are readable without touching a PDF.
@@ -127,10 +141,38 @@ def discover_result_links(url: str) -> None:
     print(f"  {len(seen)} candidate link(s)")
 
 
+def inspect_result_pdf(url: str) -> None:
+    """Does a results PDF carry a text layer, and does it name a coupon?"""
+    print(f"\n=== SAMPLE RESULTS PDF ===\n  {url[:110]}")
+    try:
+        import pdfplumber
+        from io import BytesIO
+        r = requests.get(url, headers=UA, timeout=TIMEOUT)
+        r.raise_for_status()
+        with pdfplumber.open(BytesIO(r.content)) as pdf:
+            chars = sum(len(pg.chars) for pg in pdf.pages)
+            text = "\n".join(pg.extract_text() or "" for pg in pdf.pages)
+            tables = sum(len(pg.extract_tables() or []) for pg in pdf.pages)
+        print(f"  {len(r.content)} bytes, {chars} chars, {tables} table(s)")
+        if chars == 0:
+            print("  >>> NO TEXT LAYER — scanned, unusable")
+            return
+        print("  >>> TEXT LAYER PRESENT")
+        for name, rx in SIGNALS.items():
+            if rx.search(text):
+                print(f"      has: {name}")
+        for line in text.splitlines()[:22]:
+            if line.strip():
+                print(f"    | {line.strip()[:110]}")
+    except Exception as exc:  # noqa: BLE001 - diagnostic
+        print(f"  could not inspect: {exc.__class__.__name__}")
+
+
 def main() -> None:
     for label, url in PAGES:
         probe(label, url)
-    discover_result_links(PAGES[0][1])
+    discover_result_links(PAGES[1][1])
+    inspect_result_pdf(SAMPLE_RESULT_PDF)
     print("\nIf RESULT FIELDS appear in the served HTML, coupon rates and clearing yields "
           "are scrapeable directly. If they only appear in PDFs, check for a text layer "
           "before writing anything.", file=sys.stderr)

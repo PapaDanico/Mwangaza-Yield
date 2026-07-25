@@ -42,5 +42,16 @@
     "sourceUrl": "https://data.worldbank.org/indicator/BN.CAB.XOKA.GD.ZS?locations=KE",
     "note": "Negative means the country spends more abroad than it earns there and must borrow the difference. Persistent deficits pressure the shilling.",
     "sentiment": "good"
+  },
+  {
+    "id": "wb-dt-tds-dect-ex-zs",
+    "label": "Debt service / exports",
+    "value": 27.22,
+    "unit": "%",
+    "asOf": "2024",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/DT.TDS.DECT.EX.ZS?locations=KE",
+    "note": "What repayment costs measured against what the country earns abroad, which is the source of the currency it is repaid in.",
+    "sentiment": "caution"
   }
 ]

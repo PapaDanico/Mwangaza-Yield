@@ -61,5 +61,10 @@ export function analyseRateOutlook(decisions: RateDecision[]): RateOutlook | nul
  */
 export function conservativeYield(observedNetYield: number, outlook: RateOutlook | null): number {
   if (!outlook) return observedNetYield;
-  return Math.max(1, observedNetYield - outlook.downsidePp);
+  // Capped at the observed yield as well as floored at 1%. The floor alone can
+  // RAISE the cautious figure above the optimistic one when the observed yield
+  // is under 1% — a stale or mispriced quote is enough — which inverts the
+  // whole scenario pair: the "cautious" case would then demand less capital and
+  // finish sooner than the case it is supposed to be cautious about.
+  return Math.min(observedNetYield, Math.max(1, observedNetYield - outlook.downsidePp));
 }

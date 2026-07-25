@@ -13,6 +13,7 @@ import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
 import GoalProgress from '@/components/shared/GoalProgress';
+import { yearsLabel } from '@/lib/years-label';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -48,19 +49,6 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
       <p className={cn('num mt-1 text-lg font-bold', accent ?? 'text-ink')}>{value}</p>
     </div>
   );
-}
-
-/**
- * A years figure as a range, cautious end first. Collapses to a single number
- * when both ends round the same, so an honest range never reads as false
- * precision ("4.4 - 4.4 years").
- */
-function yearsLabel(cautious: number | null, ifRatesHold: number | null): string {
-  const one = (y: number) =>
-    y === 0 ? 'Funded' : y < 1 ? `${Math.round(y * 12)}m` : y.toFixed(1);
-  if (cautious === null) return ifRatesHold === null ? '—' : `${one(ifRatesHold)}+`;
-  if (ifRatesHold === null || one(ifRatesHold) === one(cautious)) return one(cautious);
-  return `${one(ifRatesHold)}–${one(cautious)}`;
 }
 
 export default function GoalsPage() {
@@ -308,8 +296,9 @@ export default function GoalsPage() {
                 label="Years to target"
                 // A range, not a point. Any single rate compounded for a decade
                 // is a claim about the future rate environment, and the CBR has
-                // run from 5.75% to 18% inside this app's own history. The
-                // cautious end leads, because it is the one to plan on.
+                // run from 5.75% to 18% inside this app's own history. Written
+                // low to high; the disclosure says in words which end to plan
+                // on rather than leaving it to be read off the order.
                 value={yearsLabel(fire.yearsToTarget, fire.yearsIfRatesHold)}
                 accent="text-gold-700"
               />
@@ -320,13 +309,42 @@ export default function GoalsPage() {
                 What this assumes
               </p>
               <p className="mt-1.5 text-[11px] leading-relaxed text-ink-soft">
-                The headline figures are deliberately cautious. They price a{' '}
-                {fire.ladderRungs}-bond ladder you could actually build — not the single
-                highest-yielding bond, which no one can buy without limit — and then assume
-                reinvestment rates fall{' '}
-                <span className="num font-semibold">{fire.downsidePp.toFixed(2)} points</span>, the
-                drop the Central Bank Rate has made within the published record. The second figure
-                in each range is today&apos;s rates holding. Reality is most likely between them.
+                {fire.ladderRungs > 1 ? (
+                  <>
+                    The headline figures price a{' '}
+                    <span className="num font-semibold">{fire.ladderRungs}-bond ladder</span> you
+                    could actually build, rather than the single highest-yielding bond, which no
+                    one can buy without limit.
+                  </>
+                ) : (
+                  // The ladder came back empty and the yield fell back to a single
+                  // bond. Claiming a diversified basis here would describe the
+                  // opposite of what was used.
+                  <>
+                    Not enough bonds are currently listed to build a ladder, so these figures rest
+                    on a single bond&apos;s yield. Treat them as indicative until the market has
+                    more paper on issue.
+                  </>
+                )}{' '}
+                {fire.downsidePp > 0 ? (
+                  <>
+                    That yield is then marked down{' '}
+                    <span className="num font-semibold">{fire.downsidePp.toFixed(2)} points</span>{' '}
+                    for reinvestment — the drop the Central Bank Rate has made within the published
+                    record. Where a range is shown it runs from today&apos;s rates holding up to
+                    that fall;{' '}
+                    <span className="font-semibold">plan on the higher figure</span>.
+                  </>
+                ) : (
+                  // No CBR history loaded, so no markdown was applied and the two
+                  // scenarios collapsed into one. Saying "deliberately cautious"
+                  // here would describe a haircut that is not in the numbers.
+                  <>
+                    Rate history is unavailable right now, so no allowance for falling reinvestment
+                    rates has been applied. These figures assume today&apos;s rates hold, which is
+                    the optimistic case — treat the timeline as a floor, not a plan.
+                  </>
+                )}
               </p>
               <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
                 Bonds you already hold keep their coupon to maturity; it is what you buy NEXT that

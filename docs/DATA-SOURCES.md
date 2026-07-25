@@ -77,3 +77,23 @@ results are as reported; **maturity dates are approximated from issue codes and 
 remaining tenors** (CBK prospectuses are the exact source), and YTMs without a reported
 auction print are estimates off the July 2026 curve. Every figure should be re-verified
 against CBK before real money decisions — the in-app disclaimer says so too.
+
+## 5. Source evaluation (July 2026)
+
+A full, user-facing evaluation lives at `/sources/`. Summary of the decision rule:
+
+**The binding constraint is that we ship as static files with no server.** No server means
+no API keys, so any source requiring authentication can only run at build time in CI — and
+any source whose licence forbids redistribution can only be linked, never mirrored.
+
+| Source | Verdict | Reason |
+|---|---|---|
+| CBK, KNBS, National Treasury | **Integrated** | Public primary data, freely citable |
+| World Bank Open Data | **Integrated** | Keyless, CORS-enabled, versioned JSON, CC BY 4.0 |
+| NSE | Free daily list only | Bulk EOD data needs a commercial licence |
+| IMF, broker research, press | Linked only | Copyrighted; cited for context, never republished |
+| Trading Economics | Declined | API key required — impossible in a static client; redistribution outside ToS |
+| Investing.com, yfinance | Declined | Unofficial or scraping-restricted endpoints; unsuitable for a money tool |
+| CDSC | Declined | Participant-only data |
+
+World Bank refresh runs in CI via `backend/scrapers/worldbank.py` (no secrets needed).

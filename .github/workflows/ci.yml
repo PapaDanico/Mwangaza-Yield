@@ -35,6 +35,9 @@ jobs:
       - name: Run macro scraper (best-effort; keeps last good data on failure)
         working-directory: backend/scrapers
         run: python macro_parser.py || echo "macro scrape failed — keeping existing data"
+      - name: Refresh World Bank sovereign context (keyless, CC BY 4.0)
+        working-directory: backend/scrapers
+        run: python worldbank.py || echo "World Bank refresh failed — keeping existing data"
       - name: Run NSE scraper
         working-directory: backend/scrapers
         env:

@@ -108,7 +108,7 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 12
+PARSER_VERSION = 13
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
@@ -1151,7 +1151,50 @@ def parse_pdf(content: bytes, source_url: str) -> list:
     if missing:
         print(f"[auctions] {source_url[-58:]}: filename names {len(expected)} issue(s), "
               f"parsed {len(records)} — MISSING {missing}", file=sys.stderr)
-    return list(records.values())
+    return [_refuse_contradictions(r, source_url) for r in records.values()]
+
+
+def _refuse_contradictions(rec: dict, source_url: str) -> dict:
+    """Drop figures this document cannot support, rather than publish them.
+
+    Both rules here delete data, which is the point. A gap is visible and
+    honest; a contradiction is a wrong answer wearing the clothes of a right
+    one, and this project has already shipped one of those to readers.
+
+    1. A BIDS FIGURE WHOSE ROW LABEL NEVER SAYS "BID" came from prose, not from
+       a bids row. The archive's one instance reads
+
+           bidsReceivedKESM  95.80
+           bidsLabel         "which was first issued on 25th august"
+
+       against 10,007.55 accepted — a sentence about an issue date, mined for a
+       number. Measured rather than assumed: 356 of 357 labelled records say
+       "bid", and the one that does not is exactly this. The guard is that
+       specific because a broader one would start deleting good data.
+
+    2. ACCEPTANCE ABOVE BIDS ON THE SAME BASIS is impossible, and we cannot
+       tell WHICH of the two is misread. So both go. Keeping the pair would
+       publish a contradiction; keeping the one that looks nicer would be a
+       guess wearing the clothes of a fact. Different bases are left alone —
+       a tap sale may report bids at face value and acceptance at cost, and
+       `bidsLabel` is what says so.
+    """
+    label = (rec.get("bidsLabel") or "").lower()
+    if rec.get("bidsReceivedKESM") is not None and label and "bid" not in label:
+        print(f"[auctions] {source_url[-52:]}: {rec.get('issueCode')} bids "
+              f"{rec['bidsReceivedKESM']} came from a row labelled {label!r}, "
+              f"which is prose — dropping it", file=sys.stderr)
+        rec.pop("bidsReceivedKESM", None)
+        rec.pop("bidsLabel", None)
+
+    a, b = rec.get("amountAcceptedKESM"), rec.get("bidsReceivedKESM")
+    if a and b and a > b * 1.001 and "face value" not in label:
+        print(f"[auctions] {source_url[-52:]}: {rec.get('issueCode')} accepted "
+              f"{a} exceeds bids {b} on one basis — dropping both, since the "
+              f"document cannot say which is misread", file=sys.stderr)
+        rec.pop("amountAcceptedKESM", None)
+        rec.pop("bidsReceivedKESM", None)
+    return rec
 
 
 def find_result_pdfs() -> list:

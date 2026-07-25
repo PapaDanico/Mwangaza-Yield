@@ -15,7 +15,7 @@ import sys
 from auction_results import (
     attribute_auction_level, FIELDS, NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
-    find_header, group_lines, normalise_code, results_section,
+    find_header, group_lines, normalise_code, results_section, _refuse_contradictions,
 )
 
 failures = []
@@ -1052,6 +1052,45 @@ def main():
           auction_date_from_name("results 2 year fxd 4-2013-2 december 2013.pdf"), None)
     check("an impossible spelled-out date is refused like a numeric one",
           auction_date_from_name("RESULTS FEB 31 2020.pdf"), None)
+
+    print("_refuse_contradictions — a gap beats a wrong number")
+    # A bids figure whose row label never says "bid" was mined out of prose.
+    # The archive's one instance read 95.80 against 10,007.55 accepted, from a
+    # sentence about an issue date. Measured, not assumed: 356 of 357 labelled
+    # records say "bid", and the one that does not is exactly this.
+    prose = _refuse_contradictions(
+        {"issueCode": "FXD3/2008/005", "bidsReceivedKESM": 95.8,
+         "amountAcceptedKESM": 10007.55,
+         "bidsLabel": "which was first issued on 25th august"}, "u")
+    check("a bids figure mined from prose is dropped",
+          prose.get("bidsReceivedKESM"), None)
+    check("and its label goes with it", prose.get("bidsLabel"), None)
+    check("the accepted figure is not collateral damage",
+          prose.get("amountAcceptedKESM"), 10007.55)
+
+    # An ordinary row must survive untouched.
+    good = _refuse_contradictions(
+        {"issueCode": "X", "bidsReceivedKESM": 12899.19, "amountAcceptedKESM": 9000.0,
+         "bidsLabel": "total bids received at cost (kshs. m)"}, "u")
+    check("a real bids row is left alone", good.get("bidsReceivedKESM"), 12899.19)
+
+    # Acceptance above bids on ONE basis is impossible, and the document cannot
+    # say which of the two is misread — so both go rather than a guess being
+    # dressed as a fact.
+    both = _refuse_contradictions(
+        {"issueCode": "FXD1/2015/005", "amountAcceptedKESM": 15708.0,
+         "bidsReceivedKESM": 12899.19, "couponRate": 13.193,
+         "bidsLabel": "total bids received at cost (kshs. m)"}, "u")
+    check("accepted above bids drops the bids", both.get("bidsReceivedKESM"), None)
+    check("and drops the accepted too", both.get("amountAcceptedKESM"), None)
+    check("while leaving everything else", both.get("couponRate"), 13.193)
+
+    # Different bases are not a contradiction: a tap sale may report bids at
+    # FACE value and acceptance at cost, 1-2% apart on a discount bond.
+    bases = _refuse_contradictions(
+        {"issueCode": "Y", "amountAcceptedKESM": 404.0, "bidsReceivedKESM": 400.0,
+         "bidsLabel": "total bids received at face value (kes million)"}, "u")
+    check("different bases are left alone", bases.get("amountAcceptedKESM"), 404.0)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

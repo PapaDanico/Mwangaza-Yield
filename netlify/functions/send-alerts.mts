@@ -70,11 +70,26 @@ export default async () => {
   const store = getStore('push-subscriptions');
   const { blobs } = await store.list();
   const now = new Date();
+
+  // A count is not a time bound — the auction scraper's lesson, inherited.
+  // Sequential sends over an uncapped store mean one slow push service, or a
+  // store padded with fabricated endpoints, decides this function's runtime.
+  // Whoever was not reached before the deadline is simply first in line
+  // tomorrow: the delivery log means nothing is lost, only late, which is the
+  // same property that made stopping the auction scraper early free.
+  const RUN_BUDGET_MS = Number(process.env.SEND_BUDGET_MS || 8 * 60_000);
+  const startedAt = Date.now();
+  let skipped = 0;
   let delivered = 0;
   let pruned = 0;
   let failures = 0;
 
-  for (const { key } of blobs) {
+  for (let i = 0; i < blobs.length; i += 1) {
+    if (Date.now() - startedAt > RUN_BUDGET_MS) {
+      skipped = blobs.length - i;
+      break;
+    }
+    const { key } = blobs[i];
     const rec = (await store.get(key, { type: 'json' })) as Record | null;
     if (!rec?.endpoint) continue;
 
@@ -123,7 +138,17 @@ export default async () => {
     });
   }
 
-  const summary = `subscribers=${blobs.length} delivered=${delivered} pruned=${pruned} failures=${failures}`;
+  const summary =
+    `subscribers=${blobs.length} delivered=${delivered} pruned=${pruned} ` +
+    `failures=${failures} skipped=${skipped}`;
+  if (skipped) {
+    console.error(
+      `[send-alerts] ${RUN_BUDGET_MS}ms budget spent with ${skipped} subscriber(s) unvisited — ` +
+      `undelivered, not lost. The next run walks the same order, but everyone already ` +
+      `served costs one cheap read (their events are logged, nothing is due), so the ` +
+      `budget lands on the tail`
+    );
+  }
   console.log(summary);
   return new Response(summary, { status: 200 });
 };

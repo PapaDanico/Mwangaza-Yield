@@ -13,7 +13,7 @@ import os
 import sys
 
 from auction_results import (
-    NUMERIC_RE,
+    NUMERIC_RE, header_candidates, _field_count,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -119,6 +119,49 @@ def main():
     check("the second value is clean", cells.get(1), "14.5384")
     check("both cells survive the numeric test",
           all(NUMERIC_RE.match(v) for v in cells.values()), True)
+
+    print("a prose title must not be mistaken for the table header")
+    # The dominant live failure. These PDFs open with a title naming every bond
+    # — "FXD1/2022/03 & FXD1/2019/15 DATED 24/04/2023" — above a table whose
+    # header row may name only the bonds actually auctioned, because the other
+    # leg was cancelled. Scoring by how many filename bonds a line mentions
+    # picks the TITLE, and its prose word positions have nothing to do with the
+    # table's columns: the probe showed both bonds' figures landing in one
+    # column, so the coupon cell read "15.03916.844" and every field was lost.
+    titled = group_lines([
+        # line 0: the prose title, naming BOTH bonds, packed close together
+        w("FXD1/2022/03", 60, 100), w("&", 135, 100), w("FXD1/2019/15", 150, 100),
+        w("DATED", 230, 100), w("24/04/2023", 275, 100),
+        # line 1: the real table header, naming only the bond that was sold
+        w("TENOR", 40, 140), w("FXD1/2022/03", 300, 140),
+        # line 2: the data, aligned to the TABLE, not to the title
+        w("Coupon", 40, 160), w("Rate", 80, 160), w("(%)", 110, 160),
+        w("1", 300, 160), w("1.766", 310, 160),
+    ])
+    ranked = header_candidates(titled, ["FXD1/2022/003", "FXD1/2019/015"])
+    check("the title outranks the header on bond count alone",
+          ranked[0][0], ["FXD1/2022/003", "FXD1/2019/015"])
+    check("but the real header is also a candidate",
+          ["FXD1/2022/003"] in [c for c, _ in ranked], True)
+
+    from auction_results import read_fields, _fit
+    title_codes, title_centres = ranked[0]
+    via_title = read_fields(titled, title_codes, title_centres, "2023-04-24", "u")
+    hdr = [(c, ce) for c, ce in ranked if c == ["FXD1/2022/003"]][0]
+    via_header = read_fields(titled, hdr[0], hdr[1], "2023-04-24", "u")
+
+    # The danger is not that the title reads nothing — it reads the SAME number
+    # of fields — but that it hangs the coupon on the cancelled bond.
+    check("the title misattributes the coupon to the cancelled leg",
+          "FXD1/2019/015" in via_title, True)
+    check("a field count alone cannot tell them apart",
+          _field_count(via_title) == _field_count(via_header), True)
+
+    # Column coverage can: 1 of 2 columns filled versus 1 of 1.
+    check("coverage ranks the real header above the title",
+          _fit(via_header, hdr[0]) > _fit(via_title, title_codes), True)
+    check("and it reads the split coupon onto the right bond",
+          via_header["FXD1/2022/003"]["couponRate"], 11.766)
 
     print("split issue codes — the bug the first dry-run caught")
     # CBK splits codes across word boundaries. Matching word by word found one

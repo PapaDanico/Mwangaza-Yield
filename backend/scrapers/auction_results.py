@@ -192,8 +192,8 @@ def results_section(lines: list) -> list:
     return lines
 
 
-def find_header(lines: list, expected: list | None = None) -> tuple:
-    """Locate the row naming the issues; it defines the column geometry.
+def codes_on_line(line: list) -> tuple:
+    """The issue codes on one visual line, with the x-centre of each.
 
     Matches against the JOINED line rather than word by word. The first dry-run
     matched each word separately and so found only one issue in PDFs whose
@@ -201,34 +201,61 @@ def find_header(lines: list, expected: list | None = None) -> tuple:
     boundaries often enough that per-word matching silently loses half the
     bonds. Under-extraction is quieter than a wrong number and just as wrong.
     """
-    best: tuple = ([], [], -1)
-    for line in lines:
-        spans, pos, parts = [], 0, []
-        for w in line:
-            parts.append(w["text"])
-            spans.append((pos, pos + len(w["text"]), w))
-            pos += len(w["text"]) + 1  # the joining space
-        text = " ".join(parts)
+    spans, pos, parts = [], 0, []
+    for w in line:
+        parts.append(w["text"])
+        spans.append((pos, pos + len(w["text"]), w))
+        pos += len(w["text"]) + 1  # the joining space
+    text = " ".join(parts)
 
-        codes, centres = [], []
-        for m in ISSUE_RE.finditer(text):
-            start, end = m.span()
-            owners = [w for (ws, we, w) in spans if ws < end and we > start]
-            if not owners:
-                continue
-            codes.append(normalise_code(*m.groups()))
-            centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
+    codes, centres = [], []
+    for m in ISSUE_RE.finditer(text):
+        start, end = m.span()
+        owners = [w for (ws, we, w) in spans if ws < end and we > start]
+        if not owners:
+            continue
+        codes.append(normalise_code(*m.groups()))
+        centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
+    return codes, centres
+
+
+def header_candidates(lines: list, expected: list | None = None) -> list:
+    """Every line that could be the column header, most promising first.
+
+    There is usually more than one, and the obvious ranking picks the wrong
+    one. These PDFs open with a TITLE that names every bond in prose —
+    "FXD1/2022/03 & FXD1/2019/15 DATED 24/04/2023" — above a table whose header
+    row may name only the bonds actually auctioned, e.g. "TENOR FXD1/2022/03"
+    after the other leg was cancelled. Scoring by how many of the filename's
+    bonds a line mentions therefore prefers the title, and the title's word
+    positions are prose positions with no relationship to the table's columns.
+
+    The live probe caught exactly that: geometry taken from the title put both
+    bonds' figures into a single column, so the coupon cell read
+    "15.03916.844" — two numbers glued together — and was rejected. Every field
+    failed, and the file yielded nothing.
+
+    So this returns candidates rather than a winner, and the caller keeps
+    whichever one actually makes the table parse. Ties on score break toward
+    the wider spread, because a real header row is laid out across the page
+    while a prose title runs together.
+    """
+    scored = []
+    for line in lines:
+        codes, centres = codes_on_line(line)
         if not codes:
             continue
-        # Prefer the line that best matches the bonds the FILENAME names. Taking
-        # the first line with any code was how a forthcoming-issues heading got
-        # mistaken for the results header.
         score = len(set(codes) & set(expected or [])) if expected else 0
-        if score > best[2] or (best[2] < 0):
-            best = (codes, centres, score)
-        if expected and score == len(expected):
-            break
-    return best[0], best[1]
+        spread = (max(centres) - min(centres)) if len(centres) > 1 else 0.0
+        scored.append((score, spread, codes, centres))
+    scored.sort(key=lambda t: (-t[0], -t[1]))
+    return [(codes, centres) for _score, _spread, codes, centres in scored]
+
+
+def find_header(lines: list, expected: list | None = None) -> tuple:
+    """The single best header line. See header_candidates for the ranking."""
+    candidates = header_candidates(lines, expected)
+    return candidates[0] if candidates else ([], [])
 
 
 def codes_in_name(url: str) -> list:
@@ -260,6 +287,69 @@ def auction_date_from_name(url: str):
     return best
 
 
+# How many candidate headers to try before giving up on a page. The real one
+# has never been far down the ranking; this only bounds a pathological page.
+MAX_HEADER_TRIES = 4
+
+
+def _field_count(records: dict) -> int:
+    """Numeric fields recovered under one candidate geometry."""
+    return sum(len(r) - 4 for r in records.values())  # minus id/code/date/url
+
+
+def _fit(records: dict, codes: list) -> tuple:
+    """How well a candidate header explains the page. Higher is better.
+
+    Column COVERAGE leads and field count only breaks ties, because counting
+    fields alone is not merely weak — it is unsafe. On a real CBK file where
+    one leg of a two-bond auction was cancelled, the prose title named both
+    bonds while the table listed one. Both geometries recovered exactly one
+    field, so a count could not choose between them; but the title's columns
+    put that coupon under the CANCELLED bond. A wrong number attached to a real
+    bond name is the worst thing this parser can produce, and far worse than
+    reading nothing at all.
+
+    Coverage separates them cleanly. The values fell into one of the title's
+    two columns (0.5) and into the only column the true header declares (1.0).
+    A header whose columns are real gets them filled.
+    """
+    if not codes:
+        return (0.0, 0)
+    return (len(records) / len(codes), _field_count(records))
+
+
+def read_fields(lines: list, codes: list, centres: list,
+                auction_date, source_url: str) -> dict:
+    """Read every known field for one candidate column geometry."""
+    # Values sit to the right of the row labels; anchor on the leftmost column
+    # centre so label words are never mistaken for data.
+    label_x = min(centres) - 40
+    records: dict = {}
+    for key, pattern in FIELDS:
+        for line in lines:
+            text = " ".join(w["text"] for w in line)
+            if not pattern.search(text):
+                continue
+            for idx, raw in assign_to_columns(line, centres, label_x).items():
+                if idx >= len(codes) or not NUMERIC_RE.match(raw):
+                    continue
+                value = float(raw)
+                lo_hi = BANDS.get(key)
+                if lo_hi and not (lo_hi[0] <= value <= lo_hi[1]):
+                    print(f"[auctions] {codes[idx]} {key}={value} outside "
+                          f"{lo_hi} — dropping", file=sys.stderr)
+                    continue
+                rec = records.setdefault(codes[idx], {
+                    "id": f"res-{codes[idx].replace('/', '-').lower()}-{auction_date}",
+                    "issueCode": codes[idx],
+                    "auctionDate": auction_date,
+                    "sourceUrl": source_url,
+                })
+                rec.setdefault(key, value)
+            break
+    return records
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
@@ -276,35 +366,20 @@ def parse_pdf(content: bytes, source_url: str) -> list:
         if not words:
             continue
         lines = results_section(group_lines(words))
-        codes, centres = find_header(lines, expected)
-        if not codes:
-            continue
-        # Values sit to the right of the row labels; anchor on the leftmost
-        # column centre so label words are never mistaken for data.
-        label_x = min(centres) - 40
-
-        for key, pattern in FIELDS:
-            for line in lines:
-                text = " ".join(w["text"] for w in line)
-                if not pattern.search(text):
-                    continue
-                for idx, raw in assign_to_columns(line, centres, label_x).items():
-                    if idx >= len(codes) or not NUMERIC_RE.match(raw):
-                        continue
-                    value = float(raw)
-                    lo_hi = BANDS.get(key)
-                    if lo_hi and not (lo_hi[0] <= value <= lo_hi[1]):
-                        print(f"[auctions] {codes[idx]} {key}={value} outside "
-                              f"{lo_hi} — dropping", file=sys.stderr)
-                        continue
-                    rec = records.setdefault(codes[idx], {
-                        "id": f"res-{codes[idx].replace('/', '-').lower()}-{auction_date}",
-                        "issueCode": codes[idx],
-                        "auctionDate": auction_date,
-                        "sourceUrl": source_url,
-                    })
-                    rec.setdefault(key, value)
-                break
+        # Try each plausible header and keep whichever actually makes the table
+        # parse. Picking one up front and trusting it is how geometry from the
+        # prose title got used for a table, collapsing both bonds into one
+        # column. Counting the fields recovered is a direct measure of whether
+        # a header explains the page, so it needs no heuristic about titles.
+        best_page: dict = {}
+        best_fit = (0.0, 0)
+        for codes, centres in header_candidates(lines, expected)[:MAX_HEADER_TRIES]:
+            attempt = read_fields(lines, codes, centres, auction_date, source_url)
+            fit = _fit(attempt, codes)
+            if fit > best_fit:
+                best_page, best_fit = attempt, fit
+        for code, rec in best_page.items():
+            records.setdefault(code, {}).update(rec)
 
     # CBK names the issues in the filename, so we can check our own work. If
     # the header yielded fewer, we have silently dropped a bond — say so

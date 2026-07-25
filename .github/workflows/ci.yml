@@ -6,6 +6,12 @@ on:
   pull_request:
   schedule:
     - cron: '0 3 * * 1-5' # 6am EAT, weekdays
+  workflow_dispatch:
+    inputs:
+      validate_only:
+        description: 'Probe live sources and report, without writing or committing data'
+        type: boolean
+        default: true
 
 jobs:
   test-and-build:
@@ -19,6 +25,25 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+  validate-sources:
+    # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
+    # network-open runner and prints a reachability report. Changes nothing.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - name: Probe live data sources
+        working-directory: backend/scrapers
+        run: python validate.py
+      - name: Dry-run the macro scraper
+        if: ${{ !inputs.validate_only }}
+        working-directory: backend/scrapers
+        run: python macro_parser.py || echo "macro scraper failed — see output above"
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.

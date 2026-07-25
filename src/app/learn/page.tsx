@@ -153,7 +153,7 @@ export default function LearnPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Tutorials</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">Tutorials</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
           From your first KES 50,000 to a full ladder
         </h1>
@@ -167,7 +167,7 @@ export default function LearnPage() {
         {LESSONS.map((l) => (
           <article key={l.n} className="card">
             <div className="flex items-baseline gap-3">
-              <span className="num text-sm font-bold text-gold-600">{l.n}</span>
+              <span className="num text-sm font-bold text-gold-700">{l.n}</span>
               <h2 className="font-display text-lg font-bold text-ink">{l.title}</h2>
               <span className="ml-auto shrink-0 text-xs text-ink-faint">{l.minutes} min</span>
             </div>

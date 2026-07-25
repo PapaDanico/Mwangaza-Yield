@@ -35,7 +35,7 @@ export default function LandingPage() {
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink md:text-6xl">
             When you lend to Kenya,
             <br />
-            <span className="text-gold-600">know what you earn.</span>
+            <span className="text-gold-700">know what you earn.</span>
           </h1>
           <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">
             Government bonds, made plain
@@ -148,7 +148,7 @@ export default function LandingPage() {
         <div className="mt-10 grid gap-4 md:grid-cols-3">
           {steps.map(({ n, title, desc }) => (
             <div key={n} className="card">
-              <p className="num text-sm font-semibold text-gold-600">{n}</p>
+              <p className="num text-sm font-semibold text-gold-700">{n}</p>
               <p className="mt-2 font-display font-semibold text-ink">{title}</p>
               <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{desc}</p>
             </div>

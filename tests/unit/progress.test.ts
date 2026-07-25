@@ -6,6 +6,7 @@ import {
   buildProgress,
 } from '../../src/lib/progress';
 import { withCheckpoint, withoutCheckpoint, type SavedPlan } from '../../src/lib/plans';
+import { analyseRateOutlook, conservativeYield } from '../../src/lib/rate-outlook';
 
 describe('projectPot', () => {
   it('leaves an untouched pot alone at a zero rate', () => {
@@ -230,5 +231,51 @@ describe('recording checkpoints on a plan', () => {
   it('leaves the plan itself untouched', () => {
     withCheckpoint(plan, '2026-07-01', 1_500_000, '2026-07-01');
     expect(plan.checkpoints).toBeUndefined();
+  });
+});
+
+describe('analyseRateOutlook', () => {
+  const mk = (date: string, rate: number) =>
+    ({ id: date, date, rate, title: '', url: '', move: 'hold' as const, changeBps: 0 });
+
+  it('measures the fall from today back to the record low', () => {
+    const o = analyseRateOutlook([mk('2020-01-01', 7), mk('2023-01-01', 12), mk('2026-06-01', 9)])!;
+    expect(o.currentCBR).toBe(9);
+    expect(o.troughCBR).toBe(7);
+    expect(o.downsidePp).toBe(2);
+    expect(o.troughDate).toBe('2020-01-01');
+  });
+
+  it('reads chronology from the dates, not the array order', () => {
+    const o = analyseRateOutlook([mk('2026-06-01', 9), mk('2020-01-01', 7)])!;
+    expect(o.currentCBR).toBe(9);
+  });
+
+  it('assumes no fall when today is already the low', () => {
+    const o = analyseRateOutlook([mk('2020-01-01', 12), mk('2026-06-01', 6)])!;
+    expect(o.downsidePp).toBe(0);
+  });
+
+  it('returns null when there is not enough record to claim anything', () => {
+    expect(analyseRateOutlook([])).toBeNull();
+    expect(analyseRateOutlook([mk('2026-06-01', 9)])).toBeNull();
+  });
+});
+
+describe('conservativeYield', () => {
+  const outlook = { currentCBR: 9, troughCBR: 6, downsidePp: 3, troughDate: '2020-01-01', decisionsConsidered: 2 };
+
+  it('subtracts points, it does not scale', () => {
+    // Scaling would treat the whole credit and term spread as if it collapsed
+    // with the policy rate: 16 * 6/9 = 10.7 rather than 13.
+    expect(conservativeYield(16, outlook)).toBe(13);
+  });
+
+  it('leaves the yield alone with no outlook to go on', () => {
+    expect(conservativeYield(16, null)).toBe(16);
+  });
+
+  it('floors at 1% rather than returning a plan that never completes', () => {
+    expect(conservativeYield(2, outlook)).toBe(1);
   });
 });

@@ -27,9 +27,9 @@ describe('GOALS', () => {
 });
 
 describe('planFire', () => {
-  it('required capital is target income divided by net yield', () => {
+  it('required capital is target income divided by the PLANNING yield', () => {
     const p = planFire(universe, [], 1_200_000, 0, 0);
-    expect(p.requiredCapitalKES).toBeCloseTo(1_200_000 / (p.bestNetYield / 100), 0);
+    expect(p.requiredCapitalKES).toBeCloseTo(1_200_000 / (p.planningNetYield / 100), 0);
     expect(p.coverageRatio).toBe(0);
     expect(p.shortfallKES).toBeCloseTo(p.requiredCapitalKES, 0);
   });
@@ -147,5 +147,64 @@ describe('planSchoolFees cannot be hung by its own arguments', () => {
     const p = planSchoolFees(universe, [], 3_000_000, 2032, 4, 400_000, asOf);
     expect(p.years).toHaveLength(4);
     expect(p.years[0].year).toBe(2032);
+  });
+});
+
+describe('planFire plans conservatively, not on the best bond', () => {
+  // Two MPC decisions: the rate has fallen 3 points from its record high, so a
+  // plan must assume reinvestment could give back the same 3 points.
+  const cbr = [
+    { id: '1', date: '2023-01-01', rate: 8.00, title: 'low', url: '', move: 'cut' as const, changeBps: 0 },
+    { id: '2', date: '2026-06-01', rate: 11.00, title: 'now', url: '', move: 'hike' as const, changeBps: 0 },
+  ];
+
+  it('never plans on a rate above the buildable ladder', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    expect(p.planningNetYield).toBeLessThanOrEqual(p.currentLadderNetYield);
+    expect(p.currentLadderNetYield).toBeLessThanOrEqual(p.bestNetYield);
+  });
+
+  it('marks the yield down by the fall the policy rate actually made', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    expect(p.downsidePp).toBeCloseTo(3, 10);
+    expect(p.planningNetYield).toBeCloseTo(p.currentLadderNetYield - 3, 10);
+  });
+
+  it('asks for MORE capital than the optimistic case, never less', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    expect(p.requiredCapitalKES).toBeGreaterThan(p.requiredCapitalIfRatesHoldKES);
+  });
+
+  it('states a longer journey than the optimistic case', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    expect(p.yearsToTarget!).toBeGreaterThan(p.yearsIfRatesHold!);
+  });
+
+  it('is more cautious than the old best-bond basis it replaced', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    const oldRequired = 1_200_000 / (p.bestNetYield / 100);
+    expect(p.requiredCapitalKES).toBeGreaterThan(oldRequired);
+  });
+
+  it('falls back to today rather than inventing a downside with no history', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, []);
+    expect(p.downsidePp).toBe(0);
+    expect(p.planningNetYield).toBeCloseTo(p.currentLadderNetYield, 10);
+  });
+
+  it('assumes no further fall when today is already the record low', () => {
+    const atLow = [
+      { id: '1', date: '2023-01-01', rate: 12.0, title: 'high', url: '', move: 'hike' as const, changeBps: 0 },
+      { id: '2', date: '2026-06-01', rate: 6.0, title: 'low', url: '', move: 'cut' as const, changeBps: 0 },
+    ];
+    // Current IS the trough, so there is no fall on the record to assume.
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, [atLow[1]]);
+    expect(p.downsidePp).toBe(0);
+  });
+
+  it('still reports the best bond for context', () => {
+    const p = planFire(universe, [], 1_200_000, 2_000_000, 50_000, cbr);
+    expect(p.bestBond).not.toBeNull();
+    expect(p.bestNetYield).toBeGreaterThan(0);
   });
 });

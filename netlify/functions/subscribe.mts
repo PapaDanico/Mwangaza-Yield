@@ -42,6 +42,20 @@ function cors(origin: string | null) {
 
 const keyFor = (endpoint: string) => createHash('sha256').update(endpoint).digest('hex');
 
+/**
+ * The most subscriptions this store will hold. This is the only unauthenticated
+ * write path the project has, on a free tier, and the sender visits every
+ * record every morning — so an unbounded store is not a storage problem first,
+ * it is a delivery problem: fabricated endpoints crowd the daily run until
+ * real subscribers stop being reached inside its time budget.
+ *
+ * The ceiling is sized to the sender, not to storage: one bounded cron run can
+ * comfortably serve this many. An UPDATE to an endpoint already on file is
+ * always allowed, full or not — a reader changing their rules must never be
+ * turned away by strangers having filled the room.
+ */
+const MAX_SUBSCRIPTIONS = 5000;
+
 export default async (req: Request, _context: Context) => {
   const headers = { ...cors(req.headers.get('origin')), 'Content-Type': 'application/json' };
 
@@ -78,6 +92,18 @@ export default async (req: Request, _context: Context) => {
     return new Response(JSON.stringify({ error: 'invalid subscription' }), { status: 400, headers });
   }
 
+  const key = keyFor(body.endpoint);
+  const { blobs } = await store.list();
+  if (!blobs.some((b) => b.key === key) && blobs.length >= MAX_SUBSCRIPTIONS) {
+    // 503, not 400: the request was well-formed and the condition is ours and
+    // temporary. The client surfaces its normal "try again shortly" message,
+    // which for once is exactly accurate.
+    return new Response(JSON.stringify({ error: 'subscription capacity reached' }), {
+      status: 503,
+      headers,
+    });
+  }
+
   const record: StoredSubscription = {
     endpoint: body.endpoint,
     keys: { p256dh: body.keys.p256dh, auth: body.keys.auth },
@@ -85,7 +111,7 @@ export default async (req: Request, _context: Context) => {
     createdAt: new Date().toISOString(),
   };
 
-  await store.setJSON(keyFor(body.endpoint), record);
+  await store.setJSON(key, record);
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 };
 

@@ -161,6 +161,23 @@ export function describeHistory(h: AuctionHistory): string {
 export function readAgainstOwnRange(h: AuctionHistory): string {
   const range = `${h.low.rate.toFixed(2)}% to ${h.high.rate.toFixed(2)}%`;
 
+  // With exactly two auctions the latest is ALWAYS the highest or the lowest
+  // this bond has ever paid — arithmetic, not information. Saying "near the top
+  // of everything this bond has ever paid" there sounds like a finding and is
+  // guaranteed, which is precisely the kind of confident emptiness this app is
+  // supposed to avoid. Two points support a direction and nothing more.
+  if (h.points.length < 3) {
+    const bps = h.changeBps ?? 0;
+    if (bps === 0) {
+      return `Both auctions cleared at ${h.latest.rate.toFixed(2)}%. Two sales are too few to call a range.`;
+    }
+    return (
+      `Only two auctions of this bond have been published, so there is not yet a range ` +
+      `to judge against — only a direction: ${bps > 0 ? 'up' : 'down'} from ` +
+      `${h.previous!.rate.toFixed(2)}% to ${h.latest.rate.toFixed(2)}%.`
+    );
+  }
+
   if (h.high.rate - h.low.rate < 0.25) {
     return (
       `Every auction of this bond has landed within a whisker of the others (${range}), ` +

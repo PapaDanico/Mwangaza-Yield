@@ -32,7 +32,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import date, datetime
 from io import BytesIO
 from urllib.parse import urljoin
 
@@ -84,7 +84,14 @@ RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 SECTION_B_RE = re.compile(r"\bFORTHCOMING\b|^\s*B\.\s", re.I)
 # Issue codes appear as FXD1-2021-005 in filenames and FXD1/2021/5 in the page.
 ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3})\b", re.I)
-DATE_IN_NAME_RE = re.compile(r"(\d{2})-(\d{2})-(\d{4})")
+# CBK dates its result files four different ways across the archive:
+#   DATED 15-11-2021 · DATED 21.09.2020 · DATED 19-7-2021 · DD 24.01.2022
+# The first version of this pattern accepted only DD-MM-YYYY, which left 23 of
+# 169 captured records with no auction date at all — invisible to the yield
+# history, and a latent bug besides: the deduplication key is
+# (issue code, auction date), so two undated auctions of the SAME bond would
+# have silently collapsed into one. That had not happened yet. It would have.
+DATE_IN_NAME_RE = re.compile(r"\b(\d{1,2})[-.](\d{1,2})[-.](\d{2,4})\b")
 
 # Rows we care about, and how to recognise them whatever CBK's wording that year.
 FIELDS = [
@@ -200,6 +207,30 @@ def codes_in_name(url: str) -> list:
     return [normalise_code(*m.groups()) for m in ISSUE_RE.finditer(url)]
 
 
+def auction_date_from_name(url: str):
+    """The auction date CBK put in the filename, or None if there isn't one.
+
+    Takes the LAST plausible date in the string rather than the first. Issue
+    codes are full of digits and separators (FXD1-2012-020) and they always
+    precede the date, so reading from the right is what keeps a bond's tenor
+    from being mistaken for the day it was sold.
+    """
+    best = None
+    for m in DATE_IN_NAME_RE.finditer(url):
+        d, mo, y = (int(g) for g in m.groups())
+        # "28.12.20" is 2020. Two-digit years are unambiguous here: this archive
+        # starts in 2019 and CBK is not publishing auctions from 1920.
+        if y < 100:
+            y += 2000
+        if not (2000 <= y <= date.today().year + 1):
+            continue
+        try:
+            best = datetime(y, mo, d).date().isoformat()
+        except ValueError:
+            continue  # 31-02, or a tenor that looked like a date
+    return best
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
@@ -208,14 +239,7 @@ def parse_pdf(content: bytes, source_url: str) -> list:
     with pdfplumber.open(BytesIO(content)) as pdf:
         pages = [p.extract_words() or [] for p in pdf.pages]
 
-    auction_date = None
-    m = DATE_IN_NAME_RE.search(source_url)
-    if m:
-        d, mo, y = m.groups()
-        try:
-            auction_date = datetime(int(y), int(mo), int(d)).date().isoformat()
-        except ValueError:
-            auction_date = None
+    auction_date = auction_date_from_name(source_url)
 
     expected = codes_in_name(source_url)
     records: dict = {}
@@ -287,7 +311,37 @@ def load_existing() -> tuple:
         print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
               f"starting fresh", file=sys.stderr)
         return [], set()
-    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+    return repair_dates(records), {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+
+
+def repair_dates(records: list) -> list:
+    """Fill in auction dates the parser could not read when it first ran.
+
+    Incremental parsing has one cost that is easy to miss: a file is read once,
+    so a LATER improvement to the parser never reaches records already
+    captured. Widening the filename date pattern would otherwise have left 23
+    existing records permanently undated — the archive would carry a bug that
+    had already been fixed.
+
+    This is safe to redo on every run precisely because it invents nothing: the
+    date is recovered from the source URL we already stored, by the same
+    function that would have read it at capture time. Nothing is re-downloaded
+    and no record without a readable filename date is touched.
+    """
+    fixed = 0
+    for rec in records:
+        if rec.get("auctionDate") or not rec.get("sourceUrl"):
+            continue
+        recovered = auction_date_from_name(rec["sourceUrl"])
+        if not recovered:
+            continue
+        rec["auctionDate"] = recovered
+        rec["id"] = f"res-{rec['issueCode'].replace('/', '-').lower()}-{recovered}"
+        fixed += 1
+    if fixed:
+        print(f"[auctions] recovered the auction date for {fixed} existing "
+              f"record(s) from their filenames", file=sys.stderr)
+    return records
 
 
 def main() -> None:

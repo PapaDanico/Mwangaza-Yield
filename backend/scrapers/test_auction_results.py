@@ -13,8 +13,8 @@ import os
 import sys
 
 from auction_results import (
-    assign_to_columns, cell_value, codes_in_name, find_header, group_lines,
-    normalise_code, results_section,
+    assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
+    find_header, group_lines, normalise_code, results_section,
 )
 
 failures = []
@@ -178,6 +178,57 @@ def main():
     check("a duplicate auction collapses", len(uniq), 2)
     check("a reopening on a different date is kept",
           sorted(d for _, d in uniq), ["2021-11-15", "2023-04-10"])
+
+    print("the auction date in the filename")
+    # All four spellings CBK actually uses. The first version of the pattern
+    # took only the first of these, which left 23 of 169 captured records with
+    # no date — invisible to the yield history and a latent dedup collapse.
+    check("DD-MM-YYYY",
+          auction_date_from_name("RESULTS FXD1-2021-005 DATED 15-11-2021.pdf"),
+          "2021-11-15")
+    check("dots",
+          auction_date_from_name("RESULTS FXD2-2013-15 DATED 23.11.2020.pdf"),
+          "2020-11-23")
+    check("single-digit month",
+          auction_date_from_name("RESULTS FXD1-2012-15 DATED 19-7-2021.pdf"),
+          "2021-07-19")
+    check("two-digit year",
+          auction_date_from_name("RESULTS FXD1-2012-15 DATED 28.12.20.pdf"),
+          "2020-12-28")
+    check("'DD' instead of 'DATED'",
+          auction_date_from_name("RESULTS FXD2-2018-10 DD 24.01.2022.pdf"),
+          "2022-01-24")
+
+    # The hazard the looser pattern introduces: issue codes are digits joined by
+    # the same separators. Reading from the RIGHT is what keeps a bond's tenor
+    # from being mistaken for the day it was sold.
+    check("an issue code is not mistaken for a date",
+          auction_date_from_name("RESULTS FXD1-2012-020, FXD1-2019-020 DATED 05-07-2021.pdf"),
+          "2021-07-05")
+    check("a filename with no date yields None",
+          auction_date_from_name("RESULTS FXD1-2012-020.pdf"), None)
+    check("an impossible date is rejected rather than guessed",
+          auction_date_from_name("RESULTS DATED 31-02-2021.pdf"), None)
+
+    print("repairing dates a previous run could not read")
+    # Incremental parsing means a file is read once, so a later parser fix never
+    # reaches records already captured. This recovers them from the URL we
+    # already stored — no re-download, and nothing invented.
+    stale = [
+        {"id": "res-fxd1-2012-015-None", "issueCode": "FXD1/2012/015",
+         "auctionDate": None, "sourceUrl": "https://cbk/RESULTS FXD1-2012-15 DATED 28.12.20.pdf"},
+        {"id": "res-fxd1-2021-005-2021-11-15", "issueCode": "FXD1/2021/005",
+         "auctionDate": "2021-11-15", "sourceUrl": "https://cbk/b.pdf"},
+        {"id": "res-x-None", "issueCode": "FXD9/1999/001",
+         "auctionDate": None, "sourceUrl": "https://cbk/no date here.pdf"},
+    ]
+    repaired = mod.repair_dates(stale)
+    check("an undated record recovers its date", repaired[0]["auctionDate"], "2020-12-28")
+    check("and its id stops saying None", repaired[0]["id"], "res-fxd1-2012-015-2020-12-28")
+    check("a record that already had a date is untouched",
+          repaired[1]["auctionDate"], "2021-11-15")
+    check("a filename with no date is left alone rather than guessed at",
+          repaired[2]["auctionDate"], None)
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

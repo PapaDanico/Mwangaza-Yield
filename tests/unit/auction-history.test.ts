@@ -197,10 +197,34 @@ describe('readAgainstOwnRange', () => {
 
   it('says a tight history offers little advantage in waiting', () => {
     const tight = summarise([
-      { date: '2025-01-01', rate: 13.0 },
+      { date: '2024-01-01', rate: 13.0 },
+      { date: '2025-01-01', rate: 13.05 },
       { date: '2026-01-01', rate: 13.1 },
     ])!;
     expect(readAgainstOwnRange(tight)).toContain('little advantage in waiting');
+  });
+
+  it('refuses to call a range from two auctions, because it would always be one', () => {
+    // With two points the latest is necessarily the highest or the lowest ever
+    // paid. "Near the top of everything this bond has ever paid" would then be
+    // arithmetic dressed as a finding.
+    const two = summarise([
+      { date: '2023-09-18', rate: 18.49 },
+      { date: '2024-10-14', rate: 17.34 },
+    ])!;
+    const text = readAgainstOwnRange(two);
+    expect(text).toContain('not yet a range');
+    expect(text).toContain('down');
+    expect(text).not.toContain('near the bottom');
+    expect(text).not.toContain('near the top');
+  });
+
+  it('reports two identical auctions as too few to call a range', () => {
+    const flat = summarise([
+      { date: '2025-01-01', rate: 13.0 },
+      { date: '2026-01-01', rate: 13.0 },
+    ])!;
+    expect(readAgainstOwnRange(flat)).toContain('too few to call a range');
   });
 
   it('always quotes the actual range so the reader can check the adjective', () => {

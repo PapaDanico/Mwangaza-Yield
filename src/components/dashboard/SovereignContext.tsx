@@ -46,6 +46,17 @@ export default function SovereignContext() {
                   <span className="num text-lg font-bold text-ink">
                     {c.value}
                     <span className="ml-1 text-xs font-normal text-ink-muted">{c.unit}</span>
+                    {/* The year belongs on the face of the card, not behind a tap.
+                        These are annual national statistics compiled from country
+                        submissions, so a figure here is routinely a year or two
+                        old — "Reserves 4.03 months" with no date reads as today's
+                        position. Someone weighing whether to lend to this borrower
+                        should see the vintage without having to go looking. */}
+                    {c.asOf && (
+                      <span className="ml-1.5 text-[11px] font-normal text-ink-faint">
+                        ({c.asOf})
+                      </span>
+                    )}
                   </span>
                 </span>
                 <ChevronDown

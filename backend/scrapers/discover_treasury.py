@@ -61,6 +61,10 @@ TARGETS = [
             "https://www.treasury.go.ke/publications/",
             "https://www.treasury.go.ke/category/debt-management/",
             "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review/",
+            # Found by the first run of this probe: the Public Debt Management
+            # Office's own document library, reached from the Treasury home page.
+            "https://www.treasury.go.ke/pdmo-reports-and-documents",
+            "https://newsite.treasury.go.ke/directorate-public-debt-management",
         ],
         re.compile(r"debt|budgetary\s*review|qebr|borrow", re.I),
         # Figures worth extracting if the document proves readable.
@@ -98,7 +102,7 @@ def fetch(url: str):
         return None
 
 
-def inspect_document(url: str, wanted: list) -> None:
+def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
     """Report whether one linked document is machine-readable and on-topic."""
     print(f"\n    --- {url[:110]}")
     r = fetch(url)
@@ -110,7 +114,30 @@ def inspect_document(url: str, wanted: list) -> None:
     print(f"        {ctype}, {len(r.content):,} bytes")
 
     if "pdf" not in ctype.lower() and not url.lower().endswith(".pdf"):
-        print("        not a PDF — inspect by hand before trusting a parser to it")
+        # An index page, not a document. The first version of this probe stopped
+        # here and said "inspect by hand", which is how it reported nothing
+        # useful about a source that was reachable and publishing exactly what
+        # we wanted — the same failure discover_prospectus.py made, one level
+        # up. Government sites file documents behind a landing page; follow it.
+        if not follow_index:
+            print("        HTML, and we are already one level deep — stopping")
+            return
+        print("        HTML index — following one level for linked documents")
+        soup = BeautifulSoup(r.text, "lxml")
+        found = []
+        for a in soup.find_all("a", href=True):
+            child = urljoin(url, a["href"])
+            if child.lower().split("?")[0].endswith((".pdf", ".xlsx", ".xls", ".csv")):
+                text = " ".join(a.get_text().split())[:80]
+                if child not in [f[1] for f in found]:
+                    found.append((text, child))
+        if not found:
+            print("        no documents linked from this index either")
+            return
+        print(f"        {len(found)} document(s) linked; inspecting the first 3:")
+        for text, child in found[:3]:
+            print(f'          "{text}"')
+            inspect_document(child, wanted, follow_index=False)
         return
 
     try:

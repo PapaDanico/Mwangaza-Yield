@@ -25,16 +25,22 @@ These affect whether the numbers can be relied on. Nothing else matters more.
 coupon dates follow business-day conventions and shift for weekends and holidays. Every
 "next coupon date", the cash-flow calendar and the .ics exports inherit that
 approximation.
-**Approach.** `cbk_parser.py` already opens prospectus PDFs. Extract the published
-coupon schedule and store it per bond; fall back to the computed schedule only when a
-prospectus is unavailable, and keep labelling that case as estimated.
+**BLOCKED (probed 2026-07-25).** Prospectuses do carry "Interest Payment Dates" and are
+machine-readable — but only 2016 documents are reachable, the listing serves no table in
+its HTML, and the two-column layout bleeds text between fields. See `DATA-SOURCES.md` §12.
+**To unblock.** Find the current-year prospectus route; the listing is likely rendered
+client-side, so inspecting its network calls in a browser would settle it.
 **Done when.** A bond with a published schedule shows prospectus dates, and the UI
 distinguishes exact from estimated.
 
 ### 2. Day-count convention verified
 **Problem.** Accrued interest uses Actual/365 by assumption. The exact convention is
 stated in the prospectus and changes every settlement figure.
-**Approach.** Read it from a real prospectus; encode per bond if it varies.
+**BLOCKED (probed 2026-07-25).** Stated in neither the prospectus nor the CBK Auction
+Rules & Guidelines. There may be no published statement to find.
+**To unblock.** Stop hunting for a statement and test the behaviour: take one
+CBK-published settlement amount for a known bond and date, and see which convention
+reproduces it. The verification criterion becomes the method.
 **Done when.** A hand-checked accrued-interest figure matches CBK's own for the same
 settlement date.
 

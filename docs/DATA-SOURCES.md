@@ -441,3 +441,53 @@ Until it is confirmed from an authoritative statement, Actual/365 remains an
    Agreement — sidebar links present on every CBK page, which is why they had turned up
    in every probe that day. The tell was that the same three files kept appearing
    regardless of which page was being probed.
+
+### Follow-up: the rules document does not state it either (same day)
+
+The hypothesis in §12 — that the day-count convention belongs in the rules rather than in
+an individual prospectus — was reasonable and **wrong**. Probed:
+
+```
+--- CBK Auction Rules & Guidelines
+    7 page(s), 13495 chars, 0 table(s)
+        DAY COUNT: not found
+    >>> COUPON DATES: 1 hit(s) — ['coupon payment date']
+        BUSINESS DAY RULE: not found
+    date-like strings in document: 0
+```
+
+It mentions coupon payment dates in passing and never defines the accrual basis. So the
+convention is stated in **neither** the prospectus nor the auction rules.
+
+A second finding, arguably more important:
+
+```
+  scanning 272 link(s) from the whole page (no table found)
+  52 prospectus PDF(s) matched an issue code
+```
+
+**The prospectus listing serves no `<table>` at all.** Unlike `/press/` (§10), this page
+does not ship its grid in the HTML — so the 52 matches are archive links scattered
+through the page, and every one of them is from 2016. The current-year prospectuses are
+not reachable by this route.
+
+### Verdict: roadmap items 1 and 2 are BLOCKED, not ready
+
+Neither is buildable today, and knowing that is the point of probing first:
+
+| Item | Blocker |
+|---|---|
+| Exact coupon dates | Only 2016 documents reachable; listing not in served HTML; two-column text bleeds between fields |
+| Day-count convention | Stated in no CBK document we can find |
+
+**What would unblock them.** For coupon dates: locate the current-year prospectus route
+(the listing is likely rendered client-side, so an inspection of its network calls in a
+browser would settle it). For the day count: stop looking for a statement and test the
+behaviour instead — take one CBK-published settlement amount for a known bond and date,
+and check which convention reproduces it. That was always this item's "done when"
+criterion; it now becomes the method rather than the confirmation.
+
+**Meanwhile nothing changes for users.** Actual/365 stays an explicit, labelled
+assumption, and coupon dates stay labelled as estimates — which is what they already
+say. We have not made anything worse by failing to confirm; we have only declined to
+build a parser on documents from 2016 using a convention we cannot verify.

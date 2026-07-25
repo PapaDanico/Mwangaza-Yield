@@ -6,6 +6,7 @@ import type { Bond, SecondaryTrade, TBill } from '@/types/bond';
 import { computeBondInvestment, getCouponDates } from './financial-engine';
 import { buildLadder, type LadderPlan } from './ladder';
 import { computeTBill } from './tbills';
+import { monthsToTarget } from './progress';
 
 export type GoalKey = 'fire' | 'school-fees' | 'passive-income' | 'capital-preservation';
 
@@ -86,21 +87,18 @@ export function planFire(
   const incomeFromCurrentKES = currentCapitalKES * r;
   const shortfallKES = Math.max(0, requiredCapitalKES - currentCapitalKES);
 
-  // Future value of a growing pot: capital compounds at r while contributions
-  // are added monthly. Solved by stepping years until the target is met.
-  let yearsToTarget: number | null = null;
-  if (shortfallKES > 0 && (monthlyContributionKES > 0 || r > 0)) {
-    let pot = currentCapitalKES;
-    for (let y = 1; y <= 60; y++) {
-      pot = pot * (1 + r) + monthlyContributionKES * 12 * (1 + r / 2);
-      if (pot >= requiredCapitalKES) {
-        yearsToTarget = y;
-        break;
-      }
-    }
-  } else if (shortfallKES === 0) {
-    yearsToTarget = 0;
-  }
+  // Future value of a growing pot, stepped monthly because that is how the
+  // contributions are actually made. This is the same projection the progress
+  // tracker measures recorded checkpoints against — deliberately one function,
+  // so a saver is never marked "behind" against a curve that differs from the
+  // one their plan was drawn with.
+  const months = monthsToTarget(
+    currentCapitalKES,
+    monthlyContributionKES,
+    netYield,
+    requiredCapitalKES
+  );
+  const yearsToTarget = months === null ? null : months / 12;
 
   return {
     targetAnnualIncomeKES,
@@ -116,6 +114,11 @@ export function planFire(
 }
 
 /* ----------------------------------------------------------- School fees */
+
+/** The form offers 1–8; the planner enforces it so nothing else can exceed it. */
+export const MAX_FEE_YEARS = 8;
+/** Fees more than a working lifetime away are a typo, not a plan. */
+export const MAX_YEARS_AHEAD = 40;
 
 export interface FeeYear {
   year: number;
@@ -143,6 +146,18 @@ export function planSchoolFees(
   annualFeeKES: number,
   asOf: Date = new Date()
 ): SchoolFeesPlan {
+  // Clamped HERE, not only in the form. `min` and `max` on a number input are
+  // form-validation hints; typing or pasting past them sets the value anyway.
+  // "Years of fees" then drives a loop that allocates a FeeYear and renders a
+  // table row per iteration, so a stray 1000000 built a million rows and wedged
+  // the tab hard enough that reloading the page timed out. A planner that can
+  // be hung by its own arguments is the library's problem, not the form's.
+  const years_ = Math.min(MAX_FEE_YEARS, Math.max(1, Math.floor(yearsOfFees) || 1));
+  const thisYear = asOf.getFullYear();
+  const first_ = Math.min(thisYear + MAX_YEARS_AHEAD, Math.max(thisYear, Math.floor(firstFeeYear) || thisYear));
+  yearsOfFees = years_;
+  firstFeeYear = first_;
+
   const lastFeeYear = firstFeeYear + yearsOfFees - 1;
   const horizonYears = Math.max(1, lastFeeYear - asOf.getFullYear() + 1);
   // One rung per fee year: principal should land the year the invoice does.

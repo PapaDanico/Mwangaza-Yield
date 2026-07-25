@@ -127,7 +127,7 @@ export const GLOSSARY: Term[] = [
     plain:
       'Interest that has quietly built up day by day since the last coupon payment, but has not been paid out yet.',
     precise:
-      'Calculated on an Actual/365 day-count basis for Kenyan government securities.',
+      'Calculated on an Actual/364 day-count basis. Kenyan government securities run on a 364-day year — bills are sold for 91, 182 and 364 days, and a bond pays every 182 days — so half a coupon period accrues exactly half a coupon.',
   },
   {
     slug: 'discount-rate',

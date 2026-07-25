@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { nonNegativeNumber } from '../../src/lib/utils';
 import { makePlan, inputsForGoal, suggestPlanName, type PlanInputs } from '../../src/lib/plans';
 
 const NOW = '2026-07-25T00:00:00.000Z';
@@ -64,4 +65,14 @@ describe('makePlan', () => {
     const b = makePlan('school-fees', ALL, 'B', NOW);
     expect(a.id).not.toBe(b.id);
   });
+});
+
+describe('nonNegativeNumber', () => {
+  it('takes a normal figure', () => expect(nonNegativeNumber('500000')).toBe(500_000));
+  it('refuses a negative investment', () => expect(nonNegativeNumber('-500000')).toBe(0));
+  it('treats an empty box as zero', () => expect(nonNegativeNumber('')).toBe(0));
+  it('treats nonsense as zero', () => expect(nonNegativeNumber('abc')).toBe(0));
+  it('rejects Infinity', () => expect(nonNegativeNumber('Infinity')).toBe(0));
+  it('honours a caller fallback', () => expect(nonNegativeNumber('-1', 2026)).toBe(2026));
+  it('keeps fractions', () => expect(nonNegativeNumber('0.5')).toBe(0.5));
 });

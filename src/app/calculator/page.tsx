@@ -4,9 +4,22 @@ import { useMemo, useState } from 'react';
 import type { Bond } from '@/types/bond';
 import { useBondStore } from '@/stores/bondStore';
 import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
+import { nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
+
+/**
+ * Tax status first, because it is what actually separates these bonds for a
+ * Kenyan saver: an IFB pays its coupon whole while everything else loses 10 or
+ * 15 per cent to withholding tax. A 12.8% infrastructure bond beats a 13.2%
+ * fixed-coupon one, and a flat alphabetical list hides that.
+ */
+const BOND_GROUPS: { label: string; of: (b: Bond) => boolean }[] = [
+  { label: 'Infrastructure — tax-free', of: (b) => b.taxExempt },
+  { label: 'Fixed coupon — taxed', of: (b) => !b.taxExempt && b.category !== 'SDB' },
+  { label: 'Savings development — taxed', of: (b) => !b.taxExempt && b.category === 'SDB' },
+];
 
 function Row({ label, value, accent, hint }: {
   label: string; value: string; accent?: boolean; hint?: string;
@@ -98,11 +111,28 @@ export default function CalculatorPage() {
               onChange={(e) => { setIsin(e.target.value); setPrice(100); }}
               className={inputCls}
             >
-              {bonds.map((b) => (
-                <option key={b.isin} value={b.isin}>
-                  {b.issueCode} — {b.couponRate}% {b.taxExempt ? '(tax-free)' : ''}
-                </option>
-              ))}
+              {/*
+                Grouped, because 58 options in one flat list is a wall of issue
+                codes — and the single most useful fact when choosing, that a
+                bond is tax-free, was buried in a suffix at the end of each row.
+                optgroup is native, so it costs nothing and works with the
+                platform pickers on Android and iOS rather than against them.
+                The maturity year is in the label for the same reason: two bonds
+                can share a coupon and differ by fifteen years.
+              */}
+              {BOND_GROUPS.map(({ label, of }) => {
+                const inGroup = bonds.filter(of);
+                if (!inGroup.length) return null;
+                return (
+                  <optgroup key={label} label={`${label} (${inGroup.length})`}>
+                    {inGroup.map((b) => (
+                      <option key={b.isin} value={b.isin}>
+                        {b.issueCode} — {b.couponRate}%, matures {b.maturityDate.slice(0, 4)}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
           </div>
 
@@ -113,7 +143,7 @@ export default function CalculatorPage() {
             <input
               id="calc-amount"
               type="number" min={bond.minInvestmentKES} step={50000} value={amount}
-              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
               className={`num ${inputCls}`}
             />
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -210,12 +240,13 @@ export default function CalculatorPage() {
             <Row label="Yearly income as a % of your outlay" value={formatPct(result.currentYieldNet)}
               hint="Income only — it ignores any gain or loss when the bond is repaid." />
             <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
-              hint="Estimated by adding six months to the issue date; CBK shifts payments off weekends and holidays." />
+              hint="Every 182 days from the issue date, which is why these always fall on a Monday." />
             <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
-              Accrued interest uses Actual/365. Yields are solved from your price on the remaining
-              cash-flow schedule; net YTM taxes coupons at the WHT rate (principal redemption is
-              untaxed). Coupon dates are estimated from the issue schedule — confirm exact dates in
-              the prospectus.
+              Accrued interest uses Actual/364, and coupon dates run in exact 182-day steps from
+              issue — the basis Kenyan government bonds are built on, which is why a ten-year bond
+              runs 3,640 days and every payment lands on a Monday. Yields are solved from your
+              price on the remaining cash-flow schedule; net YTM taxes coupons at the WHT rate
+              (principal redemption is untaxed).
             </p>
           </div>
         )}

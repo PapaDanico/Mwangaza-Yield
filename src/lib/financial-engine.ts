@@ -1,11 +1,29 @@
 // Pure financial math for Kenyan government bonds.
-// Day-count: Actual/365 (fixed), the market convention for KES government
-// securities accrued interest. All prices are per 100 face value.
+// All prices are per 100 face value.
 
-import { addMonths } from 'date-fns';
 import type { Bond } from '@/types/bond';
 
-const DAYS_IN_YEAR = 365;
+/**
+ * Kenya runs its government securities on a 364-day year, and this is not an
+ * assumption — the published data says so unambiguously:
+ *
+ *  - Treasury bills are issued for 91, 182 and 364 days. Every tenor is a whole
+ *    number of weeks; none is a calendar quarter, half or year.
+ *  - Every one of the bonds we list is ISSUED and REDEEMED on a Monday, without
+ *    exception, which only holds if the schedule advances in whole weeks.
+ *  - The gap between issue and maturity is an exact multiple of 182 days for
+ *    every bond. A ten-year bond runs 3,640 days — 20 x 182, or 10 x 364 — not
+ *    3,652. There is no stub period anywhere in the set.
+ *
+ * So a coupon period is exactly 182 days and the year is 364. The two numbers
+ * have to agree, and only these do: a full period accrues 182/364 of the annual
+ * coupon, which is exactly the half-coupon that gets paid. Under Actual/365 the
+ * day before a payment you have accrued 182/365 = 49.86% of the annual coupon,
+ * and the remaining 0.14% appears from nowhere on payment day. The accrual
+ * never reconciles with the cheque.
+ */
+const DAYS_IN_COUPON_PERIOD = 182;
+const DAYS_IN_YEAR = 364;
 
 /**
  * Upper bound of the yield search, and a number the UI must not present as a
@@ -32,23 +50,42 @@ export function determineWHTRate(bond: Pick<Bond, 'taxExempt' | 'tenorYears'>): 
   return bond.tenorYears >= 10 ? 0.1 : 0.15;
 }
 
-/** Scheduled coupon dates strictly after issue, up to and including maturity. */
+/**
+ * Scheduled coupon dates strictly after issue, up to and including maturity.
+ *
+ * These are exact, not estimated. The schedule advances in whole 182-day steps
+ * from the issue date, which lands the final one precisely on maturity and every
+ * one in between on a Monday, matching how the bonds are actually issued.
+ *
+ * The previous version stepped six CALENDAR months at a time, and every date it
+ * produced was wrong. Six months is 181 to 184 days depending where you start,
+ * so the schedule drifted off the Monday grid immediately and further with each
+ * step; a ten-year bond's dates ended up as much as twelve days adrift, and the
+ * final period was silently truncated by a guard that forced the last date onto
+ * maturity. Those dates fed accrued interest, so the error was money: twelve
+ * days of a 13% coupon is 0.43 per 100, or KES 4,300 wrongly said to be owed to
+ * the seller on a million-shilling purchase.
+ *
+ * `frequencyPerYear` is honoured for anything that is not semi-annual, but no
+ * Kenyan government bond we have seen pays on any other frequency.
+ */
 export function getCouponDates(
   issueDate: Date,
   maturityDate: Date,
   frequencyPerYear: number
 ): Date[] {
+  const step = frequencyPerYear === 2
+    ? DAYS_IN_COUPON_PERIOD
+    : Math.round(DAYS_IN_YEAR / frequencyPerYear);
   const dates: Date[] = [];
-  const monthsStep = Math.round(12 / frequencyPerYear);
-  let current = addMonths(issueDate, monthsStep);
-  while (current <= maturityDate) {
-    dates.push(current);
-    current = addMonths(current, monthsStep);
+  const maturity = maturityDate.getTime();
+  for (let n = 1; ; n++) {
+    const t = issueDate.getTime() + n * step * 86_400_000;
+    if (t >= maturity) break;
+    dates.push(new Date(t));
   }
-  // Guard against drift: the final coupon is always the maturity date.
-  if (dates.length === 0 || dates[dates.length - 1].getTime() !== maturityDate.getTime()) {
-    dates.push(new Date(maturityDate));
-  }
+  // Redemption always carries the final coupon, whatever the arithmetic leaves.
+  dates.push(new Date(maturity));
   return dates;
 }
 
@@ -72,7 +109,7 @@ export function getNextCouponDate(bond: Bond, settlementDate: Date): Date | null
   return null;
 }
 
-/** Accrued interest per 100 face value, Actual/365.
+/** Accrued interest per 100 face value, Actual/364.
  *
  * Settlement is clamped to maturity because a bond stops paying interest when
  * it is redeemed. Without the clamp the day count simply keeps running: a bond
@@ -91,8 +128,10 @@ export function calculateAccruedInterest(bond: Bond, settlementDate: Date): numb
 
 /**
  * Solve YTM from a dirty price by bisection on the remaining cash flows.
- * Semi-annual compounding; time to each flow measured in half-year periods
- * (days/182.5, Act/365). `couponTaxFactor` scales coupons (1 = gross,
+ * Semi-annual compounding; time to each flow measured in coupon periods of 182
+ * days (Act/364), so a flow one period out sits at exactly t = 1 rather than
+ * the 0.997 that a 182.5-day period gave. `couponTaxFactor` scales coupons
+ * (1 = gross,
  * 1 - WHT = net); principal redemption is never taxed.
  * Returns annual percent.
  */
@@ -108,7 +147,7 @@ export function solveYTMFromPrice(
   const flows = getCouponDates(new Date(bond.issueDate), maturity, freq)
     .filter((d) => d > settlementDate)
     .map((d) => ({
-      t: (d.getTime() - settlementDate.getTime()) / 86_400_000 / (365 / freq),
+      t: (d.getTime() - settlementDate.getTime()) / 86_400_000 / (DAYS_IN_YEAR / freq),
       amount: couponPerPeriod + (d.getTime() === maturity.getTime() ? 100 : 0),
     }));
   if (!flows.length) return 0;

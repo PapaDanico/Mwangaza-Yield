@@ -7,6 +7,7 @@ import { buildLadder } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { APP_URL, formatLadderSummary, shareText, printReport } from '@/lib/share';
+import { nonNegativeNumber } from '@/lib/utils';
 import LadderReport from '@/components/report/LadderReport';
 import LiveResult from '@/components/shared/LiveResult';
 
@@ -97,7 +98,7 @@ export default function LadderPage() {
             <input
               id="ladder-amount"
               type="number" min={100_000} step={50_000} value={amount}
-              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
               className={`num ${inputCls}`}
             />
           </div>

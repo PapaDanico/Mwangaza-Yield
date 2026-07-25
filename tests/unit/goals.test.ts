@@ -116,3 +116,36 @@ describe('planPreservation', () => {
 
   it('returns null with no bills', () => expect(planPreservation([], 100_000)).toBeNull());
 });
+
+describe('planSchoolFees cannot be hung by its own arguments', () => {
+  it('caps the fee years however many are asked for', () => {
+    // A stray paste of 1000000 allocated a FeeYear and rendered a table row per
+    // iteration, wedging the tab so hard that reloading the page timed out.
+    const p = planSchoolFees(universe, [], 3_000_000, 2032, 1_000_000, 400_000, asOf);
+    expect(p.years.length).toBe(8);
+    expect(Number.isFinite(p.totalFeesKES)).toBe(true);
+  });
+
+  it('refuses a fee year in the far future', () => {
+    const p = planSchoolFees(universe, [], 3_000_000, 1_000_000, 3, 400_000, asOf);
+    expect(p.years[0].year).toBeLessThanOrEqual(asOf.getFullYear() + 40);
+    expect(p.years).toHaveLength(3);
+  });
+
+  it('refuses a fee year in the past', () => {
+    const p = planSchoolFees(universe, [], 3_000_000, 1990, 3, 400_000, asOf);
+    expect(p.years[0].year).toBeGreaterThanOrEqual(asOf.getFullYear());
+  });
+
+  it('treats zero or nonsense years as one', () => {
+    expect(planSchoolFees(universe, [], 3_000_000, 2032, 0, 400_000, asOf).years).toHaveLength(1);
+    expect(planSchoolFees(universe, [], 3_000_000, 2032, NaN, 400_000, asOf).years).toHaveLength(1);
+    expect(planSchoolFees(universe, [], 3_000_000, 2032, -5, 400_000, asOf).years).toHaveLength(1);
+  });
+
+  it('still honours an ordinary request', () => {
+    const p = planSchoolFees(universe, [], 3_000_000, 2032, 4, 400_000, asOf);
+    expect(p.years).toHaveLength(4);
+    expect(p.years[0].year).toBe(2032);
+  });
+});

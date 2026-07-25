@@ -6,7 +6,9 @@ import type { Bond } from '../../src/types/bond';
 
 const bond = (over: Partial<Bond> = {}): Bond => ({
   isin: 'KE-T', issueCode: 'FXD1/2022/10', name: 'test', category: 'FXD',
-  issueDate: '2022-01-10', maturityDate: '2032-01-10', tenorYears: 10,
+  // Ten years is twenty 182-day periods: 3,640 days, not the 3,652 a calendar
+  // anniversary gives. The old date put the bond off the Monday grid.
+  issueDate: '2022-01-10', maturityDate: '2031-12-29', tenorYears: 10,
   couponRate: 13, couponFrequencyPerYear: 2, ytmGross: 13,
   minInvestmentKES: 50_000, taxExempt: false, ...over,
 });
@@ -14,15 +16,17 @@ const bond = (over: Partial<Bond> = {}): Bond => ({
 describe('edge cases a user can actually reach', () => {
   it('accrued interest is zero exactly on a coupon date', () => {
     const b = bond();
-    const onCoupon = new Date('2026-07-10T00:00:00Z');
+    const onCoupon = new Date('2026-07-06T00:00:00Z'); // issue + 9 x 182 days
     expect(calculateAccruedInterest(b, onCoupon)).toBeCloseTo(0, 6);
   });
 
   it('accrued approaches a full period the day before the next coupon', () => {
     const b = bond();
-    const a = calculateAccruedInterest(b, new Date('2027-01-09T00:00:00Z'));
+    // Next coupon is 2027-01-04, so 181 of the period's 182 days have run.
+    const a = calculateAccruedInterest(b, new Date('2027-01-03T00:00:00Z'));
+    expect(a).toBeCloseTo((13 * 181) / 364, 10);
     expect(a).toBeGreaterThan(6.3);
-    expect(a).toBeLessThanOrEqual(6.5 * 1.02);
+    expect(a).toBeLessThanOrEqual(6.5);
   });
 
   it('a bond settling AFTER maturity does not produce nonsense', () => {

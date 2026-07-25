@@ -8,10 +8,11 @@ import {
   GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
-import { cn, formatCompactKES } from '@/lib/utils';
+import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
+import GoalProgress from '@/components/shared/GoalProgress';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -105,7 +106,14 @@ export default function GoalsPage() {
     if (name === null) return;
     const now = new Date().toISOString();
     const plan = makePlan(goal, currentInputs, name, now, existing?.id);
-    await savePlan(existing ? { ...plan, createdAt: existing.createdAt } : plan);
+    // Re-saving a plan must not wipe the readings recorded against it. makePlan
+    // builds a fresh record, so anything the plan accumulated has to be carried
+    // over explicitly.
+    await savePlan(
+      existing
+        ? { ...plan, createdAt: existing.createdAt, checkpoints: existing.checkpoints }
+        : plan
+    );
     setActivePlanId(plan.id);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2200);
@@ -124,6 +132,12 @@ export default function GoalsPage() {
     [bonds, secondary, incomeCapital]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
+
+  // Progress needs a saved plan: it is measured against the projection made on
+  // a particular day with particular numbers, and unsaved inputs have no such
+  // anchor. It also has to match the goal on screen, so switching goals does
+  // not show one plan's readings under another's heading.
+  const activePlan = plans.find((p) => p.id === activePlanId && p.goal === goal) ?? null;
 
   if (!bonds.length) return <DataState />;
 
@@ -223,15 +237,15 @@ export default function GoalsPage() {
           <div className="card h-fit space-y-4">
             <Field label="Annual income you want (today's money)">
               <input type="number" step={50_000} value={targetIncome}
-                onChange={(e) => setTargetIncome(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setTargetIncome(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Capital you have now">
               <input type="number" step={100_000} value={capital}
-                onChange={(e) => setCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Monthly contribution" hint="Reinvested at the same net yield each year.">
               <input type="number" step={10_000} value={monthly}
-                onChange={(e) => setMonthly(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setMonthly(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
 
@@ -266,7 +280,15 @@ export default function GoalsPage() {
               <Stat label="Still to raise" value={formatCompactKES(fire.shortfallKES)} />
               <Stat
                 label="Years to target"
-                value={fire.yearsToTarget === null ? '—' : fire.yearsToTarget === 0 ? 'Funded' : `${fire.yearsToTarget}`}
+                // Stepped monthly, so this is fractional. Printed to one place:
+                // "3.6" is the honest answer, and the raw 3.5833333333333335
+                // this replaced was neither readable nor that precise.
+                value={
+                  fire.yearsToTarget === null ? '—'
+                    : fire.yearsToTarget === 0 ? 'Funded'
+                    : fire.yearsToTarget < 1 ? `${Math.round(fire.yearsToTarget * 12)} months`
+                    : `${fire.yearsToTarget.toFixed(1)}`
+                }
                 accent="text-gold-700"
               />
             </div>
@@ -280,17 +302,28 @@ export default function GoalsPage() {
         </div>
       )}
 
+      {goal === 'fire' && activePlan && (
+        <GoalProgress
+          plan={activePlan}
+          targetKES={fire.requiredCapitalKES}
+          annualRatePct={fire.bestNetYield}
+          startKES={activePlan.inputs.capital ?? 0}
+          monthlyKES={activePlan.inputs.monthly ?? 0}
+          onChange={savePlan}
+        />
+      )}
+
       {/* ------------------------------------------------------ School fees */}
       {goal === 'school-fees' && (
         <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
           <div className="card h-fit space-y-4">
             <Field label="Capital to invest now">
               <input type="number" step={100_000} value={feeCapital}
-                onChange={(e) => setFeeCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setFeeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="First year fees are due">
               <input type="number" value={firstFeeYear}
-                onChange={(e) => setFirstFeeYear(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setFirstFeeYear(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Years of fees">
               <input type="number" min={1} max={8} value={yearsOfFees}
@@ -298,7 +331,7 @@ export default function GoalsPage() {
             </Field>
             <Field label="Fees per year">
               <input type="number" step={50_000} value={annualFee}
-                onChange={(e) => setAnnualFee(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setAnnualFee(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
 
@@ -353,6 +386,21 @@ export default function GoalsPage() {
         </div>
       )}
 
+      {goal === 'school-fees' && activePlan && (
+        // The fees themselves are the target: the pot has to cover them by the
+        // time they fall due. Growth is the ladder's own blended net yield, and
+        // there is no monthly contribution in this planner, so the projection
+        // is the capital compounding alone.
+        <GoalProgress
+          plan={activePlan}
+          targetKES={fees.totalFeesKES}
+          annualRatePct={fees.ladder.blendedNetYTM}
+          startKES={activePlan.inputs.feeCapital ?? 0}
+          monthlyKES={0}
+          onChange={savePlan}
+        />
+      )}
+
       {/* --------------------------------------------------- Passive income */}
       {goal === 'passive-income' && (
         <div className="space-y-4">
@@ -360,7 +408,7 @@ export default function GoalsPage() {
             <div className="card h-fit space-y-4">
               <Field label="Capital to invest" hint="Split across up to three bonds with complementary coupon months.">
                 <input type="number" step={100_000} value={incomeCapital}
-                  onChange={(e) => setIncomeCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                  onChange={(e) => setIncomeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Average monthly" value={formatCompactKES(income.averageMonthlyKES)} accent="text-mint-700" />
@@ -433,7 +481,7 @@ export default function GoalsPage() {
           <div className="card h-fit space-y-4">
             <Field label="Amount to park" hint="Treasury bill minimum is KES 100,000.">
               <input type="number" step={50_000} value={parkCapital}
-                onChange={(e) => setParkCapital(Number(e.target.value) || 0)} className={`num ${inputCls}`} />
+                onChange={(e) => setParkCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
           </div>
           <div className="space-y-4">

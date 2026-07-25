@@ -2,6 +2,7 @@
 // visit and a plan you come back to. Stored locally like everything else.
 
 import type { GoalKey } from './goals';
+import type { Checkpoint } from './progress';
 
 export interface PlanInputs {
   // FIRE
@@ -25,6 +26,36 @@ export interface SavedPlan {
   inputs: PlanInputs;
   createdAt: string;
   updatedAt: string;
+  /**
+   * What the pot was actually worth, recorded as the saver goes. Optional
+   * because every plan saved before progress tracking existed has none, and a
+   * plan with no checkpoints is a perfectly good plan — it simply has nothing
+   * to report yet. Dexie indexes only declared keys, so this rides along inside
+   * the stored record without a schema migration.
+   */
+  checkpoints?: Checkpoint[];
+}
+
+/**
+ * Record a reading, replacing any existing one for the same date so that
+ * correcting today's figure does not leave two conflicting entries for today.
+ */
+export function withCheckpoint(plan: SavedPlan, date: string, capitalKES: number, now: string): SavedPlan {
+  const kept = (plan.checkpoints ?? []).filter((c) => c.date !== date);
+  return {
+    ...plan,
+    checkpoints: [...kept, { date, capitalKES }].sort((a, b) => a.date.localeCompare(b.date)),
+    updatedAt: now,
+  };
+}
+
+/** Drop a reading entered by mistake. */
+export function withoutCheckpoint(plan: SavedPlan, date: string, now: string): SavedPlan {
+  return {
+    ...plan,
+    checkpoints: (plan.checkpoints ?? []).filter((c) => c.date !== date),
+    updatedAt: now,
+  };
 }
 
 /** Suggest a name so saving is one tap, not a naming decision. */

@@ -117,9 +117,9 @@ export default function LadderReport({
       <footer className="mt-6 border-t border-sand-300 pt-3 text-[9px] leading-relaxed text-ink-faint">
         Yields are solved from the stated price on each bond&apos;s remaining cash-flow schedule;
         withholding tax is applied to coupons only (infrastructure bonds are exempt), principal
-        redemption untaxed. Accrued interest uses Actual/365 and coupon dates are estimated from
-        the issue schedule — confirm against the CBK prospectus. Analytics for education only, not
-        investment advice. Sources: Central Bank of Kenya, NSE, KNBS.
+        redemption untaxed. Accrued interest uses Actual/364 and coupon dates run in exact 182-day
+        steps from issue, the basis Kenyan government bonds are built on. Analytics for education
+        only, not investment advice. Sources: Central Bank of Kenya, NSE, KNBS.
       </footer>
     </div>
   );

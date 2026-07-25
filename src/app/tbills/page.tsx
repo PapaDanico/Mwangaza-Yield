@@ -5,7 +5,7 @@ import { ArrowRight, RefreshCw, Info } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { computeTBill, projectRollover } from '@/lib/tbills';
 import { formatKES, formatPct } from '@/lib/financial-engine';
-import { formatCompactKES } from '@/lib/utils';
+import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
 import LiveResult from '@/components/shared/LiveResult';
 
@@ -43,7 +43,16 @@ export default function TBillsPage() {
       </div>
 
       {/* Rate cards: quoted vs what you actually earn */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/*
+        Three across even on the narrowest phone. Stacked, these cards ran 504px
+        — measured at 380px wide — which put the amount box at y=942 in a 900px
+        viewport: the calculator this page exists for was entirely below the
+        fold, behind three cards the user had not asked to read. Comparing
+        tenors is also the point of them, and you cannot compare what you have
+        to scroll between. The secondary lines fold away below `sm` so the
+        headline net yield still has room to breathe.
+      */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {sorted.map((b) => {
           const r = computeTBill(100_000, b.discountRate, b.tenorDays);
           const active = b.tenorDays === selected.tenorDays;
@@ -51,14 +60,19 @@ export default function TBillsPage() {
             <button
               key={b.id}
               onClick={() => setTenor(b.tenorDays)}
-              className={`card text-left transition ${active ? 'border-gold-500 ring-1 ring-gold-500' : 'hover:border-gold-500'}`}
+              className={`card p-3 text-left transition sm:p-4 ${active ? 'border-gold-500 ring-1 ring-gold-500' : 'hover:border-gold-500'}`}
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint sm:text-xs">
                 {b.tenorDays}-day
               </p>
-              <p className="num mt-1 text-2xl font-bold text-gold-700">{formatPct(r.netEAY)}</p>
-              <p className="text-xs text-ink-muted">net effective yield</p>
-              <div className="mt-2 border-t border-sand-300 pt-2 text-[11px] text-ink-faint">
+              <p className="num mt-1 text-lg font-bold text-gold-700 sm:text-2xl">{formatPct(r.netEAY)}</p>
+              <p className="text-[11px] text-ink-muted sm:text-xs">
+                net <span className="hidden sm:inline">effective </span>yield
+              </p>
+              {/* Detail on a phone costs more than it gives: it is the third and
+                  fourth number on a card whose job is to be compared at a
+                  glance, and it is repeated in full in the breakdown below. */}
+              <div className="mt-2 hidden border-t border-sand-300 pt-2 text-[11px] text-ink-faint sm:block">
                 <p className="num">Quoted rate {formatPct(b.discountRate, 4)}</p>
                 <p className="num">Gross yield {formatPct(r.grossEAY)}</p>
               </div>
@@ -87,7 +101,7 @@ export default function TBillsPage() {
             <input
               id="tbill-amount"
               type="number" min={selected.minInvestmentKES} step={50_000} value={amount}
-              onChange={(e) => setAmount(Number(e.target.value) || 0)}
+              onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
               className={`num ${inputCls}`}
             />
             <div className="mt-2 flex flex-wrap gap-1.5">

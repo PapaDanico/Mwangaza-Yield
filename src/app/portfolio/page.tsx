@@ -6,6 +6,8 @@ import { Upload, Trash2, Download, CalendarPlus, Share2, CheckCircle2 } from 'lu
 import { APP_URL, formatPortfolioSummary, shareText } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
+import { usePriceStore } from '@/stores/priceStore';
+import { resolvePrice } from '@/lib/prices';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import type { Holding } from '@/types/bond';
@@ -16,6 +18,7 @@ export default function PortfolioPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
   const { holdings, addHoldings, removeHolding, clear } = usePortfolioStore();
+  const userPrices = usePriceStore((s) => s.userPrices);
   const fileRef = useRef<HTMLInputElement>(null);
   const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[] } | null>(null);
 
@@ -25,15 +28,25 @@ export default function PortfolioPage() {
       if (!bond) return { holding: h, bond: null, result: null, market: null, nextCoupon: null };
       // Locked-in economics from the price actually paid...
       const result = computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, new Date(h.purchaseDate));
-      // ...versus what the same bond yields at today's market price.
-      const marketPrice = secondary.find((t) => t.isin === bond.isin)?.price;
-      const market = marketPrice
-        ? computeBondInvestment(bond, h.faceValueKES, marketPrice, new Date())
+      // ...versus what the same bond yields at today's price.
+      //
+      // This looked only at `secondary`, which ships empty because the NSE will
+      // not let us republish prices — so the mark-to-market column never once
+      // rendered for anybody. Reading the price book too makes it work for a
+      // reader who has recorded what their bonds are worth.
+      //
+      // Par is deliberately NOT accepted here. Everywhere else par is a
+      // declared placeholder the reader can see; a valuation is different —
+      // "your bond is worth 100" is a claim about their money, and inventing it
+      // would be worse than leaving the column blank.
+      const priceInfo = resolvePrice(bond, secondary, userPrices);
+      const market = priceInfo.source !== 'par'
+        ? computeBondInvestment(bond, h.faceValueKES, priceInfo.price, new Date())
         : null;
       const nextCoupon = getNextCouponDate(bond, new Date());
       return { holding: h, bond, result, market, nextCoupon };
     });
-  }, [holdings, bonds, secondary]);
+  }, [holdings, bonds, secondary, userPrices]);
 
   const totals = useMemo(() => {
     const valid = enriched.filter((e) => e.result);

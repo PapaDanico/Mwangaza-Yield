@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarPlus, Layers, Share2, FileText } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+import { usePriceStore } from '@/stores/priceStore';
+import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance';
 import { buildLadder } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
@@ -14,6 +16,7 @@ import LiveResult from '@/components/shared/LiveResult';
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const userPrices = usePriceStore((s) => s.userPrices);
   const [amount, setAmount] = useState(3_000_000);
   const [horizon, setHorizon] = useState(10);
   const [rungCount, setRungCount] = useState(4);
@@ -22,8 +25,8 @@ export default function LadderPage() {
   useEffect(() => setToday(new Date().toLocaleDateString('en-KE', { dateStyle: 'long' })), []);
 
   const plan = useMemo(
-    () => buildLadder(bonds, secondary, amount, horizon, rungCount),
-    [bonds, secondary, amount, horizon, rungCount]
+    () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices),
+    [bonds, secondary, userPrices, amount, horizon, rungCount]
   );
 
   const maxYear = Math.max(...plan.yearlyPayouts.map((p) => p.couponsKES + p.principalKES), 1);
@@ -127,8 +130,9 @@ export default function LadderPage() {
           <p className="text-[11px] leading-relaxed text-ink-faint">
             Rungs are spread across the horizon — best net yield in each window, one bond per
             maturity year, tax-free IFBs competing on equal footing. Where the market has no paper
-            in a window, the next-best yield fills in. Equal split in KES 50k steps at last traded
-            prices. Educational planning — actual auction allocations vary.
+            in a window, the next-best yield fills in. Equal split in KES 50k steps, priced from
+            your price book where you have recorded one and par where nobody has.
+            Educational planning — actual auction allocations vary.
           </p>
         </div>
 
@@ -154,6 +158,11 @@ export default function LadderPage() {
                   + `${formatKES(plan.netAnnualIncomeKES)} net income a year, `
                   + `${formatKES(plan.totalCostKES)} total cost.`}
               </LiveResult>
+
+              {/* Above the figures, not below them: whether these yields rest on
+                  real prices decides how much weight the reader should give the
+                  three numbers that follow. */}
+              <div className="no-print"><CoverageNotice coverage={plan.priceCoverage} /></div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 [&>*]:min-w-0">
                 <div className="card p-4">
                   <p className="text-xs text-ink-muted">Blended net yield</p>
@@ -175,6 +184,7 @@ export default function LadderPage() {
                     <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
                       <th className="px-4 py-3">Rung</th>
                       <th className="px-4 py-3 text-right">Face value</th>
+                      <th className="px-4 py-3 text-right">Price</th>
                       <th className="px-4 py-3 text-right">Net yield</th>
                       <th className="px-4 py-3 text-right">Matures</th>
                     </tr>
@@ -189,6 +199,10 @@ export default function LadderPage() {
                           )}
                         </td>
                         <td className="num px-4 py-3 text-right text-ink">{formatKES(r.faceValueKES)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="num text-ink">{r.price.toFixed(2)}</span>
+                          <PriceBadge info={r.priceInfo} className="ml-1.5 align-middle" />
+                        </td>
                         <td className="num px-4 py-3 text-right text-gold-700">{formatPct(r.result.netYTM)}</td>
                         <td className="num px-4 py-3 text-right text-ink-soft">{r.bond.maturityDate}</td>
                       </tr>

@@ -8,11 +8,20 @@ import {
   getCouponDates,
   type InvestmentResult,
 } from './financial-engine';
+import {
+  makePriceResolver,
+  summarisePriceCoverage,
+  type PriceCoverage,
+  type ResolvedPrice,
+  type UserPrice,
+} from './prices';
 
 export interface LadderRung {
   bond: Bond;
   faceValueKES: number;
   price: number;
+  /** Where this rung's price came from, so the UI can label the figure. */
+  priceInfo: ResolvedPrice;
   result: InvestmentResult;
 }
 
@@ -24,6 +33,8 @@ export interface LadderPlan {
   /** Net cash received per calendar year (coupons + principal redemptions). */
   yearlyPayouts: { year: number; couponsKES: number; principalKES: number }[];
   unallocatedKES: number;
+  /** How much of this plan rests on real prices rather than the par placeholder. */
+  priceCoverage: PriceCoverage;
 }
 
 const STEP = 50_000; // CBK face values move in KES 50k increments
@@ -32,7 +43,8 @@ const STEP = 50_000; // CBK face values move in KES 50k increments
  * Build a ladder: choose up to `maxRungs` bonds maturing within `horizonYears`,
  * spread across distinct maturity years (highest net yield wins a contested
  * year), split `totalKES` equally, rounded down to 50k steps and each bond's
- * own minimum. Prices come from the latest secondary trade, else par.
+ * own minimum. Prices come from the reader's own price book first, then the
+ * latest secondary trade, then par — see `prices.ts` for why that order.
  */
 export function buildLadder(
   bonds: Bond[],
@@ -40,17 +52,26 @@ export function buildLadder(
   totalKES: number,
   horizonYears: number,
   maxRungs = 5,
-  asOf: Date = new Date()
+  asOf: Date = new Date(),
+  userPrices: UserPrice[] = []
 ): LadderPlan {
   const horizonEnd = new Date(asOf);
   horizonEnd.setFullYear(horizonEnd.getFullYear() + horizonYears);
 
-  const priceOf = (b: Bond) => secondary.find((t) => t.isin === b.isin)?.price ?? 100;
+  const priceInfoOf = makePriceResolver(secondary, userPrices, asOf);
 
   // Rank candidates by net yield at their price, then keep one per maturity year.
   const candidates = bonds
     .filter((b) => new Date(b.maturityDate) > asOf && new Date(b.maturityDate) <= horizonEnd)
-    .map((b) => ({ bond: b, price: priceOf(b), netYTM: computeBondInvestment(b, STEP, priceOf(b), asOf).netYTM }))
+    .map((b) => {
+      const priceInfo = priceInfoOf(b);
+      return {
+        bond: b,
+        price: priceInfo.price,
+        priceInfo,
+        netYTM: computeBondInvestment(b, STEP, priceInfo.price, asOf).netYTM,
+      };
+    })
     .sort((a, x) => x.netYTM - a.netYTM);
 
   // Spread rungs ACROSS the horizon: split it into `maxRungs` equal windows and
@@ -82,7 +103,11 @@ export function buildLadder(
   picked.sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
 
   if (!picked.length) {
-    return { rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0, yearlyPayouts: [], unallocatedKES: totalKES };
+    return {
+      rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0,
+      yearlyPayouts: [], unallocatedKES: totalKES,
+      priceCoverage: summarisePriceCoverage([]),
+    };
   }
 
   // Equal split, floored to 50k and each bond's minimum; drop rungs that
@@ -103,6 +128,7 @@ export function buildLadder(
     bond: c.bond,
     faceValueKES: per,
     price: c.price,
+    priceInfo: c.priceInfo,
     result: computeBondInvestment(c.bond, per, c.price, asOf),
   }));
 
@@ -140,5 +166,6 @@ export function buildLadder(
     netAnnualIncomeKES,
     yearlyPayouts,
     unallocatedKES: Math.max(0, totalKES - rungs.length * per),
+    priceCoverage: summarisePriceCoverage(rungs.map((r) => r.priceInfo)),
   };
 }

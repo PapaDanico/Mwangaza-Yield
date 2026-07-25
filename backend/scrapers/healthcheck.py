@@ -16,11 +16,19 @@ document — ids like "fx-2026-07" embed dates that do not track when the value
 was actually refreshed, and trusting them makes the check silently useless.
 """
 import json
+import os
 import sys
 from datetime import date, datetime
 from pathlib import Path
 
 from common import DATA_DIR
+
+# Alert self-test. With HEALTHCHECK_STRICT=1 every budget becomes 0 days, so
+# any dataset older than today trips the real staleness path — same report
+# file, same exit code, same downstream alert. This exists so the alarm can be
+# proven to still work after anyone edits it, rather than being discovered
+# broken on the day it was needed.
+STRICT = os.environ.get("HEALTHCHECK_STRICT") == "1"
 
 # (filename, human name, date field, max age in days, why that budget)
 BUDGETS = [
@@ -65,7 +73,12 @@ def main() -> None:
     problems: list[str] = []
     rows: list[str] = []
 
+    if STRICT:
+        print("HEALTHCHECK_STRICT=1 — all freshness budgets forced to 0 days (alert self-test)\n")
+
     for filename, label, field, max_age, rationale in BUDGETS:
+        if STRICT:
+            max_age = 0
         path = Path(DATA_DIR) / filename
         if not path.exists():
             problems.append(f"{label}: {filename} is MISSING")

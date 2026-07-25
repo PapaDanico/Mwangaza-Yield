@@ -12,6 +12,10 @@ on:
         description: 'Probe live sources and report, without writing or committing data'
         type: boolean
         default: true
+      test_alert:
+        description: 'Self-test the alerting path: force a freshness failure and confirm the issue is raised. Commits nothing.'
+        type: boolean
+        default: false
 
 jobs:
   test-and-build:
@@ -50,7 +54,7 @@ jobs:
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
-    if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule' || inputs.test_alert
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -66,20 +70,24 @@ jobs:
       # and surfaced at the end. Silently swallowing them is how a pipeline
       # dies unnoticed.
       - name: Run macro scraper
+        if: ${{ !inputs.test_alert }}
         id: macro
         working-directory: backend/scrapers
         run: python macro_parser.py || echo "failed=macro" >> "$GITHUB_OUTPUT"
       - name: Refresh World Bank sovereign context (keyless, CC BY 4.0)
+        if: ${{ !inputs.test_alert }}
         id: worldbank
         working-directory: backend/scrapers
         run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
       - name: Run NSE scraper
+        if: ${{ !inputs.test_alert }}
         id: nse
         working-directory: backend/scrapers
         env:
           NSE_DAILY_TRADE_URL: ${{ vars.NSE_DAILY_TRADE_URL }}
         run: python nse_parser.py || echo "failed=nse" >> "$GITHUB_OUTPUT"
       - name: Commit updated data
+        if: ${{ !inputs.test_alert }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -91,6 +99,9 @@ jobs:
       - name: Check data freshness
         id: health
         working-directory: backend/scrapers
+        env:
+          # Forces every budget to 0 days so the real staleness path fires.
+          HEALTHCHECK_STRICT: ${{ inputs.test_alert && '1' || '0' }}
         run: python healthcheck.py
 
       - name: Raise an alert

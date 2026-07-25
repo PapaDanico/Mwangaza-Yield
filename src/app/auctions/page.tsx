@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ExternalLink, ChevronDown, CalendarPlus } from 'lucide-react';
+import { ExternalLink, ChevronDown, CalendarPlus, MessageCircle } from 'lucide-react';
+import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
@@ -104,6 +105,24 @@ export default function AuctionsPage() {
           );
         })}
       </div>
+
+      <a
+        href={CBK_WHATSAPP_CHANNEL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="card flex items-center gap-3 border-l-4 border-l-mint-600 transition hover:border-mint-600"
+      >
+        <div className="rounded-xl bg-mint-600 p-2.5 text-white">
+          <MessageCircle size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display font-semibold text-ink">Follow CBK on WhatsApp</p>
+          <p className="text-sm text-ink-muted">
+            Auction announcements and results straight from the Central Bank, the moment they publish.
+          </p>
+        </div>
+        <ExternalLink size={16} className="shrink-0 text-ink-faint" />
+      </a>
 
       <div className="card">
         <button onClick={() => setShowGuide(!showGuide)} className="flex w-full items-center justify-between text-left">

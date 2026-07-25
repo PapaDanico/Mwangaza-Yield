@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { CalendarPlus, Layers } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CalendarPlus, Layers, Share2, FileText } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { buildLadder } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
+import { formatLadderSummary, shareText, printReport } from '@/lib/share';
+import LadderReport from '@/components/report/LadderReport';
 
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
@@ -13,6 +15,9 @@ export default function LadderPage() {
   const [amount, setAmount] = useState(3_000_000);
   const [horizon, setHorizon] = useState(10);
   const [rungCount, setRungCount] = useState(4);
+  // Set after mount: a build-time date would mismatch on hydration.
+  const [today, setToday] = useState('');
+  useEffect(() => setToday(new Date().toLocaleDateString('en-KE', { dateStyle: 'long' })), []);
 
   const plan = useMemo(
     () => buildLadder(bonds, secondary, amount, horizon, rungCount),
@@ -46,14 +51,36 @@ export default function LadderPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-ink">Ladder Builder</h1>
-        <p className="text-sm text-ink-muted">
-          Spread a lump sum across staggered maturities for a predictable net-of-tax income stream.
-        </p>
+      <LadderReport plan={plan} horizon={horizon} generatedAt={today} />
+
+      <div className="no-print flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Ladder Builder</h1>
+          <p className="text-sm text-ink-muted">
+            Spread a lump sum across staggered maturities for a predictable net-of-tax income stream.
+          </p>
+        </div>
+        {plan.rungs.length > 0 && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => printReport()}
+              className="flex items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink-soft hover:border-ink-muted"
+            >
+              <FileText size={15} /> PDF report
+            </button>
+            <button
+              onClick={() =>
+                shareText(formatLadderSummary(plan, 'https://mwangazayield.netlify.app'))
+              }
+              className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"
+            >
+              <Share2 size={15} /> Share
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr,1.4fr]">
+      <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr]">
         <div className="card h-fit space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (KES)</label>

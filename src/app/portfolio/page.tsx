@@ -2,7 +2,8 @@
 
 import { useMemo, useRef } from 'react';
 import Papa from 'papaparse';
-import { Upload, Trash2, Download, CalendarPlus } from 'lucide-react';
+import { Upload, Trash2, Download, CalendarPlus, Share2 } from 'lucide-react';
+import { formatPortfolioSummary, shareText } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
@@ -125,6 +126,18 @@ export default function PortfolioPage() {
           <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft">
             <Upload size={15} /> Import CSV
           </button>
+          {enriched.length > 0 && (
+            <button
+              onClick={() =>
+                shareText(
+                  formatPortfolioSummary(totals, enriched.length, 'https://mwangazayield.netlify.app')
+                )
+              }
+              className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"
+            >
+              <Share2 size={15} /> Share
+            </button>
+          )}
           <input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
         </div>
       </div>

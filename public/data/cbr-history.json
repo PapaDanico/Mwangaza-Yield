@@ -1,0 +1,1073 @@
+[
+  {
+    "id": "cbr-2008-12-01",
+    "date": "2008-12-01",
+    "rate": 8.5,
+    "title": "CBR to 8.50 percent",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC01122008.pdf",
+    "move": "start",
+    "changeBps": 0
+  },
+  {
+    "id": "cbr-2009-01-30",
+    "date": "2009-01-30",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC30012009.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2009-03-20",
+    "date": "2009-03-20",
+    "rate": 8.25,
+    "title": "The Committee reviewed the CBR to 8.25",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC20032009.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2009-05-21",
+    "date": "2009-05-21",
+    "rate": 8.0,
+    "title": "The Committee reviewed the CBR to 8.0",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC21052009.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2009-07-22",
+    "date": "2009-07-22",
+    "rate": 7.75,
+    "title": "The Committee reviewed the CBR to 7.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC22072009.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2009-09-23",
+    "date": "2009-09-23",
+    "rate": 7.75,
+    "title": "The Committee retained the CBR at 7.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC23092009Brief.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2009-09-25",
+    "date": "2009-09-25",
+    "rate": 7.75,
+    "title": "The Committee retained the CBR at 7.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC25092009extended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2009-11-24",
+    "date": "2009-11-24",
+    "rate": 7.0,
+    "title": "The Committee reviewed the CBR to 7.0",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC24112009Brief.pdf",
+    "changeBps": -75,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2009-11-27",
+    "date": "2009-11-27",
+    "rate": 7.0,
+    "title": "The Committee reviewed the CBR to 7.0",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC27112009Extended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-01-26",
+    "date": "2010-01-26",
+    "rate": 7.0,
+    "title": "The Committee retained the CBR at 7.0",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC26012010Brief.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-01-29",
+    "date": "2010-01-29",
+    "rate": 7.0,
+    "title": "The Committee retained the CBR at 7.0",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC26012010Extend.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-03-23",
+    "date": "2010-03-23",
+    "rate": 6.75,
+    "title": "The Committee reviewed the CBR to 6.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC023032010.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2010-03-25",
+    "date": "2010-03-25",
+    "rate": 6.75,
+    "title": "The Committee reviewed the CBR to 6.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC23032010Extended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-05-20",
+    "date": "2010-05-20",
+    "rate": 6.75,
+    "title": "The Committee retained the CBR at 6.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC20052010BriefExtended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-07-28",
+    "date": "2010-07-28",
+    "rate": 6.0,
+    "title": "The Committee lowered the CBR to 6.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC28072010Brief.pdf",
+    "changeBps": -75,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2010-08-02",
+    "date": "2010-08-02",
+    "rate": 6.0,
+    "title": "The Committee lowered the CBR to 6.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC28072010Extended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-09-23",
+    "date": "2010-09-23",
+    "rate": 6.0,
+    "title": "The Committee retained the CBR to 6.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC23092010Extended.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2010-11-25",
+    "date": "2010-11-25",
+    "rate": 6.0,
+    "title": "The Committee retained the CBR to 6.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC25112010Brief.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2011-01-27",
+    "date": "2011-01-27",
+    "rate": 5.75,
+    "title": "The Committee lowered the CBR to 5.75",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Extended%20Press%20Release%20January%202011.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2011-03-22",
+    "date": "2011-03-22",
+    "rate": 6.0,
+    "title": "The Committee reviewed the CBR to 6.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Extended%20Press%20Release%2022%20March%202011.pdf",
+    "changeBps": 25,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2011-05-31",
+    "date": "2011-05-31",
+    "rate": 6.25,
+    "title": "The Committee reviewed the CBR to 6.25",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20extended%20press%20release%20May%202011.pdf",
+    "changeBps": 25,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2011-07-27",
+    "date": "2011-07-27",
+    "rate": 6.25,
+    "title": "The Committee retained the CBR to 6.25",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Press%20Release%20July%2027%202011%20-%20Brief.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2011-09-14",
+    "date": "2011-09-14",
+    "rate": 7.0,
+    "title": "The Committee reviewed the CBR to 7.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/Press%20Release%20-%20MPC%20Special%20Meeting%20of%2014%20Sept%202011.pdf",
+    "changeBps": 75,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2011-10-05",
+    "date": "2011-10-05",
+    "rate": 11.0,
+    "title": "The Committee reviewed the CBR to 11.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Decisions%20of%20October%205,%202011-brief.pdf",
+    "changeBps": 400,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2011-11-01",
+    "date": "2011-11-01",
+    "rate": 16.5,
+    "title": "The Committee reviewed the CBR to 16.50",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Press%20Release%20-%20Meeting%20of%20November%201%202011.pdf",
+    "changeBps": 550,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2011-12-01",
+    "date": "2011-12-01",
+    "rate": 18.0,
+    "title": "The Committee reviewed the CBR to 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Press%20Release%201st%20December%202011.pdf",
+    "changeBps": 150,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2012-01-11",
+    "date": "2012-01-11",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Press%20Release%20-%20January%2011%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-02-01",
+    "date": "2012-02-01",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/mpc%20press%20release%20-%20meeting%20of%201%20february%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-03-06",
+    "date": "2012-03-06",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC%20Press%20Release%20-%20March%206,%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-04-04",
+    "date": "2012-04-04",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/mpc%20press%20release%20-%20meeting%20of%20april%204%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-05-03",
+    "date": "2012-05-03",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/mpc%20press%20release%20-%20meeting%20of%20may%203%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-06-05",
+    "date": "2012-06-05",
+    "rate": 18.0,
+    "title": "The Committee retained the CBR at 18.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/mpc%20press%20release%20-%20meeting%20of%20june%205%202012.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2012-07-05",
+    "date": "2012-07-05",
+    "rate": 16.5,
+    "title": "The Committee reviewed the CBR to 16.50",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/mpc%20press%20release%20-%20july%205%202012.pdf",
+    "changeBps": -150,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2012-09-05",
+    "date": "2012-09-05",
+    "rate": 13.0,
+    "title": "The Committee reviewed the CBR to 13.00",
+    "url": "https://www.centralbank.go.ke/images/docs/media/2012/MPC%20Press%20Release%20-%20September%205%202012.pdf",
+    "changeBps": -350,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2012-11-07",
+    "date": "2012-11-07",
+    "rate": 11.0,
+    "title": "The Committee reviewed the CBR to 11.00",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC%20Press%20Release%20-%2007112012.pdf",
+    "changeBps": -200,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2013-01-10",
+    "date": "2013-01-10",
+    "rate": 9.5,
+    "title": "The Committee reviewed the CBR to 9.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC%20Press%20Release%20-%2010012013.pdf",
+    "changeBps": -150,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2013-03-12",
+    "date": "2013-03-12",
+    "rate": 9.5,
+    "title": "The Committee retained the CBR to 9.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC-Press-Release12-March.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2013-05-07",
+    "date": "2013-05-07",
+    "rate": 8.5,
+    "title": "The Committee reviewed the CBR to 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC%20Press%20Release%20-%2007052013.pdf",
+    "changeBps": -100,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2013-07-09",
+    "date": "2013-07-09",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC%20Press%20Release%20-%20Meeting%20of%20July.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2013-11-05",
+    "date": "2013-11-05",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/MPC_Press_%20Release_November%205%202013.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-01-14",
+    "date": "2014-01-14",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC_Press_Release_-_Meeting_of_January_14_2014.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-03-04",
+    "date": "2014-03-04",
+    "rate": 8.5,
+    "title": "The Committee retained CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_Meeting_of_4_March_2014.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-04-30",
+    "date": "2014-04-30",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPCPressRelease300414.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-07-08",
+    "date": "2014-07-08",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc and introduced KBRR at 9.13 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_July_8_2014.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-09-03",
+    "date": "2014-09-03",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_Meeting_of_September_3_2014.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2014-11-04",
+    "date": "2014-11-04",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_Nov_4_2014.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-01-14",
+    "date": "2015-01-14",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc and reviewed KBRR to 8.54 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/14012015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-02-26",
+    "date": "2015-02-26",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC-26022015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-05-06",
+    "date": "2015-05-06",
+    "rate": 8.5,
+    "title": "The Committee retained the CBR at 8.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPC_Press_Release_-_6th_May_2015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-06-09",
+    "date": "2015-06-09",
+    "rate": 10.0,
+    "title": "The committee raised the CBR to 10.00 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_press_release_-_9_June_2015_3.pdf",
+    "changeBps": 150,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2015-07-07",
+    "date": "2015-07-07",
+    "rate": 11.5,
+    "title": "The Committee raised the CBR to 11.50 pc and reviewed KBRR to 9.87 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_July_7_2015_2.pdf",
+    "changeBps": 150,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2015-08-05",
+    "date": "2015-08-05",
+    "rate": 11.5,
+    "title": "The Committee retained CBR at 11.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_Meeting_of_August_5_2015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-09-22",
+    "date": "2015-09-22",
+    "rate": 11.5,
+    "title": "The Committee retained the CBR at 11.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_Meeting_of_September_22_2015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2015-11-17",
+    "date": "2015-11-17",
+    "rate": 11.5,
+    "title": "The Committee retained the CBR at 11.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_Meeting_of_November_17_2015.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2016-01-20",
+    "date": "2016-01-20",
+    "rate": 11.5,
+    "title": "The Committee retained the CBR at 11.50pc and KBRR at 9.87pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_Meeting__of__January__20__2016.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2016-03-21",
+    "date": "2016-03-21",
+    "rate": 11.5,
+    "title": "The Committee retained the CBR at 11.50 pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPC_Press_Release_-_Meeting_of_March_21_2016.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2016-05-23",
+    "date": "2016-05-23",
+    "rate": 10.5,
+    "title": "The Committee lowered the CBR to 10.50pc",
+    "url": "https://www.centralbank.go.ke/images/docs/MPC%20Press%20Releases/MPCMay232016.pdf",
+    "changeBps": -100,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2016-07-25",
+    "date": "2016-07-25",
+    "rate": 10.5,
+    "title": "The Committee retained the CBR at 10.50pc",
+    "url": "https://www.centralbank.go.ke/images/docs/media/mpc/MPCPressRelease-25July2016.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2016-09-20",
+    "date": "2016-09-20",
+    "rate": 10.0,
+    "title": "The Committee lowered the CBR to 10.0pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2012373677_MPC Press Release - Meeting of September 20, 2016.pdf",
+    "changeBps": -50,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2016-11-28",
+    "date": "2016-11-28",
+    "rate": 10.0,
+    "title": "The Committee Retains the CBR at 10PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1127537557_MPC Press Release - Meeting of November 28 2016 (4).pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-01-30",
+    "date": "2017-01-30",
+    "rate": 10.0,
+    "title": "The Committee Retains CBR at 10PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/239547611_MPC Press Release - Meeting of January 30, 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-03-27",
+    "date": "2017-03-27",
+    "rate": 10.0,
+    "title": "The Committee retains the CBR at 10.0PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/808712593_MPC Press Release - Meeting of March 27, 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-05-29",
+    "date": "2017-05-29",
+    "rate": 10.0,
+    "title": "The Committee retains the CBR at 10.0PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1017399013_MPC Press Release - Meeting of May 29 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-07-17",
+    "date": "2017-07-17",
+    "rate": 10.0,
+    "title": "The Committee retains the CBR at 10.0PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1017458732_MPC Press Release - Meeting of July 17, 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-09-18",
+    "date": "2017-09-18",
+    "rate": 10.0,
+    "title": "The Committee retains the CBR at 10.0PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1527748514_MPC Press Release - Meeting of September 18 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2017-11-23",
+    "date": "2017-11-23",
+    "rate": 10.0,
+    "title": "The Committee retains the CBR at 10.0PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/135840339_MPC Press Release - Meeting of November 23 2017.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2018-03-19",
+    "date": "2018-03-19",
+    "rate": 9.5,
+    "title": "MPC lowers the CBR to 9.50 percent",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/986102954_MPC Press Release - Meeting of March 19, 2018.pdf",
+    "changeBps": -50,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2018-05-28",
+    "date": "2018-05-28",
+    "rate": 9.5,
+    "title": "The Committee retains the CBR at 9.50PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/214086157_MPC Press Release - Meeting of May 28, 2018.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2018-07-30",
+    "date": "2018-07-30",
+    "rate": 9.0,
+    "title": "The Committee lowers the CBR to 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1411998543_MPC Press Release - Meeting of July 30, 2018.pdf",
+    "changeBps": -50,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2018-09-25",
+    "date": "2018-09-25",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2061124567_MPC Press Release - Meeting of September 25, 2018.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2018-11-27",
+    "date": "2018-11-27",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/724084116_MPC Press Release - Meeting of November 27, 2018.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-01-28",
+    "date": "2019-01-28",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1938150440_MPC Press Release - Meeting of January 28, 2019.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-03-27",
+    "date": "2019-03-27",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1036792272_MPC Press Release - Meeting of March 27, 2019.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-05-27",
+    "date": "2019-05-27",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/865342622_MPC Press Release - Meeting of May 27 2019.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-07-24",
+    "date": "2019-07-24",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1829652505_MPC Press Release - Meeting of July 24 2019.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-09-23",
+    "date": "2019-09-23",
+    "rate": 9.0,
+    "title": "The Committee retains the CBR at 9.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/928263182_MPC Press Release - Meeting of September 23, 2019.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2019-11-25",
+    "date": "2019-11-25",
+    "rate": 8.5,
+    "title": "The Committee lowers the CBR to 8.50PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2001039300_MPC Press Release - Meeting of November 25 2019.pdf",
+    "changeBps": -50,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2020-01-27",
+    "date": "2020-01-27",
+    "rate": 8.25,
+    "title": "The Committee lowers the CBR to 8.25PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/464303380_MPC Press Release - Meeting of January 27 2020.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2020-03-23",
+    "date": "2020-03-23",
+    "rate": 7.25,
+    "title": "The Committee lowers the CBR to 7.25PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/765216187_MPC Press Release - Meeting of March 23, 2020.pdf",
+    "changeBps": -100,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2020-04-29",
+    "date": "2020-04-29",
+    "rate": 7.0,
+    "title": "The Committee lowers the CBR to 7.00PC",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/495753587_MPC Press Release - Meeting of April 29 2020.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2020-05-27",
+    "date": "2020-05-27",
+    "rate": 7.0,
+    "title": "The committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/858732856_MPC Press Release - Meeting of May 27 2020.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2020-06-25",
+    "date": "2020-06-25",
+    "rate": 7.0,
+    "title": "The committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/571726806_MPC Press Release - Meeting of June 25 2020.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2020-07-29",
+    "date": "2020-07-29",
+    "rate": 7.0,
+    "title": "The committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/603807985_MPC Press Release - Meeting of July 29 2020.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2020-09-29",
+    "date": "2020-09-29",
+    "rate": 7.0,
+    "title": "The committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1480938292_MPC Press Release - Meeting of September 29 2020.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2020-11-26",
+    "date": "2020-11-26",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2061522226_MPC Press Release - Meeting of November 26 2020.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-01-27",
+    "date": "2021-01-27",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1010635752_MPC Press Release - Meeting of January 27 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-03-29",
+    "date": "2021-03-29",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/386550669_MPC Press Release - Meeting of March 29 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-05-26",
+    "date": "2021-05-26",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1169834804_MPC Press Release - Meeting of May 26, 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-07-28",
+    "date": "2021-07-28",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/350847384_MPC Press Release - Meeting of July 28 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-09-28",
+    "date": "2021-09-28",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1305713317_MPC Press Release - Meeting of September 28, 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2021-11-29",
+    "date": "2021-11-29",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/562202428_MPC Press Release - Meeting of November 29 2021.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2022-01-26",
+    "date": "2022-01-26",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/874176368_MPC Press Release - Meeting of January 26 2022.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2022-03-29",
+    "date": "2022-03-29",
+    "rate": 7.0,
+    "title": "The Committee retains the CBR at 7.00pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1829153864_MPC Press Release - Meeting of March 29 2022.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2022-05-30",
+    "date": "2022-05-30",
+    "rate": 7.5,
+    "title": "The Committee raises the CBR to 7.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/649158074_MPC Press Release - Meeting of May 30 2022.pdf",
+    "changeBps": 50,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2022-07-27",
+    "date": "2022-07-27",
+    "rate": 7.5,
+    "title": "The Committee retains the CBR at 7.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2064504728_MPC Press Release - Meeting of July 27 2022.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2022-09-29",
+    "date": "2022-09-29",
+    "rate": 8.25,
+    "title": "The Committee raises the CBR to 8.25 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/936946318_MPC Press Release - Meeting of September 29 2022.pdf",
+    "changeBps": 75,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2022-11-23",
+    "date": "2022-11-23",
+    "rate": 8.75,
+    "title": "The Committee raises the CBR to 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1683286835_MPC Press Release - Meeting of November 23 2022.pdf",
+    "changeBps": 50,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2023-01-30",
+    "date": "2023-01-30",
+    "rate": 8.75,
+    "title": "The Committee retains the CBR at 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1650895806_MPC Press Release - Meeting of January 30 2023.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2023-03-29",
+    "date": "2023-03-29",
+    "rate": 9.5,
+    "title": "The Committee raises the CBR to 9.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/253121043_MPC Press Release - Meeting of March 29 2023.pdf",
+    "changeBps": 75,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2023-05-29",
+    "date": "2023-05-29",
+    "rate": 9.5,
+    "title": "The Committee retains the CBR at 9.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2594950_MPC Press Release - Meeting of May 29 2023.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2023-06-26",
+    "date": "2023-06-26",
+    "rate": 10.5,
+    "title": "The Committee raises the CBR to 10.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1418206114_MPC Press Release - Meeting of June 26 2023.pdf",
+    "changeBps": 100,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2023-08-09",
+    "date": "2023-08-09",
+    "rate": 10.5,
+    "title": "The Committee retains the CBR at 10.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/207307664_MPC Press Release - Meeting of August 9 2023.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2023-10-03",
+    "date": "2023-10-03",
+    "rate": 10.5,
+    "title": "The Committee retains the CBR at 10.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/132632227_MPC Press Release - Meeting of October 3 2023.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2023-12-05",
+    "date": "2023-12-05",
+    "rate": 12.5,
+    "title": "The Committee raises the CBR to 12.50 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2024044271_MPC Press Release - Meeting of December 5 2023.pdf",
+    "changeBps": 200,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2024-02-06",
+    "date": "2024-02-06",
+    "rate": 13.0,
+    "title": "The Committee raises the CBR to 13.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1332335136_MPC Press Release - Meeting of February 6 2024.pdf",
+    "changeBps": 50,
+    "move": "hike"
+  },
+  {
+    "id": "cbr-2024-04-03",
+    "date": "2024-04-03",
+    "rate": 13.0,
+    "title": "The Committee retains the CBR at 13.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/309290372_MPC Press Release - Meeting of April 3 2024.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2024-06-05",
+    "date": "2024-06-05",
+    "rate": 13.0,
+    "title": "The Committee retains the CBR at 13.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/32649240_MPC Press Release - Meeting of June 5 2024.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2024-08-06",
+    "date": "2024-08-06",
+    "rate": 12.75,
+    "title": "The Committee lowers the CBR to 12.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2095801539_MPC Press Release - Meeting of August 6 2024.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2024-10-08",
+    "date": "2024-10-08",
+    "rate": 12.0,
+    "title": "The Committee lowers the CBR to 12.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1982682049_MPC Press Release - Meeting of October 8, 2024.pdf",
+    "changeBps": -75,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2024-12-05",
+    "date": "2024-12-05",
+    "rate": 11.25,
+    "title": "The Committee lowers the CBR to 11.25 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/536717785_MPC Press Release - Meeting of December 5 2024.pdf",
+    "changeBps": -75,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-02-05",
+    "date": "2025-02-05",
+    "rate": 10.75,
+    "title": "The Committee lowers the CBR to 10.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/296906864_MPC Press Release - Meeting of February 5 2025.pdf",
+    "changeBps": -50,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-04-08",
+    "date": "2025-04-08",
+    "rate": 10.0,
+    "title": "The Committee lowers the CBR to 10.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2072351219_MPC Press Release - Meeting of April 8 2025.pdf",
+    "changeBps": -75,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-06-10",
+    "date": "2025-06-10",
+    "rate": 9.75,
+    "title": "The Committee lowered the CBR to 9.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/151253401_MPC Press Release - Meeting of June 10 2025.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-08-12",
+    "date": "2025-08-12",
+    "rate": 9.5,
+    "title": "The Committee lowered the CBR to 9.50 percent",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/678323370_MPC Press Release - Meeting of August 12, 2025.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-10-07",
+    "date": "2025-10-07",
+    "rate": 9.25,
+    "title": "The Committee lowered the CBR to 9.25 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/741103309_MPC Press Release - Meeting of October 7 2025.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2025-12-09",
+    "date": "2025-12-09",
+    "rate": 9.0,
+    "title": "The Committee lowered the CBR to 9.00 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/1156181278_MPC Press Release - Meeting of December 9 2025.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2026-02-10",
+    "date": "2026-02-10",
+    "rate": 8.75,
+    "title": "The Committee lowered the CBR to 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/2101347475_MPC Press Release - Meeting of February 10 2026.pdf",
+    "changeBps": -25,
+    "move": "cut"
+  },
+  {
+    "id": "cbr-2026-04-08",
+    "date": "2026-04-08",
+    "rate": 8.75,
+    "title": "The Committee retains the CBR at 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/357899469_MPC Press Release - Meeting of April 8 2026.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  },
+  {
+    "id": "cbr-2026-06-09",
+    "date": "2026-06-09",
+    "rate": 8.75,
+    "title": "The Committee retains the CBR at 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/897442093_MPC Press Release - Meeting of June 9 2025.pdf",
+    "changeBps": 0,
+    "move": "hold"
+  }
+]

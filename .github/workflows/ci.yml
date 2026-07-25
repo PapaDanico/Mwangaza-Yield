@@ -16,6 +16,10 @@ on:
         description: 'Self-test the alerting path: force a freshness failure and confirm the issue is raised. Commits nothing.'
         type: boolean
         default: false
+      refresh_now:
+        description: 'Run the scrapers and commit fresh data immediately, without waiting for the 6am EAT schedule.'
+        type: boolean
+        default: false
 
 jobs:
   test-and-build:
@@ -29,6 +33,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - name: Test the scraper parsers
+        working-directory: backend/scrapers
+        run: python test_cbr_history.py
 
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
@@ -57,6 +68,9 @@ jobs:
       - name: Probe CBK HTML data tables (CBR history)
         working-directory: backend/scrapers
         run: python discover_cbk_tables.py
+      - name: Probe secondary source shortlist (KIPPRA, Cbonds, AfricaFinancials, Bloomberg, NSE)
+        working-directory: backend/scrapers
+        run: python discover_secondary_sources.py
       - name: Dry-run the NSE parser
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
@@ -67,7 +81,7 @@ jobs:
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
-    if: github.event_name == 'schedule' || inputs.test_alert
+    if: github.event_name == 'schedule' || inputs.test_alert || inputs.refresh_now
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -92,6 +106,11 @@ jobs:
         id: worldbank
         working-directory: backend/scrapers
         run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
+      - name: Capture CBK Central Bank Rate history
+        if: ${{ !inputs.test_alert }}
+        id: cbr
+        working-directory: backend/scrapers
+        run: python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
       - name: Run NSE scraper
         if: ${{ !inputs.test_alert }}
         id: nse
@@ -129,6 +148,7 @@ jobs:
             const failed = [
               '${{ steps.macro.outputs.failed }}',
               '${{ steps.worldbank.outputs.failed }}',
+              '${{ steps.cbr.outputs.failed }}',
               '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);
 

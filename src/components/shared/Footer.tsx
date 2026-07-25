@@ -19,6 +19,7 @@ const COLUMNS = [
       { href: '/tbills/', label: 'Treasury Bills' },
       { href: '/auctions/', label: 'Auction Radar' },
       { href: '/learn/', label: 'Tutorials' },
+      { href: '/glossary/', label: 'Plain English' },
     ],
   },
   {
@@ -54,11 +55,11 @@ export default function Footer() {
               </span>
             </div>
             <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gold-500/80">
-              Intelligence layer for Kenya&apos;s bond market
+              Government bonds, made plain
             </p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-sand-300/70">
-              Free, offline-first analytics that show what government securities really pay after
-              Kenyan withholding tax — so retail investors bid with the same clarity institutions do.
+              A free, private tool that shows what Kenyan government bonds really pay once tax is
+              taken off — so an ordinary saver can decide with the same clarity a bank does.
             </p>
             <div className="mt-5 flex gap-2">
               <a

@@ -9,6 +9,11 @@ not block scrapers, the T-bill quote-to-yield gap widens with tenor rather than
 narrowing, and the NSE price list cannot be read by software at all. Each would have
 shipped as a confident, wrong claim.
 
+The principle paid out again in July: CBK's MPC press table *looked* like a
+JavaScript-rendered grid, and turned out to serve all 129 rows as plain HTML. Probing
+rather than assuming turned a "probably needs a headless browser" into eighteen years of
+rate history in an afternoon. See `DATA-SOURCES.md` §10.
+
 ---
 
 ## Now — correctness and trust
@@ -36,10 +41,14 @@ settlement date.
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.
-**Options, in order.** Buy NSE's machine-readable feed once there is revenue; ask NSE
-to publish the daily list as text (their source data is already digital — this is a
-formatting choice); or hand-enter the handful of actively traded issues weekly.
-**Interim.** Make the par fallback explicit in the UI rather than silent.
+**Now settled (2026-07-25).** The blocker is legal, not technical. NSE's Market Statistics
+page does serve tables in plain HTML — but its terms forbid copying, storing, redistributing
+*or building a product on* the data, except for personal use. See `DATA-SOURCES.md` §11.
+**Options, in order.** (a) Let the USER fetch and enter a price — explicitly permitted as
+personal use, and it never leaves their device; (b) request written permission, which the
+terms contemplate; (c) buy the licence once there is revenue.
+**Interim.** Make the par fallback explicit in the UI rather than silent, and say plainly
+why we cannot fill it in for them.
 
 ---
 
@@ -50,6 +59,10 @@ The app answers "what does this pay?" but never "is that good?" — the question
 investor actually asks before bidding. Twelve months of auction prints behind a
 sparkline on each bond would answer it. CBK publishes historical results; this is a
 data-collection task more than a UI one.
+
+The CBR history shipped in §12 below is the *policy* half of this answer and proves the
+pattern works end to end — scrape, guard, test, narrate. Per-bond auction prints are the
+*market* half, and are the natural next application of it.
 
 ### 5. Auction result capture
 We show what is *offered*. We do not show what it *cleared at* — the single most useful
@@ -72,6 +85,19 @@ July source review.
 
 CMA was probed at the same time and yielded nothing — `/statistics/` and
 `/market-statistics/` both 404, homepage links no matching PDFs.
+
+---
+
+## Done since this roadmap was written
+
+### 12. CBR rate-cycle history — shipped 2026-07-25
+119 MPC decisions from December 2008, scraped from CBK's own press table, with each
+point linking back to the original press release. Turns the static "CBR 8.75%" into the
+path that explains it: ten cuts from 13.00%, now held twice.
+
+Deliberately anchored to the **current cycle**, not the 2011 record high — comparing
+today against 18.00% would present a 9.25-point easing that never happened as one move.
+This is the kind of detail that makes a chart either informative or quietly misleading.
 
 ---
 

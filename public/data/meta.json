@@ -1,1 +1,4 @@
-{ "generatedAt": "2026-07-24T15:45:00Z", "note": "Compiled from public CBK auction reports and market coverage as of 24 Jul 2026 (see docs/DATA-SOURCES.md for provenance). Maturity dates approximated from issue codes; verify against CBK prospectuses before investing." }
+{
+  "generatedAt": "2026-07-25T03:53:48.718179+00:00",
+  "note": "Auto-refreshed by backend/scrapers via CI."
+}

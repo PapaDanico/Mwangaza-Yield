@@ -392,7 +392,7 @@ def main():
         check(f"{genuine} is accepted", lo <= genuine <= hi, True)
     check("the floor sits below the lowest genuine figure", RATE_FLOOR < 7.78, True)
 
-    print("a parser change must invalidate what the old parser wrote")
+    print("a parser change re-reads the old parser's PDFs without deleting its rows")
     from auction_results import PARSER_VERSION
     with tempfile.TemporaryDirectory() as tmp:
         mod.DATA_DIR = _Path(tmp)
@@ -406,10 +406,16 @@ def main():
              "couponRate": 11.766, "sourceUrl": "https://cbk/old.pdf"},
         ]))
         recs, seen = mod.load_existing()
-        check("records from the current parser are kept", len(recs), 1)
-        check("records from an older parser are discarded", 
-              [r["issueCode"] for r in recs], ["FXD1/2021/005"])
-        check("and their PDF is no longer marked as read",
+        # These two assertions used to require the stale row to be DELETED at
+        # load. That is what turned a version bump into a 63% cut in the
+        # published archive: 350 records discarded up front, only 130 re-read
+        # before the run's file cap and time budget stopped it. The contract is
+        # now "re-read the document, keep the row until it is replaced".
+        check("every record survives the bump", len(recs), 2)
+        check("including the one from the older parser",
+              sorted(r["issueCode"] for r in recs),
+              ["FXD1/2019/015", "FXD1/2021/005"])
+        check("but its PDF is queued to be read again",
               seen, {"https://cbk/new.pdf"})
     mod.DATA_DIR = original
 
@@ -478,6 +484,41 @@ def main():
           int(os.environ.get("AUCTION_TIME_BUDGET", "600")))
     # Stopping after 30 of 148 must report 118 outstanding, not 28 (148 - 120).
     check("the backlog counts files actually read", max(0, 148 - 30), 118)
+
+    # ------------------------------------------------------------------
+    # A PARSER_VERSION bump must not empty the published archive.
+    #
+    # Bumping to v5 discarded all 350 records up front so their PDFs would be
+    # re-read. Because a run reads at most MAX_NEW_PER_RUN files inside a time
+    # budget, the shipped file fell to 130 — a 63% cut — and the site served a
+    # fraction of its own data until later runs refilled it. Coverage figures
+    # computed in that window described a rebuild, not the archive.
+    #
+    # Stale rows must now survive until the document that produced them is
+    # actually read again.
+    import json as _json, tempfile as _tempfile, pathlib as _pathlib
+    import auction_results as _ar
+
+    _tmp = _pathlib.Path(_tempfile.mkdtemp())
+    (_tmp / "auction-results.json").write_text(_json.dumps([
+        {"id": "a", "issueCode": "FXD1/2020/010", "auctionDate": "2020-01-06",
+         "sourceUrl": "u1", "parserVersion": _ar.PARSER_VERSION - 1, "couponRate": 12.0},
+        {"id": "b", "issueCode": "FXD1/2021/020", "auctionDate": "2021-02-08",
+         "sourceUrl": "u2", "parserVersion": _ar.PARSER_VERSION, "couponRate": 13.0},
+        {"id": "c", "issueCode": "FXD1/2019/015", "auctionDate": "2019-03-04",
+         "sourceUrl": "u3", "parserVersion": _ar.PARSER_VERSION - 1, "couponRate": 11.0},
+    ]))
+    _orig = _ar.DATA_DIR
+    _ar.DATA_DIR = _tmp
+    try:
+        _records, _seen = _ar.load_existing()
+    finally:
+        _ar.DATA_DIR = _orig
+
+    check("a version bump keeps every existing record", len(_records), 3)
+    check("only fully-current documents are skipped", sorted(_seen), ["u2"])
+    check("stale documents queue for re-reading",
+          sorted({"u1", "u2", "u3"} - set(_seen)), ["u1", "u3"])
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

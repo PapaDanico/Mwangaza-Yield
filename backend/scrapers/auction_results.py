@@ -524,7 +524,28 @@ def find_result_pdfs() -> list:
 
 
 def load_existing() -> tuple:
-    """Records already captured, and the set of PDFs they came from."""
+    """Every record already captured, and the PDFs that need no re-reading.
+
+    A PARSER_VERSION bump means older records may be wrong, so their PDFs must
+    be read again. It does NOT mean those records should be thrown away first.
+
+    They used to be. Bumping to v5 discarded all 350 records up front, and
+    because a run reads at most MAX_NEW_PER_RUN files within a time budget, the
+    published archive fell to 130 — a 63% cut — and stayed there until several
+    more runs refilled it. For hours the site served a fraction of its own data,
+    and anything computed from it (coverage figures above all) described a
+    half-finished rebuild rather than the archive.
+
+    An asset that can shrink by two thirds without warning is not one anybody
+    should build on, so now the old records stay and are REPLACED as each PDF is
+    re-read. A stale record is superseded the moment its document is parsed
+    again, and until then it is the best answer we have. The archive only ever
+    improves, and a rebuild in progress is invisible to readers.
+
+    Returns (records, seen) where `seen` holds only URLs whose every record is
+    already at the current version — so stale documents queue for re-reading
+    while their old rows keep serving.
+    """
     path = DATA_DIR / "auction-results.json"
     if not path.exists():
         return [], set()
@@ -534,14 +555,25 @@ def load_existing() -> tuple:
         print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
               f"starting fresh", file=sys.stderr)
         return [], set()
-    fresh = [r for r in records if r.get("parserVersion") == PARSER_VERSION]
-    stale = len(records) - len(fresh)
-    if stale:
-        print(f"[auctions] {stale} record(s) came from an older parser "
-              f"(< v{PARSER_VERSION}) — discarding so their PDFs are read again",
+
+    current, stale_urls = set(), set()
+    for r in records:
+        url = r.get("sourceUrl")
+        if not url:
+            continue
+        (current if r.get("parserVersion") == PARSER_VERSION else stale_urls).add(url)
+
+    n_stale = sum(1 for r in records if r.get("parserVersion") != PARSER_VERSION)
+    if n_stale:
+        print(f"[auctions] {n_stale} record(s) came from an older parser "
+              f"(< v{PARSER_VERSION}) — keeping them and re-reading their "
+              f"{len(stale_urls)} PDF(s); each is replaced as it is read",
               file=sys.stderr)
-    fresh = repair_codes(repair_dates(fresh))
-    return fresh, {r.get("sourceUrl") for r in fresh if r.get("sourceUrl")}
+
+    records = repair_codes(repair_dates(records))
+    # A URL with any stale record must be re-read, even if other rows from the
+    # same document are already current.
+    return records, current - stale_urls
 
 
 def repair_dates(records: list) -> list:
@@ -625,6 +657,7 @@ def main() -> None:
 
     deadline = time.monotonic() + TIME_BUDGET_SECONDS
     read = 0
+    reparsed: set = set()
     for url in fresh[:MAX_NEW_PER_RUN]:
         if time.monotonic() > deadline:
             print(f"[auctions] {TIME_BUDGET_SECONDS}s budget spent after {read} file(s) — "
@@ -640,22 +673,54 @@ def main() -> None:
         finally:
             read += 1
         print(f"[auctions] {url[-60:]}: {len(got)} issue(s)", file=sys.stderr)
+        if got:
+            reparsed.add(url)
         records.extend(got)
 
+    # A document that has just been read again supersedes what it produced
+    # before. Dropping its old rows here is what stops a superseded record
+    # outliving the parse that replaced it: if the new parser no longer emits a
+    # code it used to, keeping the old row would preserve exactly the reading
+    # the version bump was meant to correct.
+    #
+    # Only for documents actually re-read this run. Everything else keeps its
+    # existing rows, which is the whole point — the archive never shrinks while
+    # a rebuild is in progress.
+    superseded = 0
+    if reparsed:
+        kept = []
+        for r in records:
+            if (r.get("sourceUrl") in reparsed
+                    and r.get("parserVersion") != PARSER_VERSION):
+                superseded += 1
+                continue
+            kept.append(r)
+        records = kept
+
     # Deduplicate on the natural key. A PDF re-listed under a new URL must not
-    # produce a second copy of the same auction.
+    # produce a second copy of the same auction. Later wins, and newly parsed
+    # records are appended after the existing ones, so a re-read always beats
+    # the copy it replaces.
     unique: dict = {}
     for r in records:
         unique[(r["issueCode"], r.get("auctionDate"))] = r
 
-    final = sorted(unique.values(), key=lambda r: (r["auctionDate"] or "", r["issueCode"]))
+    final = sorted(unique.values(), key=lambda r: (r.get("auctionDate") or "", r["issueCode"]))
     with_coupon = [r for r in final if "couponRate" in r]
     bonds = {r["issueCode"] for r in final}
     # Count what was actually read, not what we were allowed to read — the run
     # may have stopped on the clock well before the file cap.
     remaining = max(0, len(fresh) - read)
+    at_current = sum(1 for r in final if r.get("parserVersion") == PARSER_VERSION)
     print(f"[auctions] {len(final)} record(s) across {len(bonds)} bond(s), "
-          f"{len(with_coupon)} with a coupon rate", file=sys.stderr)
+          f"{len(with_coupon)} with a coupon rate, "
+          f"{at_current} at parser v{PARSER_VERSION}", file=sys.stderr)
+    if superseded:
+        print(f"[auctions] {superseded} superseded record(s) replaced by a re-read",
+              file=sys.stderr)
+    if len(final) < len(records) - len(reparsed):
+        print("[auctions] WARNING: the archive shrank this run — that should not "
+              "happen and is worth investigating", file=sys.stderr)
     if remaining:
         print(f"[auctions] {remaining} PDF(s) still unread — the next run continues "
               f"where this one stopped", file=sys.stderr)

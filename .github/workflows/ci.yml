@@ -48,6 +48,9 @@ jobs:
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
         run: python macro_parser.py || echo "macro scraper failed — see output above"
+      - name: Discover NSE downloadable files
+        working-directory: backend/scrapers
+        run: python discover_nse.py
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py

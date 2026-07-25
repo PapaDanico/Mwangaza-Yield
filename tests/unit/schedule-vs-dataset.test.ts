@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import bonds from '../../public/data/bonds.json';
+import secondary from '../../public/data/secondary.json';
 import { getCouponDates, calculateAccruedInterest } from '../../src/lib/financial-engine';
 import type { Bond } from '../../src/types/bond';
 
@@ -96,5 +97,33 @@ describe('every bond states a minimum a reader could be held to', () => {
     expect(Array.from(new Set(ALL.map((b) => b.minInvestmentKES))).sort((a, b) => a - b)).toEqual([
       50_000, 100_000,
     ]);
+  });
+});
+
+/**
+ * Secondary prices have to be JOINABLE, or they are decoration.
+ *
+ * Both places that price a bond do the same thing:
+ *
+ *     const price = secondary.find((t) => t.isin === bond.isin)?.price ?? 100;
+ *
+ * and secondary.json shipped ISINs of the form `KE-FXD1-2022-025` while
+ * bonds.json carries the real ones, `KE8000005093`. The find never matched, so
+ * every bond on the landing page and the dashboard was silently priced at par
+ * while the app carried a file implying otherwise. Nothing failed, nothing
+ * warned, and the calculator's honest note — "we have no traded price for this
+ * bond" — was accidentally true of every bond in the book.
+ *
+ * A silent `?? 100` is the right fallback and the wrong place to discover a
+ * broken join. This asserts what the fallback assumes: an entry that cannot be
+ * matched is not data, it is a claim we cannot honour.
+ */
+describe('secondary prices join the bonds they claim to price', () => {
+  it('carries no price for a bond that is not in the book', () => {
+    const isins = new Set(ALL.map((b) => b.isin));
+    const orphans = (secondary as { isin: string }[])
+      .map((t) => t.isin)
+      .filter((i) => !isins.has(i));
+    expect(orphans).toEqual([]);
   });
 });

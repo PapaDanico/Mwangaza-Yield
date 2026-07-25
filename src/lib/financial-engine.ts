@@ -8,6 +8,20 @@ import type { Bond } from '@/types/bond';
 const DAYS_IN_YEAR = 365;
 
 /**
+ * Upper bound of the yield search, and a number the UI must not present as a
+ * measurement. A deep discount on a bond weeks from redemption really does
+ * annualise into the hundreds of percent — the arithmetic is right — but when
+ * the solver pins here it has stopped measuring and started reporting its own
+ * limit. `isYieldPinned` lets the caller say "over 200%" instead of the
+ * spuriously precise "200.00%".
+ */
+export const YTM_CEILING = 200;
+
+export function isYieldPinned(ytm: number): boolean {
+  return ytm >= YTM_CEILING - 0.05;
+}
+
+/**
  * Kenyan withholding tax on bond interest:
  *  - Infrastructure bonds (IFB): exempt (0%)
  *  - Tenor >= 10 years: 10%
@@ -58,10 +72,20 @@ export function getNextCouponDate(bond: Bond, settlementDate: Date): Date | null
   return null;
 }
 
-/** Accrued interest per 100 face value, Actual/365. */
+/** Accrued interest per 100 face value, Actual/365.
+ *
+ * Settlement is clamped to maturity because a bond stops paying interest when
+ * it is redeemed. Without the clamp the day count simply keeps running: a bond
+ * two and a half years past maturity reported 33.02 accrued per 100, which
+ * would be added to the price and charged to the buyer as money owed to the
+ * seller. Holdings outlive the listing — a portfolio entry, or a cached dataset
+ * on a phone that has been offline — so a matured bond does reach this code.
+ */
 export function calculateAccruedInterest(bond: Bond, settlementDate: Date): number {
-  const lastCoupon = getLastCouponDate(bond, settlementDate);
-  const days = Math.max(0, (settlementDate.getTime() - lastCoupon.getTime()) / 86_400_000);
+  const maturity = new Date(bond.maturityDate);
+  const effective = settlementDate > maturity ? maturity : settlementDate;
+  const lastCoupon = getLastCouponDate(bond, effective);
+  const days = Math.max(0, (effective.getTime() - lastCoupon.getTime()) / 86_400_000);
   return (bond.couponRate * days) / DAYS_IN_YEAR;
 }
 
@@ -92,7 +116,7 @@ export function solveYTMFromPrice(
   const pv = (y: number) =>
     flows.reduce((s, f) => s + f.amount / Math.pow(1 + y / freq, f.t), 0);
 
-  let lo = 0.000001, hi = 2; // 0–200% annual
+  let lo = 0.000001, hi = YTM_CEILING / 100; // annual, as a fraction
   for (let i = 0; i < 100; i++) {
     const mid = (lo + hi) / 2;
     if (pv(mid) > dirtyPrice) lo = mid;
@@ -167,7 +191,11 @@ export function computeBondInvestment(
     netYTM,
     taxDragBps: (grossYTM - netYTM) * 100,
     nextCouponDate: next ? next.toISOString().slice(0, 10) : null,
-    currentYieldNet: (netAnnualIncomeKES / settlementCostKES) * 100,
+    // Zero outlay has no yield to report. Without this the division is 0/0,
+    // and the calculator rendered "NaN%" the moment anyone cleared the amount
+    // box — which the number input invites, since Number('') is 0.
+    currentYieldNet:
+      settlementCostKES > 0 ? (netAnnualIncomeKES / settlementCostKES) * 100 : 0,
   };
 }
 

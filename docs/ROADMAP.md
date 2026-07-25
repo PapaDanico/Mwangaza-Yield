@@ -25,19 +25,28 @@ These affect whether the numbers can be relied on. Nothing else matters more.
 coupon dates follow business-day conventions and shift for weekends and holidays. Every
 "next coupon date", the cash-flow calendar and the .ics exports inherit that
 approximation.
-**BLOCKED (probed 2026-07-25).** Prospectuses do carry "Interest Payment Dates" and are
-machine-readable — but only 2016 documents are reachable, the listing serves no table in
-its HTML, and the two-column layout bleeds text between fields. See `DATA-SOURCES.md` §12.
-**To unblock.** Find the current-year prospectus route; the listing is likely rendered
-client-side, so inspecting its network calls in a browser would settle it.
+**NOT ACTUALLY BLOCKED — the probe was reading the wrong documents (found 2026-07-25).**
+`discover_prospectus.py` selected PDFs whose NAME contains an issue code. Results files
+are named for their issues too, so all 506 files it inspected were auction RESULTS —
+documents that report what an auction cleared at and have no reason to state a coupon
+schedule. It reported "COUPON DATES: not found" and this item was marked blocked on that.
+
+Same shape as the `/securities/` path that answered 200 while serving a 2016 archive: a
+confident answer to a question never asked. The probe now selects on the upload PATH, and
+says plainly when a listing carries no prospectus-path PDFs rather than settling for
+whatever else is there.
+**Next.** Read the corrected probe's output: it reports how many issue-coded PDFs sit on
+a prospectus path versus the results path, and lists the upload segments actually
+present. That names the route instead of inferring it.
 **Done when.** A bond with a published schedule shows prospectus dates, and the UI
 distinguishes exact from estimated.
 
 ### 2. Day-count convention verified
 **Problem.** Accrued interest uses Actual/365 by assumption. The exact convention is
 stated in the prospectus and changes every settlement figure.
-**BLOCKED (probed 2026-07-25).** Stated in neither the prospectus nor the CBK Auction
-Rules & Guidelines. There may be no published statement to find.
+**Evidence retracted 2026-07-25.** The "not stated in the prospectus" half of this rests
+on the same broken probe — no prospectus was ever read. Only the CBK Auction Rules &
+Guidelines finding survives, and that document genuinely does not state a day count.
 **To unblock.** Stop hunting for a statement and test the behaviour: take one
 CBK-published settlement amount for a known bond and date, and see which convention
 reproduces it. The verification criterion becomes the method.
@@ -102,11 +111,47 @@ number.
 The first incremental dispatch read 120 previously-unseen PDFs and reached **169 auction
 records across 57 bonds**, 159 carrying a coupon, with 148 files still queued.
 
-**It also surfaced a real defect in the archive's tail.** Roughly one file in ten from
-2020–2023 parses zero or partial — `filename names 2 issue(s), parsed 0` — because CBK's
-table layout differs in those years. The parser says so loudly rather than returning a
-tidy partial result, which is the behaviour we want, but the coverage is genuinely lost
-until the older layout is handled. That is the next piece of work on this item.
+**It also surfaced a real defect** — `filename names 2 issue(s), parsed 0`. The parser
+said so loudly rather than returning a tidy partial result, which is the behaviour we
+want, but the coverage was genuinely lost. Diagnosed and fixed 2026-07-25; see below.
+
+### The "2020-2023 layout" defect — diagnosed and fixed 2026-07-25
+Worth recording in full, because almost everything I believed about it was wrong and a
+probe is the only reason none of it shipped.
+
+**The name was wrong.** These were never 2020-2023 files. The probe found August, July,
+June, May, February and January 2025 files parsing to zero. The date range came from the
+first sample, not from the archive.
+
+**The first three hypotheses were wrong.** Not a scan (every failing file carries a real
+text layer). Not an unmatched code spelling (they read exactly as expected). And not a
+missing header, which was my leading guess — `find_header` returned both codes with two
+clean column centres on every failing file. I had already written that fix, with passing
+tests, before the probe killed it. It was reverted rather than shipped.
+
+**The obvious remedy was wrong too.** The label boundary is a positional guess,
+`min(centres) - 40`. Deriving it from the header's own left edge instead lands at or
+*below* the same value on these files — equally permissive. Arithmetic, checked before
+shipping.
+
+**Two real faults, found only by printing what the parser actually produced:**
+
+1. *Label contamination.* `cell_value` joins fragments without a separator, because that
+   is the only way to reassemble CBK's split digits. A label word crossing the boundary
+   joins just as silently, so a cell read `(%)13.9128`, failed the numeric test, and was
+   dropped — every field. Fixed by requiring a fragment to look like part of a number.
+2. *The header taken from the prose title.* These PDFs open with a title naming every
+   bond, above a table that may name only the bonds actually sold when one leg was
+   cancelled. Scoring by bond count picked the title, whose word positions are prose
+   positions. Both bonds' figures then landed in one column and the coupon cell read
+   `15.03916.844`.
+
+**The safe fix was not the obvious one.** `find_header` now returns ranked candidates and
+the caller keeps whichever makes the table parse. Ranking by *fields recovered* looks
+natural and is unsafe: on the cancelled-leg file both geometries recover exactly one
+field, and the title's columns hang that coupon on the **cancelled** bond. A wrong number
+against a real bond name is the worst thing this parser can produce. Ranking by column
+**coverage** separates them — 1 of 2 columns filled versus 1 of 1.
 
 ### 12. CBR rate-cycle history — shipped 2026-07-25
 119 MPC decisions from December 2008, scraped from CBK's own press table, with each
@@ -136,10 +181,6 @@ look fine to everyone except the people clicking them.
 already does, and hand-writing a host redirect in `netlify.toml` would duplicate it while
 risking the per-PR `deploy-preview-*` hostnames. Worth confirming the primary domain is
 set to `mwangazayield.org` there.
-
-### 9. Swahili
-The audience is Kenyan; the app is English-only. Not a translation of jargon — a
-rewrite of the explanations in the language people think about money in.
 
 ### 10. Accessibility audit
 Contrast has been checked at the token level. Screen-reader flow, focus order and
@@ -182,7 +223,7 @@ than three times.
 
 The remaining 13 are named in the log every run. They are older IFBs whose auctions sit
 further back in the archive than we have read, plus two whose PDFs parsed without a
-coupon — the 2020-2023 layout defect.
+coupon — the header/label defect diagnosed and fixed above.
 
 **The strongest validation of the whole pipeline:** all seven coupons that overlap our
 hand-curated figures matched exactly, including FXD1/2019/20 at 12.873% — the precise
@@ -200,6 +241,11 @@ value predicted when decoding `1 2.873` from the split PDF text.
 - **Any source needing an API key**, until there is a server to hold one. Today no key
   means no server, no server means no account, and no account means portfolios never
   leave the device.
+- **A Swahili edition.** Dropped 2026-07-25 at the owner's direction. Worth noting what
+  this does NOT change: the plain-language work stands on its own merits. The glossary,
+  the "what this means for you" panels and the refusal to write "clearing yield" without
+  explaining it were never a substitute for translation — they exist because most readers
+  meet a bond for the first time here, in whatever language.
 
 ---
 

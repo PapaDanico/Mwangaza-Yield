@@ -60,7 +60,10 @@ export default function Navbar() {
             key={href}
             href={href}
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] font-medium',
+              // Seven tabs at px-3 need 469px; a 360px Android screen is common and
+              // the row pushed the whole page into a sideways scroll. Sharing the
+              // width evenly keeps every label readable without truncation.
+              'flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1 text-[11px] font-medium',
               isActive(href) ? 'text-gold-700' : 'text-ink-muted'
             )}
           >

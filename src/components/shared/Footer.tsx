@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { MessageCircle, Github } from 'lucide-react';
-import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
+import { MessageCircle, Mail } from 'lucide-react';
+import { CBK_WHATSAPP_CHANNEL, SUPPORT_EMAIL } from '@/lib/share';
 
 const COLUMNS = [
   {
@@ -61,7 +61,7 @@ export default function Footer() {
               A free, private tool that shows what Kenyan government bonds really pay once tax is
               taken off — so an ordinary saver can decide with the same clarity a bank does.
             </p>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               <a
                 href={CBK_WHATSAPP_CHANNEL}
                 target="_blank"
@@ -71,12 +71,10 @@ export default function Footer() {
                 <MessageCircle size={13} /> CBK on WhatsApp
               </a>
               <a
-                href="https://github.com/PapaDanico/Mwangaza-Yield"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/20 px-3 py-1.5 text-xs font-medium text-sand-300/70 transition hover:bg-sand-50/5"
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/25 px-3 py-1.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
               >
-                <Github size={13} /> Source
+                <Mail size={13} /> Contact us
               </a>
             </div>
           </div>
@@ -110,7 +108,7 @@ export default function Footer() {
             delayed, estimated or incorrect — verify every number against the official prospectus
             before you invest. Capital is at risk; yields change at every auction.
           </p>
-          <p className="mt-4 text-xs text-sand-300/40">
+          <p className="mt-4 text-xs text-sand-300/60">
             © {new Date().getFullYear()} Mwangaza Yield · Built in Kenya 🇰🇪
           </p>
         </div>

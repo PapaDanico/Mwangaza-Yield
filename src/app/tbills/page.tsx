@@ -7,6 +7,7 @@ import { computeTBill, projectRollover } from '@/lib/tbills';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { formatCompactKES } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
+import LiveResult from '@/components/shared/LiveResult';
 
 export default function TBillsPage() {
   const tbills = useBondStore((s) => s.tbills);
@@ -126,6 +127,11 @@ export default function TBillsPage() {
         </div>
 
         <div className="card">
+          <LiveResult>
+            {`${selected.tenorDays}-day bill: you keep ${formatPct(result.netEAY)} a year after tax, `
+              + `${formatKES(result.netInterestKES)} in interest, `
+              + `${formatKES(result.netProceedsKES)} back in ${selected.tenorDays} days.`}
+          </LiveResult>
           <h2 className="mb-3 font-semibold text-ink">{selected.tenorDays}-day bill breakdown</h2>
           {[
             ['What you actually earn', formatPct(result.netEAY), true],

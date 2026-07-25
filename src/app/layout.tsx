@@ -53,8 +53,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${jakarta.variable} ${roboto.variable} ${jetbrains.variable}`}>
       <body>
         <AppInit />
+        {/* The first thing a keyboard or screen-reader user meets. Without it
+            every page makes them walk the whole nav — nine links, on every
+            navigation — before reaching a word of content. Visually hidden
+            until focused, so it costs sighted users nothing. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-treasury-navy focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-sand-50"
+        >
+          Skip to main content
+        </a>
         <Navbar />
-        <main className="mx-auto max-w-6xl px-4 pt-6">{children}</main>
+        <main id="main" className="mx-auto max-w-6xl px-4 pt-6">{children}</main>
         <Footer />
       </body>
     </html>

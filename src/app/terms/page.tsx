@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { SUPPORT_EMAIL } from '@/lib/share';
 
 export const metadata: Metadata = { title: 'Terms of use — Mwangaza Yield' };
 
@@ -60,9 +61,11 @@ export default function TermsPage() {
 
       <h2>7. Intellectual property</h2>
       <p>
-        The Mwangaza Yield name, logo and brand are ours. The application source code is published
-        openly on GitHub under the licence stated in that repository. Underlying market data belongs
-        to its publishers (CBK, NSE, KNBS).
+        The Mwangaza Yield name, logo, brand and application code are ours. Underlying market data
+        belongs to its publishers — the Central Bank of Kenya, the Nairobi Securities Exchange and
+        the Kenya National Bureau of Statistics — and is used here on the terms on which they
+        publish it. For licensing or reuse enquiries, write to{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 
       <h2>8. Governing law</h2>

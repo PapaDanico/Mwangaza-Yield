@@ -18,7 +18,7 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-ink">
-          What Kenya is paying <span className="text-gold-600">savers today.</span>
+          What Kenya is paying <span className="text-gold-700">savers today.</span>
         </h1>
         <p className="mt-1 text-sm text-ink-muted">
           Every current government bond, ranked by what you would actually keep after tax.

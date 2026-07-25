@@ -19,6 +19,13 @@ import type { LadderPlan } from './ladder';
  */
 export const APP_URL = 'https://mwangazayield.org';
 
+/**
+ * Where enquiries go. Replaces the GitHub issue tracker as the contact route:
+ * a reader who has spotted a wrong number should not need an account on a
+ * developer platform to tell us about it.
+ */
+export const SUPPORT_EMAIL = 'info@mwangazadigital.org';
+
 /** CBK publishes auction announcements here — the most reliable primary feed. */
 export const CBK_WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029Va5HrcD4dTnNnTguwc24';
 

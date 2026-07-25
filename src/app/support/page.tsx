@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { SUPPORT_EMAIL } from '@/lib/share';
 
 export const metadata: Metadata = { title: 'Support — Mwangaza Yield' };
 
@@ -14,8 +15,8 @@ export default function SupportPage() {
         be.
       </p>
       <p>
-        <a href="https://github.com/PapaDanico/Mwangaza-Yield/issues/new" target="_blank" rel="noopener noreferrer">
-          Open an issue on GitHub →
+        <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Mwangaza Yield — a figure that looks wrong')}`}>
+          Email {SUPPORT_EMAIL} →
         </a>
       </p>
 

@@ -76,6 +76,22 @@ MAX_NEW_PER_RUN = 120
 # of the archive; now it means arriving a day later.
 TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 
+# Stamp every record with the extraction logic that produced it.
+#
+# Parsing each PDF once is what made full coverage affordable, and it has one
+# sharp edge: a record is never re-derived, so a parser BUG outlives its fix.
+# That is not hypothetical. Records captured before the column-geometry fix
+# attribute a coupon to the wrong bond — one file's 11.766 was hung on the leg
+# of the auction that had been cancelled — and no amount of correct code
+# afterwards revisits them. The archive silently preserves the mistakes of
+# whatever parser was running that day.
+#
+# Bumping this makes the next run treat older records as unread and re-derive
+# them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
+# different column rule, a changed guard — and leave it alone for changes that
+# only affect which files are fetched or how fast.
+PARSER_VERSION = 4
+
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
 # TREASURY BOND(S) ISSUE(S)" naming NEXT month's bonds. The second dry-run
@@ -107,10 +123,23 @@ FIELDS = [
 
 # Plausible bands. A value outside these means we read the wrong cell, and a
 # wrong coupon is worse than a missing one.
+#
+# The rate floor was 0.5 and let ten artefacts through, five of them exactly
+# 1.0 — the signature of "11.000" losing its leading digit to CBK's split-digit
+# rendering. One of those reached production: FXD1/2012/15 was published with a
+# 1% coupon on a fifteen-year Kenyan government bond, which is not a number
+# that exists.
+#
+# 6.0 is evidence, not instinct. Across 276 captured coupons and every clearing
+# rate in the archive back to 2014, the lowest genuine figure is 7.78%; every
+# value below 6 is a truncation artefact (1.0, 1.619, 1.855, 2.0, 2.5, 5.0 —
+# that last one the bond's TENOR read as its coupon). The floor sits below the
+# real minimum with room to spare and above every artefact.
+RATE_FLOOR, RATE_CEILING = 6.0, 30.0
 BANDS = {
-    "couponRate": (0.5, 30.0),
-    "weightedAverageRate": (0.5, 30.0),
-    "marketWeightedAverageRate": (0.5, 30.0),
+    "couponRate": (RATE_FLOOR, RATE_CEILING),
+    "weightedAverageRate": (RATE_FLOOR, RATE_CEILING),
+    "marketWeightedAverageRate": (RATE_FLOOR, RATE_CEILING),
     "pricePer100": (40.0, 160.0),
 }
 
@@ -146,13 +175,46 @@ def cell_value(fragments: list) -> str:
     return joined
 
 
+# A fragment that could be part of a number. Anything else on a data row is
+# label text, whichever side of the boundary it happened to land on.
+#
+# The lookahead is load-bearing. An earlier form required a digit AFTER the
+# decimal point, which rejected "13." — and CBK splits numbers at arbitrary
+# points, so "13." + "9128" is a real rendering of 13.9128. Dropping the first
+# half left the cell reading "9128", silently, which is exactly the field loss
+# this filter exists to prevent. Requiring only that a fragment contain SOME
+# digit keeps both halves and still rejects "(%)", "Bids" and "Kshs.".
+VALUE_FRAGMENT_RE = re.compile(r"^(?=[\d,.]*\d)[\d,]*\.?\d*$")
+
+
 def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
-    """Map a line's numeric fragments onto the column each one sits under."""
+    """Map a line's numeric fragments onto the column each one sits under.
+
+    Two filters, and the content one is what makes a cell trustworthy.
+
+    `cell_value` joins fragments WITHOUT a separator, because that is the only
+    way to put CBK's split digits back together — "1" + "3.9420" is 13.9420.
+    The cost is that a stray label word joins just as silently. `label_x` is a
+    positional guess, min(centres) - 40, and on narrow tables it is far too
+    permissive: with column centres at 104 and 199 the boundary sits at 64, and
+    a row reading "Weighted Average Rate of Accepted Bids (%) 13.9128" has
+    label words to the right of it. Those were glued onto the digits, so the
+    cell read "(%)13.9128", failed NUMERIC_RE and was dropped — every field,
+    which is how a file whose header parsed perfectly returned nothing at all.
+
+    Moving the boundary does NOT fix this, which is worth stating because it
+    was the obvious thing to try. Deriving it from the header's own left edge
+    instead of the magic 40 lands at or below 64 on these files — equally
+    permissive. What settles it is asking whether a fragment could be part of a
+    number before letting it into a cell.
+    """
     buckets: dict = {i: [] for i in range(len(centres))}
     for w in line:
         mid = (w["x0"] + w["x1"]) / 2
         if mid < label_x:  # part of the row label, not a value
             continue
+        if not VALUE_FRAGMENT_RE.match(w["text"]):
+            continue  # label text that reached past the boundary
         nearest = min(range(len(centres)), key=lambda i: abs(centres[i] - mid))
         buckets[nearest].append(w)
     return {i: cell_value(frs) for i, frs in buckets.items() if frs}
@@ -166,8 +228,8 @@ def results_section(lines: list) -> list:
     return lines
 
 
-def find_header(lines: list, expected: list | None = None) -> tuple:
-    """Locate the row naming the issues; it defines the column geometry.
+def codes_on_line(line: list) -> tuple:
+    """The issue codes on one visual line, with the x-centre of each.
 
     Matches against the JOINED line rather than word by word. The first dry-run
     matched each word separately and so found only one issue in PDFs whose
@@ -175,34 +237,86 @@ def find_header(lines: list, expected: list | None = None) -> tuple:
     boundaries often enough that per-word matching silently loses half the
     bonds. Under-extraction is quieter than a wrong number and just as wrong.
     """
-    best: tuple = ([], [], -1)
-    for line in lines:
-        spans, pos, parts = [], 0, []
-        for w in line:
-            parts.append(w["text"])
-            spans.append((pos, pos + len(w["text"]), w))
-            pos += len(w["text"]) + 1  # the joining space
-        text = " ".join(parts)
+    spans, pos, parts = [], 0, []
+    for w in line:
+        parts.append(w["text"])
+        spans.append((pos, pos + len(w["text"]), w))
+        pos += len(w["text"]) + 1  # the joining space
+    text = " ".join(parts)
 
-        codes, centres = [], []
-        for m in ISSUE_RE.finditer(text):
-            start, end = m.span()
-            owners = [w for (ws, we, w) in spans if ws < end and we > start]
-            if not owners:
-                continue
-            codes.append(normalise_code(*m.groups()))
-            centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
+    codes, centres = [], []
+    for m in ISSUE_RE.finditer(text):
+        start, end = m.span()
+        owners = [w for (ws, we, w) in spans if ws < end and we > start]
+        if not owners:
+            continue
+        codes.append(normalise_code(*m.groups()))
+        centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
+    return codes, centres
+
+
+def code_density(line: list) -> float:
+    """Share of a line's characters that belong to an issue code.
+
+    The tie-break between candidate headers, and it exists because a SENTENCE
+    beat a table header. One file reads:
+
+        The auction statistics are summarised in the table below.
+        The auction for FXD 1/2019/15 was cancelled.
+
+    That prose names a code, so it scored as a header, its figures happened to
+    land in its one column, and it tied with the real "TENOR FXD1/2022/03" row.
+    The tie went to whichever came first, and the file's entire results were
+    published under FXD1/2019/15 — the leg the sentence says was CANCELLED.
+
+    Density separates them without any rule about wording: a header row is
+    almost entirely codes and a short label (0.67-0.79 across CBK's layouts),
+    a prose sentence is mostly words (0.13), and the document title sits
+    between (~0.55) because it carries "AND" and "DATED <date>".
+    """
+    text = " ".join(w["text"] for w in line)
+    if not text:
+        return 0.0
+    coded = sum(m.end() - m.start() for m in ISSUE_RE.finditer(text))
+    return coded / len(text)
+
+
+def header_candidates(lines: list, expected: list | None = None) -> list:
+    """Every line that could be the column header, most promising first.
+
+    There is usually more than one, and the obvious ranking picks the wrong
+    one. These PDFs open with a TITLE that names every bond in prose —
+    "FXD1/2022/03 & FXD1/2019/15 DATED 24/04/2023" — above a table whose header
+    row may name only the bonds actually auctioned, e.g. "TENOR FXD1/2022/03"
+    after the other leg was cancelled. Scoring by how many of the filename's
+    bonds a line mentions therefore prefers the title, and the title's word
+    positions are prose positions with no relationship to the table's columns.
+
+    The live probe caught exactly that: geometry taken from the title put both
+    bonds' figures into a single column, so the coupon cell read
+    "15.03916.844" — two numbers glued together — and was rejected. Every field
+    failed, and the file yielded nothing.
+
+    So this returns candidates rather than a winner, and the caller keeps
+    whichever one actually makes the table parse. Ties on score break toward
+    the wider spread, because a real header row is laid out across the page
+    while a prose title runs together.
+    """
+    scored = []
+    for line in lines:
+        codes, centres = codes_on_line(line)
         if not codes:
             continue
-        # Prefer the line that best matches the bonds the FILENAME names. Taking
-        # the first line with any code was how a forthcoming-issues heading got
-        # mistaken for the results header.
         score = len(set(codes) & set(expected or [])) if expected else 0
-        if score > best[2] or (best[2] < 0):
-            best = (codes, centres, score)
-        if expected and score == len(expected):
-            break
-    return best[0], best[1]
+        scored.append((score, code_density(line), codes, centres))
+    scored.sort(key=lambda t: (-t[0], -t[1]))
+    return [(codes, centres, density) for _score, density, codes, centres in scored]
+
+
+def find_header(lines: list, expected: list | None = None) -> tuple:
+    """The single best header line. See header_candidates for the ranking."""
+    candidates = header_candidates(lines, expected)
+    return (candidates[0][0], candidates[0][1]) if candidates else ([], [])
 
 
 def codes_in_name(url: str) -> list:
@@ -234,6 +348,92 @@ def auction_date_from_name(url: str):
     return best
 
 
+# How many candidate headers to try before giving up on a page. The real one
+# has never been far down the ranking; this only bounds a pathological page.
+MAX_HEADER_TRIES = 4
+
+
+def _field_count(records: dict) -> int:
+    """Numeric fields recovered under one candidate geometry."""
+    return sum(len(r) - 5 for r in records.values())  # minus the identity keys
+
+
+def _fit(records: dict, codes: list, density: float) -> tuple:
+    """How well a candidate header explains the page. Higher is better.
+
+    Ranked by how many BONDS were priced, then how many fields, then how much
+    of the line is issue code.
+
+    The ratio this used to lead with — bonds priced divided by bonds named —
+    was a trap, and a review caught it before it shipped. Dividing rewards
+    naming fewer bonds, so a prose line mentioning one code beat the real
+    header listing two whenever only one leg of an auction cleared:
+
+        real header  TENOR FXD1/2022/03 FXD1/2019/15   1 of 2 = 0.50
+        prose        "...FXD 1/2019/15 was cancelled"  1 of 1 = 1.00
+
+    The prose won and the coupon landed on the CANCELLED bond — precisely the
+    failure the ratio had been introduced to prevent, reintroduced in the
+    variant where CBK keeps both legs in the header. The first fix and its test
+    only covered the variant where the cancelled leg is omitted.
+
+    Counting bonds priced makes those two tie at 1, and density then decides:
+    a header row is almost entirely codes (0.67-0.79), a prose sentence is
+    mostly words (0.13). Both known cases resolve to the real header, and
+    nothing is rewarded for naming less.
+    """
+    return (len(records), _field_count(records), density)
+
+
+def read_fields(lines: list, codes: list, centres: list,
+                auction_date, source_url: str) -> dict:
+    """Read every known field for one candidate column geometry."""
+    # Values sit to the right of the row labels; anchor on the leftmost column
+    # centre so label words are never mistaken for data.
+    label_x = min(centres) - 40
+    records: dict = {}
+    for key, pattern in FIELDS:
+        for line in lines:
+            text = " ".join(w["text"] for w in line)
+            if not pattern.search(text):
+                continue
+            for idx, raw in assign_to_columns(line, centres, label_x).items():
+                if idx >= len(codes) or not NUMERIC_RE.match(raw):
+                    continue
+                value = float(raw)
+                lo_hi = BANDS.get(key)
+                if lo_hi and not (lo_hi[0] <= value <= lo_hi[1]):
+                    print(f"[auctions] {codes[idx]} {key}={value} outside "
+                          f"{lo_hi} — dropping", file=sys.stderr)
+                    continue
+                rec = records.setdefault(codes[idx], {
+                    "id": f"res-{codes[idx].replace('/', '-').lower()}-{auction_date}",
+                    "issueCode": codes[idx],
+                    "auctionDate": auction_date,
+                    "sourceUrl": source_url,
+                    "parserVersion": PARSER_VERSION,
+                })
+                rec.setdefault(key, value)
+            break
+    return records
+
+
+def merge_page(records: dict, page: dict) -> dict:
+    """Fold one page's records into the document's, first reading winning.
+
+    The results table sits on the earliest page that has one; later pages repeat
+    the issue in summaries, cash-flow schedules and footers, where a stray
+    number can land in the same column. Merging with `.update()` gave those the
+    LAST word — the weakest reading of a bond silently overwriting the table it
+    was summarising. A later page may only fill a field that is still missing.
+    """
+    for code, rec in page.items():
+        held = records.setdefault(code, {})
+        for field, value in rec.items():
+            held.setdefault(field, value)
+    return records
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
@@ -250,35 +450,19 @@ def parse_pdf(content: bytes, source_url: str) -> list:
         if not words:
             continue
         lines = results_section(group_lines(words))
-        codes, centres = find_header(lines, expected)
-        if not codes:
-            continue
-        # Values sit to the right of the row labels; anchor on the leftmost
-        # column centre so label words are never mistaken for data.
-        label_x = min(centres) - 40
-
-        for key, pattern in FIELDS:
-            for line in lines:
-                text = " ".join(w["text"] for w in line)
-                if not pattern.search(text):
-                    continue
-                for idx, raw in assign_to_columns(line, centres, label_x).items():
-                    if idx >= len(codes) or not NUMERIC_RE.match(raw):
-                        continue
-                    value = float(raw)
-                    lo_hi = BANDS.get(key)
-                    if lo_hi and not (lo_hi[0] <= value <= lo_hi[1]):
-                        print(f"[auctions] {codes[idx]} {key}={value} outside "
-                              f"{lo_hi} — dropping", file=sys.stderr)
-                        continue
-                    rec = records.setdefault(codes[idx], {
-                        "id": f"res-{codes[idx].replace('/', '-').lower()}-{auction_date}",
-                        "issueCode": codes[idx],
-                        "auctionDate": auction_date,
-                        "sourceUrl": source_url,
-                    })
-                    rec.setdefault(key, value)
-                break
+        # Try each plausible header and keep whichever actually makes the table
+        # parse. Picking one up front and trusting it is how geometry from the
+        # prose title got used for a table, collapsing both bonds into one
+        # column. Counting the fields recovered is a direct measure of whether
+        # a header explains the page, so it needs no heuristic about titles.
+        best_page: dict = {}
+        best_fit = (0, 0, -1.0)
+        for codes, centres, density in header_candidates(lines, expected)[:MAX_HEADER_TRIES]:
+            attempt = read_fields(lines, codes, centres, auction_date, source_url)
+            fit = _fit(attempt, codes, density)
+            if fit > best_fit:
+                best_page, best_fit = attempt, fit
+        merge_page(records, best_page)
 
     # CBK names the issues in the filename, so we can check our own work. If
     # the header yielded fewer, we have silently dropped a bond — say so
@@ -314,8 +498,14 @@ def load_existing() -> tuple:
         print(f"[auctions] existing file unreadable ({exc.__class__.__name__}) — "
               f"starting fresh", file=sys.stderr)
         return [], set()
-    records = repair_codes(repair_dates(records))
-    return records, {r.get("sourceUrl") for r in records if r.get("sourceUrl")}
+    fresh = [r for r in records if r.get("parserVersion") == PARSER_VERSION]
+    stale = len(records) - len(fresh)
+    if stale:
+        print(f"[auctions] {stale} record(s) came from an older parser "
+              f"(< v{PARSER_VERSION}) — discarding so their PDFs are read again",
+              file=sys.stderr)
+    fresh = repair_codes(repair_dates(fresh))
+    return fresh, {r.get("sourceUrl") for r in fresh if r.get("sourceUrl")}
 
 
 def repair_dates(records: list) -> list:

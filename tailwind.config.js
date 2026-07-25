@@ -15,8 +15,14 @@ module.exports = {
         ink: {
           DEFAULT: '#0A192F', // treasury navy as text
           soft: '#31445F',
-          muted: '#64748B',   // brand Slate Gray — 4.60:1 on sand-50, passes AA
-          faint: '#726D5C',   // warm earthy muted — AA on sand-50 at small sizes
+          // Contrast is measured against the DARKEST surface each token lands
+          // on, not the lightest. The previous values were checked only against
+          // sand-50 (cards) and annotated "passes AA" — but most muted text sits
+          // on sand-100 (the page) and some on sand-200, where #64748B fell to
+          // 4.26 and 3.87. Verified at the token level, failing where rendered.
+          //                      sand-50 / sand-100 / sand-200
+          muted: '#5C687A',   //    5.46 /   5.06   /   4.59
+          faint: '#6A6555',   //    5.63 /   5.22   /   4.73
         },
         // Brand palette: Treasury Navy, Sun Gold, Emerald Mint, Slate Gray
         treasury: { navy: '#0A192F', dark: '#020C1B' },

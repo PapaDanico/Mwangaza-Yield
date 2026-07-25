@@ -13,6 +13,7 @@ import os
 import sys
 
 from auction_results import (
+    NUMERIC_RE, header_candidates, _field_count, merge_page,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section,
 )
@@ -88,6 +89,108 @@ def main():
     check("column reading finds the two real ones",
           sorted(assign_to_columns(COUPON, centres, label_x).values()), ["11.277", "12.873"])
 
+    print("a long row label must not contaminate the value it precedes")
+    # Reproduces the live failure exactly. A probe of CBK's own files showed
+    # narrow tables — column centres at 104 and 199 — where label_x lands at 64
+    # and the tail of a long label sits to the RIGHT of it. cell_value joins
+    # without a separator, so "(%)" was glued onto "13.9128" and the cell read
+    # "(%)13.9128", failed NUMERIC_RE, and was dropped. Every field went that
+    # way, so the file yielded nothing despite a header that parsed perfectly.
+    narrow_header = [w("TENOR", 30, 100), w("FXD1/2022/015", 78, 100),
+                     w("FXD1/2022/025", 173, 100)]
+    codes, narrow_centres = find_header(group_lines(narrow_header),
+                                        ["FXD1/2022/015", "FXD1/2022/025"])
+    check("the narrow header still parses", codes, ["FXD1/2022/015", "FXD1/2022/025"])
+    narrow_label_x = min(narrow_centres) - 40
+
+    # "Bids" and "(%)" sit right of the boundary — that is the whole hazard.
+    long_row = [w("Weighted", 20, 120), w("Average", 62, 120), w("Rate", 90, 120),
+                w("of", 108, 120), w("Accepted", 116, 120), w("Bids", 152, 120),
+                w("(%)", 168, 120),
+                w("13.9128", 105, 120), w("14.5384", 200, 120)]
+    contaminating = [x["text"] for x in long_row
+                     if not x["text"].replace(".", "").isdigit()
+                     and (x["x0"] + x["x1"]) / 2 >= narrow_label_x]
+    check("the fixture really does put label words past the boundary",
+          len(contaminating) > 0, True)
+
+    cells = assign_to_columns(long_row, narrow_centres, narrow_label_x)
+    check("the first value is clean", cells.get(0), "13.9128")
+    check("the second value is clean", cells.get(1), "14.5384")
+    check("both cells survive the numeric test",
+          all(NUMERIC_RE.match(v) for v in cells.values()), True)
+
+    print("a prose title must not be mistaken for the table header")
+    # The dominant live failure. These PDFs open with a title naming every bond
+    # — "FXD1/2022/03 & FXD1/2019/15 DATED 24/04/2023" — above a table whose
+    # header row may name only the bonds actually auctioned, because the other
+    # leg was cancelled. Scoring by how many filename bonds a line mentions
+    # picks the TITLE, and its prose word positions have nothing to do with the
+    # table's columns: the probe showed both bonds' figures landing in one
+    # column, so the coupon cell read "15.03916.844" and every field was lost.
+    titled = group_lines([
+        # line 0: the prose title, naming BOTH bonds, packed close together
+        w("FXD1/2022/03", 60, 100), w("&", 135, 100), w("FXD1/2019/15", 150, 100),
+        w("DATED", 230, 100), w("24/04/2023", 275, 100),
+        # line 1: the real table header, naming only the bond that was sold
+        w("TENOR", 40, 140), w("FXD1/2022/03", 300, 140),
+        # line 2: the data, aligned to the TABLE, not to the title
+        w("Coupon", 40, 160), w("Rate", 80, 160), w("(%)", 110, 160),
+        w("1", 300, 160), w("1.766", 310, 160),
+    ])
+    ranked = header_candidates(titled, ["FXD1/2022/003", "FXD1/2019/015"])
+    check("the title outranks the header on bond count alone",
+          ranked[0][0], ["FXD1/2022/003", "FXD1/2019/015"])
+    check("but the real header is also a candidate",
+          ["FXD1/2022/003"] in [c for c, _, _ in ranked], True)
+
+    from auction_results import read_fields, _fit
+    title_codes, title_centres, title_density = ranked[0]
+    via_title = read_fields(titled, title_codes, title_centres, "2023-04-24", "u")
+    hdr = [(c, ce, d) for c, ce, d in ranked if c == ["FXD1/2022/003"]][0]
+    via_header = read_fields(titled, hdr[0], hdr[1], "2023-04-24", "u")
+
+    # The danger is not that the title reads nothing — it reads the SAME number
+    # of fields — but that it hangs the coupon on the cancelled bond.
+    check("the title misattributes the coupon to the cancelled leg",
+          "FXD1/2019/015" in via_title, True)
+    check("a field count alone cannot tell them apart",
+          _field_count(via_title) == _field_count(via_header), True)
+
+    # Column coverage can: 1 of 2 columns filled versus 1 of 1.
+    check("coverage ranks the real header above the title",
+          _fit(via_header, hdr[0], hdr[2]) > _fit(via_title, title_codes, title_density), True)
+    check("and it reads the split coupon onto the right bond",
+          via_header["FXD1/2022/003"]["couponRate"], 11.766)
+
+    print("a sentence must not be mistaken for a table header")
+    # A real file reads "The auction for FXD 1/2019/15 was cancelled." That
+    # prose names a code, so it scored as a header, its figures landed in its
+    # single column, and it TIED with the real "TENOR FXD1/2022/03" row. The
+    # tie went to whichever came first and the whole file was published under
+    # the leg the sentence says was cancelled.
+    cancelled = group_lines([
+        w("The", 40, 100), w("auction", 62, 100), w("statistics", 110, 100),
+        w("are", 175, 100), w("summarised", 200, 100), w("below.", 270, 100),
+        w("The", 320, 100), w("auction", 345, 100), w("for", 395, 100),
+        w("FXD", 415, 100), w("1/2019/15", 440, 100), w("was", 500, 100),
+        w("cancelled.", 525, 100),
+        w("TENOR", 40, 130), w("FXD1/2022/03", 170, 130),
+        w("Coupon", 40, 150), w("Rate", 80, 150), w("(%)", 110, 150),
+        w("1", 172, 150), w("1.766", 182, 150),
+    ])
+    ranked = header_candidates(cancelled, ["FXD1/2022/003", "FXD1/2019/015"])
+    check("the real header now outranks the sentence",
+          ranked[0][0], ["FXD1/2022/003"])
+    check("the sentence is still a candidate, just a worse one",
+          ["FXD1/2019/015"] in [c for c, _, _ in ranked], True)
+
+    from auction_results import read_fields as _rf
+    won = _rf(cancelled, ranked[0][0], ranked[0][1], "2023-04-24", "u")
+    check("so the coupon lands on the bond that was actually sold",
+          list(won), ["FXD1/2022/003"])
+    check("and never on the cancelled leg", "FXD1/2019/015" in won, False)
+
     print("split issue codes — the bug the first dry-run caught")
     # CBK splits codes across word boundaries. Matching word by word found one
     # issue in PDFs whose filename named two, and silently dropped the other.
@@ -148,11 +251,14 @@ def main():
         recs, seen = mod.load_existing()
         check("an absent file starts empty", (recs, seen), ([], set()))
 
+        from auction_results import PARSER_VERSION as _PV
         (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
             {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
-             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf"},
+             "couponRate": 11.277, "sourceUrl": "https://cbk/a.pdf",
+             "parserVersion": _PV},
             {"issueCode": "FXD1/2019/020", "auctionDate": "2021-11-15",
-             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf"},
+             "couponRate": 12.873, "sourceUrl": "https://cbk/a.pdf",
+             "parserVersion": _PV},
         ]))
         recs, seen = mod.load_existing()
         check("existing records are recovered", len(recs), 2)
@@ -272,6 +378,55 @@ def main():
           repaired[1]["issueCode"], "FXD1/2021/005")
     check("an unexplained mismatch is left alone rather than guessed at",
           repaired[2]["issueCode"], "FXD9/1999/001")
+
+    print("the rate band must reject truncated digits")
+    from auction_results import BANDS, RATE_FLOOR
+    # Every value below 6 in the live archive is an artefact of CBK's
+    # split-digit rendering — 1.0, 1.619, 1.855, 2.0, 2.5 and a 5.0 that was
+    # the bond's TENOR read as its coupon. The lowest genuine figure anywhere
+    # in the archive, back to 2014, is a 7.78% clearing rate.
+    lo, hi = BANDS["couponRate"]
+    for artefact in (1.0, 1.619, 1.855, 2.0, 2.5, 5.0):
+        check(f"{artefact} is rejected as a truncation", lo <= artefact <= hi, False)
+    for genuine in (7.78, 11.0, 12.873, 18.4607):
+        check(f"{genuine} is accepted", lo <= genuine <= hi, True)
+    check("the floor sits below the lowest genuine figure", RATE_FLOOR < 7.78, True)
+
+    print("a parser change must invalidate what the old parser wrote")
+    from auction_results import PARSER_VERSION
+    with tempfile.TemporaryDirectory() as tmp:
+        mod.DATA_DIR = _Path(tmp)
+        (_Path(tmp) / "auction-results.json").write_text(_json.dumps([
+            {"issueCode": "FXD1/2021/005", "auctionDate": "2021-11-15",
+             "couponRate": 11.277, "sourceUrl": "https://cbk/new.pdf",
+             "parserVersion": PARSER_VERSION},
+            # Written before the column-geometry fix: its coupon may be hung on
+            # the wrong bond, and no later correctness revisits it.
+            {"issueCode": "FXD1/2019/015", "auctionDate": "2023-04-24",
+             "couponRate": 11.766, "sourceUrl": "https://cbk/old.pdf"},
+        ]))
+        recs, seen = mod.load_existing()
+        check("records from the current parser are kept", len(recs), 1)
+        check("records from an older parser are discarded", 
+              [r["issueCode"] for r in recs], ["FXD1/2021/005"])
+        check("and their PDF is no longer marked as read",
+              seen, {"https://cbk/new.pdf"})
+    mod.DATA_DIR = original
+
+    print("a later page fills gaps but never overwrites the results table")
+    doc = {}
+    merge_page(doc, {"FXD1/2021/005": {"couponRate": 11.277, "weightedAverageRate": 13.4}})
+    # A later page — a repayment schedule, say — mentions the same issue and a
+    # stray figure lands in the coupon column. It must not win.
+    merge_page(doc, {"FXD1/2021/005": {"couponRate": 1.277, "tenorYears": 5}})
+    check("the first page keeps the coupon", doc["FXD1/2021/005"]["couponRate"], 11.277)
+    check("the first page keeps the clearing rate",
+          doc["FXD1/2021/005"]["weightedAverageRate"], 13.4)
+    check("a field only the later page had is still added",
+          doc["FXD1/2021/005"]["tenorYears"], 5)
+    merge_page(doc, {"IFB1/2022/019": {"couponRate": 12.9}})
+    check("a bond first seen on a later page is added",
+          doc["IFB1/2022/019"]["couponRate"], 12.9)
 
     print("wall-clock budget")
     # The budget's whole justification is that stopping early costs a day, not

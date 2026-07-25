@@ -223,9 +223,27 @@ is running. The page says exactly that and points at the existing iCal export fo
 that genuinely cannot be missed. Anything stronger would be the one screen in the app
 claiming more than it can do.
 
-**VAPID keys — generated and installed 2026-07-25.** A P-256 pair (65-byte uncompressed
-point, 32-byte private scalar). Four environment variables were set on the Netlify
-project `mwangazayield`:
+**VAPID keys — generated 2026-07-25. NOT INSTALLED. Push is dormant.**
+
+The heading here used to say "generated and installed", and it was wrong. The Netlify
+environment for `mwangazayield` holds four variables, all created by the Baseline and
+Simple Analytics extensions, and none of the four below. Confirmed by screenshot of
+Project configuration → Environment variables, filtered to any scope and any context.
+
+That has a consequence worth stating plainly: **web push has never been switched on.**
+Both halves fail safe, which is why nothing looked wrong — `pushConfigured()` sees no key
+and the subscribe control never renders, and `send-alerts` logs "VAPID keys absent —
+refusing to run rather than appear to work" and returns 500. No reader was offered a
+button that could not work. But no reader was offered one at all.
+
+**Do not try to set these with the Netlify MCP write path.** It has now been attempted
+twice on the same day, and both times it returned "Environment variable upserted" for
+every variable and persisted none of them. The second attempt read the environment back
+moments later: it listed only the four extension-created variables, one of them
+timestamped minutes earlier, which proves the reader was live rather than cached. It is
+a silent no-op. These must be entered in the Netlify UI by hand, or with the Netlify CLI.
+
+The four variables to create:
 
 | Variable | Scope | Secret | Purpose |
 |---|---|---|---|
@@ -237,14 +255,29 @@ project `mwangazayield`:
 The subject is the published support address, not a personal one — it travels to Google
 and Mozilla inside every JWT, so it should be the address the project already publishes.
 
-The private key exists **only** in Netlify's environment. It is not in this repository,
-in any commit message, or in any build artefact, and it must not be. Losing it is
-survivable but not free: every existing subscription becomes undeliverable and each
-reader has to opt in again.
+The private key must never be in this repository, in a commit message, or in a build
+artefact. That rule holds and has held — nothing below is a key.
 
-Read them back from Project configuration → Environment variables. The MCP write path
-reported success for all four but its read-back returned an empty list, so the values
-above are *asserted, not verified* — confirm in the UI before writing the sender.
+It is worth being exact about where the current pair does live, because "only in
+Netlify's environment" was the intended arrangement and is not the actual one. The pair
+generated on 2026-07-25 was produced in an assistant session and passed through that
+session's transcript on its way to being handed over for manual entry. Until it is
+installed and that transcript is treated as spent, it is a candidate key rather than a
+deployed one. If that is not acceptable, generate a fresh pair locally with the Netlify
+CLI and never let the private half leave the machine — the cost of doing so is nil today,
+because nobody has subscribed yet.
+
+Losing or rotating the key is survivable but not free once anyone has: every existing
+subscription becomes undeliverable and each reader has to opt in again.
+
+After entering them, trigger a production deploy: `NEXT_PUBLIC_VAPID_PUBLIC_KEY` is read
+at BUILD time, so an existing deploy will not pick it up. Then confirm two things rather
+than one — that the subscribe control now renders on `/alerts/`, and that a manual
+invocation of `send-alerts` no longer returns 500. The first proves the build got the
+public key; the second proves the functions got the pair.
+
+The first real subscription is still the test that matters, and it cannot be faked: no
+push service has ever seen a JWT signed by this project.
 
 **Sender shipped 2026-07-25.** Two Netlify functions, and they are the only server code
 this project has ever had:

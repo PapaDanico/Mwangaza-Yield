@@ -2,6 +2,15 @@
   command = "npm run build"
   publish = "out"
 
+# The site is a static export; these two are the only server code that exists.
+# `subscribe` accepts a push endpoint and the market-wide rules chosen for it;
+# `send-alerts` runs on a schedule and pushes what is due. Neither ever receives
+# a holding — see src/lib/push-rules.ts for why that boundary is drawn where it
+# is, and enforced by a whitelist rather than by good intentions.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]

@@ -2,13 +2,22 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Bell, BellOff, CalendarClock, Check, Info } from 'lucide-react';
+import { Bell, BellOff, BellRing, CalendarClock, Check, Info } from 'lucide-react';
 import { useAlertStore } from '@/stores/alertStore';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import { RULE_LABELS, type AlertRule } from '@/lib/alerts';
 import { notifyState, requestNotifyPermission, type NotifyState } from '@/lib/notify';
-import { nonNegativeNumber } from '@/lib/utils';
+import {
+  pushConfigured,
+  pushState,
+  subscribePush,
+  syncPushRules,
+  unsubscribePush,
+  type PushState,
+} from '@/lib/push';
+import { SERVER_DELIVERABLE } from '@/lib/push-rules';
+import { cn, nonNegativeNumber } from '@/lib/utils';
 
 const LEAD_CHOICES: Record<string, number[]> = {
   'auction-window': [1, 3, 5, 7],
@@ -30,11 +39,20 @@ export default function AlertsPage() {
   const dataLoaded = useBondStore((s) => s.loaded);
   const holdings = usePortfolioStore((s) => s.holdings);
   const [permission, setPermission] = useState<NotifyState>('unsupported');
+  const [push, setPush] = useState<PushState>('unconfigured');
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState('');
 
   useEffect(() => {
     load();
     setPermission(notifyState());
+    pushState().then(setPush);
   }, [load]);
+
+  // Keep the sender's copy of the market rules in step. No-op unless subscribed.
+  useEffect(() => {
+    if (loaded && push === 'on') syncPushRules(rules);
+  }, [rules, loaded, push]);
 
   // Re-evaluate whenever the rules or the underlying data change. Cheap — it is
   // arithmetic over a few hundred rows — and it keeps the list honest while the
@@ -55,6 +73,22 @@ export default function AlertsPage() {
     setPermission(await requestNotifyPermission());
   }
 
+  async function togglePush(on: boolean) {
+    setPushBusy(true);
+    setPushError('');
+    const result = on ? await subscribePush(rules) : await unsubscribePush();
+    if (result === 'denied') {
+      setPushError('Your browser blocked notifications for this site. Allow them in site settings.');
+    } else if (result === 'failed') {
+      setPushError('Could not reach the alert service. Nothing was changed — try again shortly.');
+    }
+    setPush(result === 'on' || result === 'off' ? result : await pushState());
+    setPermission(notifyState());
+    setPushBusy(false);
+  }
+
+  const marketRulesOn = rules.filter((r) => r.enabled && SERVER_DELIVERABLE.includes(r.kind as never));
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-24">
       <h1 className="font-display text-3xl font-bold text-ink">Alerts</h1>
@@ -63,30 +97,75 @@ export default function AlertsPage() {
         coming back. Everything is worked out on your own device from the published calendar.
       </p>
 
-      {/* The promise, stated exactly. An alerts page that implies background
-          delivery it cannot perform would be the one dishonest screen in the app. */}
+      {/* The promise, stated exactly. An alerts page that implies more reach
+          than it has would be the one dishonest screen in the app. */}
       <div className="card mt-6 border-gold-300 bg-gold-50/40">
         <div className="flex gap-3">
           <Info size={18} className="mt-0.5 shrink-0 text-gold-700" />
           <div className="text-sm text-ink-soft">
-            <p className="font-semibold text-ink">How far these reach</p>
+            <p className="font-semibold text-ink">How far these reach, and what we can see</p>
             <p className="mt-1">
-              There is no server behind this app, so nothing can wake your phone while it is closed.
-              These alerts are raised <strong>when you open Mwangaza Yield</strong> — and, if you
-              allow notifications, as a banner while it is running. For a date you cannot afford to
-              miss, add it to your phone&apos;s calendar from the{' '}
-              <Link href="/auctions/" className="text-gold-700 underline">
-                auctions
-              </Link>{' '}
-              or{' '}
+              <strong>Market alerts</strong> — bid windows and T-Bill rates — are true for everyone,
+              so we can send those to your phone even when the app is closed, if you switch them on
+              below.
+            </p>
+            <p className="mt-2">
+              <strong>Your coupons and maturities never leave this device.</strong> Working them out
+              needs your holdings, and we will not hold those. They are raised when you open
+              Mwangaza Yield. For a payment date you cannot afford to miss, add it to your
+              phone&apos;s calendar from the{' '}
               <Link href="/portfolio/" className="text-gold-700 underline">
                 portfolio
               </Link>{' '}
-              page — that reminder does not depend on us.
+              page — that reminder depends on nobody.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Push, when a sender is configured for this build. Where it applies it
+          supersedes the plain permission card below, because subscribing asks
+          for permission anyway and two consent buttons is one too many. */}
+      {pushConfigured() && push !== 'unsupported' && push !== 'unconfigured' && (
+        <div className="card mt-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {push === 'on' ? (
+              <BellRing size={18} className="shrink-0 text-emerald-700" />
+            ) : (
+              <Bell size={18} className="shrink-0 text-gold-700" />
+            )}
+            <span className="min-w-0 text-sm text-ink-soft">
+              {push === 'on' ? (
+                <>
+                  Market alerts are on for this device. We hold a delivery address and the market
+                  rules you ticked — no name, no e-mail, nothing about your holdings.
+                </>
+              ) : (
+                <>Send me market alerts even when the app is closed.</>
+              )}
+            </span>
+            <button
+              onClick={() => togglePush(push !== 'on')}
+              disabled={pushBusy || (push !== 'on' && !marketRulesOn.length)}
+              className={cn(
+                'ml-auto rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50',
+                push === 'on'
+                  ? 'border border-sand-300 text-ink-soft hover:bg-sand-200'
+                  : 'bg-ink text-sand-50 hover:bg-ink-soft'
+              )}
+            >
+              {pushBusy ? 'Working…' : push === 'on' ? 'Turn off' : 'Turn on'}
+            </button>
+          </div>
+          {push !== 'on' && !marketRulesOn.length && (
+            <p className="mt-2 text-xs text-ink-muted">
+              Tick a market rule below first — auction windows or a T-Bill threshold. Coupons and
+              maturities cannot be sent, because we do not hold your holdings.
+            </p>
+          )}
+          {pushError && <p className="mt-2 text-xs text-red-700">{pushError}</p>}
+        </div>
+      )}
 
       {/* Permission */}
       <div className="card mt-4 flex flex-wrap items-center gap-3">

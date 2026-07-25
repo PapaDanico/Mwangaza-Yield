@@ -3,6 +3,7 @@ import archive from '../../public/data/auction-results.json';
 import {
   PLAUSIBLE_COVER,
   availableMonths,
+  auctionKind,
   buildMonthlyReview,
   evidenceLine,
   monthLabel,
@@ -291,5 +292,83 @@ describe('against the real archive', () => {
       expect(r.measured).toBeLessThanOrEqual(r.auctionCount);
       expect(r.rejected).toBeGreaterThanOrEqual(0);
     }
+  });
+});
+
+describe('auctionKind — what kind of sale this was', () => {
+  it('reads a switch from the name CBK gave the file', () => {
+    expect(auctionKind('/uploads/x/376777690_SWITCH RESULTS FXD1-2018-015 DATED 15-04-2026.pdf'))
+      .toBe('switch');
+  });
+
+  it('reads a tap sale', () => {
+    expect(auctionKind('/uploads/x/838376338_TAP SALE RESULTS IFB1-2022-14 DATED 28-11-2022.pdf'))
+      .toBe('tap');
+  });
+
+  it('treats an ordinary results file as a primary auction', () => {
+    expect(auctionKind('/uploads/x/RESULTS FXD3-2019-015 AND FXD1-2018-025 DATED 16-02-2026.pdf'))
+      .toBe('primary');
+  });
+
+  it('decodes a percent-encoded name before reading it', () => {
+    expect(auctionKind('/uploads/x/results%20switch%20ifb1-2020-6%20dated%2001.06.2020.pdf'))
+      .toBe('switch');
+  });
+
+  it('does not mistake a word merely containing "tap" for a tap sale', () => {
+    // "ADAPTATION", "TAPERED" — the word boundary is what keeps this from
+    // silently excluding real auctions from the only statistic that counts them.
+    expect(auctionKind('/uploads/x/RESULTS GREEN ADAPTATION BOND DATED 01-01-2026.pdf'))
+      .toBe('primary');
+  });
+
+  it('survives a malformed escape rather than throwing', () => {
+    // decodeURIComponent throws on a lone %. A results file with one must still
+    // be classified, not take the whole review down.
+    expect(auctionKind('/uploads/x/RESULTS 100% SWITCH DATED 01-01-2026.pdf')).toBe('switch');
+  });
+
+  it('defaults to primary when there is no source at all', () => {
+    expect(auctionKind(undefined)).toBe('primary');
+  });
+});
+
+describe('a switch auction produces no cover ratio', () => {
+  // A switch is a debt exchange: holders swap a maturing bond for a longer one
+  // and no cash is raised, so "bids" are paper offered for exchange. Dividing
+  // them by the target measures participation in a restructuring, not appetite
+  // for Kenyan debt. The archive's switch auctions sit at 0.82x and 0.13x, and
+  // pooling those with primary auctions is how a review reports failed auctions
+  // where nothing failed.
+  const swap: AuctionPrint[] = [
+    {
+      id: 'a', issueCode: 'FXD1/2018/015', auctionDate: '2026-04-15',
+      amountOfferedKESM: 20000, amountAcceptedKESM: 1753.13, bidsReceivedKESM: 2559.51,
+      sourceUrl: '/uploads/x/SWITCH RESULTS FXD1-2018-015 DATED 15-04-2026.pdf',
+    } as unknown as AuctionPrint,
+  ];
+
+  it('reports the figures but computes no ratio from them', () => {
+    const row = buildMonthlyReview(swap, '2026-04').rows[0];
+    expect(row.kind).toBe('switch');
+    expect(row.bidsKESM).toBe(2559.51);      // the figure is real and is shown
+    expect(row.bidToCover).toBeUndefined();  // the ratio is not a demand signal
+  });
+
+  it('and is not counted as a rejected measurement either', () => {
+    // Rejection means "we had the numbers and they were impossible". This is
+    // "the numbers are fine and the question does not apply" — recording it as
+    // a rejection would overstate how much of the archive is broken.
+    expect(buildMonthlyReview(swap, '2026-04').rows[0].coverRejected).toBe(false);
+    expect(buildMonthlyReview(swap, '2026-04').measured).toBe(0);
+    expect(buildMonthlyReview(swap, '2026-04').rejected).toBe(0);
+  });
+
+  it('leaves an otherwise identical primary auction measurable', () => {
+    const primary = [{ ...swap[0], sourceUrl: '/uploads/x/RESULTS FXD1-2018-015 DATED 15-04-2026.pdf' }] as AuctionPrint[];
+    const row = buildMonthlyReview(primary, '2026-04').rows[0];
+    expect(row.kind).toBe('primary');
+    expect(row.bidToCover).toBeCloseTo(0.128, 3);
   });
 });

@@ -23,18 +23,40 @@
  * understates cover by roughly the number of bonds on offer — which is exactly
  * how every month came out below 1.0x.
  *
- * `bidsComplete` below now refuses the ratio unless every row in the auction
- * carries its bids figure, which lifts the archive-wide median to 1.04x with a
- * maximum of 4.12x — consistent with the published record. It is still not
- * enough. Nothing in the archive says whether an auction was captured in FULL,
- * so a genuinely single-bond auction is indistinguishable from a three-bond
- * auction whose other two rows were never parsed. Uptake has the same flaw for
- * the same reason.
+ * `bidsComplete` below refuses the ratio unless every row in the auction
+ * carries its bids figure. That was necessary and it was not sufficient:
+ * nothing in the archive said whether an auction had been captured in FULL, so
+ * a genuinely single-bond auction was indistinguishable from a three-bond
+ * auction whose other two rows were never parsed.
  *
- * So the page this fed was withdrawn before release. It stays here, tested,
- * until the parser captures every bond of an auction or records that it could
- * not. The lesson is the cheap one to write down and the expensive one to
- * learn: a number that disagrees with everyone who follows the market is not a
+ * WHERE THAT STANDS NOW
+ * ---------------------
+ * The parser reads every bond of a multi-bond auction. The cause of the
+ * shortfall was an unlabelled auction-TOTAL column that the header never names;
+ * it collided with the last bond's cell and destroyed it, so the second leg of
+ * every multi-bond auction came back empty. February 2026 now reads 133,792.51
+ * and 79,943.37 against a shared 50,000 — 4.27x, matching the 427% CBK
+ * published — and April 2026 sums to 74,891.22 against the 74.89bn reported.
+ *
+ * A SECOND trap surfaced while checking that, and it is why this is still not
+ * published. Not every row in the archive is an auction in the sense a cover
+ * ratio assumes. Switch auctions are debt EXCHANGES that raise no cash, and
+ * they sit in the archive at 0.82x and 0.13x — figures that read as failed
+ * auctions when nothing failed. Tap sales are fixed-price top-ups where
+ * under-filling is routine. `auctionKind` separates them, and only primary
+ * auctions now produce a ratio.
+ *
+ * On primary auctions alone, restricted to rows the current parser has
+ * re-read, the archive says: 2021 1.58x, 2022 0.89x, 2023 1.00x, 2024 1.39x,
+ * 2025 1.88x, 2026 1.87x. Kenyan auctions ARE persistently oversubscribed now —
+ * 2024 to 2026 runs 35 of 41 above 1x — and were genuinely weak through the
+ * 2022-23 fiscal squeeze. Both halves of that are worth publishing and neither
+ * was visible before.
+ *
+ * It stays unpublished until the archive is fully re-read at the current parser
+ * version, because a median taken mid-rebuild mixes two parsers' output. The
+ * lesson is the cheap one to write down and the expensive one to learn: a
+ * number that disagrees with everyone who follows the market is not a
  * discovery, it is a bug, and the first move is to check it against them.
  *
  * This is computation, not commentary. Every figure is derived from CBK's own
@@ -87,6 +109,8 @@ export interface AuctionRow {
   uptakePct?: number;
   /** True when both figures were present but their ratio was impossible. */
   coverRejected: boolean;
+  /** Primary auction, tap sale, or switch. Only primary carries a cover ratio. */
+  kind: AuctionKind;
   sourceUrl?: string;
 }
 
@@ -119,6 +143,53 @@ export function monthLabel(month: string): string {
 
 const num = (v: unknown): number | undefined =>
   typeof v === 'number' && Number.isFinite(v) && v !== 0 ? v : undefined;
+
+export type AuctionKind = 'primary' | 'tap' | 'switch';
+
+/**
+ * What kind of sale this was, read from the name CBK gave the results file.
+ *
+ * Not decoration — a cover ratio means a different thing in each, and pooling
+ * them produces a number that describes nothing.
+ *
+ * A SWITCH is a debt exchange: holders of a maturing bond swap into a longer
+ * one, and no cash is raised. "Bids" are the paper offered for exchange, so
+ * dividing them by the target measures participation in a restructuring, not
+ * appetite for Kenyan government debt. The archive's switch auctions run around
+ * 0.8x and one reads 0.13x — figures that would appear in a review as failed
+ * auctions when nothing failed at all.
+ *
+ * A TAP SALE is a follow-on offer of a bond already sold at auction, opened at
+ * a fixed price and closed when it fills. Under-filling is routine and is not a
+ * verdict on demand.
+ *
+ * Only PRIMARY auctions and re-openings put a new target to the market and get
+ * an answer, and only their cover ratios belong in the same statistic.
+ *
+ * Read from the filename because that is where CBK states it — "SWITCH RESULTS
+ * FXD1-2018-015 DATED 15-04-2026", "TAP SALE RESULTS IFB1-2022-14". The
+ * document body says the same thing in prose that varies far more.
+ */
+export function auctionKind(sourceUrl?: string): AuctionKind {
+  if (!sourceUrl) return 'primary';
+  let name = sourceUrl;
+  try {
+    name = decodeURIComponent(sourceUrl);
+  } catch {
+    /* a malformed escape is not a reason to misclassify — use the raw name */
+  }
+  const upper = name.toUpperCase();
+  if (upper.includes('SWITCH')) return 'switch';
+  // Letter boundaries, not \b. CBK prefixes these files with a numeric id and
+  // an underscore — "838376338_TAP SALE RESULTS" — and `_` is a WORD character,
+  // so \b never fires beside it and the tap went unrecognised. This is the
+  // second time that exact trap has bitten this codebase; the date pattern in
+  // the parser carries the same scar. A bare `includes` is not the answer
+  // either: it would classify a green ADAPTATION bond as a tap sale and quietly
+  // drop a real auction out of the only statistic that counts them.
+  if (/(?<![A-Z])TAP(?![A-Z])/.test(upper)) return 'tap';
+  return 'primary';
+}
 
 function plausible(cover: number): boolean {
   return cover >= PLAUSIBLE_COVER[0] && cover <= PLAUSIBLE_COVER[1];
@@ -165,9 +236,16 @@ function toRow(date: string, group: AuctionPrint[]): AuctionRow {
   // guarded this.
   const bidsComplete = group.length > 0 && group.every((p) => num(p.bidsReceivedKESM) !== undefined);
 
+  // A switch is an exchange and a tap is a fixed-price top-up. Neither puts a
+  // new target to the market, so neither produces a cover ratio that belongs
+  // beside a primary auction's. The figures are still reported on the row —
+  // they are real and they are CBK's — but no ratio is computed from them,
+  // because a ratio is a claim about demand and these cannot make one.
+  const kind = auctionKind(group.find((p) => p.sourceUrl)?.sourceUrl);
+
   let bidToCover: number | undefined;
   let coverRejected = false;
-  if (offeredKESM && bidsKESM && bidsComplete) {
+  if (kind === 'primary' && offeredKESM && bidsKESM && bidsComplete) {
     const c = bidsKESM / offeredKESM;
     if (plausible(c)) bidToCover = c;
     else coverRejected = true;
@@ -183,6 +261,7 @@ function toRow(date: string, group: AuctionPrint[]): AuctionRow {
     uptakePct:
       offeredKESM && acceptedKESM ? (acceptedKESM / offeredKESM) * 100 : undefined,
     coverRejected,
+    kind,
     sourceUrl: group.find((p) => p.sourceUrl)?.sourceUrl,
   };
 }

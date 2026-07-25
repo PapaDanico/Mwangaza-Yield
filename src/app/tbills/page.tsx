@@ -33,9 +33,10 @@ export default function TBillsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Treasury Bills</h1>
+        <h1 className="text-2xl font-bold text-ink">Lending for months, not years</h1>
         <p className="text-sm text-ink-muted">
-          Short-term government paper — 91, 182 and 364 days, auctioned every Thursday.
+          Treasury bills run 91, 182 or 364 days. You pay less than KES 100 now and are repaid
+          the full 100 at the end — the gap is your interest. Sold every Thursday.
         </p>
       </div>
 

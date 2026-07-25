@@ -56,16 +56,41 @@ DATE_LINE_RE = re.compile(
     r"[a-z]*[/\s.-]\s*\d{2,4}", re.I)
 
 
+# Every CBK page carries the same three PDFs in a sidebar widget. The first
+# run of this probe dutifully inspected all three and learned nothing about
+# prospectuses — "the first PDFs on the page" is not the same as "the PDFs
+# this page is about".
+BOILERPLATE = re.compile(
+    r"AuctionRulesGuidelines|/BBP\.pdf|Master-Repurchase|Pricelist|Policies", re.I)
+# A real prospectus is named for its issue: FXD1/2024/10, IFB1/2023/17 etc.
+ISSUE_RE = re.compile(r"(FXD|IFB|SDB)\s?\d?[/_-]?\d{4}", re.I)
+
+
 def find_prospectus_pdfs() -> list:
     r = requests.get(LISTING, headers=UA, timeout=TIMEOUT)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "lxml")
+
+    # Prefer links inside the listing table — that is what the page is FOR.
+    anchors = [a for t in soup.find_all("table") for a in t.find_all("a", href=True)]
+    scope = "listing table"
+    if not anchors:
+        anchors = soup.find_all("a", href=True)
+        scope = "whole page (no table found)"
+    print(f"  scanning {len(anchors)} link(s) from the {scope}")
+
     seen, out = set(), []
-    for a in soup.find_all("a", href=True):
+    for a in anchors:
         href = urljoin(LISTING, a["href"])
-        if href.lower().endswith(".pdf") and href not in seen:
-            seen.add(href)
-            out.append((href, " ".join(a.get_text(" ", strip=True).split())[:70]))
+        label = " ".join(a.get_text(" ", strip=True).split())[:70]
+        if not href.lower().endswith(".pdf") or href in seen:
+            continue
+        if BOILERPLATE.search(href):
+            continue
+        if not (ISSUE_RE.search(href) or ISSUE_RE.search(label)):
+            continue
+        seen.add(href)
+        out.append((href, label))
     return out
 
 
@@ -116,8 +141,14 @@ def inspect(url: str, label: str) -> None:
 
 def main() -> None:
     pdfs = find_prospectus_pdfs()
-    print(f"{len(pdfs)} prospectus PDF(s) linked from the CBK listing; "
-          f"inspecting the first {MAX_PDFS}")
+    if not pdfs:
+        print("!! no issue-coded prospectus PDFs found — the listing may be "
+              "rendered client-side, or the naming has changed. Not guessing.")
+        return
+    print(f"{len(pdfs)} prospectus PDF(s) matched an issue code; "
+          f"inspecting the newest {MAX_PDFS}")
+    for _, label in pdfs[:8]:
+        print(f"    found: {label}")
     for url, label in pdfs[:MAX_PDFS]:
         inspect(url, label)
     print("\nBuild the exact-coupon-date parser only if COUPON DATES appears WITH a "

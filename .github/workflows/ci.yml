@@ -44,6 +44,9 @@ jobs:
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
         run: python macro_parser.py || echo "macro scraper failed — see output above"
+      - name: Check data freshness
+        working-directory: backend/scrapers
+        run: python healthcheck.py
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
@@ -51,23 +54,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -r backend/requirements.txt
-      - name: Run macro scraper (best-effort; keeps last good data on failure)
+      # Each scraper is allowed to fail without aborting the others — partial
+      # data is fine thanks to carry_forward() — but every failure is RECORDED
+      # and surfaced at the end. Silently swallowing them is how a pipeline
+      # dies unnoticed.
+      - name: Run macro scraper
+        id: macro
         working-directory: backend/scrapers
-        run: python macro_parser.py || echo "macro scrape failed — keeping existing data"
+        run: python macro_parser.py || echo "failed=macro" >> "$GITHUB_OUTPUT"
       - name: Refresh World Bank sovereign context (keyless, CC BY 4.0)
+        id: worldbank
         working-directory: backend/scrapers
-        run: python worldbank.py || echo "World Bank refresh failed — keeping existing data"
+        run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
       - name: Run NSE scraper
+        id: nse
         working-directory: backend/scrapers
         env:
           NSE_DAILY_TRADE_URL: ${{ vars.NSE_DAILY_TRADE_URL }}
-        run: python nse_parser.py || echo "NSE scrape failed — keeping existing data"
+        run: python nse_parser.py || echo "failed=nse" >> "$GITHUB_OUTPUT"
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
@@ -76,3 +87,61 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "chore(data): daily refresh $(date -u +%F)"
           git push
+
+      - name: Check data freshness
+        id: health
+        working-directory: backend/scrapers
+        run: python healthcheck.py
+
+      - name: Raise an alert
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let detail = '';
+            try {
+              detail = fs.readFileSync('backend/scrapers/healthcheck-report.txt', 'utf8');
+            } catch { detail = '(no freshness report — a scraper step failed before the check ran)'; }
+
+            const failed = [
+              '${{ steps.macro.outputs.failed }}',
+              '${{ steps.worldbank.outputs.failed }}',
+              '${{ steps.nse.outputs.failed }}',
+            ].filter(Boolean);
+
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              '## Data pipeline needs attention',
+              '',
+              failed.length ? `**Scrapers that failed:** ${failed.join(', ')}` : '**All scrapers exited cleanly** — this is a freshness problem, not a crash.',
+              '',
+              '**Freshness report:**',
+              '```',
+              detail.trim(),
+              '```',
+              '',
+              `[View the run](${run})`,
+              '',
+              'The app keeps serving the last good data (see `carry_forward`), so nothing is broken for users yet — but the figures are ageing. Run the `validate-sources` job to see which sources are reachable.',
+            ].join('\n');
+
+            const label = 'scraper-alert';
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: label,
+            });
+
+            if (existing.data.length) {
+              // Comment on the open alert rather than stacking duplicates.
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: `Data pipeline alert — ${new Date().toISOString().slice(0, 10)}`,
+                labels: [label], body,
+              });
+            }

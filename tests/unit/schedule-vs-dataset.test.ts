@@ -67,3 +67,34 @@ describe('the 364-day year, checked against every listed bond', () => {
     expect(off).toEqual([]);
   });
 });
+
+/**
+ * The calculator warns when the amount typed is below what CBK would accept,
+ * and reads the threshold from the bond record rather than assuming 50,000 —
+ * two of the infrastructure bonds require 100,000.
+ *
+ * That comparison is `amount < bond.minInvestmentKES`, and its failure mode is
+ * quiet in the worst way: if the field is ever missing, the comparison is
+ * `n < undefined`, which is false, so the warning simply never appears and the
+ * page goes back to quoting purchasable-looking figures for one shilling. There
+ * is no error, no console message, and nothing on screen to notice. So the
+ * field is checked here, on the real data, rather than trusted.
+ */
+describe('every bond states a minimum a reader could be held to', () => {
+  it('carries a positive minimum on every record', () => {
+    const missing = ALL.filter(
+      (b) => typeof b.minInvestmentKES !== 'number' || !Number.isFinite(b.minInvestmentKES) || b.minInvestmentKES <= 0
+    );
+    expect(missing.map((b) => b.issueCode)).toEqual([]);
+  });
+
+  it('states minimums CBK actually uses', () => {
+    // 50,000 for most, 100,000 for some infrastructure bonds. A value outside
+    // this set is more likely a parsing accident than a policy change, and is
+    // worth a failing test either way — if CBK does change it, this is the line
+    // that should be updated deliberately.
+    expect(Array.from(new Set(ALL.map((b) => b.minInvestmentKES))).sort((a, b) => a - b)).toEqual([
+      50_000, 100_000,
+    ]);
+  });
+});

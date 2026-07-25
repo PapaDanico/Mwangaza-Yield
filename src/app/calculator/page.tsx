@@ -77,6 +77,10 @@ export default function CalculatorPage() {
 
   if (!bond) return <DataState />;
 
+  // Zero is the empty field, not a bid of nothing, so it is not flagged — a
+  // cleared box should read as "waiting", not as an error the reader made.
+  const belowMinimum = amount > 0 && amount < bond.minInvestmentKES;
+
   // Never print the solver's own ceiling as though it were measured.
   const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
 
@@ -144,7 +148,9 @@ export default function CalculatorPage() {
               id="calc-amount"
               type="number" min={bond.minInvestmentKES} step={50000} value={amount}
               onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
-              className={`num ${inputCls}`}
+              aria-invalid={belowMinimum || undefined}
+              aria-describedby="calc-amount-min"
+              className={`num ${inputCls} ${belowMinimum ? 'border-gold-500' : ''}`}
             />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[100_000, 500_000, 1_000_000, 5_000_000].map((v) => (
@@ -161,8 +167,33 @@ export default function CalculatorPage() {
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-ink-faint">
-              Minimum {formatKES(bond.minInvestmentKES)}
+            {/*
+              This line used to be grey and passive: it said "Minimum Ksh 50,000"
+              and then let the page quote a full plan for one shilling — coupon,
+              yield, dirty price and all. Stating a rule and ignoring it is worse
+              than not stating it, because the reader takes the silence as
+              consent and the arithmetic as an order they could place.
+
+              It still computes. Someone comparing bonds at a round KES 10,000
+              is doing something reasonable, and refusing to answer would be
+              obstruction. What changes is that the figures no longer pretend to
+              be purchasable. The minimum is per bond — two of the infrastructure
+              bonds are 100,000 — so it is read from the record rather than
+              written in.
+            */}
+            <p
+              id="calc-amount-min"
+              className={`mt-2 text-xs ${belowMinimum ? 'text-gold-700' : 'text-ink-faint'}`}
+            >
+              {belowMinimum ? (
+                <>
+                  {formatKES(amount)} is below the {formatKES(bond.minInvestmentKES)} minimum for
+                  this bond, so CBK would not accept a bid this size. The figures below are
+                  arithmetic on the amount you typed, not an order you could place.
+                </>
+              ) : (
+                <>Minimum {formatKES(bond.minInvestmentKES)}</>
+              )}
             </p>
           </div>
 

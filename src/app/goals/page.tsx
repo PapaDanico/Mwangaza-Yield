@@ -27,8 +27,13 @@ const inputCls =
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-ink-soft">{label}</label>
-      {children}
+      {/* The control lives INSIDE the label, which associates the two without
+          needing an id on every caller. A screen reader announces "Capital you
+          have now, edit" instead of "edit text, blank". */}
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-ink-soft">{label}</span>
+        {children}
+      </label>
       {hint && <p className="mt-1 text-xs text-ink-faint">{hint}</p>}
     </div>
   );

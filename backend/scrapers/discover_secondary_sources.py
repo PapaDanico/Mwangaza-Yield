@@ -32,6 +32,11 @@ CANDIDATES = [
     ("AfricaFinancials", "https://africanfinancials.com/"),
     ("Bloomberg — Kenya rates", "https://www.bloomberg.com/markets/rates-bonds"),
     ("NSE Data Services — market statistics", "https://www.nse.co.ke/dataservices/market-statistics/"),
+    # The Securities list sits outside the DhowCSD login. If it is fetchable
+    # without a session, the register reconciliation can be automated instead
+    # of depending on a manual export.
+    ("DhowCSD landing", "https://dhowcsd.centralbank.go.ke/"),
+    ("DhowCSD securities list", "https://dhowcsd.centralbank.go.ke/securities"),
 ]
 
 # Terms language that decides whether a source can be ingested at all.

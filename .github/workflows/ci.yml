@@ -71,6 +71,9 @@ jobs:
       - name: Probe secondary source shortlist (KIPPRA, Cbonds, AfricaFinancials, Bloomberg, NSE)
         working-directory: backend/scrapers
         run: python discover_secondary_sources.py
+      - name: Probe CBK auction results (coupon rates, clearing yields)
+        working-directory: backend/scrapers
+        run: python discover_auction_results.py
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py
@@ -109,6 +112,11 @@ jobs:
         id: worldbank
         working-directory: backend/scrapers
         run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
+      - name: Reconcile bonds against the CBK securities register
+        if: ${{ !inputs.test_alert }}
+        id: registry
+        working-directory: backend/scrapers
+        run: python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
       - name: Capture CBK Central Bank Rate history
         if: ${{ !inputs.test_alert }}
         id: cbr
@@ -151,6 +159,7 @@ jobs:
             const failed = [
               '${{ steps.macro.outputs.failed }}',
               '${{ steps.worldbank.outputs.failed }}',
+              '${{ steps.registry.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);

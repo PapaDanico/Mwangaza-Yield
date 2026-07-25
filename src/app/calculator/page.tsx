@@ -53,8 +53,9 @@ export default function CalculatorPage() {
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="card space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink-soft">Bond</label>
+            <label htmlFor="calc-bond" className="mb-1 block text-sm font-medium text-ink-soft">Bond</label>
             <select
+              id="calc-bond"
               value={bond.isin}
               onChange={(e) => { setIsin(e.target.value); setPrice(100); }}
               className={inputCls}
@@ -68,10 +69,11 @@ export default function CalculatorPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink-soft">
+            <label htmlFor="calc-amount" className="mb-1 block text-sm font-medium text-ink-soft">
               Investment amount (face value)
             </label>
             <input
+              id="calc-amount"
               type="number" min={bond.minInvestmentKES} step={50000} value={amount}
               onChange={(e) => setAmount(Number(e.target.value) || 0)}
               className={`num ${inputCls}`}
@@ -97,11 +99,12 @@ export default function CalculatorPage() {
           </div>
 
           <div>
-            <label className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
+            <label htmlFor="calc-price" className="mb-1 flex justify-between text-sm font-medium text-ink-soft">
               <span>Price you would pay (per 100)</span>
               <span className="num text-gold-700">{price.toFixed(2)}</span>
             </label>
             <input
+              id="calc-price"
               type="range" min={70} max={120} step={0.05} value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
               className="w-full accent-gold-600"

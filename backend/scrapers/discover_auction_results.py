@@ -1,0 +1,182 @@
+"""Probe CBK for auction RESULTS — the highest-leverage data still missing.
+
+Everything else on the roadmap is downstream of this one dataset:
+
+  * **Coupon rates.** The securities register (§13) gave us 59 outstanding
+    bonds but publishes no coupon. Without a coupon we cannot compute a yield,
+    so we still ship 9 bonds instead of 59. Auction results carry the coupon.
+  * **"Is that yield any good?"** The app says what a bond pays and never what
+    comparable bonds cleared at. A year of auction prints answers the question
+    every investor actually asks before bidding.
+  * **What to bid.** We show what is OFFERED. The weighted average accepted
+    rate is the single most useful number for deciding what to bid next time.
+
+The /press/ probe (§10) proved CBK serves DataTables rows inside the HTML on
+at least one listing. This checks whether the results pages do the same, or
+whether the numbers live inside linked PDFs — a different parser either way,
+which is exactly why we look before building.
+
+Read-only. Never gates CI.
+"""
+import re
+import sys
+from urllib.parse import urljoin
+
+import requests
+from bs4 import BeautifulSoup
+
+UA = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+    "Accept-Language": "en-KE,en;q=0.9",
+}
+TIMEOUT = 45
+
+# Corrected 2026-07-25. The first three of these were INVENTED and all 404'd,
+# while /securities/treasury-bonds/ is a legacy path that still answers 200 and
+# quietly serves stale content. The live section is /bills-bonds/, found by
+# searching the web rather than guessing — which is what should have happened
+# first. Results PDFs live under /uploads/historical_treasury_bond_results/.
+PAGES = [
+    ("Bills & Bonds hub", "https://www.centralbank.go.ke/bills-bonds/"),
+    ("Treasury bonds (LIVE path)", "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"),
+    ("Treasury bills (LIVE path)", "https://www.centralbank.go.ke/bills-bonds/treasury-bills/"),
+    ("Interest rates statistics", "https://www.centralbank.go.ke/statistics/interest-rates/"),
+    ("Treasury bonds (LEGACY path, for comparison)",
+     "https://www.centralbank.go.ke/securities/treasury-bonds/"),
+]
+
+# A known-good results PDF, to confirm the numbers inside are machine-readable
+# before any parser is written.
+SAMPLE_RESULT_PDF = (
+    "https://www.centralbank.go.ke/uploads/historical_treasury_bond_results/"
+    "1276816915_RESULTS%20FXD1-2021-005%20AND%20FXD1-2019-020%20DATED%2015-11-2021.pdf"
+)
+
+# The vocabulary of an auction result. If these appear in the served HTML, the
+# numbers are readable without touching a PDF.
+SIGNALS = {
+    "coupon rate": re.compile(r"coupon\s*rate", re.I),
+    "weighted average": re.compile(r"weighted\s*average", re.I),
+    "amount offered": re.compile(r"amount\s*offered|offer\s*amount", re.I),
+    "amount accepted": re.compile(r"amount\s*accepted|accepted\s*amount", re.I),
+    "performance": re.compile(r"performance\s*(?:rate|%)", re.I),
+    "bids received": re.compile(r"bids?\s*received", re.I),
+}
+ISSUE_RE = re.compile(r"\b(?:FXD|IFB|SDB)\d?/\d{4}/\d+", re.I)
+RESULT_PDF_RE = re.compile(r"result|auction", re.I)
+
+
+def probe(label: str, url: str) -> None:
+    print(f"\n=== {label} ===\n  {url}")
+    try:
+        r = requests.get(url, headers=UA, timeout=TIMEOUT)
+    except requests.RequestException as exc:
+        print(f"  UNREACHABLE {exc.__class__.__name__}")
+        return
+    print(f"  HTTP {r.status_code}, {len(r.content)} bytes")
+    if r.status_code != 200:
+        return
+
+    soup = BeautifulSoup(r.text, "lxml")
+    tables = soup.find_all("table")
+    rows = sum(len(t.find_all("tr")) for t in tables)
+    print(f"  tables: {len(tables)} · rows in served HTML: {rows} · "
+          f"DataTables: {bool(re.search(r'dataTable', r.text, re.I))}")
+
+    found = [name for name, rx in SIGNALS.items() if rx.search(r.text)]
+    if found:
+        print(f"  >>> RESULT FIELDS IN HTML: {found}")
+    else:
+        print("      no auction-result vocabulary in the served HTML")
+
+    issues = sorted(set(m.upper() for m in ISSUE_RE.findall(r.text)))
+    if issues:
+        print(f"  >>> {len(issues)} issue code(s) named, e.g. {issues[:6]}")
+
+    # Show real rows so the layout is visible rather than inferred.
+    for i, table in enumerate(tables[:2], 1):
+        trs = table.find_all("tr")
+        print(f"  table {i}: {len(trs)} rows")
+        for tr in trs[:3]:
+            cells = [c.get_text(" ", strip=True)[:34] for c in tr.find_all(["td", "th"])]
+            if any(cells):
+                print(f"    | {' | '.join(cells[:7])}")
+
+    pdfs = [urljoin(url, a["href"]) for a in soup.find_all("a", href=True)
+            if a["href"].lower().endswith(".pdf") and RESULT_PDF_RE.search(a["href"])]
+    if pdfs:
+        print(f"  {len(pdfs)} result-looking PDF(s); first 3:")
+        for href in pdfs[:3]:
+            print(f"    - {href[:120]}")
+
+
+def discover_result_links(url: str) -> None:
+    """Follow the site's own navigation instead of guessing URLs.
+
+    The first run of this probe invented three plausible results paths and got
+    three 404s, while the bonds landing page turned out to contain the words
+    "coupon rate" and "weighted average" with no table to hold them. That means
+    the real page exists and is linked; we simply had not found it. Guessing
+    URLs is how you conclude "not available" about something that is.
+    """
+    print("\n=== LINK DISCOVERY from the bonds landing page ===")
+    try:
+        r = requests.get(PAGES[0][1], headers=UA, timeout=TIMEOUT)
+        r.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"  UNREACHABLE {exc.__class__.__name__}")
+        return
+
+    soup = BeautifulSoup(r.text, "lxml")
+    wanted = re.compile(r"result|auction|issue|history|rate", re.I)
+    seen = set()
+    for a in soup.find_all("a", href=True):
+        href = urljoin(PAGES[0][1], a["href"])
+        text = " ".join(a.get_text(" ", strip=True).split())[:60]
+        if href in seen or not (wanted.search(href) or wanted.search(text)):
+            continue
+        seen.add(href)
+        print(f"  {text or '(no text)':<52} {href[:100]}")
+    print(f"  {len(seen)} candidate link(s)")
+
+
+def inspect_result_pdf(url: str) -> None:
+    """Does a results PDF carry a text layer, and does it name a coupon?"""
+    print(f"\n=== SAMPLE RESULTS PDF ===\n  {url[:110]}")
+    try:
+        import pdfplumber
+        from io import BytesIO
+        r = requests.get(url, headers=UA, timeout=TIMEOUT)
+        r.raise_for_status()
+        with pdfplumber.open(BytesIO(r.content)) as pdf:
+            chars = sum(len(pg.chars) for pg in pdf.pages)
+            text = "\n".join(pg.extract_text() or "" for pg in pdf.pages)
+            tables = sum(len(pg.extract_tables() or []) for pg in pdf.pages)
+        print(f"  {len(r.content)} bytes, {chars} chars, {tables} table(s)")
+        if chars == 0:
+            print("  >>> NO TEXT LAYER — scanned, unusable")
+            return
+        print("  >>> TEXT LAYER PRESENT")
+        for name, rx in SIGNALS.items():
+            if rx.search(text):
+                print(f"      has: {name}")
+        for line in text.splitlines()[:22]:
+            if line.strip():
+                print(f"    | {line.strip()[:110]}")
+    except Exception as exc:  # noqa: BLE001 - diagnostic
+        print(f"  could not inspect: {exc.__class__.__name__}")
+
+
+def main() -> None:
+    for label, url in PAGES:
+        probe(label, url)
+    discover_result_links(PAGES[1][1])
+    inspect_result_pdf(SAMPLE_RESULT_PDF)
+    print("\nIf RESULT FIELDS appear in the served HTML, coupon rates and clearing yields "
+          "are scrapeable directly. If they only appear in PDFs, check for a text layer "
+          "before writing anything.", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

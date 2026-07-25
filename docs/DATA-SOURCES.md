@@ -491,3 +491,159 @@ criterion; it now becomes the method rather than the confirmation.
 assumption, and coupon dates stay labelled as estimates — which is what they already
 say. We have not made anything worse by failing to confirm; we have only declined to
 build a parser on documents from 2016 using a convention we cannot verify.
+
+## 13. CBK securities register via DhowCSD — the correctness win (2026-07-25)
+
+The single most valuable dataset added to this project, and it fixes errors that were
+already live.
+
+**Source.** The **Securities** list on [DhowCSD](https://dhowcsd.centralbank.go.ke/),
+CBK's own central securities depository. Crucially it sits **outside the login** — the
+button appears next to "Create account", not behind it — so this is public reference
+data. The export carries no account number, no name, no balance and no holding: every
+row is a security the government has issued.
+
+643 securities; 157 outstanding on the export date (59 Treasury bonds, 98 Treasury
+bills); maturities from 2023 to 2056. Columns: issue number, ISIN, issuer, issue date,
+maturity date, type, individual nominal value, currency.
+
+### What it corrected
+
+**Every one of our nine bonds had a fabricated ISIN**, and **seven had wrong dates** —
+maturity off by up to **119 days** (IFB1/2022/19: we had 2041-05-27, the register says
+2041-01-28).
+
+That is not cosmetic. Maturity defines the remaining cash-flow schedule, so it moves
+**yield to maturity, the coupon calendar, .ics reminders, ladder rungs and every goal
+projection** built on them. 24 corrections applied by `registry.py`.
+
+### Two things it deliberately does NOT change
+
+**1. `tenorYears` — the trap worth naming.** The register's dates make FXD1/2022/10
+span **9.97 years** (2022-05-16 → 2032-05-03). Recomputing tenor from those dates would
+drop it below the ten-year threshold and move it from the **10% withholding band to the
+15% band**, understating its net yield for every user. The bond is *issued* as a
+ten-year bond and taxed as one; the missing days are settlement and business-day
+conventions, not a shorter loan. **The issue code carries the legal tenor, so the issue
+code wins.** Two tests in `financial-engine.test.ts` now fail if anyone "fixes" this.
+
+**2. `minInvestmentKES`.** The register's "Individual Nominal Value" reads 50,000 for
+most securities — matching the known CBK minimum — but **1** for a handful, including
+IFB1/2018/15. A nominal of 1 almost certainly denotes the unit denomination rather than
+the smallest permitted subscription, and writing it through would tell someone they can
+buy that bond for one shilling. Two plausible readings of a column is not enough to
+overwrite a user-facing figure, so ours stands.
+
+### Status and what is still missing
+
+The register publishes **no coupon rate and no yield** — those still come from
+prospectuses and auction results. It also gives us the full outstanding universe of
+**59 bonds against the 9 we currently ship**, which is the obvious next expansion.
+
+The reconciliation currently runs from a committed export
+(`backend/reference/dhowcsd-securities.csv`). `discover_secondary_sources.py` now probes
+whether the Securities list is fetchable without a session; if it is, this becomes
+automatic rather than manual.
+
+## 14. Auction results and DhowCSD automation — both probed, both negative (2026-07-25)
+
+### DhowCSD cannot be scraped: it is a single-page app
+
+```
+https://dhowcsd.centralbank.go.ke/            HTTP 200, 2415 bytes, 0 tables
+https://dhowcsd.centralbank.go.ke/securities  HTTP 200, 2415 bytes, 0 tables
+```
+
+Two different URLs returning **byte-identical 2,415-byte shells** is the signature of a
+JavaScript application that renders everything client-side. Plain `requests` sees the
+shell and never the securities.
+
+**Consequence.** The register reconciliation in §13 stays a **manual re-export** — which
+is perfectly workable, since new issues appear a few times a month, not hourly.
+Automating it would need either the underlying API (discoverable by watching the network
+tab, or by running a headless browser on a CI runner) or a browser in the pipeline. Not
+worth that complexity yet.
+
+### Auction results: the path is undiscovered, not absent
+
+Three guessed URLs, three 404s:
+
+```
+/securities/treasury-bonds/treasury-bonds-results/   404
+/securities/treasury-bills/treasury-bills-results/   404
+/auction-results/                                    404
+```
+
+But the bonds landing page returns **HTTP 200 with "coupon rate" and "weighted average"
+present in its HTML — and zero tables**. The vocabulary exists with nothing to hold it,
+which means the results page is real and linked; we simply invented the wrong addresses.
+
+**Guessing URLs is how you conclude "not available" about something that is.** The probe
+now follows CBK's own navigation and reports every link matching
+result/auction/issue/history/rate, instead of asserting paths.
+
+### Why this matters more than the other blocked items
+
+Three roadmap items are downstream of auction results:
+
+| Item | What auction results supply |
+|---|---|
+| Universe expansion (9 → 59 bonds) | **Coupon rates** — the register gives identity and dates but no coupon, and without a coupon there is no yield |
+| Yield history (#4) | Twelve months of clearing yields, answering "is that any good?" |
+| Auction capture (#5) | The weighted average accepted rate — what to actually bid |
+
+This is the single highest-leverage dataset still missing.
+
+## 15. CORRECTION: I was probing a stale path — auction results ARE readable (2026-07-25)
+
+Capt. Ng'ong'a pointed out that coupon rates are publicly available via a thorough web
+search of CBK's site. He was right, and §12/§14 were wrong because of how I looked.
+
+### The mistake
+
+Every probe this session hit **`/securities/treasury-bonds/`**. That path answers
+**HTTP 200** — so I trusted it — but serves a **legacy 2016 archive**. It is why the
+prospectus probe twice reported "only 2016 documents reachable" and why item 1 went down
+as blocked.
+
+The live section is **`/bills-bonds/`**, and one web search found it plus:
+
+| What | Where |
+|---|---|
+| Auction results archive | `/uploads/historical_treasury_bond_results/` |
+| T-bill results archive | `/uploads/91_day_historical_treasury_bill_results/` |
+| **Current** prospectuses | `/uploads/treasury_bonds_prospectuses/` — sample is **January 2026** |
+
+**A legacy path returning 200 is more dangerous than one returning 404.** The three 404s
+from my invented URLs were honest signals. The 200 was what misled me, precisely because
+it looked alive. Search before guessing; a live-looking page is not evidence it is the
+current one.
+
+### What the results PDFs actually contain
+
+```
+| Price per Kshs 100 at average yield   100.000   97.632
+| Coupon Rate (%)                       1 1.277   1 2.873
+| New Borrowing/Net Repayment           69,507.37
+| B. FORTHCOMING TREASURY BOND(S) ISSUE(S) FOR THE MONTH OF DECEMBER 2021
+```
+
+**Text layer present, coupon rates and clearing prices both there.** This unblocks the
+three items that were downstream of it.
+
+**One hazard, already familiar.** `Coupon Rate (%) 1 1.277 1 2.873` is two coupons —
+11.277% and 12.873% — with a space injected by the two-column layout. A naive regex
+would read `1`, `1.277`, `1`, `2.873` and produce four wrong numbers with total
+confidence. Any parser must reconstruct columns (`extract_tables`, or x-position
+clustering on `page.chars`) and sanity-check every rate against a plausible band, exactly
+as `cbr_history_parser.py` does.
+
+### Revised status
+
+| Item | Was | Now |
+|---|---|---|
+| Coupon rates for all 59 bonds | blocked | **reachable** — parse results PDFs |
+| Yield history (#4) | blocked | **reachable** — the archive is the history |
+| Auction capture (#5) | blocked | **reachable** |
+| Exact coupon dates (#1) | "2016 only" — WRONG | re-probe against the live listing |
+| Day-count convention (#2) | not stated | still not stated; test behaviour instead |

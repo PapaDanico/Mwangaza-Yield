@@ -44,6 +44,17 @@
     "sentiment": "good"
   },
   {
+    "id": "wb-dt-dod-dect-gn-zs",
+    "label": "External debt / GNI",
+    "value": 34.99,
+    "unit": "%",
+    "asOf": "2024",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/DT.DOD.DECT.GN.ZS?locations=KE",
+    "note": "Debt owed abroad, which must be serviced in foreign currency rather than shillings \u2014 so a weaker shilling makes it heavier without anyone borrowing more.",
+    "sentiment": "good"
+  },
+  {
     "id": "wb-dt-tds-dect-ex-zs",
     "label": "Debt service / exports",
     "value": 27.22,

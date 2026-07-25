@@ -110,7 +110,7 @@ export default function Footer() {
             delayed, estimated or incorrect — verify every number against the official prospectus
             before you invest. Capital is at risk; yields change at every auction.
           </p>
-          <p className="mt-4 text-xs text-sand-300/40">
+          <p className="mt-4 text-xs text-sand-300/60">
             © {new Date().getFullYear()} Mwangaza Yield · Built in Kenya 🇰🇪
           </p>
         </div>

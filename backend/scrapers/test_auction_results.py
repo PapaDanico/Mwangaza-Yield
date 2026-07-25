@@ -671,6 +671,57 @@ def main():
     check("a bare year is not a date",
           auction_date_from_name("Results_15_year_Re-open_dated_February_2014.pdf"), None)
 
+    # CBK's older filenames carry spaces, so the listing's hrefs arrive
+    # percent-encoded — and %20 puts a DIGIT immediately before the date. The
+    # pattern refuses a date that runs on from a digit, which is what keeps a
+    # tenor like FXD1-2012-020 from being read as one, so these were rejected
+    # for an encoding artefact rather than for anything in the name.
+    check("a percent-encoded name still yields its date",
+          auction_date_from_name("results%20fxd1-2014-5%20dated%2028.04.2014.pdf"),
+          "2014-04-28")
+    check("and again where the encoding runs together",
+          auction_date_from_name(
+              "results%205-%20year%20%2020year%20re-open%20dated%2023.06.2014.pdf"),
+          "2014-06-23")
+    check("hyphenated dates survive decoding too",
+          auction_date_from_name("results%2012-year%20ifb1-2014-12%20dated%2027-10-2014.pdf"),
+          "2014-10-27")
+    # Decoding must not INVENT a date. %20 is a space, not a separator, so a
+    # name with no date in it still has none after decoding.
+    check("decoding does not manufacture a date",
+          auction_date_from_name("Results%2012%20yr%20tap%20sales.pdf"), None)
+
+    print("a spelled-out month is a date; a month with no day is not")
+    check("month before day", auction_date_from_name("RESULTS Sept 3, 2019.pdf"),
+          "2019-09-03")
+    check("day before month", auction_date_from_name("RESULTS dated 15 March 2021.pdf"),
+          "2021-03-15")
+    check("full month name, ordinal day",
+          auction_date_from_name("results 5 year dated november 25th 2013.pdf"),
+          "2013-11-25")
+    check("september is not consumed as sep with a dangling tember",
+          auction_date_from_name("RESULTS September 3 2019.pdf"), "2019-09-03")
+    # Sixteen files in the archive name a month and a year and no day. Writing
+    # the first of the month would put a day in the field that no document
+    # anywhere claims, and every consumer would read it as one we had read.
+    check("a month and a year is still not a date",
+          auction_date_from_name("Results 15 year re-open dated november 2014.pdf"), None)
+    check("nor is a month sitting after a tenor",
+          auction_date_from_name("Results 2 year AUGUST 2012.pdf"), None)
+
+    # The trap this pattern exists inside. An issue code ends in its TENOR, so
+    # "FXD1-2019-15 March 2021" reads as a fifteen-year bond auctioned in March,
+    # not an auction held on the 15th. The day must not run on from a digit or a
+    # separator — which costs one real date in today's archive
+    # ("fxd 4-2013-2 december 2013") and is still the right trade: a missing
+    # date is visible and a wrong one is not.
+    check("a tenor is never read as the day of the month",
+          auction_date_from_name("RESULTS FXD1-2019-15 March 2021.pdf"), None)
+    check("and the cost of that guard is accepted, not hidden",
+          auction_date_from_name("results 2 year fxd 4-2013-2 december 2013.pdf"), None)
+    check("an impossible spelled-out date is refused like a numeric one",
+          auction_date_from_name("RESULTS FEB 31 2020.pdf"), None)
+
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)
         for f in failures:

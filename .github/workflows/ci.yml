@@ -104,6 +104,12 @@ jobs:
         timeout-minutes: 4
         working-directory: backend/scrapers
         run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
+
+      - name: Probe whether undated auctions carry their date in the document
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 5
+        working-directory: backend/scrapers
+        run: python probe_undated.py || echo "undated probe failed — see output above"
       - name: Probe why some 2020-2023 auction results parse to nothing
         working-directory: backend/scrapers
         run: python discover_old_layout.py

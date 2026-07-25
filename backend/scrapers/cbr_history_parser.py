@@ -50,7 +50,23 @@ MIN_DECISIONS = 40
 
 
 def parse_date(text: str) -> str | None:
-    """CBK prints dd/mm/yyyy. Return ISO, or None if this cell is not a date."""
+    """CBK prints dd/mm/yyyy. Return ISO, or None if this cell is not a date.
+
+    Read from the TABLE CELL, never from the PDF filename, and a cross-check
+    once made that look like a bug when it is the opposite. The June 2026
+    decision links to
+
+        897442093_MPC Press Release - Meeting of June 9 2025.pdf
+
+    while the row is dated 2026-06-09 — the only one of 119 records whose
+    filename carries no matching year. The row is right and CBK's filename is a
+    typo: the MPC meets every two months and the surrounding decisions run
+    2026-02-10, 2026-04-08, 2026-06-09; and June 2025 already has its own
+    separate record, 2025-06-10, with its own press release.
+
+    Left here because the next person to cross-reference these against their
+    source URLs will find exactly this and be tempted to "fix" a correct date.
+    """
     m = DATE_RE.match(text)
     if not m:
         return None

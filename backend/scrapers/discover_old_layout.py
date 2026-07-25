@@ -119,15 +119,27 @@ def describe(url: str, content: bytes) -> None:
             # This prints which line each expected code actually landed on. If
             # they differ, the hypothesis stands and the fix is to merge
             # header fragments across lines rather than pick a winner.
+            # The vertical position is the datum that separates two mechanisms
+            # which look identical in the line index alone:
+            #
+            #   (a) group_lines() clusters words whose `top` differs by at most
+            #       2.5 points. If CBK renders the two codes on ONE visual row
+            #       but at slightly different baselines, they split into two
+            #       "lines" and the header is broken by a tolerance, not by a
+            #       layout. Then the fix is a number.
+            #   (b) The codes really are stacked on separate rows, and the fix
+            #       is to merge header fragments across lines.
+            #
+            # Printing `top` for each tells them apart at a glance: a gap of a
+            # point or two is (a); a gap of a whole line height is (b).
             for code in expected:
-                family, year, tenor = code.split("/")
-                bare = str(int(tenor.split(".")[0])) if tenor.split(".")[0].isdigit() else tenor
+                family, year, _tenor = code.split("/")
                 hits = []
                 for i, line in enumerate(lines):
                     joined = " ".join(w["text"] for w in line)
                     if family in joined and year in joined:
-                        hits.append(i)
-                print(f"      {code}: appears on line index {hits or 'NONE'}")
+                        hits.append((i, round(min(w["top"] for w in line), 1)))
+                print(f"      {code}: (line index, top) = {hits or 'NONE'}")
 
             print(f"      first {MAX_LINES} reconstructed line(s):")
             for line in lines[:MAX_LINES]:

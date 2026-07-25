@@ -193,6 +193,51 @@ def implausible_cover(records: list) -> list:
     return out
 
 
+def filename_names_a_bond_we_lost(records: list) -> list:
+    """CBK's filename names a bond, and we recorded no row for it.
+
+    REPORTED, NEVER GATED, and the distinction is the whole point. This is the
+    only check here that cannot tell whose fault a discrepancy is.
+
+    It exists because 27-03-2017 slipped past everything else. That file names
+    two bonds and we record one, holding the unlabelled auction total 64,248.40
+    where FXD3/2013/005 should read 32,916.78. Not one other check fires on it:
+    sum_identity needs three rows and there is one, the row label that exposed
+    the original column shift is gone because the parser stopped leaking labels,
+    and a single plausible figure has nothing to contradict. A wrong number sat
+    in the published archive with every green tick intact.
+
+    Why it must not gate. Three of the seven files it currently reports are
+    CBK's own filename disagreeing with CBK's own table — "FXD1-2015-018" in the
+    name against FXD1/2018/015 in the document, digits transposed. The document
+    is the better source and the parser is right to follow it. Failing the build
+    on those would punish a correct parse for someone else's typo, and a check
+    that cries wolf gets switched off in a week.
+
+    So it reports and stays out of the way. What it buys is that this class of
+    failure is VISIBLE — which is more than was true when a wrong figure went
+    out under a clean bill of health.
+    """
+    from auction_results import codes_in_name
+
+    by_file = collections.defaultdict(list)
+    for r in records:
+        if r.get("sourceUrl"):
+            by_file[r["sourceUrl"]].append(r)
+
+    out = []
+    for url, rows in by_file.items():
+        named = set(codes_in_name(unquote(url).rsplit("/", 1)[-1]))
+        if not named:
+            continue
+        missing = named - {r["issueCode"] for r in rows}
+        if missing:
+            out.append(f"{_name(url)}: names {sorted(missing)} but no row was "
+                       f"recorded for it — either a bond was dropped, or CBK's "
+                       f"filename disagrees with CBK's table")
+    return out
+
+
 CHECKS = [
     ("one bond holding the sum of the others", sum_identity),
     ("accepted exceeding bids received", accepted_within_bids),
@@ -236,6 +281,23 @@ def main() -> None:
         if len(everywhere) > 6:
             print(f"        ... and {len(everywhere) - 6} more")
         gating += len(at_current)
+
+    # Reported below the gating block and never added to `gating`, so it cannot
+    # fail a build. Kept visibly separate rather than folded in with a flag,
+    # because "this check does not gate, and here is why" is a fact about the
+    # check that a reader should not have to infer from a boolean.
+    advisory = filename_names_a_bond_we_lost(records)
+    print(f"\n--- reported, not gated: a bond named in the filename with no row")
+    if not advisory:
+        print("OK    every bond CBK names in a filename has a row")
+    else:
+        print(f"note  {len(advisory)} file(s). Some of these are CBK's filename "
+              f"disagreeing with CBK's own table,\n      which the parser is "
+              f"right to resolve in favour of the document. Read before acting.")
+        for line in advisory[:8]:
+            print(f"        {line}")
+        if len(advisory) > 8:
+            print(f"        ... and {len(advisory) - 8} more")
 
     print()
     if gating:

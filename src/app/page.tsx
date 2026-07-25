@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import {
-  Calculator, Radar, Briefcase, Layers, WifiOff, LockKeyhole, ArrowRight, CalendarCheck,
+  Calculator, Radar, Briefcase, Layers, WifiOff, LockKeyhole, ArrowRight, CalendarCheck, Receipt,
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
 
 const features = [
   { Icon: Calculator, title: 'Net Yield Engine', desc: 'Gross and after-tax YTM solved from your actual price — WHT 0/10/15% applied exactly as Kenyan law does.' },
+  { Icon: Receipt, title: 'Treasury Bills', desc: 'The quoted discount rate is never what you earn — see the true net yield on 91, 182 and 364-day bills, plus rollover projections.' },
   { Icon: Layers, title: 'Ladder Builder', desc: 'Turn a lump sum into a stream of predictable payouts across staggered maturities — school fees, retirement, income.' },
   { Icon: Radar, title: 'Auction Radar', desc: 'Every CBK offer with countdowns, prospectus links and a step-by-step DhowCSD bidding guide.' },
   { Icon: CalendarCheck, title: 'Payout Calendar', desc: 'Every coupon and redemption on your phone calendar — one tap, with reminders the day before.' },

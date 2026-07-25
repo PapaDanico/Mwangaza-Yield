@@ -171,6 +171,33 @@ export function computeBondInvestment(
   };
 }
 
+/**
+ * Coupon dates falling in the `months` calendar months starting with `from`'s
+ * month. Used by the portfolio cash-flow calendar; returns one bucket per
+ * month so callers can render a fixed-width strip.
+ */
+export function couponsByMonth(
+  bond: Bond,
+  from: Date,
+  months: number
+): { year: number; month: number; count: number }[] {
+  const buckets = Array.from({ length: months }, (_, i) => {
+    const d = new Date(from.getFullYear(), from.getMonth() + i, 1);
+    return { year: d.getFullYear(), month: d.getMonth(), count: 0 };
+  });
+  const dates = getCouponDates(
+    new Date(bond.issueDate),
+    new Date(bond.maturityDate),
+    bond.couponFrequencyPerYear || 2
+  );
+  for (const d of dates) {
+    if (d <= from) continue;
+    const idx = (d.getFullYear() - from.getFullYear()) * 12 + (d.getMonth() - from.getMonth());
+    if (idx >= 0 && idx < months) buckets[idx].count += 1;
+  }
+  return buckets;
+}
+
 export function formatKES(value: number, decimals = 0): string {
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',

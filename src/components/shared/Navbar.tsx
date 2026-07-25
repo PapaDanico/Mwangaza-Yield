@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calculator, Radar, Briefcase, Layers } from 'lucide-react';
+import { LayoutDashboard, Calculator, Radar, Briefcase, Layers, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfflineBadge from './OfflineBadge';
 
 const links = [
   { href: '/dashboard/', label: 'Dashboard', Icon: LayoutDashboard },
+  { href: '/tbills/', label: 'T-Bills', Icon: Receipt },
   { href: '/ladder/', label: 'Ladder', Icon: Layers },
   { href: '/calculator/', label: 'Calculator', Icon: Calculator },
   { href: '/auctions/', label: 'Auctions', Icon: Radar },

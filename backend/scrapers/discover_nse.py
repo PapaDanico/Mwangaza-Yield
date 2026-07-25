@@ -67,9 +67,57 @@ def probe(url: str) -> None:
             print(f"        \"{text}\"")
 
 
+def inspect_pdf(url: str) -> None:
+    """Report whether a PDF carries a text layer or is a scanned image.
+
+    Decides whether automated extraction is even possible: no chars and one
+    big image means OCR, and OCR'd digits in a bond price are a correctness
+    risk we will not take silently.
+    """
+    import pdfplumber  # local import: only needed for this diagnostic
+
+    print(f"\n=== PDF STRUCTURE: {url} ===")
+    try:
+        resp = requests.get(url, headers=UA, timeout=60)
+        resp.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"  UNREACHABLE: {exc.__class__.__name__}")
+        return
+
+    from io import BytesIO
+    with pdfplumber.open(BytesIO(resp.content)) as pdf:
+        print(f"  pages: {len(pdf.pages)}")
+        for i, page in enumerate(pdf.pages[:2], 1):
+            chars = len(page.chars)
+            images = len(page.images)
+            tables = page.extract_tables() or []
+            print(f"  page {i}: {chars} chars, {images} images, {len(tables)} tables")
+            if chars == 0 and images:
+                print("    -> NO TEXT LAYER: this is a scanned image. Text extraction")
+                print("       is impossible; only OCR could read it.")
+            elif chars:
+                sample = (page.extract_text() or "").splitlines()[:8]
+                for line in sample:
+                    print(f"    | {line[:110]}")
+                if tables:
+                    print(f"    first table row: {tables[0][0] if tables[0] else '(empty)'}")
+
+
 def main() -> None:
     for page in PAGES:
         probe(page)
+
+    # Inspect today's price list if we can find it.
+    try:
+        resp = requests.get(PAGES[0], headers=UA, timeout=45)
+        soup = BeautifulSoup(resp.text, "lxml")
+        for a in soup.find_all("a", href=True):
+            href = urljoin(PAGES[0], a["href"])
+            if re.search(r"BondPrices.*\.pdf$", href, re.I):
+                inspect_pdf(href)
+                break
+    except requests.RequestException as exc:
+        print(f"\n(could not inspect price list: {exc.__class__.__name__})")
     print("\nSet NSE_DAILY_TRADE_URL only to a FILE link that nse_parser can read "
           "(.xls/.xlsx). Anything else will fail daily.", file=sys.stderr)
 

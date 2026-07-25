@@ -8,6 +8,7 @@ import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { APP_URL, formatLadderSummary, shareText, printReport } from '@/lib/share';
 import LadderReport from '@/components/report/LadderReport';
+import LiveResult from '@/components/shared/LiveResult';
 
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
@@ -147,6 +148,11 @@ export default function LadderPage() {
                   sliders were dragged off-screen too. The page overflowed by
                   134px at 420 and 194px at 360, on an app whose readers are on
                   phones. min-w-0 lets each card shrink rather than push. */}
+              <LiveResult>
+                {`${plan.rungs.length} rungs over ${horizon} years: ${formatPct(plan.blendedNetYTM)} blended net yield, `
+                  + `${formatKES(plan.netAnnualIncomeKES)} net income a year, `
+                  + `${formatKES(plan.totalCostKES)} total cost.`}
+              </LiveResult>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 [&>*]:min-w-0">
                 <div className="card p-4">
                   <p className="text-xs text-ink-muted">Blended net yield</p>

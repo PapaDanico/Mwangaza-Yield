@@ -6,6 +6,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import AuctionHistory from '@/components/shared/AuctionHistory';
+import LiveResult from '@/components/shared/LiveResult';
 
 function Row({ label, value, accent, hint }: {
   label: string; value: string; accent?: boolean; hint?: string;
@@ -180,6 +181,11 @@ export default function CalculatorPage() {
 
         {result && (
           <div className="card">
+            <LiveResult>
+              {`${bond.issueCode} at a price of ${price.toFixed(2)}: you keep ${pct(result.netYTM)} a year after tax, `
+                + `${formatKES(result.netCouponPerPeriodKES)} every six months, for a total outlay of `
+                + `${formatKES(result.settlementCostKES)}.`}
+            </LiveResult>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-semibold text-ink">{bond.issueCode}</h2>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${bond.taxExempt ? 'bg-mint-500/15 text-mint-700' : 'bg-sand-200 text-ink-soft'}`}>

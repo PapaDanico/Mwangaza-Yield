@@ -97,9 +97,40 @@ def probe(label: str, url: str) -> None:
             print(f"    - {href[:120]}")
 
 
+def discover_result_links(url: str) -> None:
+    """Follow the site's own navigation instead of guessing URLs.
+
+    The first run of this probe invented three plausible results paths and got
+    three 404s, while the bonds landing page turned out to contain the words
+    "coupon rate" and "weighted average" with no table to hold them. That means
+    the real page exists and is linked; we simply had not found it. Guessing
+    URLs is how you conclude "not available" about something that is.
+    """
+    print("\n=== LINK DISCOVERY from the bonds landing page ===")
+    try:
+        r = requests.get(PAGES[0][1], headers=UA, timeout=TIMEOUT)
+        r.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"  UNREACHABLE {exc.__class__.__name__}")
+        return
+
+    soup = BeautifulSoup(r.text, "lxml")
+    wanted = re.compile(r"result|auction|issue|history|rate", re.I)
+    seen = set()
+    for a in soup.find_all("a", href=True):
+        href = urljoin(PAGES[0][1], a["href"])
+        text = " ".join(a.get_text(" ", strip=True).split())[:60]
+        if href in seen or not (wanted.search(href) or wanted.search(text)):
+            continue
+        seen.add(href)
+        print(f"  {text or '(no text)':<52} {href[:100]}")
+    print(f"  {len(seen)} candidate link(s)")
+
+
 def main() -> None:
     for label, url in PAGES:
         probe(label, url)
+    discover_result_links(PAGES[0][1])
     print("\nIf RESULT FIELDS appear in the served HTML, coupon rates and clearing yields "
           "are scrapeable directly. If they only appear in PDFs, check for a text layer "
           "before writing anything.", file=sys.stderr)

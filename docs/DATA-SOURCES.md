@@ -544,3 +544,52 @@ The reconciliation currently runs from a committed export
 (`backend/reference/dhowcsd-securities.csv`). `discover_secondary_sources.py` now probes
 whether the Securities list is fetchable without a session; if it is, this becomes
 automatic rather than manual.
+
+## 14. Auction results and DhowCSD automation — both probed, both negative (2026-07-25)
+
+### DhowCSD cannot be scraped: it is a single-page app
+
+```
+https://dhowcsd.centralbank.go.ke/            HTTP 200, 2415 bytes, 0 tables
+https://dhowcsd.centralbank.go.ke/securities  HTTP 200, 2415 bytes, 0 tables
+```
+
+Two different URLs returning **byte-identical 2,415-byte shells** is the signature of a
+JavaScript application that renders everything client-side. Plain `requests` sees the
+shell and never the securities.
+
+**Consequence.** The register reconciliation in §13 stays a **manual re-export** — which
+is perfectly workable, since new issues appear a few times a month, not hourly.
+Automating it would need either the underlying API (discoverable by watching the network
+tab, or by running a headless browser on a CI runner) or a browser in the pipeline. Not
+worth that complexity yet.
+
+### Auction results: the path is undiscovered, not absent
+
+Three guessed URLs, three 404s:
+
+```
+/securities/treasury-bonds/treasury-bonds-results/   404
+/securities/treasury-bills/treasury-bills-results/   404
+/auction-results/                                    404
+```
+
+But the bonds landing page returns **HTTP 200 with "coupon rate" and "weighted average"
+present in its HTML — and zero tables**. The vocabulary exists with nothing to hold it,
+which means the results page is real and linked; we simply invented the wrong addresses.
+
+**Guessing URLs is how you conclude "not available" about something that is.** The probe
+now follows CBK's own navigation and reports every link matching
+result/auction/issue/history/rate, instead of asserting paths.
+
+### Why this matters more than the other blocked items
+
+Three roadmap items are downstream of auction results:
+
+| Item | What auction results supply |
+|---|---|
+| Universe expansion (9 → 59 bonds) | **Coupon rates** — the register gives identity and dates but no coupon, and without a coupon there is no yield |
+| Yield history (#4) | Twelve months of clearing yields, answering "is that any good?" |
+| Auction capture (#5) | The weighted average accepted rate — what to actually bid |
+
+This is the single highest-leverage dataset still missing.

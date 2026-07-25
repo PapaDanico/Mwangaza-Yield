@@ -1,46 +1,38 @@
 [
   {
-    "id": "debt-gdp",
-    "label": "Public debt / GDP",
-    "value": 67.6,
-    "unit": "%",
-    "asOf": "2026-01",
-    "source": "National Treasury / IMF",
-    "sourceUrl": "https://www.treasury.go.ke/",
-    "note": "Statutory anchor is 55% by 2028; the IMF projects 71.6% for 2026. High debt raises the yield the government must offer — good for new buyers, a warning on sustainability.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "reserves-cover",
-    "label": "Reserves (import cover)",
-    "value": 5.68,
-    "unit": "months",
-    "asOf": "2026-07",
-    "source": "CBK",
-    "sourceUrl": "https://www.centralbank.go.ke/",
-    "note": "USD 13.35bn. Comfortably above the 4-month statutory floor and the EAC's 4.5-month criterion — the buffer that backs shilling stability.",
-    "sentiment": "good"
-  },
-  {
-    "id": "gdp-growth",
+    "id": "wb-ny-gdp-mktp-kd-zg",
     "label": "GDP growth",
     "value": 4.63,
-    "unit": "% (2025)",
+    "unit": "% y/y",
     "asOf": "2025",
     "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
-    "note": "Actual 2025 outturn, retrieved live from the World Bank API. Projections for 2025–27 average 4.9%, and CBK's own 2026 forecast is 5.3%. Growth is what services the debt.",
-    "sentiment": "good"
+    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE"
   },
   {
-    "id": "real-yield",
-    "label": "Real yield (10y net, after inflation)",
-    "value": 5.7,
+    "id": "wb-fi-res-totl-mo",
+    "label": "Reserves (import cover)",
+    "value": 4.03,
+    "unit": "months",
+    "asOf": "2024",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/FI.RES.TOTL.MO?locations=KE"
+  },
+  {
+    "id": "wb-ne-exp-gnfs-zs",
+    "label": "Exports / GDP",
+    "value": 15.76,
     "unit": "%",
-    "asOf": "2026-07",
-    "source": "Derived: net yield less KNBS CPI",
-    "sourceUrl": "https://www.knbs.or.ke/",
-    "note": "What a 10-year bond earns above inflation after withholding tax. This — not the headline coupon — is the number that grows purchasing power.",
-    "sentiment": "good"
+    "asOf": "2025",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/NE.EXP.GNFS.ZS?locations=KE"
+  },
+  {
+    "id": "wb-bn-cab-xoka-gd-zs",
+    "label": "Current account / GDP",
+    "value": -1.29,
+    "unit": "%",
+    "asOf": "2024",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/BN.CAB.XOKA.GD.ZS?locations=KE"
   }
 ]

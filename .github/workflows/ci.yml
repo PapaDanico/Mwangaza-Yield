@@ -42,6 +42,7 @@ jobs:
         run: |
           python test_cbr_history.py
           python test_auction_results.py
+          python test_expand_universe.py
 
   validate-sources:
     # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
@@ -132,6 +133,11 @@ jobs:
         id: cbr
         working-directory: backend/scrapers
         run: python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
+      - name: Expand the bond universe from the register + auction results
+        if: ${{ !inputs.test_alert }}
+        id: expand
+        working-directory: backend/scrapers
+        run: python expand_universe.py || echo "failed=expand-universe" >> "$GITHUB_OUTPUT"
       - name: Run NSE scraper
         if: ${{ !inputs.test_alert }}
         id: nse
@@ -171,6 +177,7 @@ jobs:
               '${{ steps.worldbank.outputs.failed }}',
               '${{ steps.registry.outputs.failed }}',
               '${{ steps.auctions.outputs.failed }}',
+              '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);

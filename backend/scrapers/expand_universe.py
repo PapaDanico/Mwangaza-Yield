@@ -79,9 +79,16 @@ def load_auction_facts() -> dict:
         code = normalise(rec["issueCode"])
         current = facts.get(code)
         # Prefer the most recent auction: a reopened bond keeps its coupon but
-        # its clearing yield moves.
-        if current and (current.get("auctionDate") or "") >= (rec.get("auctionDate") or ""):
-            continue
+        # its clearing yield moves. On the SAME date CBK sometimes publishes two
+        # results files for one bond (a tap sale alongside the main auction), and
+        # one may carry no clearing rate — so on a tie prefer the fuller record
+        # rather than whichever happened to be read last.
+        if current:
+            newer = (rec.get("auctionDate") or "") > (current.get("auctionDate") or "")
+            same_day = (rec.get("auctionDate") or "") == (current.get("auctionDate") or "")
+            fuller = same_day and rec.get("weightedAverageRate") and not current.get("weightedAverageRate")
+            if not (newer or fuller):
+                continue
         facts[code] = rec
     return facts
 

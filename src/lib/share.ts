@@ -4,6 +4,21 @@
 import { formatKES, formatPct } from './financial-engine';
 import type { LadderPlan } from './ladder';
 
+/**
+ * Where the app lives.
+ *
+ * This string is the one people keep. It goes into every WhatsApp summary a
+ * user forwards and into the link preview anyone sees before they ever open
+ * the site — so it outlives any later change of address, and a link shared
+ * today has to still work in a year. That is why it is the custom domain and
+ * not the Netlify subdomain the project launched on.
+ *
+ * It was previously written out in three separate files. One definition, so a
+ * future move cannot half-happen and leave shared links pointing at an address
+ * the maintainer thought was retired.
+ */
+export const APP_URL = 'https://mwangazayield.org';
+
 /** CBK publishes auction announcements here — the most reliable primary feed. */
 export const CBK_WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029Va5HrcD4dTnNnTguwc24';
 

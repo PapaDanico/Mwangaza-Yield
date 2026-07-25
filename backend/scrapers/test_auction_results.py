@@ -13,7 +13,7 @@ import sys
 
 from auction_results import (
     assign_to_columns, cell_value, codes_in_name, find_header, group_lines,
-    normalise_code,
+    normalise_code, results_section,
 )
 
 failures = []
@@ -105,6 +105,35 @@ def main():
     check("a single-issue filename gives one",
           codes_in_name("SWITCH RESULTS FXD1-2012-020 DATED 15-07-2026.pdf"),
           ["FXD1/2012/020"])
+
+    print("section B must never be read as results")
+    # These PDFs carry "A." the auction just held and "B. FORTHCOMING TREASURY
+    # BOND(S) ISSUE(S)" naming NEXT month's bonds. The second dry-run proved we
+    # were reading across that boundary and attaching an auctioned coupon to a
+    # forthcoming bond — a wrong number against a real bond name.
+    doc = group_lines([
+        w("Tenor", 40, 100), w("FXD1/2018/25", 290, 100), w("FXD1/2021/25", 405, 100),
+        w("Coupon", 40, 120), w("13.200", 292, 120), w("13.900", 407, 120),
+        w("B.", 40, 160), w("FORTHCOMING", 60, 160), w("TREASURY", 150, 160),
+        w("BOND", 210, 160), w("ISSUES", 250, 160),
+        w("Tenor", 40, 180), w("FXD1/2026/30", 290, 180),
+    ])
+    check("the full document has four lines", len(doc), 4)
+    trimmed = results_section(doc)
+    check("everything from FORTHCOMING down is dropped", len(trimmed), 2)
+    codes, _ = find_header(trimmed, ["FXD1/2018/025", "FXD1/2021/025"])
+    check("only the auctioned bonds are read", codes, ["FXD1/2018/025", "FXD1/2021/025"])
+    check("the forthcoming bond never appears", "FXD1/2026/030" in codes, False)
+
+    print("the filename guides which line is the header")
+    # A stray earlier line naming an unrelated bond must not win over the real
+    # header, which is the line matching what the filename promised.
+    noisy = group_lines([
+        w("Reopened", 40, 60), w("FXD1/2012/20", 290, 60),
+        w("Tenor", 40, 100), w("FXD1/2018/25", 290, 100), w("FXD1/2021/25", 405, 100),
+    ])
+    codes, _ = find_header(noisy, ["FXD1/2018/025", "FXD1/2021/025"])
+    check("the best-matching line wins", codes, ["FXD1/2018/025", "FXD1/2021/025"])
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

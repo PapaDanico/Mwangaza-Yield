@@ -49,6 +49,11 @@ TIMEOUT = 60
 MAX_PDFS = 12
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
+# These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING
+# TREASURY BOND(S) ISSUE(S)" naming NEXT month's bonds. The second dry-run
+# proved we were reading across the boundary and attaching an auctioned coupon
+# to a forthcoming bond. Everything at or below this line is not a result.
+SECTION_B_RE = re.compile(r"\bFORTHCOMING\b|^\s*B\.\s", re.I)
 # Issue codes appear as FXD1-2021-005 in filenames and FXD1/2021/5 in the page.
 ISSUE_RE = re.compile(r"\b((?:FXD|IFB|SDB)\s?\d?)\s?[/-]\s?(\d{4})\s?[/-]\s?(\d{1,3})\b", re.I)
 DATE_IN_NAME_RE = re.compile(r"(\d{2})-(\d{2})-(\d{4})")
@@ -115,7 +120,15 @@ def assign_to_columns(line: list, centres: list, label_x: float) -> dict:
     return {i: cell_value(frs) for i, frs in buckets.items() if frs}
 
 
-def find_header(lines: list) -> tuple:
+def results_section(lines: list) -> list:
+    """Drop everything from the 'FORTHCOMING ISSUES' heading downwards."""
+    for i, line in enumerate(lines):
+        if SECTION_B_RE.search(" ".join(w["text"] for w in line)):
+            return lines[:i]
+    return lines
+
+
+def find_header(lines: list, expected: list | None = None) -> tuple:
     """Locate the row naming the issues; it defines the column geometry.
 
     Matches against the JOINED line rather than word by word. The first dry-run
@@ -124,6 +137,7 @@ def find_header(lines: list) -> tuple:
     boundaries often enough that per-word matching silently loses half the
     bonds. Under-extraction is quieter than a wrong number and just as wrong.
     """
+    best: tuple = ([], [], -1)
     for line in lines:
         spans, pos, parts = [], 0, []
         for w in line:
@@ -140,9 +154,17 @@ def find_header(lines: list) -> tuple:
                 continue
             codes.append(normalise_code(*m.groups()))
             centres.append((min(o["x0"] for o in owners) + max(o["x1"] for o in owners)) / 2)
-        if codes:
-            return codes, centres
-    return [], []
+        if not codes:
+            continue
+        # Prefer the line that best matches the bonds the FILENAME names. Taking
+        # the first line with any code was how a forthcoming-issues heading got
+        # mistaken for the results header.
+        score = len(set(codes) & set(expected or [])) if expected else 0
+        if score > best[2] or (best[2] < 0):
+            best = (codes, centres, score)
+        if expected and score == len(expected):
+            break
+    return best[0], best[1]
 
 
 def codes_in_name(url: str) -> list:
@@ -172,8 +194,8 @@ def parse_pdf(content: bytes, source_url: str) -> list:
     for words in pages:
         if not words:
             continue
-        lines = group_lines(words)
-        codes, centres = find_header(lines)
+        lines = results_section(group_lines(words))
+        codes, centres = find_header(lines, expected)
         if not codes:
             continue
         # Values sit to the right of the row labels; anchor on the leftmost

@@ -88,7 +88,28 @@ export default function GoalsPage() {
         </p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Mobile: a single control. The four cards are mode selection, not
+          comparison, and stacked they push every input below the fold. */}
+      <div className="sm:hidden">
+        <label htmlFor="goal-select" className="mb-1 block text-sm font-medium text-ink-soft">
+          What is the money for?
+        </label>
+        <select
+          id="goal-select"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value as GoalKey)}
+          className={inputCls}
+        >
+          {GOALS.map((g) => (
+            <option key={g.key} value={g.key}>
+              {g.title} — {g.tagline.toLowerCase()}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tablet and up: cards, where they cost nothing and read faster. */}
+      <div className="hidden gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-4">
         {GOALS.map((g) => {
           const Icon = ICONS[g.key];
           const active = g.key === goal;

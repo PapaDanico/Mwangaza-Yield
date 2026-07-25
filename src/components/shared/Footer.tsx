@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MessageCircle, Github } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
 
 const COLUMNS = [
@@ -69,14 +69,6 @@ export default function Footer() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3 py-1.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
               >
                 <MessageCircle size={13} /> CBK on WhatsApp
-              </a>
-              <a
-                href="https://github.com/PapaDanico/Mwangaza-Yield"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/20 px-3 py-1.5 text-xs font-medium text-sand-300/70 transition hover:bg-sand-50/5"
-              >
-                <Github size={13} /> Source
               </a>
             </div>
           </div>

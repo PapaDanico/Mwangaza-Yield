@@ -246,16 +246,43 @@ Read them back from Project configuration → Environment variables. The MCP wri
 reported success for all four but its read-back returned an empty list, so the values
 above are *asserted, not verified* — confirm in the UI before writing the sender.
 
-**Still to come, and what it needs:**
-- The sender itself. A Netlify scheduled function is the recommended fit: it already
-  hosts the site, and the job is a daily cron that re-runs `evaluateAlerts` against the
-  same data files.
-- Push subscriptions, which are the first thing this app would ever store server-side —
-  Netlify Blobs is the obvious home on the current plan. That is the moment the "no
-  account, no e-mail" promise needs restating precisely: an endpoint is not an identity,
-  and the free tier keeps working untouched for anyone who never subscribes.
-- No subscribe button ships until the sender does. A reader who opts in and then hears
-  nothing is worse off than one who was never offered.
+**Sender shipped 2026-07-25.** Two Netlify functions, and they are the only server code
+this project has ever had:
+
+- `netlify/functions/subscribe.mts` at `/api/subscribe` — stores a push endpoint under a
+  SHA-256 of itself in Netlify Blobs. POST to register or update, DELETE to remove.
+- `netlify/functions/send-alerts.mts` — cron `0 4 * * *`, which is 07:00 in Nairobi and
+  after the 03:00 UTC data refresh. Reads the site's own published JSON, runs the same
+  `evaluateAlerts` the browser runs, pushes what is due, prunes 404/410 endpoints.
+
+**The line the design is built on:** market facts may travel, personal ones may not.
+
+| | Server can send | Why |
+|---|---|---|
+| Auction window | yes | True for everyone; asking reveals an interest, not a position |
+| T-Bill threshold | yes | Same |
+| Coupon due | **no** | Needs your holdings |
+| Maturity | **no** | Needs your holdings |
+
+`src/lib/push-rules.ts` enforces this with a **whitelist**, not a blacklist — it names the
+fields it copies. A blacklist is one new rule kind away from shipping an amount to a
+server by default, silently and correctly, until somebody notices. Verified by running
+the real endpoint against a payload with holdings attached: it returns 200 and stores
+endpoint, keys, rules and a timestamp, and nothing else.
+
+Everything worth testing lives in `src/lib/push-send.ts` — what is due, what the delivery
+log becomes, whether a failure means the endpoint is dead — so the function file is glue.
+Exercised end-to-end against the shipped data files with in-memory stubs for Blobs and
+web-push: five subscribers, two delivered, one 410 pruned, one 503 kept and not logged
+(so it retries tomorrow rather than losing the event), and a second run the same day
+delivering nothing.
+
+**Still open:**
+- Nobody has subscribed yet, so no delivery has been observed against a real push
+  service. The first real subscription is the test that matters.
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` must be present at build time or `pushConfigured()` is
+  false and the subscribe control never renders — deliberately, so a build without keys
+  degrades to the device-only behaviour instead of offering a button that cannot work.
 
 `public/sw.js` already carries the `push` and `notificationclick` handlers, so the
 sender is the only missing piece. Nothing subscribes yet, so `push` never fires today.

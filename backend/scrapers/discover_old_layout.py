@@ -6,24 +6,33 @@ The guard is behaving correctly: it refuses to hand back a tidy partial result.
 But that coverage is genuinely lost, and it is concentrated in exactly the years
 that would otherwise give each bond a longer auction history.
 
-There are three quite different explanations and they lead to three different
-decisions, so guessing is worthless:
+WHAT THE FIRST RUN ESTABLISHED (2026-07-25)
+-------------------------------------------
+Three explanations went in. Two came out dead, and the survivor was not on the
+list:
 
-  1. **No text layer at all** — the file is a scan. Then this is over: the
-     project has a standing refusal to OCR financial figures, because OCR
-     confuses digits and a misread bond price is a wrong number shown with full
-     confidence. We would record it and move on.
-  2. **Text present, header line not found.** `find_header` looks for a line
-     whose words contain the issue codes. If those years print the codes down
-     the left as ROWS rather than across the top as columns, the parser is
-     looking along the wrong axis — real work, but tractable.
-  3. **Text present, codes present, spelled differently.** A separator or
-     spacing `ISSUE_RE` does not match. Then the fix is one regex.
+  1. **A scan with no text layer** — REFUTED. Every failing file carries a real
+     text layer (~1,900 characters, ~180 words on one page).
+  2. **The header not found** — REFUTED, and this was my leading guess. On
+     every failing file `find_header` returns BOTH issue codes with two clean
+     column centres. The header parses perfectly and the file still yields
+     nothing.
+  3. **The codes spelled differently** — REFUTED. They read exactly as
+     expected, e.g. `TENOR FXD1/2022/015 FXD1/2022/025`.
 
-This prints enough to tell them apart: whether a text layer exists, whether the
-issue codes appear anywhere in it, whether `find_header` finds them, and the
-first page reconstructed line by line so the actual layout is visible rather
-than imagined.
+So the fault is downstream of the header, in FIELD extraction. The failures
+also are NOT confined to 2020-2023: the run turned up August 2025, July 2025,
+June 2025, May 2025, February 2025 and January 2025 files parsing to zero. The
+"2020-2023" framing came from the first sample, not from the archive.
+
+The surviving suspicion, which this probe now prints the evidence for:
+`label_x` is a fixed guess, `min(centres) - 40`. On the failing files the
+column centres are around 104 and 199, putting the label boundary at 64 — and a
+row label like "Weighted Average Rate of Accepted Bids (%)" has words well to
+the right of x=64. Those label words get bucketed into the value columns and
+joined onto the digits by `cell_value`, so a cell reads
+"AcceptedBids(%)13.9128" rather than "13.9128", fails NUMERIC_RE, and is
+dropped. Every field, hence zero records from a perfectly-read header.
 
 THE FAILING FILES ARE FOUND, NOT LISTED. The obvious way to write this probe
 was to paste in the URLs the failing run named — but the run log truncates each
@@ -42,9 +51,26 @@ from io import BytesIO
 import requests
 
 from auction_results import (
-    UA, TIMEOUT, auction_date_from_name, codes_in_name, find_header,
-    find_result_pdfs, group_lines, parse_pdf, results_section,
+    FIELDS, NUMERIC_RE, UA, TIMEOUT, ISSUE_RE, assign_to_columns,
+    auction_date_from_name, codes_in_name, find_header, find_result_pdfs,
+    group_lines, parse_pdf, results_section,
 )
+
+
+def codes_on_line_x0(line, wanted):
+    """Left edge of the first issue-code word on this line, if any.
+
+    The header defines the column geometry, so it is also the honest place
+    to learn where the LABEL column ends — rather than guessing a fixed
+    offset from the first column centre.
+    """
+    text = " ".join(w['text'] for w in line)
+    if not ISSUE_RE.search(text):
+        return None
+    for w in line:
+        if any(ch.isdigit() for ch in w['text']) and ('/' in w['text'] or '-' in w['text']):
+            return round(w['x0'], 1)
+    return None
 
 FIRST_YEAR, LAST_YEAR = "2020", "2023"
 MAX_CANDIDATES = 25   # files to test-parse looking for failures
@@ -145,6 +171,42 @@ def describe(url: str, content: bytes) -> None:
             for line in lines[:MAX_LINES]:
                 joined = " ".join(w["text"] for w in line)
                 print(f"        | {joined[:150]}")
+
+            # find_header succeeds on these files and they still yield nothing,
+            # so the fault is downstream in FIELD extraction. This shows what
+            # assign_to_columns actually returns for each row we care about.
+            #
+            # The suspicion to confirm or kill: label_x is a fixed guess,
+            # min(centres) - 40. With centres at [104, 199] that puts the label
+            # boundary at 64, and a row label like "Weighted Average Rate of
+            # Accepted Bids (%)" certainly has words to the right of x=64. Those
+            # words would be bucketed into the value columns and joined onto the
+            # digits by cell_value, so the cell reads
+            # "AcceptedBids(%)13.9128" instead of "13.9128", fails NUMERIC_RE,
+            # and the field is silently dropped — every field, hence zero
+            # records from a file whose header parsed perfectly.
+            if not codes:
+                continue
+            label_x = min(centres) - 40
+            print(f"      label_x = {label_x:.1f} (min centre {min(centres):.1f} - 40)")
+            header_x0 = None
+            for line in lines:
+                if codes_on_line_x0(line, codes):
+                    header_x0 = codes_on_line_x0(line, codes)
+                    break
+            print(f"      leftmost issue-code word starts at x0 = {header_x0}")
+            for key, pattern in FIELDS:
+                for line in lines:
+                    text = " ".join(w["text"] for w in line)
+                    if not pattern.search(text):
+                        continue
+                    cells = assign_to_columns(line, centres, label_x)
+                    verdict = {
+                        i: (v, "numeric" if NUMERIC_RE.match(v) else "REJECTED")
+                        for i, v in cells.items()
+                    }
+                    print(f"      {key}: {verdict}")
+                    break
 
 
 def main() -> None:

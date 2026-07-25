@@ -223,16 +223,39 @@ is running. The page says exactly that and points at the existing iCal export fo
 that genuinely cannot be missed. Anything stronger would be the one screen in the app
 claiming more than it can do.
 
+**VAPID keys — generated and installed 2026-07-25.** A P-256 pair (65-byte uncompressed
+point, 32-byte private scalar). Four environment variables were set on the Netlify
+project `mwangazayield`:
+
+| Variable | Scope | Secret | Purpose |
+|---|---|---|---|
+| `VAPID_PRIVATE_KEY` | functions | yes | Signs the JWT the push service verifies |
+| `VAPID_PUBLIC_KEY` | functions | no | Paired with the above by the sender |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | builds | no | Embedded in the client so it can subscribe |
+| `VAPID_SUBJECT` | functions, builds, runtime | no | `mailto:info@mwangazadigital.org` |
+
+The subject is the published support address, not a personal one — it travels to Google
+and Mozilla inside every JWT, so it should be the address the project already publishes.
+
+The private key exists **only** in Netlify's environment. It is not in this repository,
+in any commit message, or in any build artefact, and it must not be. Losing it is
+survivable but not free: every existing subscription becomes undeliverable and each
+reader has to opt in again.
+
+Read them back from Project configuration → Environment variables. The MCP write path
+reported success for all four but its read-back returned an empty list, so the values
+above are *asserted, not verified* — confirm in the UI before writing the sender.
+
 **Still to come, and what it needs:**
-- A VAPID key pair. Public half ships in the client bundle; private half is a secret on
-  the sender.
-- A decision on where the sender runs — a Netlify scheduled function is the recommended
-  fit: it already hosts the site, and the job is a daily cron that re-runs
-  `evaluateAlerts` against the same data files.
-- Push subscriptions, which are the first thing this app would ever store server-side.
-  That is the moment the "no account, no e-mail" promise needs restating precisely: an
-  endpoint is not an identity, and the free tier keeps working untouched for anyone who
-  never subscribes.
+- The sender itself. A Netlify scheduled function is the recommended fit: it already
+  hosts the site, and the job is a daily cron that re-runs `evaluateAlerts` against the
+  same data files.
+- Push subscriptions, which are the first thing this app would ever store server-side —
+  Netlify Blobs is the obvious home on the current plan. That is the moment the "no
+  account, no e-mail" promise needs restating precisely: an endpoint is not an identity,
+  and the free tier keeps working untouched for anyone who never subscribes.
+- No subscribe button ships until the sender does. A reader who opts in and then hears
+  nothing is worse off than one who was never offered.
 
 `public/sw.js` already carries the `push` and `notificationclick` handlers, so the
 sender is the only missing piece. Nothing subscribes yet, so `push` never fires today.

@@ -121,9 +121,21 @@ This is the kind of detail that makes a chart either informative or quietly misl
 
 ## Later — reach
 
-### 8. Custom domain
-`mwangazayield.co.ke` before wide sharing. Links posted now point at the Netlify
-subdomain forever.
+### 8. Custom domain — done 2026-07-25
+`mwangazayield.org` is live. The app now publishes that address in link previews and in
+every shared summary, which was the whole point: a link forwarded on WhatsApp is kept,
+and it had to outlive the launch address rather than pin the project to it.
+
+The URL had been written out in three separate files. It is now one constant in
+`src/lib/share.ts` with a test asserting it is not a deploy-generated host — a move that
+half-happens is worse than one that has not started, because the links it leaves behind
+look fine to everyone except the people clicking them.
+
+**Left to the Netlify dashboard on purpose.** Redirecting the old
+`mwangazayield.netlify.app` to the new domain is what the "primary domain" setting
+already does, and hand-writing a host redirect in `netlify.toml` would duplicate it while
+risking the per-PR `deploy-preview-*` hostnames. Worth confirming the primary domain is
+set to `mwangazayield.org` there.
 
 ### 9. Swahili
 The audience is Kenyan; the app is English-only. Not a translation of jargon — a

@@ -8,9 +8,13 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '600'], v
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import AppInit from '@/components/shared/AppInit';
+import { APP_URL } from '@/lib/share';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mwangazayield.netlify.app'),
+  // Every relative URL in the metadata below — the og:image above all —
+  // resolves against this. Pointing it at the Netlify subdomain would keep
+  // serving link previews from an address we no longer publish.
+  metadataBase: new URL(APP_URL),
   title: 'Mwangaza Yield — Government bonds, made plain',
   description:
     'When you lend to Kenya, know what you earn. See what a government bond really pays after tax, in plain language, before you commit a shilling. Free, private, works offline.',

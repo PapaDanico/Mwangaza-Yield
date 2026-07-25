@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { Upload, Trash2, Download, CalendarPlus, Share2, CheckCircle2 } from 'lucide-react';
-import { formatPortfolioSummary, shareText } from '@/lib/share';
+import { APP_URL, formatPortfolioSummary, shareText } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
@@ -146,7 +146,7 @@ export default function PortfolioPage() {
             <button
               onClick={() =>
                 shareText(
-                  formatPortfolioSummary(totals, enriched.length, 'https://mwangazayield.netlify.app')
+                  formatPortfolioSummary(totals, enriched.length, APP_URL)
                 )
               }
               className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"

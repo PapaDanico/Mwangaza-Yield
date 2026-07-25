@@ -6,7 +6,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { buildLadder } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
-import { formatLadderSummary, shareText, printReport } from '@/lib/share';
+import { APP_URL, formatLadderSummary, shareText, printReport } from '@/lib/share';
 import LadderReport from '@/components/report/LadderReport';
 
 export default function LadderPage() {
@@ -71,7 +71,7 @@ export default function LadderPage() {
             </button>
             <button
               onClick={() =>
-                shareText(formatLadderSummary(plan, 'https://mwangazayield.netlify.app'))
+                shareText(formatLadderSummary(plan, APP_URL))
               }
               className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"
             >

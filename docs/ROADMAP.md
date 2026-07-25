@@ -102,11 +102,47 @@ number.
 The first incremental dispatch read 120 previously-unseen PDFs and reached **169 auction
 records across 57 bonds**, 159 carrying a coupon, with 148 files still queued.
 
-**It also surfaced a real defect in the archive's tail.** Roughly one file in ten from
-2020–2023 parses zero or partial — `filename names 2 issue(s), parsed 0` — because CBK's
-table layout differs in those years. The parser says so loudly rather than returning a
-tidy partial result, which is the behaviour we want, but the coverage is genuinely lost
-until the older layout is handled. That is the next piece of work on this item.
+**It also surfaced a real defect** — `filename names 2 issue(s), parsed 0`. The parser
+said so loudly rather than returning a tidy partial result, which is the behaviour we
+want, but the coverage was genuinely lost. Diagnosed and fixed 2026-07-25; see below.
+
+### The "2020-2023 layout" defect — diagnosed and fixed 2026-07-25
+Worth recording in full, because almost everything I believed about it was wrong and a
+probe is the only reason none of it shipped.
+
+**The name was wrong.** These were never 2020-2023 files. The probe found August, July,
+June, May, February and January 2025 files parsing to zero. The date range came from the
+first sample, not from the archive.
+
+**The first three hypotheses were wrong.** Not a scan (every failing file carries a real
+text layer). Not an unmatched code spelling (they read exactly as expected). And not a
+missing header, which was my leading guess — `find_header` returned both codes with two
+clean column centres on every failing file. I had already written that fix, with passing
+tests, before the probe killed it. It was reverted rather than shipped.
+
+**The obvious remedy was wrong too.** The label boundary is a positional guess,
+`min(centres) - 40`. Deriving it from the header's own left edge instead lands at or
+*below* the same value on these files — equally permissive. Arithmetic, checked before
+shipping.
+
+**Two real faults, found only by printing what the parser actually produced:**
+
+1. *Label contamination.* `cell_value` joins fragments without a separator, because that
+   is the only way to reassemble CBK's split digits. A label word crossing the boundary
+   joins just as silently, so a cell read `(%)13.9128`, failed the numeric test, and was
+   dropped — every field. Fixed by requiring a fragment to look like part of a number.
+2. *The header taken from the prose title.* These PDFs open with a title naming every
+   bond, above a table that may name only the bonds actually sold when one leg was
+   cancelled. Scoring by bond count picked the title, whose word positions are prose
+   positions. Both bonds' figures then landed in one column and the coupon cell read
+   `15.03916.844`.
+
+**The safe fix was not the obvious one.** `find_header` now returns ranked candidates and
+the caller keeps whichever makes the table parse. Ranking by *fields recovered* looks
+natural and is unsafe: on the cancelled-leg file both geometries recover exactly one
+field, and the title's columns hang that coupon on the **cancelled** bond. A wrong number
+against a real bond name is the worst thing this parser can produce. Ranking by column
+**coverage** separates them — 1 of 2 columns filled versus 1 of 1.
 
 ### 12. CBR rate-cycle history — shipped 2026-07-25
 119 MPC decisions from December 2008, scraped from CBK's own press table, with each
@@ -182,7 +218,7 @@ than three times.
 
 The remaining 13 are named in the log every run. They are older IFBs whose auctions sit
 further back in the archive than we have read, plus two whose PDFs parsed without a
-coupon — the 2020-2023 layout defect.
+coupon — the header/label defect diagnosed and fixed above.
 
 **The strongest validation of the whole pipeline:** all seven coupons that overlap our
 hand-curated figures matched exactly, including FXD1/2019/20 at 12.873% — the precise

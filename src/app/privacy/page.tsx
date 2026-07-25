@@ -29,9 +29,20 @@ export default function PrivacyPage() {
       <p>
         The site is served as static files by Netlify. Like any web host, Netlify processes standard
         server request data (IP address, browser type, pages requested) to deliver the site and
-        protect it from abuse. We do not add analytics, advertising trackers, or third-party
-        scripts on top of that. Fonts are served from our own domain rather than a third party, so
+        protect it from abuse. Fonts are served from our own domain rather than a third party, so
         loading a page does not notify anyone else that you did.
+      </p>
+      <p>
+        We use <strong>Simple Analytics</strong> to count page views. It sets no cookies, stores no
+        IP addresses, builds no profile and cannot follow you to another site — which is why this
+        page carries no consent banner. It tells us how many people opened the calculator this week
+        and nothing whatsoever about who they are. We use it for one reason: to know whether this is
+        worth continuing to build.
+      </p>
+      <p>
+        It counts page views only. It cannot see the figures you type, the holdings you import or
+        the goals you set, because those never leave your device — that is a property of how the app
+        is built, not a promise about how we behave.
       </p>
 
       <h2>Links away from the app</h2>

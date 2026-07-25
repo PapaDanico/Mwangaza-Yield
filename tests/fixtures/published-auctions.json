@@ -1,0 +1,66 @@
+{
+  "_comment": [
+    "Auction figures reported independently of us, used to check our parse against",
+    "the outside world rather than against itself.",
+    "",
+    "Everything else in this repository is derived from CBK's own PDFs, which means",
+    "a systematic misread has nothing to collide with — the archive would agree with",
+    "itself all the way to a wrong answer. That is not hypothetical: a bid-to-cover",
+    "computed from a partial numerator reported Kenyan auctions as persistently",
+    "undersubscribed when the published record says they are persistently",
+    "oversubscribed, and no test caught it because every test read the same data.",
+    "",
+    "These figures come from Kenyan financial press reporting on CBK's results.",
+    "They are recorded ONLY to verify what we parsed. They are never ingested,",
+    "never shipped, and never fill a gap: a figure we cannot read from the source",
+    "PDF stays missing. Borrowing someone else's transcription would trade a",
+    "visible hole for an invisible dependency.",
+    "",
+    "Amounts are KES billions, as the press reports them.",
+    "Add entries as reporting is found; each one is a place a silent regression",
+    "would now be caught."
+  ],
+  "auctions": [
+    {
+      "auctionDate": "2026-02-16",
+      "source": "Kenyan Wallstreet / People Daily, February 2026",
+      "sourceUrls": [
+        "https://kenyanwallstreet.com/cbk-2627-first-auction",
+        "https://peopledaily.digital/business/cbk-raises-ksh100-5b-in-oversubscribed-treasury-bond-auction"
+      ],
+      "advertisedTargetBn": 50.0,
+      "totalBidsBn": 213.7,
+      "totalAcceptedBn": 100.5,
+      "aggregatePerformancePct": 427.47,
+      "bonds": [
+        {
+          "issueCode": "FXD3/2019/015",
+          "note": "reported as the 15-year",
+          "bidsBn": 133.8,
+          "acceptedBn": 54.8,
+          "performancePct": 267.59
+        },
+        {
+          "issueCode": "FXD1/2018/025",
+          "note": "reported as the 25-year",
+          "bidsBn": 79.9,
+          "performancePct": 159.89
+        }
+      ]
+    },
+    {
+      "auctionDate": "2026-04-06",
+      "source": "Tuko / The Trading Room, April 2026",
+      "sourceUrls": [
+        "https://www.tuko.co.ke/business-economy/capital-market/622305-cbk-rejects-ksh-24-billion-excess-loans-kenyans-april-bonds-auction/",
+        "https://tradingroom.co.ke/kenyas-treasury-bond-auction-oversubscribed/"
+      ],
+      "advertisedTargetBn": 40.0,
+      "totalBidsBn": 74.89,
+      "bonds": [
+        { "issueCode": "FXD1/2020/015", "note": "reported as the 15-year", "performancePct": 103.55 },
+        { "issueCode": "FXD1/2018/025", "note": "reported as the 25-year", "bidToCover": 2.44 }
+      ]
+    }
+  ]
+}

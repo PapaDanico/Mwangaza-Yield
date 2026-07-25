@@ -12,9 +12,11 @@ Mwangaza Yield's data comes from and how to refresh it.
 | Prospectus listing | `centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/` | Scrape for new PDF links |
 | CBR | `centralbank.go.ke/rates/central-bank-rate/` | MPC announcements |
 
-⚠️ **CBK serves HTTP 403 to non-browser clients.** Scrapers must send a real browser
-User-Agent; if that stops working, fall back to manual download + local parse. This is why
-the pipeline treats scraping as best-effort with manual override.
+✅ **CBK is reachable from code** — verified 2026-07-25 by running `validate.py` on a
+network-open GitHub runner: all four CBK endpoints returned HTTP 200 with the expected
+markers present. An earlier note here claimed CBK served 403 to non-browser clients; that
+was **wrong**. The 403s came from the development sandbox's egress proxy, not from CBK.
+Scrapers still send a browser User-Agent, which is harmless and polite.
 
 ## 1b. Treasury bills (CBK)
 
@@ -47,6 +49,16 @@ Rates captured 16 Jul 2026 auction: 91d **8.7986%**, 182d **8.9695%**, 364d **9.
 
 - Monthly CPI release: `knbs.or.ke/reports/consumer-price-indices-and-inflation-rates-<month>-<year>/`
 - June 2026: **6.4% y/y**.
+
+⚠️ **`knbs.or.ke` fails TLS verification** — verified 2026-07-25 on a network-open runner:
+`SSLError(SSLCertVerificationError)`, an incomplete or invalid certificate chain on their
+server. This is the one source of the seven that is not usable as-is.
+
+**We do not disable certificate verification to work around it.** Silently trusting an
+unverified certificate for data that drives investment decisions is a worse outcome than
+using a different source. `macro_parser.py` therefore catches the SSL error explicitly and
+falls back to CBK, which publishes the same headline inflation figure. If KNBS fixes its
+chain, the primary path resumes automatically with no code change.
 
 ## 4. Aggregators (secondary confirmation only)
 
@@ -97,3 +109,22 @@ any source whose licence forbids redistribution can only be linked, never mirror
 | CDSC | Declined | Participant-only data |
 
 World Bank refresh runs in CI via `backend/scrapers/worldbank.py` (no secrets needed).
+
+## 6. Live validation (2026-07-25)
+
+`backend/scrapers/validate.py`, run via the `workflow_dispatch` → `validate-sources` job on
+a GitHub runner (which, unlike the dev sandbox, has unrestricted egress):
+
+| Source | Result |
+|---|---|
+| CBK home (CBR, FX) | ✅ 200, marker found |
+| CBK treasury bonds | ✅ 200 |
+| CBK prospectus list | ✅ 200 |
+| CBK treasury bills | ✅ 200 |
+| KNBS | ❌ TLS verification failure |
+| NSE bonds statistics | ✅ 200 |
+| World Bank API | ✅ 200, returned `{date: 2025, value: 4.633}` |
+
+**6 of 7 usable as-is.** Re-run the job before trusting the pipeline after any long gap —
+it checks not just reachability but whether each page still contains the marker its parser
+depends on, which is how a scraper actually dies.

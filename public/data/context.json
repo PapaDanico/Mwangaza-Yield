@@ -24,12 +24,12 @@
   {
     "id": "gdp-growth",
     "label": "GDP growth",
-    "value": 4.9,
-    "unit": "% p.a.",
-    "asOf": "2025-2027",
-    "source": "World Bank",
+    "value": 4.63,
+    "unit": "% (2025)",
+    "asOf": "2025",
+    "source": "World Bank Open Data (CC BY 4.0)",
     "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
-    "note": "Projected average, revised up from 4.3%. CBK's own 2026 forecast is 5.3%. Growth is what services the debt.",
+    "note": "Actual 2025 outturn, retrieved live from the World Bank API. Projections for 2025–27 average 4.9%, and CBK's own 2026 forecast is 5.3%. Growth is what services the debt.",
     "sentiment": "good"
   },
   {

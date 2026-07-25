@@ -37,14 +37,32 @@ def scrape() -> list:
         records.append({"id": f"fx-{today}", "indicator": "FX_USD_KES", "value": float(fx.group(1)),
                         "date": today, "unit": "KES/USD", "source": "CBK"})
 
+    # KNBS first; CBK publishes the same headline CPI and is the fallback.
+    cpi_value = None
     try:
         knbs = fetch_text("https://www.knbs.or.ke/")
         cpi = re.search(r"(?:inflation|CPI)[\s\S]{0,80}?([\d.]+)\s*%", knbs, re.I)
         if cpi:
-            records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": float(cpi.group(1)),
-                            "date": today, "unit": "% y/y", "source": "KNBS"})
+            cpi_value = (float(cpi.group(1)), "KNBS")
+    except requests.exceptions.SSLError as exc:
+        # Verified 2026-07-25 on a network-open runner: knbs.or.ke fails TLS
+        # verification (incomplete chain). We do NOT disable verification —
+        # silently trusting an unverified certificate for financial data is a
+        # worse outcome than falling back to another authoritative source.
+        print(f"KNBS TLS verification failed ({exc.__class__.__name__}) — falling back to CBK", file=sys.stderr)
     except requests.RequestException as exc:
-        print(f"KNBS fetch failed ({exc}) — continuing with CBK indicators", file=sys.stderr)
+        print(f"KNBS fetch failed ({exc}) — falling back to CBK", file=sys.stderr)
+
+    if cpi_value is None:
+        cpi = re.search(r"(?:Inflation Rate|Overall Inflation)[\s\S]{0,80}?([\d.]+)\s*%", cbk, re.I)
+        if cpi:
+            cpi_value = (float(cpi.group(1)), "CBK (KNBS unavailable)")
+
+    if cpi_value:
+        records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi_value[0],
+                        "date": today, "unit": "% y/y", "source": cpi_value[1]})
+    else:
+        print("CPI unavailable from both KNBS and CBK — keeping existing value", file=sys.stderr)
 
     return records
 

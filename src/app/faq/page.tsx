@@ -110,6 +110,81 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
+    q: 'My bond pays 11.5% after tax. Am I actually getting richer?',
+    a: (
+      <>
+        <p>
+          Partly. Every figure quoted anywhere in Kenyan finance is <strong>nominal</strong> —
+          counted in shillings, without asking what those shillings will buy. At the CPI figure we
+          publish, an 11.56% net yield is about <strong>4.84% real</strong>. You are getting ahead,
+          by roughly half as much as the headline suggests.
+        </p>
+        <p>
+          Divide rather than subtract — (1 + return) ÷ (1 + inflation) − 1. Subtracting gives 5.15%
+          here, which overstates by 31 basis points, and the error grows as rates rise. The
+          calculator shows the real figure for every bond, with the inflation rate on a slider so
+          you can disagree with our assumption rather than inherit it.
+        </p>
+      </>
+    ),
+  },
+  {
+    q: 'If the principal is guaranteed, how can I lose purchasing power?',
+    a: (
+      <>
+        <p>
+          Because the guarantee is in shillings, not in what they buy. A bond returns a fixed
+          nominal face value whenever it matures. At 6.41% inflation, KES 100 repaid in fifteen
+          years buys roughly what <strong>KES 39</strong> buys today — and no yield figure shows
+          this, because it is not a yield effect at all.
+        </p>
+        <p>
+          The longer the bond, the more of the real loss sits in the principal rather than the
+          coupon. It is the strongest argument for not treating a thirty-year bond as simply a
+          higher-yielding version of a three-year one.
+        </p>
+      </>
+    ),
+  },
+  {
+    q: 'A broker quoted me a price. How do I know it is fair?',
+    a: (
+      <>
+        <p>
+          Record it on the price book and the app solves the yield that price implies, then sets it
+          beside what comparable paper has actually cleared at in recent CBK auctions. Kenya
+          publishes no retail secondary benchmark and we hold no exchange prices, so the primary
+          market is the honest yardstick available.
+        </p>
+        <p>
+          Comparable means four things at once: the same tax treatment, roughly the same time left
+          to run, gross measured against gross, and recent. On the current archive that is
+          answerable for 29 of the 58 outstanding bonds — for the rest the app says so rather than
+          quoting a level built on two prints.
+        </p>
+      </>
+    ),
+  },
+  {
+    q: 'Should I always pick the bond with the highest yield?',
+    a: (
+      <>
+        <p>
+          No, and three things in this app exist because of how often that goes wrong. Compare{' '}
+          <strong>after tax</strong> — a tax-free 12.8% infrastructure bond beats a taxable 14%.
+          Compare <strong>after inflation</strong>, or a high nominal yield in a high-inflation year
+          can leave you standing still. And match the <strong>maturity to when you need the
+          money</strong>: the highest yield on the board is no use if it repays four years after the
+          school fees are due.
+        </p>
+        <p>
+          One bond is also not a plan. That is what the ladder is for — and why the goal planners
+          start from what the money is for rather than from a rate.
+        </p>
+      </>
+    ),
+  },
+  {
     q: 'Is it free? What is the catch?',
     a: (
       <>
@@ -129,7 +204,18 @@ export default function FaqPage() {
             <span className="mr-2 text-gold-600 transition group-open:rotate-90 inline-block">›</span>
             {q}
           </summary>
-          <p className="mt-3 pl-5">{a}</p>
+          {/*
+            A div, not a p.
+
+            Answers used to be a single run of inline text, so a <p> wrapper
+            was harmless. The moment one contained its own <p> — which the
+            longer answers need — the nesting became invalid, the browser
+            silently restructured the DOM to close the outer paragraph, and the
+            result no longer matched React's server HTML. That is React errors
+            #418 and #423, and the whole tree gets thrown away and re-rendered
+            on the client. Invisible on the page, caught by the browser suite.
+          */}
+          <div className="mt-3 space-y-3 pl-5">{a}</div>
         </details>
       ))}
       <p className="pt-2 text-xs text-ink-faint">

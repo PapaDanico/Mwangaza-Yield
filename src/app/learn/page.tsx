@@ -211,6 +211,87 @@ const LESSONS = [
     ),
     cta: { href: '/sell/', label: 'Evaluate a sale quote' },
   },
+  {
+    n: '09',
+    title: 'The rate is not the return: inflation',
+    minutes: 4,
+    body: (
+      <>
+        <p>
+          Every figure this app has shown you until now is <strong>nominal</strong> — counted in
+          shillings, without asking what those shillings will buy. A 13.6% coupon that leaves you
+          11.56% after withholding tax sounds like getting meaningfully richer. At the CPI print
+          published beside it, you are getting richer by about half that.
+        </p>
+        <p>
+          Work it out by dividing, not subtracting. Real return is{' '}
+          <strong>(1 + your return) ÷ (1 + inflation) − 1</strong>. At 11.56% net against 6.41%
+          inflation that is <strong>4.84%</strong>, where subtracting gives 5.15%. Thirty-one basis
+          points sounds like pedantry; it is not, because the error grows with both rates and it
+          always flatters you.
+        </p>
+        <p>
+          Then there is the part a yield figure structurally cannot show. A bond returns a{' '}
+          <strong>fixed nominal face value</strong> at maturity, however long it has been away. On
+          a fifteen-year bond at 6.41%, KES 100 of principal comes back worth about{' '}
+          <strong>KES 39</strong> in today&apos;s money. On a long bond that is where most of the
+          real loss lives, and no amount of coupon arithmetic reveals it.
+        </p>
+        <p>
+          One consequence worth carrying: an infrastructure bond&apos;s tax exemption is worth
+          proportionally <em>more</em> in real terms than in nominal ones, because the exempted
+          amount is measured against a much smaller base once inflation has been taken off. Judging
+          an IFB against an FXD on headline yield alone undervalues the IFB systematically.
+        </p>
+        <p>
+          The calculator now shows all of this for whichever bond you are looking at, with the
+          inflation rate on a slider — because holding one month&apos;s reading constant for
+          fifteen years is an assumption, not a forecast. Kenyan inflation was above 9% as recently
+          as 2023. Move it and watch what survives.
+        </p>
+      </>
+    ),
+    cta: { href: '/calculator/', label: 'See a bond in today\u2019s money' },
+  },
+  {
+    n: '10',
+    title: 'Is the price you were quoted a good one?',
+    minutes: 4,
+    body: (
+      <>
+        <p>
+          A broker names a price. You have no idea whether it is generous, ordinary or poor, and
+          Kenya publishes no secondary-market benchmark a retail buyer can check it against. This
+          app holds no exchange prices at all — deliberately, because we hold no licence for them.
+        </p>
+        <p>
+          What we do hold is <strong>every auction CBK has settled</strong>. So the question can be
+          turned around: solve the yield your quoted price implies, and set it beside what
+          comparable paper has actually been clearing at in the primary market. That does not make
+          a quote right or wrong — but &ldquo;you are being offered 80 basis points less than the
+          government has been paying for the same risk over the same horizon&rdquo; is a fact you
+          can act on.
+        </p>
+        <p>
+          Four things have to match or the comparison is noise.{' '}
+          <strong>Gross against gross</strong>, because clearing rates are pre-tax.{' '}
+          <strong>Tax status</strong>, because investors accept a lower gross yield on an IFB for
+          the exemption — measured on our own archive, an IFB priced at par reads +509bps against a
+          blended pool, which is an artefact and not an opportunity.{' '}
+          <strong>Remaining term</strong>, never the tenor in the issue code, because re-openings
+          keep their original code for life. And <strong>recency</strong>: the 7–12 year band
+          medians 12.78% over the last year and 13.67% over two.
+        </p>
+        <p>
+          All four at once is expensive. On the shipped archive this can judge 29 of the 58
+          outstanding bonds; for the rest it says so rather than widening the net until it has
+          something to say. A median of two prints dressed up as a market level would be worse than
+          silence.
+        </p>
+      </>
+    ),
+    cta: { href: '/prices/', label: 'Check a quote you have been given' },
+  },
 ];
 
 export default function LearnPage() {

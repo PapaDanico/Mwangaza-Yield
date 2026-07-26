@@ -1,5 +1,14 @@
 {
   "compilerOptions": {
+    // Next.js injects a modern target during `next build`, so the app always
+    // compiled fine. A bare `tsc --noEmit` got no target, defaulted to ES5, and
+    // rejected perfectly ordinary iteration — `[...str.matchAll(re)]` failed
+    // TS2802 on main while CI was green, because CI only runs `next build`.
+    //
+    // Setting it here makes both agree. It also retires a workaround: bid.ts
+    // rewrote `for...of` over a Map into forEach earlier for exactly this
+    // error, which was a config gap wearing a code disguise.
+    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

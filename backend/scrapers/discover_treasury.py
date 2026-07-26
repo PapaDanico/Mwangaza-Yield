@@ -51,6 +51,41 @@ resolve.
 So no Treasury parser has been written. There is nothing yet to parse, and
 writing an extractor against a 404 would be worse than having none.
 
+RUN 3 — TWO HOSTS THIS PROBE HAD NEVER TRIED
+---------------------------------------------
+Runs 1 and 2 concluded "the Treasury's debt documents are dead". That
+conclusion was drawn from `www.treasury.go.ke` and `newsite.treasury.go.ke`
+only. A source review since pointed at two DEDICATED subdomains neither run
+ever requested:
+
+    pdmo.treasury.go.ke        the Public Debt Management Office's own site
+    bajetiyetu.treasury.go.ke  the budget document portal
+
+A 404 on the parent site says nothing about either. They are added below as
+separate targets rather than more candidate URLs on the existing one, so the
+output says plainly which host answered — the previous runs' mistake was
+letting one host's silence stand for a whole institution.
+
+WHAT WE ACTUALLY WANT FROM THEM, AND WHY IT IS NOT DEBT-TO-GDP
+---------------------------------------------------------------
+The obvious figures here — debt/GDP, PV of debt/GDP, risk-of-distress rating
+— are macro colour. They do not change what a reader should buy, and a number
+that changes no decision is a maintenance liability with a chart attached.
+
+The figures worth the trouble are in the Medium-Term Debt Strategy and the
+Annual Borrowing Plan: the planned split between T-bills and bonds, net
+domestic borrowing, and average time to maturity. Those say what paper the
+government intends to sell over the next year, which bears directly on
+REINVESTMENT RISK — the largest unmodelled risk in the ladder tool. A reader
+building a ten-year ladder is making an implicit bet that comparable paper
+will still be on offer when each rung matures. The borrowing plan is the
+issuer stating its intention about exactly that.
+
+So the wanted-terms below lead with issuance and borrowing-mix language, not
+debt stock. If a document proves readable but carries only debt/GDP, that is
+a weaker result than it looks, and the output should let us see the
+difference.
+
 Read-only. Never gates CI.
 """
 import re
@@ -88,6 +123,48 @@ TARGETS = [
         # Figures worth extracting if the document proves readable.
         ["public debt", "debt to gdp", "debt-to-gdp", "domestic debt", "external debt",
          "debt service", "interest payment"],
+    ),
+    (
+        # The PDMO's own subdomain — never requested by runs 1 or 2, which
+        # concluded the Treasury's debt documents were dead on the strength of
+        # the parent site alone. The documents named here are the ones that
+        # carry issuance intent: the Medium-Term Debt Strategy sets the
+        # domestic/external financing mix, and the Annual Borrowing Plan turns
+        # it into a year of auctions.
+        "PDMO (pdmo.treasury.go.ke) — borrowing plan and debt strategy",
+        [
+            "https://pdmo.treasury.go.ke/",
+            "https://pdmo.treasury.go.ke/publications",
+            "https://pdmo.treasury.go.ke/publications/",
+            "https://pdmo.treasury.go.ke/reports",
+            "https://pdmo.treasury.go.ke/medium-term-debt-strategy",
+            "https://pdmo.treasury.go.ke/annual-borrowing-plan",
+        ],
+        re.compile(r"borrow|debt\s*strateg|mtds|issuance|annual\s*(public\s*)?debt|"
+                   r"bulletin|report|dashboard", re.I),
+        # Issuance first, debt stock second — see the docstring. A hit on
+        # "borrowing plan" or "net domestic borrowing" is worth far more to
+        # this product than a hit on "debt to gdp".
+        ["borrowing plan", "net domestic borrowing", "domestic borrowing",
+         "issuance", "treasury bills", "treasury bonds",
+         "average time to maturity", "financing mix", "gross borrowing",
+         "public debt", "debt to gdp"],
+    ),
+    (
+        # The budget portal. Wanted for one number only: the size of the
+        # domestic financing requirement, which is WHY the auctions happen at
+        # the volumes they do. Everything else on this portal is spending
+        # detail that belongs to a different product.
+        "Bajeti Yetu (bajetiyetu.treasury.go.ke) — deficit and domestic financing",
+        [
+            "https://bajetiyetu.treasury.go.ke/",
+            "https://bajetiyetu.treasury.go.ke/documents",
+            "https://bajetiyetu.treasury.go.ke/publications",
+        ],
+        re.compile(r"budget\s*(policy\s*)?statement|bps|estimates|deficit|"
+                   r"financing|mwananchi|summary", re.I),
+        ["domestic financing", "fiscal deficit", "net domestic borrowing",
+         "deficit financing", "borrowing", "budget deficit"],
     ),
     (
         # The Treasury's own debt documents 404 (see the correction above), but
@@ -161,12 +238,24 @@ TARGETS = [
 ]
 
 
+# Requests that never reached the host at all, as opposed to reaching it and
+# being refused. Counted per run so the summary can tell the two apart.
+_transport_failures = []
+
+
 def fetch(url: str):
     try:
         r = requests.get(url, headers=UA, timeout=TIMEOUT)
         return r
     except requests.RequestException as exc:
-        print(f"  {url} -> ERROR {exc.__class__.__name__}: {exc}")
+        # A proxy refusal, DNS failure or timeout is EVIDENCE ABOUT THIS RUNNER,
+        # not about the source. The distinction is the whole point of a probe:
+        # this file already carries two corrections where a run concluded a
+        # source was dead without having looked properly, and "the host may
+        # block automated clients" printed after a 403 from an egress proxy
+        # would be a third. Sandboxed environments deny these hosts outright.
+        _transport_failures.append(url)
+        print(f"  {url} -> ERROR {exc.__class__.__name__}: {str(exc)[:130]}")
         return None
 
 
@@ -255,6 +344,7 @@ def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
 
 def probe(label: str, pages: list, link_re, wanted: list) -> None:
     print(f"\n=== {label} ===")
+    before = len(_transport_failures)
     reached_any = False
     for page_url in pages:
         r = fetch(page_url)
@@ -287,7 +377,16 @@ def probe(label: str, pages: list, link_re, wanted: list) -> None:
         return
 
     if not reached_any:
-        print(f"  !! nothing reachable for {label} — the host may block automated clients")
+        # Say which kind of failure it was. "Every request died in transport"
+        # means we learned NOTHING about this source and must not record it as
+        # dead; an HTTP 4xx/5xx from the host itself is a real observation.
+        if len(_transport_failures) - before == len(pages):
+            print(f"  ?? INCONCLUSIVE for {label}: every request failed before "
+                  f"reaching the host (proxy/DNS/timeout). This is a fact about "
+                  f"the runner, not the source — do not record it as dead.")
+        else:
+            print(f"  !! nothing usable for {label} — the host answered but "
+                  f"served nothing on-topic, or refused us")
 
 
 def main() -> None:
@@ -302,6 +401,11 @@ def main() -> None:
             probe(label, pages, link_re, wanted)
         except Exception as exc:  # a probe must never take CI down
             print(f"  !! {label} probe raised {exc.__class__.__name__}: {exc}")
+
+    if _transport_failures:
+        print(f"\n{len(_transport_failures)} request(s) never reached their host. "
+              f"If that is ALL of them, this run observed nothing about any "
+              f"source and its silence must not be quoted as a finding.")
 
 
 if __name__ == "__main__":

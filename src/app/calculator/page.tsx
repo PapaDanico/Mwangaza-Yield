@@ -8,6 +8,7 @@ import { resolvePrice } from '@/lib/prices';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
 import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import { nonNegativeNumber } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 import DataState from '@/components/shared/DataState';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
@@ -101,6 +102,10 @@ export default function CalculatorPage() {
     () => (bond ? computeBondInvestment(bond, amount, price) : null),
     [bond, amount, price]
   );
+
+  useEffect(() => {
+    if (result) track('act:calculator-run');
+  }, [result]);
 
   if (!bond) return <DataState />;
 
@@ -255,6 +260,7 @@ export default function CalculatorPage() {
                     observedOn: new Date().toISOString().slice(0, 10),
                   });
                   setSaved(ok);
+                  if (ok) track('act:price-saved');
                 }}
                 className="mt-2 min-h-[44px] rounded-xl bg-ink px-4 py-2 text-xs font-medium text-sand-50 hover:bg-ink-soft"
               >

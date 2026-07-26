@@ -14,7 +14,7 @@
 // PROVENANCE travels with the value so no figure in this app can present a
 // placeholder as though it were the market.
 
-import type { Bond, SecondaryTrade } from '@/types/bond';
+import type { Bond, SecondaryTrade } from '../types/bond';
 
 /** A price the reader looked up and recorded. Never leaves their device. */
 export interface UserPrice {

@@ -27,7 +27,7 @@
 // Rates are safe per record: `weightedAverageRate` is the rate that specific
 // bond cleared at, and it is present on 100% of 2022+ results.
 
-import type { AuctionPrint, Bond } from '@/types/bond';
+import type { AuctionPrint, Bond } from '../types/bond';
 import { normaliseCode, clearingRate } from './auction-history';
 
 /**

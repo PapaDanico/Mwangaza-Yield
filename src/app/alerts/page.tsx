@@ -8,6 +8,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import { RULE_LABELS, type AlertRule } from '@/lib/alerts';
 import { notifyState, requestNotifyPermission, type NotifyState } from '@/lib/notify';
+import { track } from '@/lib/analytics';
 import {
   pushConfigured,
   pushState,
@@ -77,6 +78,7 @@ export default function AlertsPage() {
     setPushBusy(true);
     setPushError('');
     const result = on ? await subscribePush(rules) : await unsubscribePush();
+    if (on && result === 'on') track('act:alerts-enabled');
     if (result === 'denied') {
       setPushError('Your browser blocked notifications for this site. Allow them in site settings.');
     } else if (result === 'failed') {

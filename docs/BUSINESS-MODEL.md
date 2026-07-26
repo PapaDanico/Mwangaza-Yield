@@ -173,13 +173,16 @@ The numbers survive an auditor, and the alerting survives a month.
 
 A retail bidder can answer *"what should I bid?"* with evidence.
 
-- [ ] Reuse `auction-review.ts` grouping — never per-record bid-to-cover.
-- [ ] Show, for the tenor being bid: accepted-rate range, weighted average, and
-      where the bidder's intended rate falls against recent history.
-- [ ] Restrict headline claims to 2022+; label older context as context.
-- [ ] Surface archive gaps via `archive-quality.ts` rather than papering over.
-- [ ] Tests pinning the grouping, so a future refactor cannot silently
-      reintroduce the 0.61x artefact.
+- [x] Grouped demand only — `demandByAuction` refuses per-record bid-to-cover,
+      and refuses auctions whose rows disagree about the offer (`bid.ts`).
+- [x] For the term being bid: clearing-rate distribution, median, and where a
+      proposed rate falls — bucketed on **remaining term at the auction date**,
+      because 57% of 2022+ records carry a misleading tenor label (re-openings).
+- [x] Headline claims restricted to 2022+ (`GUIDANCE_FROM`); below 5
+      comparables the panel says so instead of implying a range.
+- [x] Dropped/unmatchable records counted and disclosed, not papered over.
+- [x] Tests pinning both traps (`tests/unit/bid.test.ts`), mutation-verified:
+      label-bucketing, per-record cover, and a flipped verdict each go red.
 
 **Exit test:** for the next live auction, the assistant's stated range contains
 the actual weighted average rate. Record the prediction *before* the result
@@ -189,8 +192,11 @@ publishes — a claim checked after the fact is not a test.
 
 An institution can buy and integrate the maths.
 
-- [ ] Engine extracted as a versioned package, no React/DOM dependency.
-- [ ] Conventions documented with their evidence, auditable by a third party.
+- [x] Engine extracted as a versioned package, no React/DOM dependency
+      (`src/lib/engine.ts` barrel; `npm run build:engine` → `dist/engine`,
+      importable from plain Node; `npm run test:engine` proves the built
+      artifact against the real broker sheet).
+- [x] Conventions documented with their evidence (`docs/ENGINE-API.md`).
 - [ ] Reference integration (a spreadsheet-shaped API is likely the real
       demand, not a JS import).
 - [ ] Licence terms that keep exchange-derived data out of scope.

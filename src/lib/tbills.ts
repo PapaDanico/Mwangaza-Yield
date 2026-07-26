@@ -11,7 +11,7 @@
 //   Price    = Face - Discount
 //   EAY      = (Face / Price) ^ (365 / days) - 1
 
-import type { TBill } from '@/types/bond';
+import type { TBill } from '../types/bond';
 
 /** WHT on Treasury bill interest. Unlike infrastructure bonds, bills are never exempt. */
 export const TBILL_WHT_RATE = 0.15;

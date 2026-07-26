@@ -10,6 +10,7 @@ import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { APP_URL, formatLadderSummary, shareText, printReport } from '@/lib/share';
 import { nonNegativeNumber } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 import LadderReport from '@/components/report/LadderReport';
 import LiveResult from '@/components/shared/LiveResult';
 
@@ -28,6 +29,10 @@ export default function LadderPage() {
     () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices),
     [bonds, secondary, userPrices, amount, horizon, rungCount]
   );
+
+  useEffect(() => {
+    if (plan.rungs.length) track('act:ladder-built');
+  }, [plan]);
 
   const maxYear = Math.max(...plan.yearlyPayouts.map((p) => p.couponsKES + p.principalKES), 1);
 

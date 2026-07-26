@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-07-25T20:50:04.707631+00:00",
+  "publisher": "Mwangaza Yield",
+  "homepage": "https://mwangazayield.org",
+  "notes": {
+    "sourcing": "Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied.",
+    "tbills": "quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.",
+    "conventions": "T-bills: discount = face x rate x days / 365, price = face - discount, EAY compounds that discount over a year. Bonds: 364-day year, 182-day coupon periods, WHT 0% on infrastructure bonds, 10% at ten years or longer, else 15%.",
+    "benchmarks": "Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote.",
+    "warranty": "Public information provided as-is for education, not investment advice and not a warranty of accuracy. Verify against the official prospectus before committing funds.",
+    "attribution": "Attribution requested: \"Rates via Mwangaza Yield (mwangazayield.org)\"."
+  },
+  "tbills": [
+    {
+      "tenorDays": 91,
+      "quotedDiscountRate": 8.7986,
+      "grossEAY": 9.3043,
+      "netEAY": 7.8688,
+      "whtRate": 0.15,
+      "pricePer100": 97.8064,
+      "auctionDate": "2026-07-16",
+      "nextAuctionDate": "2026-07-30",
+      "minInvestmentKES": 100000,
+      "source": "CBK auction, 16 Jul 2026"
+    },
+    {
+      "tenorDays": 182,
+      "quotedDiscountRate": 8.9695,
+      "grossEAY": 9.6105,
+      "netEAY": 8.1407,
+      "whtRate": 0.15,
+      "pricePer100": 95.5275,
+      "auctionDate": "2026-07-16",
+      "nextAuctionDate": "2026-07-30",
+      "minInvestmentKES": 100000,
+      "source": "CBK auction, 16 Jul 2026"
+    },
+    {
+      "tenorDays": 364,
+      "quotedDiscountRate": 9.0415,
+      "grossEAY": 9.9389,
+      "netEAY": 8.4479,
+      "whtRate": 0.15,
+      "pricePer100": 90.9833,
+      "auctionDate": "2026-07-16",
+      "nextAuctionDate": "2026-07-30",
+      "minInvestmentKES": 100000,
+      "source": "CBK auction, 16 Jul 2026"
+    }
+  ],
+  "macro": {
+    "centralBankRate": {
+      "value": 8.75,
+      "unit": "%",
+      "date": "2026-06-09",
+      "source": "CBK MPC"
+    },
+    "inflation": {
+      "value": 6.41,
+      "unit": "% y/y",
+      "date": "2026-07-25",
+      "source": "CBK (KNBS unavailable)"
+    },
+    "usdKes": {
+      "value": 129.5,
+      "unit": "KES/USD",
+      "date": "2026-07-20",
+      "source": "CBK indicative"
+    }
+  },
+  "bondAuctionBenchmarks": {
+    "windowDays": 365,
+    "minSample": 3,
+    "bands": [
+      {
+        "label": "Under 3y",
+        "fromYears": 0,
+        "toYears": 3,
+        "auctions": 0,
+        "medianClearingRate": null,
+        "lowClearingRate": null,
+        "highClearingRate": null,
+        "latestAuctionDate": null
+      },
+      {
+        "label": "3–7y",
+        "fromYears": 3,
+        "toYears": 7,
+        "auctions": 3,
+        "medianClearingRate": 12.812,
+        "lowClearingRate": 12.466,
+        "highClearingRate": 12.95,
+        "latestAuctionDate": "2026-07-15"
+      },
+      {
+        "label": "7–12y",
+        "fromYears": 7,
+        "toYears": 12,
+        "auctions": 15,
+        "medianClearingRate": 12.993,
+        "lowClearingRate": 11.694,
+        "highClearingRate": 14.116,
+        "latestAuctionDate": "2026-06-22"
+      },
+      {
+        "label": "12–20y",
+        "fromYears": 12,
+        "toYears": 20,
+        "auctions": 20,
+        "medianClearingRate": 13.745,
+        "lowClearingRate": 12.786,
+        "highClearingRate": 15.111,
+        "latestAuctionDate": "2026-07-27"
+      },
+      {
+        "label": "20y+",
+        "fromYears": 20,
+        "toYears": 40,
+        "auctions": 8,
+        "medianClearingRate": 13.857,
+        "lowClearingRate": 13.361,
+        "highClearingRate": 14.95,
+        "latestAuctionDate": "2026-07-27"
+      }
+    ],
+    "demand": {
+      "auctions": 26,
+      "medianCoverRatio": 1.404,
+      "medianAcceptanceRate": 0.701
+    }
+  }
+}

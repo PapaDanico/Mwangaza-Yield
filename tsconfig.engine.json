@@ -17,6 +17,7 @@
     "src/lib/sell.ts",
     "src/lib/bid.ts",
     "src/lib/predictions.ts",
+    "src/lib/market-pulse.ts",
     "src/lib/prices.ts",
     "src/lib/auction-history.ts",
     "src/lib/tbills.ts",

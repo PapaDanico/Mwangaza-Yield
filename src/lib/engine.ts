@@ -65,6 +65,16 @@ export {
   type AuctionDemand,
 } from './bid';
 
+// Recent-auction statistics: what the last year of auctions actually paid.
+export {
+  PULSE_WINDOW_DAYS,
+  MIN_BUCKET_SAMPLE,
+  recentClearingByTerm,
+  demandPulse,
+  type TermBucket,
+  type DemandPulse,
+} from './market-pulse';
+
 // Auction archive utilities.
 export { normaliseCode, clearingRate, historyFor, type AuctionPoint } from './auction-history';
 

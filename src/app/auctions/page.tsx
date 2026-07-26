@@ -6,6 +6,7 @@ import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
+import { BidAssistant } from '@/components/auctions/BidAssistant';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -24,6 +25,8 @@ const BID_STEPS = [
 
 export default function AuctionsPage() {
   const auctions = useBondStore((s) => s.auctions);
+  const bonds = useBondStore((s) => s.bonds);
+  const auctionResults = useBondStore((s) => s.auctionResults);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -99,6 +102,9 @@ export default function AuctionsPage() {
                   >
                     Prospectus <ExternalLink size={13} />
                   </a>
+                  {(a.status === 'open' || a.status === 'upcoming') && (
+                    <BidAssistant auction={a} bonds={bonds} prints={auctionResults} />
+                  )}
                 </div>
               )}
             </div>

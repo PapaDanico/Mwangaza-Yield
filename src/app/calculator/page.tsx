@@ -86,9 +86,15 @@ export default function CalculatorPage() {
   // the reader recorded, else the last print — instead of anchoring every visit
   // to par. Re-runs on bond change, which is the whole point: switching issues
   // used to silently carry the previous bond's price across.
+  //
+  // This deliberately does NOT clear `saved`. Saving a price mutates
+  // `userPrices`, which produces a new `priceInfo`, which re-runs this effect —
+  // so clearing the flag here wiped the "Saved." confirmation on the very tick
+  // it was set, and the one piece of feedback that the price had been stored
+  // was unreachable in normal use. `saved` is cleared where the reader actually
+  // changes their mind: the slider and the bond selector.
   useEffect(() => {
     if (priceInfo) setPrice(priceInfo.price);
-    setSaved(false);
   }, [priceInfo]);
 
   const result = useMemo(
@@ -133,7 +139,7 @@ export default function CalculatorPage() {
             <select
               id="calc-bond"
               value={bond.isin}
-              onChange={(e) => { setIsin(e.target.value); setPrice(100); }}
+              onChange={(e) => { setIsin(e.target.value); setPrice(100); setSaved(false); }}
               className={inputCls}
             >
               {/*

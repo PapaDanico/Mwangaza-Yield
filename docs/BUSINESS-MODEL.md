@@ -187,6 +187,9 @@ A retail bidder can answer *"what should I bid?"* with evidence.
 **Exit test:** for the next live auction, the assistant's stated range contains
 the actual weighted average rate. Record the prediction *before* the result
 publishes — a claim checked after the fact is not a test.
+*Now automated:* the daily data job records each upcoming auction's range in
+`public/data/predictions.json` (append-only, integrity-checked) and scores it
+when the result publishes; `/auctions` shows the running track record.
 
 ### M3 — Licensable engine
 

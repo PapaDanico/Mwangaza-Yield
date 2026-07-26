@@ -273,6 +273,19 @@ jobs:
       # rebuild for over twenty minutes with nothing committed, and GitHub's
       # default job limit is six hours. Partial data that is fresh beats complete data that never
       # ships, and the freshness check below still reports anything stale.
+      # Record the bid assistant's range for upcoming auctions BEFORE they
+      # close, and score past predictions against published results — the
+      # append-only ledger behind the track record on /auctions. Runs after
+      # the scrapers so it sees today's auction results; failure must not
+      # block the data commit, but is surfaced like a scraper failure.
+      - name: Update the prediction ledger
+        if: ${{ !cancelled() && !inputs.test_alert }}
+        id: predictions
+        run: |
+          { npm ci --ignore-scripts \
+            && npm run build:engine \
+            && node scripts/update-predictions.mjs; } \
+            || echo "failed=predictions" >> "$GITHUB_OUTPUT"
       - name: Commit updated data
         if: ${{ !cancelled() && !inputs.test_alert }}
         run: |
@@ -348,6 +361,7 @@ jobs:
               '${{ steps.auctions.outputs.failed }}',
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
+              '${{ steps.predictions.outputs.failed }}',
             ].filter(Boolean);
 
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

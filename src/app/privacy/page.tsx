@@ -7,15 +7,25 @@ export default function PrivacyPage() {
   return (
     <Prose
       title="Privacy policy"
-      lead="We do not collect your personal data, because the app has nowhere to send it."
+      lead="Everything you enter stays on your device. The one exception is price alerts, which you have to switch on — and this page says exactly what that stores."
       updated="25 July 2026"
     >
       <h2>The short version</h2>
       <p>
-        Mwangaza Yield has no user accounts, no login, and no server that stores anything about
-        you. Everything you enter — amounts, holdings, goals — is computed on your own device and
-        saved only in your browser&apos;s local storage (IndexedDB). It never leaves your phone or
-        computer.
+        Mwangaza Yield has no user accounts and no login. Everything you enter — amounts, holdings,
+        prices, goals — is computed on your own device and saved only in your browser&apos;s local
+        storage (IndexedDB). It never leaves your phone or computer.
+      </p>
+      <p>
+        There is exactly one thing we store on a server, and only if you switch it on:{' '}
+        <strong>price alerts</strong>. That is set out in full below rather than tucked into a
+        clause, because a privacy notice that omits the one server-side thing is not a privacy
+        notice.
+      </p>
+      <p className="text-sm">
+        This page follows the duty to notify in <strong>section 29</strong> of Kenya&apos;s{' '}
+        <strong>Data Protection Act, 2019</strong> — what is held, why, who else receives it, how it
+        is protected, and what you can do about it.
       </p>
 
       <h2>What we store, and where</h2>
@@ -46,6 +56,50 @@ export default function PrivacyPage() {
         It counts tool use only. It cannot see the figures you type, the holdings you import or
         the goals you set, because those never leave your device — that is a property of how the app
         is built, not a promise about how we behave.
+      </p>
+
+      <h2>Price alerts — the one thing we store</h2>
+      <p>
+        If you turn on alerts, your browser issues a <strong>push endpoint</strong>: a long URL that
+        the browser vendor&apos;s push service can deliver a message to, plus two keys that let us
+        encrypt it. We store that endpoint, those keys, and the market-wide rules you chose — an
+        auction date, a rate threshold. Nothing else. There is no name, no email, no device
+        identifier we could resolve to a person, and no way to work backwards from what we hold to
+        who you are.
+      </p>
+      <p>
+        <strong>It never contains anything about your money.</strong> An alert can say &ldquo;the
+        91-day bill cleared above 9%&rdquo;, because that is a fact about the market. It cannot say
+        anything about your holdings, because the sender does not have them — the rules you can
+        subscribe to are checked against a whitelist on the server, so a modified client cannot
+        smuggle a holding into the store even deliberately.
+      </p>
+      <p>
+        The record is keyed by a SHA-256 hash of the endpoint, which lets us find your subscription
+        to update or delete it and lets us enumerate nothing else. Turning alerts off deletes it.
+        The subscription lives in Netlify Blobs, which sits outside Kenya — a transfer the Act asks
+        us to name, so we are naming it.
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        Section 26 of the Data Protection Act, 2019 gives you the right to be informed about how
+        your data is used, to access it, to object to its processing, and to have inaccurate data
+        corrected or deleted. This app is built so that most of those are things you can do
+        yourself, immediately, without asking us:
+      </p>
+      <ul>
+        <li><strong>Access and correction</strong> — your data is on your device, in front of you. Every figure can be edited on the page that shows it.</li>
+        <li><strong>Deletion</strong> — &ldquo;Clear all holdings&rdquo; on the portfolio page, or clearing site data in your browser. For alerts, switching them off deletes the stored subscription.</li>
+        <li><strong>Objection</strong> — do not turn on alerts. Nothing else about the app sends anything anywhere, so there is nothing else to object to.</li>
+      </ul>
+      <p>
+        If you believe your rights have been infringed you may complain to the{' '}
+        <a href="https://www.odpc.go.ke" target="_blank" rel="noopener noreferrer">
+          Office of the Data Protection Commissioner
+        </a>
+        , the supervisory authority for data protection in Kenya. You do not have to come to us
+        first.
       </p>
 
       <h2>Links away from the app</h2>

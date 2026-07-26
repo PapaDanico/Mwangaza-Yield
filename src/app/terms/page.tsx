@@ -68,10 +68,30 @@ export default function TermsPage() {
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 
-      <h2>8. Governing law</h2>
+      <h2>8. Your data</h2>
+      <p>
+        Everything you enter stays on your device. The single exception is price alerts, which
+        you have to switch on, and which store a push endpoint and the market-wide rules you
+        chose — never anything about your holdings. The{' '}
+        <a href="/privacy/">privacy notice</a> sets that out in full, written to the duty to
+        notify in section 29 of the Data Protection Act, 2019.
+      </p>
+      <p>
+        You have the rights in section 26 of that Act — to be informed, to access, to object, and
+        to have inaccurate data corrected or deleted. Most of them you can exercise yourself
+        without asking us, because the data is on your device. Write to{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for anything you cannot, or
+        complain directly to the{' '}
+        <a href="https://www.odpc.go.ke" target="_blank" rel="noopener noreferrer">
+          Office of the Data Protection Commissioner
+        </a>
+        .
+      </p>
+
+      <h2>9. Governing law</h2>
       <p>These terms are governed by the laws of Kenya.</p>
 
-      <h2>9. Changes</h2>
+      <h2>10. Changes</h2>
       <p>
         We may update these terms; the date above shows the current version. Continuing to use the
         app after a change means you accept it.

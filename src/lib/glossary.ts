@@ -159,6 +159,30 @@ export const GLOSSARY: Term[] = [
       'How new bonds are first sold. CBK announces an offer, investors bid, and the accepted bids set the rate. You can bid from KES 50,000.',
   },
   {
+    slug: 'clearing-rate',
+    term: 'Clearing rate',
+    also: 'weighted average rate',
+    plain:
+      'The rate an auction actually settled at — the weighted average of the bids CBK accepted. It is what buyers really got, as opposed to what anyone asked for.',
+    why: 'Recent clearing rates are the best public evidence of what the market pays today, and they are what our bid guidance and market figures are built from.',
+  },
+  {
+    slug: 'bid-to-cover',
+    term: 'Bid-to-cover',
+    also: 'subscription rate',
+    plain:
+      'Bids received divided by the amount offered, for a whole auction. 2.0x means investors offered twice the money the government asked for.',
+    why: 'Heavy demand lets CBK reject expensive bids, so bidding a low rate is riskier when cover is high.',
+  },
+  {
+    slug: 're-opening',
+    term: 'Re-opening',
+    also: 'tap sale',
+    plain:
+      'Selling more of a bond that already exists instead of creating a new one. The bond keeps its original name — so a "15-year" bond re-opened years later may have only five years left to run.',
+    why: 'The tenor in the issue code is not the time left. Comparing rates by the label alone compares different things.',
+  },
+  {
     slug: 'secondary-market',
     term: 'Secondary market',
     plain:

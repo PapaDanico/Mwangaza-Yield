@@ -6,6 +6,7 @@ import YieldCurveChart from '@/components/dashboard/YieldCurveChart';
 import MacroPanel from '@/components/dashboard/MacroPanel';
 import SovereignContext from '@/components/dashboard/SovereignContext';
 import RateCycle from '@/components/dashboard/RateCycle';
+import MarketPulse from '@/components/dashboard/MarketPulse';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -30,6 +31,7 @@ export default function DashboardPage() {
       <MacroPanel />
       <RateCycle />
       <YieldCurveChart />
+      <MarketPulse />
       <SovereignContext />
 
       <div className="grid gap-3 md:grid-cols-3">

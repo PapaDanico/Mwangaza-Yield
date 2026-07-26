@@ -308,23 +308,38 @@ async function main() {
 
   await go('/ladder/');
   await page.waitForTimeout(1200);
-  const download = page.waitForEvent('download', { timeout: 30000 }).catch(() => null);
+
+  /*
+   * A PDF, not "a file".
+   *
+   * The previous version of this check asserted that a download fired and was
+   * over 20KB. It passed for months while the app produced a .png and had never
+   * generated a PDF in its life — the reader was told "I still cannot generate
+   * PDFs" and was right. A test that accepts any file cannot tell the
+   * difference between the right output and a plausible one, so this reads the
+   * magic bytes.
+   */
+  const download = page.waitForEvent('download', { timeout: 60000 }).catch(() => null);
   const clicked = await page.evaluate(() => {
-    const b = [...document.querySelectorAll('button')].find((x) => /save image/i.test(x.textContent));
+    const b = [...document.querySelectorAll('button')].find((x) => /download pdf/i.test(x.textContent));
     if (!b) return false;
     b.click();
     return true;
   });
-  if (!clicked) fail('ladder: no image export control on the page');
+  if (!clicked) fail('ladder: no PDF export control on the page');
   else {
     const file = await download;
-    if (!file) fail('ladder: the image export button produced no file');
+    if (!file) fail('ladder: the PDF button produced no file');
     else {
+      if (!/\.pdf$/i.test(file.suggestedFilename())) {
+        fail(`ladder: export is named ${file.suggestedFilename()}, which is not a PDF`);
+      }
       const path = await file.path();
       const bytes = path ? (await stat(path)).size : 0;
-      // A blank canvas still downloads. The report is dense enough that a real
-      // one is tens of kilobytes; a few hundred bytes means an empty sheet.
-      if (bytes < 20_000) fail(`ladder: exported image is only ${bytes} bytes — probably blank`);
+      const head = path ? (await readFile(path)).subarray(0, 5).toString('latin1') : '';
+      if (!head.startsWith('%PDF-')) fail(`ladder: export does not begin %PDF- (got ${JSON.stringify(head)})`);
+      // A one-page report that rasterises to nothing still writes a valid PDF.
+      if (bytes < 20_000) fail(`ladder: exported PDF is only ${bytes} bytes — probably blank`);
     }
   }
 
@@ -349,7 +364,7 @@ async function main() {
     }
   }
   if (dialogs > 0) fail(`${dialogs} blocking browser dialog(s) were raised — these are refused on mobile`);
-  if (failures.length === btnBefore) pass('image export produced a real file; plan saved without a platform dialog');
+  if (failures.length === btnBefore) pass('a real PDF downloaded (%PDF- magic bytes); plan saved without a platform dialog');
 
   /* ------------------------------------ a tailored ladder survives a reload */
   /*

@@ -418,6 +418,39 @@ async function main() {
     }
   }
 
+  /* The export must contain the REPORT, not one enormous logo.
+   *
+   * A reader sent in a 1588x1342 PNG, correct dimensions and a wholly
+   * plausible 279KB, which was a single navy curve: /logo.svg had a viewBox
+   * but no width/height, so with no intrinsic size it expanded to its
+   * container inside the html2canvas clone — where the stylesheet has not
+   * necessarily applied — and swallowed the page. Magic bytes, extension and
+   * file size were all satisfied by that image. Only the CONTENT was wrong.
+   *
+   * So the invariant is checked at its source: with the sizing class removed,
+   * standing in for the clone before CSS lands, the logo must still measure
+   * itself. Anything above 200px is on its way to filling the sheet. */
+  const logo = await page.evaluate(async () => {
+    const sheet = document.getElementById('ladder-report-sheet');
+    if (!sheet) return { error: 'no ladder report sheet' };
+    const prev = sheet.style.cssText;
+    sheet.style.cssText = 'display:block;position:fixed;left:-10000px;top:0;width:794px';
+    const img = sheet.querySelector('img[src="/logo.svg"]');
+    if (!img) { sheet.style.cssText = prev; return { error: 'no logo in the report sheet' }; }
+    await new Promise((res) => (img.complete ? res() : (img.onload = img.onerror = res)));
+    const cls = img.className;
+    img.className = '';
+    await new Promise((res) => requestAnimationFrame(res));
+    const r = img.getBoundingClientRect();
+    img.className = cls;
+    sheet.style.cssText = prev;
+    return { w: Math.round(r.width), h: Math.round(r.height) };
+  });
+  if (logo.error) fail(`ladder: ${logo.error}`);
+  else if (logo.w > 200) {
+    fail(`ladder: the report logo expands to ${logo.w}px without CSS — it will swallow the export`);
+  }
+
   // Saving a plan must name it in the page, not through a platform dialog.
   await go('/goals/');
   await page.waitForTimeout(1200);

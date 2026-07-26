@@ -56,7 +56,11 @@ export default function GoalReport({
       <header className="flex items-start justify-between border-b-2 border-gold-500 pb-4">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="" className="h-12 w-12 rounded-lg" />
+          {/* width/height attributes as well as the CSS: html2canvas paints a
+              clone, and if the stylesheet has not applied there an image with
+              no intrinsic size expands to its container. That is what put a
+              794px logo where the report should have been. */}
+          <img src="/logo.svg" alt="" width={48} height={48} className="h-12 w-12 rounded-lg" />
           <div>
             <p className="font-display text-xl font-bold">
               Mwangaza <span className="text-gold-600">Yield</span>

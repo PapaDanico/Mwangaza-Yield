@@ -24,7 +24,7 @@
 // looked up or required — the numbers come off the sheet in front of them.
 
 import type { Bond } from '@/types/bond';
-import { determineWHTRate } from './financial-engine';
+import { determineWHTRate, getCouponDates, getLastCouponDate } from './financial-engine';
 
 /** 364-day year, 182-day coupon period — the convention Kenyan paper is built on. */
 const YEAR_DAYS = 364;
@@ -126,30 +126,27 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 const daysBetween = (a: Date, b: Date) => Math.round((b.getTime() - a.getTime()) / DAY_MS);
 
 /**
- * Coupon dates stepping in exact 182-day intervals, the way these bonds
- * actually pay. Anchored on the issue date and filtered to those still to
- * come, so the schedule cannot drift the way calendar-month stepping does.
+ * Coupon dates still to come, delegated to the engine rather than re-derived.
+ *
+ * An earlier version of this file stepped 182 days from issue and kept dates
+ * `<= maturity`. On all 58 bonds we currently hold that is identical to the
+ * engine's answer — every one of them has a maturity that is an exact 182-day
+ * multiple from issue, so the last step lands on redemption day. But it is only
+ * identical BY LUCK OF THE DATASET. Issue one bond with a stub period and the
+ * final coupon — the one paid at redemption — silently disappears from the
+ * schedule, and a sale looks better than it is.
+ *
+ * `getCouponDates` already guards that case, and its own comment records the
+ * money-losing bug that put the guard there. Re-deriving the schedule beside it
+ * meant maintaining two answers to one question and inheriting none of what the
+ * first one had already learned.
  */
 export function remainingCouponDates(bond: Bond, settlement: Date): Date[] {
-  const issue = new Date(bond.issueDate);
-  const maturity = new Date(bond.maturityDate);
-  const out: Date[] = [];
-  let d = new Date(issue.getTime() + PERIOD_DAYS * DAY_MS);
-  while (d <= maturity) {
-    if (d > settlement) out.push(new Date(d));
-    d = new Date(d.getTime() + PERIOD_DAYS * DAY_MS);
-  }
-  return out;
-}
-
-function lastCouponOnOrBefore(bond: Bond, settlement: Date): Date {
-  const issue = new Date(bond.issueDate);
-  let d = new Date(issue);
-  while (true) {
-    const next = new Date(d.getTime() + PERIOD_DAYS * DAY_MS);
-    if (next > settlement) return d;
-    d = next;
-  }
+  return getCouponDates(
+    new Date(bond.issueDate),
+    new Date(bond.maturityDate),
+    bond.couponFrequencyPerYear || 2
+  ).filter((d) => d > settlement);
 }
 
 /**
@@ -267,8 +264,9 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   const freq = bond.couponFrequencyPerYear || 2;
   const amortisation = quote.amortisation ?? [];
 
-  // Accrued interest, on the convention the market actually uses.
-  const lastCoupon = lastCouponOnOrBefore(bond, settlement);
+  // Accrued interest, on the convention the market actually uses. The last
+  // coupon date comes from the engine for the same reason the schedule does.
+  const lastCoupon = getLastCouponDate(bond, settlement);
   const daysAccrued = daysBetween(lastCoupon, settlement);
   const balNow = balanceOn(settlement, amortisation);
   const fullPeriodCoupon = (face * bond.couponRate) / 100 / freq;

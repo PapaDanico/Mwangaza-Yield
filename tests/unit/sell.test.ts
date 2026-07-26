@@ -49,6 +49,36 @@ describe('the schedule matches the broker sheet', () => {
     expect(dates[dates.length - 1].toISOString().slice(0, 10)).toBe('2040-05-21'); // = maturity
     expect(dates).toHaveLength(28);
   });
+
+  /**
+   * Every one of the 58 bonds we hold has a maturity that is an exact 182-day
+   * multiple from issue, so a naive `while (d <= maturity)` loop happens to
+   * produce the right schedule for all of them. That is luck, not correctness:
+   * a bond with a stub period would lose the coupon paid AT redemption, and a
+   * missing coupon makes selling look better than it is.
+   *
+   * This bond is deliberately not one of ours — maturity falls 100 days after
+   * the last full period — so it fails if the schedule is ever re-derived
+   * without the engine's redemption guard.
+   */
+  it('keeps the redemption coupon when maturity is not a whole number of periods', () => {
+    const stub: Bond = { ...IFB, issueDate: '2022-06-13', maturityDate: '2040-08-29' };
+    const dates = remainingCouponDates(stub, new Date('2026-07-20'));
+    const last = dates[dates.length - 1].toISOString().slice(0, 10);
+    expect(last).toBe('2040-08-29'); // redemption day itself, not the period before it
+    const gapDays = Math.round(
+      (dates[dates.length - 1].getTime() - dates[dates.length - 2].getTime()) / 86_400_000);
+    expect(gapDays).toBeLessThan(182); // a genuine short final period, not dropped
+  });
+
+  it('prices the stub bond with that final coupon included', () => {
+    const stub: Bond = { ...IFB, issueDate: '2022-06-13', maturityDate: '2040-08-29' };
+    const cf = buildCashflows(stub, 400_000, new Date('2026-07-20'));
+    const maturityRow = cf[cf.length - 1];
+    expect(maturityRow.date).toBe('2040-08-29');
+    expect(maturityRow.couponKES).toBeGreaterThan(0); // the coupon paid at redemption
+    expect(maturityRow.principalKES).toBeCloseTo(400_000, 2);
+  });
 });
 
 describe('analyseSale reproduces the broker sheet', () => {

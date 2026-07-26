@@ -217,6 +217,34 @@ async function main() {
   }
   if (failures.length === mtmBefore) pass('imported a holding, priced it, at-market yield appeared');
 
+  /* ------------- the calculator confirms that a price was actually stored */
+  // Regression: `saved` was cleared by an effect keyed on the resolved price.
+  // Saving mutates the price book, which produces a new resolved price, which
+  // re-ran the effect and wiped the confirmation on the tick it was set — so
+  // the only feedback that the price had been stored was unreachable. Pure
+  // state-timing; no unit test can see it.
+  console.log('\ncalculator confirms a saved price');
+  const calcBefore = failures.length;
+  await go('/calculator/');
+  const slider = page.locator('#calc-price');
+  if (!(await slider.count())) {
+    fail('calculator: no price slider');
+  } else {
+    await slider.fill('96.4');
+    await page.waitForTimeout(400);
+    const keep = page.getByRole('button', { name: /Keep .* as this bond/ });
+    if (!(await keep.count())) {
+      fail('calculator: no "keep this price" action after moving the slider');
+    } else {
+      await keep.click();
+      await page.waitForTimeout(800);
+      if (!/Saved\./i.test(await page.innerText('body'))) {
+        fail('calculator: price saved but no confirmation shown');
+      }
+    }
+  }
+  if (failures.length === calcBefore) pass('slider price saved, confirmation visible');
+
   /* ---------------- the sell evaluator reproduces a real broker sheet */
   // Pinned to the ABC Capital quote for IFB1/2022/18 (20-Jul-2026). The point
   // is not that the arithmetic is right — sell.test.ts proves that — but that

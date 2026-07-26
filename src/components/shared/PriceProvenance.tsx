@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, plural } from '@/lib/utils';
 import type { PriceCoverage, ResolvedPrice } from '@/lib/prices';
 
 /**
@@ -66,7 +66,8 @@ export function CoverageNotice({ coverage }: { coverage: PriceCoverage }) {
 
   return (
     <p className="rounded-xl bg-sand-200/70 px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
-      <span className="font-semibold">{coverage.parFallback}</span> of {coverage.total} bonds below are
+      <span className="font-semibold">{coverage.parFallback}</span> of {coverage.total}{' '}
+      {plural(coverage.total, 'bond')} below are
       priced at <span className="num">100</span> because we hold no price for them — that is a
       placeholder, not the market, and it flatters the yields shown. We publish no market prices at
       all, so use the price you paid or were quoted and{' '}

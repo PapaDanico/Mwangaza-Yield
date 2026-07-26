@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { plural } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
@@ -33,7 +34,23 @@ export default function SellPage() {
 
   const [isin, setIsin] = useState('');
   const [face, setFace] = useState(400_000);
+  /**
+   * Today, not blank.
+   *
+   * This field was empty on arrival, and line 47 returns null without it — so
+   * a reader who landed here, saw the bond and face value already filled in,
+   * and typed the price off their broker sheet got NOTHING back. No figure, no
+   * reason, no indication that the tool wanted anything else. That is how a
+   * working page comes to be reported as broken.
+   *
+   * Set after mount rather than in the initial state: this is a static export,
+   * and a date rendered at build time disagrees with the browser's on the
+   * first paint. Same reason the ladder sets its date in an effect.
+   */
   const [settlement, setSettlement] = useState('');
+  useEffect(() => {
+    setSettlement((current) => current || new Date().toISOString().slice(0, 10));
+  }, []);
   const [dirty, setDirty] = useState('');
   const [quotedYTM, setQuotedYTM] = useState('');
   const [commission, setCommission] = useState(1_500);
@@ -311,7 +328,8 @@ export default function SellPage() {
                 in coupons after tax, plus{' '}
                 <span className="num font-semibold text-ink">{formatKES(analysis.principalReturnedKES)}</span>{' '}
                 of principal — <span className="num">{formatKES(analysis.totalIfHeldKES)}</span> in
-                all, spread over {analysis.cashflows.length} payments. Selling converts that into{' '}
+                all, spread over {analysis.cashflows.length}{' '}
+                {plural(analysis.cashflows.length, 'payment')}. Selling converts that into{' '}
                 <span className="num font-semibold text-ink">{formatKES(analysis.netProceedsKES)}</span>{' '}
                 today. Those are not comparable without discounting, which is exactly what the
                 break-even above does — it is the honest way to weigh the two.

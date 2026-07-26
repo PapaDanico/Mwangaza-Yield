@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { formatKES } from '@/lib/financial-engine';
-import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
+import { formatCompactKES, nonNegativeNumber, plural } from '@/lib/utils';
 import { buildProgress, projectPot, monthsBetween, type ProgressStatus } from '@/lib/progress';
 import { withCheckpoint, withoutCheckpoint, type SavedPlan } from '@/lib/plans';
 
@@ -170,7 +170,8 @@ export default function GoalProgress({
 
       {progress.revisedYearsToTarget !== null && (
         <p className="rounded-xl bg-sand-200 p-3 text-sm leading-relaxed text-ink-soft">
-          At the pace of the last {progress.monthsObserved} months — about{' '}
+          At the pace of the last {progress.monthsObserved}{' '}
+          {plural(progress.monthsObserved, 'month')} — about{' '}
           <span className="num font-semibold">
             {formatKES(Math.max(0, progress.observedMonthlyContributionKES ?? 0))}
           </span>{' '}

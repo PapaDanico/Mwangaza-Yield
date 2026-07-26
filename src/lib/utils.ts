@@ -58,3 +58,18 @@ export function nonNegativeNumber(raw: string, fallback = 0): number {
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
+
+/**
+ * "1 payment", not "1 payments".
+ *
+ * A near-matured bond has one coupon left, and the sell evaluator told its
+ * reader the proceeds were "spread over 1 payments". Small, but this is a page
+ * asking somebody to trust it with a six-figure decision, and the credibility
+ * of a number is not separable from the care around it.
+ *
+ * Counts here are whole things — payments, months, bonds — so the naive rule is
+ * the correct one. Irregular plurals take an explicit second argument.
+ */
+export function plural(count: number, singular: string, pluralForm?: string): string {
+  return count === 1 ? singular : pluralForm ?? `${singular}s`;
+}

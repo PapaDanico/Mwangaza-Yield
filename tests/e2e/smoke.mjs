@@ -320,6 +320,29 @@ async function main() {
   }
   if (failures.length === calcBefore) pass('slider price saved, confirmation visible');
 
+  /* -------------------- a price alone is enough to get an answer back */
+  //
+  // The value date used to be blank on arrival, and the analysis returns null
+  // without it. So a reader who landed here, saw the bond and face value
+  // already filled in, and typed the price off their broker sheet got nothing
+  // back — no figure, no reason, no hint that anything was missing. That is
+  // how a working page comes to be reported as broken. It now defaults to
+  // today, and this asserts the reader's actual first move produces an answer.
+  console.log('\nthe sell page answers a price on its own');
+  const soloBefore = failures.length;
+  await go('/sell/');
+  await page.waitForTimeout(900);
+  const valueDate = await page.locator('#sell-date').inputValue();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valueDate)) {
+    fail(`sell: the value date is "${valueDate}" on arrival, so nothing computes`);
+  }
+  await page.locator('#sell-dirty').fill('107.8145');
+  await page.waitForTimeout(900);
+  if (!/break-even/i.test(await page.innerText('body'))) {
+    fail('sell: typing only a price produced no analysis');
+  }
+  if (failures.length === soloBefore) pass(`value date defaulted to ${valueDate}; a price alone returned an analysis`);
+
   /* ---------------- the sell evaluator reproduces a real broker sheet */
   // Pinned to the ABC Capital quote for IFB1/2022/18 (20-Jul-2026). The point
   // is not that the arithmetic is right — sell.test.ts proves that — but that

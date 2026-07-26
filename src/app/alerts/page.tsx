@@ -210,7 +210,7 @@ export default function AlertsPage() {
             </span>
             <button
               onClick={ask}
-              className="ml-auto rounded-lg bg-ink px-4 py-2 text-sm font-medium text-sand-50 hover:bg-ink-soft"
+              className="ml-auto min-h-11 whitespace-nowrap rounded-lg bg-ink px-4 py-2 text-sm font-medium text-sand-50 hover:bg-ink-soft"
             >
               Allow notifications
             </button>
@@ -291,7 +291,7 @@ export default function AlertsPage() {
                 <select
                   value={rule.leadDays}
                   onChange={(ev) => setRule(rule.id, { leadDays: Number(ev.target.value) })}
-                  className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm"
+                  className="min-h-11 rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm"
                 >
                   {LEAD_CHOICES[rule.kind].map((d) => (
                     <option key={d} value={d}>
@@ -309,7 +309,7 @@ export default function AlertsPage() {
                   onChange={(ev) =>
                     setRule(rule.id, { tenorDays: Number(ev.target.value) as 91 | 182 | 364 })
                   }
-                  className="rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm"
+                  className="min-h-11 rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm"
                 >
                   {[91, 182, 364].map((t) => (
                     <option key={t} value={t}>

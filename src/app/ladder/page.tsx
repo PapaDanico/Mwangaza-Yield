@@ -115,13 +115,15 @@ export default function LadderPage() {
           </p>
         </div>
         {plan.rungs.length > 0 && (
-          <div className="flex gap-2">
+          /* flex-wrap, not bare flex: without it the export group and Share
+             were pinned on one line and overflowed a 390px screen. */
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
             <ReportActions sheetId="ladder-report-sheet" filename="mwangaza-ladder-plan" />
             <button
               onClick={() =>
                 shareText(formatLadderSummary(plan, APP_URL))
               }
-              className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700 sm:flex-none"
             >
               <Share2 size={15} /> Share
             </button>
@@ -156,7 +158,7 @@ export default function LadderPage() {
               id="ladder-horizon"
               type="range" min={2} max={25} step={1} value={horizon}
               onChange={(e) => setHorizon(Number(e.target.value))}
-              className="w-full accent-gold-600"
+              className="h-11 w-full cursor-pointer accent-gold-600"
             />
           </div>
           <div>
@@ -167,7 +169,7 @@ export default function LadderPage() {
               id="ladder-rungs"
               type="range" min={2} max={6} step={1} value={rungCount}
               onChange={(e) => setRungCount(Number(e.target.value))}
-              className="w-full accent-gold-600"
+              className="h-11 w-full cursor-pointer accent-gold-600"
             />
           </div>
           <p className="text-[11px] leading-relaxed text-ink-faint">
@@ -263,7 +265,7 @@ export default function LadderPage() {
                               id={`rung-${i}`}
                               value={r.bond.isin}
                               onChange={(e) => swapRung(i, e.target.value)}
-                              className="max-w-[11rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
+                              className="min-h-9 max-w-[11rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
                             >
                               {selectable.map((b) => (
                                 <option key={b.isin} value={b.isin}>
@@ -275,7 +277,12 @@ export default function LadderPage() {
                               onClick={() => dropRung(i)}
                               aria-label={`Remove ${r.bond.issueCode} from the ladder`}
                               title="Remove this rung"
-                              className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-sand-200 hover:text-ink"
+                              /* 36px, not 44: this sits inside a dense table
+                                 row, where a 44px target would push the ladder
+                                 to a scroll on every phone. 36 clears the WCAG
+                                 2.5.8 minimum with room, on a control whose
+                                 only job is destructive. */
+                              className="flex min-h-9 min-w-9 items-center justify-center rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-sand-200 hover:text-ink"
                             >
                               <X size={14} />
                             </button>
@@ -300,7 +307,7 @@ export default function LadderPage() {
                   id="add-rung"
                   value=""
                   onChange={(e) => { if (e.target.value) addRung(e.target.value); }}
-                  className="max-w-[15rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink outline-none focus:border-gold-600"
+                  className="min-h-11 max-w-[15rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink outline-none focus:border-gold-600"
                 >
                   <option value="">Choose a bond…</option>
                   {selectable
@@ -324,7 +331,7 @@ export default function LadderPage() {
                   </div>
                   <button
                     onClick={exportCalendar}
-                    className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+                    className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
                   >
                     <CalendarPlus size={15} /> Add to calendar
                   </button>

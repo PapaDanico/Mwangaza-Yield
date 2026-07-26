@@ -58,7 +58,7 @@ export default function AuctionsPage() {
                 'Mwangaza Yield — Auctions'
               );
           }}
-          className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+          className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
         >
           <CalendarPlus size={15} /> Add to calendar
         </button>
@@ -134,7 +134,7 @@ export default function AuctionsPage() {
       </a>
 
       <div className="card">
-        <button onClick={() => setShowGuide(!showGuide)} className="flex w-full items-center justify-between text-left">
+        <button onClick={() => setShowGuide(!showGuide)} className="flex min-h-11 w-full items-center justify-between py-1 text-left">
           <span className="font-display font-semibold text-ink">How to bid via DhowCSD</span>
           <ChevronDown size={18} className={cn('text-ink-faint transition-transform', showGuide && 'rotate-180')} />
         </button>

@@ -168,19 +168,32 @@ export default function ReportActions({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex flex-wrap items-center justify-end gap-2">
+    /* Full width on a phone, hugging the right on a desktop.
+     *
+     * This used to be `flex flex-col items-end` around a `flex-wrap` row, and
+     * the page then dropped it into ITS OWN flex-wrap row beside Save plan and
+     * the saved-plans dropdown. Two independent wrap contexts at 390px is what
+     * produced the staircase in the bug report: PDF on one line, Save image and
+     * Print stepped down-left, Save plan floating up-right with its label
+     * broken across two lines. Going full width below `sm` gives the row a
+     * single predictable wrap, and the buttons below share the line evenly
+     * instead of ragging. */
+    <div className="flex w-full flex-col gap-1 sm:w-auto sm:items-end">
+      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
         <button
           onClick={downloadPdf}
           disabled={busy !== null}
-          className="flex min-h-11 items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition-colors hover:bg-ink-soft disabled:opacity-50"
+          /* Full width on its own line below `sm`: it is the primary action and
+             the one the bug report was about, so it gets the emphatic slot
+             rather than competing for a shared line. */
+          className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition-colors hover:bg-ink-soft disabled:opacity-50 sm:w-auto"
         >
           <FileDown size={15} /> {busy === 'pdf' ? 'Building…' : 'Download PDF'}
         </button>
         <button
           onClick={downloadImage}
           disabled={busy !== null}
-          className="flex min-h-11 items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200 disabled:opacity-50"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200 disabled:opacity-50 sm:flex-none"
         >
           <ImageDown size={15} /> {busy === 'image' ? 'Building…' : 'Save image'}
         </button>
@@ -189,13 +202,13 @@ export default function ReportActions({
             iOS app, so it must never be the button a reader reaches for first. */}
         <button
           onClick={() => printReport()}
-          className="flex min-h-11 items-center gap-1.5 rounded-xl px-2 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink sm:flex-none"
           title="Opens your browser's print dialog, where it is available"
         >
           <Printer size={15} /> Print
         </button>
       </div>
-      {error && <p className="max-w-[22rem] text-right text-[11px] text-red-600">{error}</p>}
+      {error && <p className="text-[11px] text-red-600 sm:max-w-[22rem] sm:text-right">{error}</p>}
     </div>
   );
 }

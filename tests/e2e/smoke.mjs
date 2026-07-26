@@ -121,6 +121,81 @@ async function main() {
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 0) fail(`${r} overflows horizontally by ${overflow}px`);
+
+    /* Buttons that sit on top of each other, and labels broken across lines.
+     *
+     * This is the reported bug, stated as a measurement: on /goals the export
+     * group and the plan controls were two independently-wrapping flex rows
+     * side by side, so at 390px they stepped down the screen in different
+     * directions and "Save plan" ended up overlapping the row above with its
+     * label split in two. Nothing threw, nothing overflowed, every test was
+     * green — it was only visible to someone looking at the screen. So the
+     * geometry is asserted instead. */
+    const collisions = await page.evaluate(() => {
+      const seen = (el) => {
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden';
+      };
+      const boxes = [...document.querySelectorAll('button, select')]
+        .filter(seen).map((el) => ({ el, r: el.getBoundingClientRect() }));
+
+      const hits = [];
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i], b = boxes[j];
+          if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+          const ox = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
+          const oy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+          if (ox > 2 && oy > 2) {
+            hits.push(`"${a.el.textContent.trim().slice(0, 18)}" overlaps "${b.el.textContent.trim().slice(0, 18)}"`);
+          }
+
+          /* The staircase, stated as an invariant: two controls in the same
+           * action group either share a row or occupy different ones. A button
+           * whose box STRADDLES the boundary — overlapping a sibling vertically
+           * while sitting at a different top — belongs to neither row, and that
+           * is precisely what the reported screenshot showed. Save plan sat at
+           * y=215 between a PDF button at y=189 and a Print button at y=241,
+           * touching both and aligned with neither.
+           *
+           * Neither an overlap check nor a wrapped-label check catches this:
+           * the boxes never intersect and every label fits on one line. Only
+           * the alignment does.
+           *
+           * Grouping is geometric, not structural — the offending pair was not
+           * even siblings (Save plan lives in the page, Download PDF inside
+           * ReportActions). Two controls count as one group when they are
+           * touching shoulder to shoulder: a horizontal gap under 16px, about
+           * one flex gap. Buttons in separate cards are far enough apart that
+           * they are never compared. */
+          const gap = Math.max(0, Math.max(a.r.left, b.r.left) - Math.min(a.r.right, b.r.right));
+          if (oy > 2 && gap <= 16) {
+            const drift = Math.abs(a.r.top - b.r.top);
+            if (drift > 4) {
+              hits.push(`"${a.el.textContent.trim().slice(0, 18)}" is ${Math.round(drift)}px out of row with "${b.el.textContent.trim().slice(0, 18)}"`);
+            }
+          }
+        }
+      }
+
+      // A short label that has wrapped. Measured on the text's own range, not
+      // the button box: a 44px min-height button around one 20px line is
+      // deliberate sizing, and flagging it would bury the real cases.
+      for (const el of document.querySelectorAll('button')) {
+        if (!seen(el)) continue;
+        const label = el.textContent.trim();
+        if (!label || label.length > 24) continue;
+        const lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        if (range.getBoundingClientRect().height > lh * 1.6) {
+          hits.push(`"${label}" is wrapped across lines`);
+        }
+      }
+      return [...new Set(hits)];
+    });
+    if (collisions.length) fail(`${r}: ${collisions[0]}`);
   }
   if (!failures.length) pass(`${ROUTES.length} routes`);
 

@@ -109,7 +109,7 @@ export default function TBillsPage() {
                 <button
                   key={v}
                   onClick={() => setAmount(v)}
-                  className={`num rounded-full border px-3 py-1 text-xs transition ${
+                  className={`num inline-flex min-h-11 items-center rounded-full border px-4 py-1 text-xs transition ${
                     amount === v
                       ? 'border-gold-600 bg-gold-500/15 text-gold-700'
                       : 'border-sand-400 text-ink-muted hover:border-ink-muted'
@@ -191,7 +191,7 @@ export default function TBillsPage() {
               <button
                 key={m}
                 onClick={() => setRolloverMonths(m)}
-                className={`num rounded-full border px-3 py-1 text-xs transition ${
+                className={`num inline-flex min-h-11 items-center rounded-full border px-4 py-1 text-xs transition ${
                   rolloverMonths === m
                     ? 'border-gold-600 bg-gold-500/15 text-gold-700'
                     : 'border-sand-400 text-ink-muted hover:border-ink-muted'

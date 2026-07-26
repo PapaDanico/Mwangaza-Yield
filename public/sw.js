@@ -1,7 +1,7 @@
 /* Mwangaza Yield service worker — offline-first app shell + stale-while-revalidate data.
    Bump VERSION whenever this file changes: activation drops the old cache, which is the
    only mechanism reclaiming stale hashed assets from previous deploys. */
-const VERSION = 'mwangaza-v9';
+const VERSION = 'mwangaza-v10';
 const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/alerts/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -49,6 +49,24 @@ self.addEventListener('fetch', (e) => {
   }
 
   // Hashed assets and icons: cache-first (immutable per deploy).
+  //
+  // The failure path used to answer with `caches.match('/')` — the app-shell
+  // HTML — for ANY asset that could not be fetched. For an image that is
+  // merely silly. For a JavaScript chunk it is the cause of a bug that took a
+  // long time to find: the browser receives HTTP 200 with an HTML body, treats
+  // the chunk as loaded, and no module factory ever registers. The next
+  // __webpack_require__ then does `modules[id].call(...)` on undefined and the
+  // reader sees
+  //
+  //     Could not build the PDF (Cannot read properties of undefined (reading 'call'))
+  //
+  // which is what "the PDF button is still broken" looked like on a phone with
+  // one flaky moment on mobile data. jspdf and html2canvas-pro are dynamic
+  // imports, so they are fetched at the instant the button is pressed — the
+  // worst possible time to substitute a document for a script.
+  //
+  // A failed asset must FAIL. The error is then the real one, the retry works,
+  // and nothing is poisoned for the rest of the session.
   e.respondWith(
     caches.match(e.request).then(
       (cached) =>
@@ -59,7 +77,7 @@ self.addEventListener('fetch', (e) => {
             caches.open(VERSION).then((c) => c.put(e.request, copy));
           }
           return res;
-        }).catch(() => caches.match('/'))
+        })
     )
   );
 });

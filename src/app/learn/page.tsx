@@ -147,6 +147,70 @@ const LESSONS = [
     ),
     cta: { href: '/disclaimer/', label: 'Full risk disclaimer' },
   },
+  {
+    n: '07',
+    title: 'What to bid at an auction',
+    minutes: 4,
+    body: (
+      <>
+        <p>
+          In a competitive bid you name a <strong>rate</strong>, and the direction is easy to get
+          backwards: a <strong>low</strong> rate is the aggressive bid — you are offering the
+          government cheap money, and if the auction clears above you, you are simply filled; bid
+          below where it clears and CBK may never reach you. A <strong>high</strong> rate is the
+          generous one — likely rejected when demand is strong, because CBK fills the cheapest
+          money first and stops when the offer is covered.
+        </p>
+        <p>
+          The evidence for a sensible number is public: every auction result CBK has published.
+          Two traps in reading it. First, a <strong>re-opening</strong> keeps its original name, so
+          a &ldquo;15-year&rdquo; bond may be sold with five years left — compare by time left to
+          run, never by the label. Second, demand figures are per <em>auction</em>, not per bond —
+          one auction often covers several bonds, and dividing one bond&apos;s bids by the whole
+          auction&apos;s offer makes demand look far weaker than it is.
+        </p>
+        <p>
+          Or skip the question: <strong>non-competitive bidding</strong> (up to KES 50 million)
+          takes the weighted average rate the auction clears at, and is the right choice for almost
+          every retail investor. Our auction radar shows where comparable paper has been clearing —
+          and keeps a public record of its own predictions, scored against what actually happened.
+        </p>
+      </>
+    ),
+    cta: { href: '/auctions/', label: 'Open the auction radar' },
+  },
+  {
+    n: '08',
+    title: 'Selling before maturity, without being taken',
+    minutes: 5,
+    body: (
+      <>
+        <p>
+          A broker&apos;s sale quote arrives as a wall of numbers: dirty price, clean price,
+          accrued interest, consideration. The structure is simple. The <strong>clean price</strong>{' '}
+          is the bond&apos;s market value per 100 of face value. <strong>Accrued interest</strong>{' '}
+          is the share of the next coupon you have already earned by holding — the buyer owes it to
+          you. Clean plus accrued is the <strong>dirty price</strong>, which is what the buyer
+          actually pays. Then commission and levies come out of your side.
+        </p>
+        <p>
+          Two questions decide whether the deal is fair. First: does the quoted price actually
+          match the quoted yield? It is arithmetic, not opinion — and one detail can move the
+          answer by thousands of shillings: some infrastructure bonds repay part of their principal
+          early (<em>amortisation</em>), and pricing one as if all principal arrives at maturity
+          overstates its value. Second: what must a <strong>replacement</strong> earn? Charges make
+          your realised yield slightly worse than the headline, and if you are leaving a tax-free
+          bond for a taxable one, the replacement must gross up for withholding tax just to break
+          even. Selling a tax-free bond to buy a taxable one at the same rate is a pay cut.
+        </p>
+        <p>
+          Our sale evaluator does all of this from the numbers on the quote itself — it reproduced
+          a real broker&apos;s contract note to the cent before we shipped it.
+        </p>
+      </>
+    ),
+    cta: { href: '/sell/', label: 'Evaluate a sale quote' },
+  },
 ];
 
 export default function LearnPage() {
@@ -158,7 +222,7 @@ export default function LearnPage() {
           From your first KES 50,000 to a full ladder
         </h1>
         <p className="mt-2 text-lg text-ink-muted">
-          Six short lessons on how Kenyan government securities really work — written for people
+          Eight short lessons on how Kenyan government securities really work — written for people
           investing their own money, not for exam candidates.
         </p>
       </div>

@@ -12,6 +12,7 @@ import { track } from '@/lib/analytics';
 import DataState from '@/components/shared/DataState';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
+import RealYieldCard from '@/components/shared/RealYieldCard';
 
 /**
  * Tax status first, because it is what actually separates these bonds for a
@@ -44,6 +45,7 @@ function Row({ label, value, accent, hint }: {
 export default function CalculatorPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const macro = useBondStore((s) => s.macro);
   const userPrices = usePriceStore((s) => s.userPrices);
   const savePrice = usePriceStore((s) => s.setPrice);
   const [isin, setIsin] = useState('');
@@ -346,6 +348,16 @@ export default function CalculatorPage() {
           </div>
         )}
       </div>
+
+      {/* Everything above is nominal. This is what it is worth. */}
+      {result && (
+        <RealYieldCard
+          bond={bond}
+          netYTM={result.netYTM}
+          grossYTM={result.grossYTM}
+          macro={macro}
+        />
+      )}
 
       {/* The result above says what this bond pays. This says whether that is
           generous — the follow-up question, answered against the bond's own

@@ -113,7 +113,7 @@ export default function PricesPage() {
   if (!bonds.length) return <DataState />;
 
   const inputCls =
-    'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500';
+    'min-h-11 w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500';
 
   return (
     <div className="space-y-5">

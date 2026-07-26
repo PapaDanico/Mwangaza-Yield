@@ -148,11 +148,11 @@ export default function PortfolioPage() {
           <h1 className="text-2xl font-bold text-ink">My Portfolio</h1>
           <p className="text-sm text-ink-muted">Stored locally on your device — never uploaded.</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={downloadTemplate} className="flex items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm text-ink-soft hover:border-ink-muted">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          <button onClick={downloadTemplate} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-sand-400 px-3 py-2 text-sm text-ink-soft hover:border-ink-muted sm:flex-none">
             <Download size={15} /> CSV template
           </button>
-          <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft">
+          <button onClick={() => fileRef.current?.click()} className="flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft sm:flex-none">
             <Upload size={15} /> Import CSV
           </button>
           {enriched.length > 0 && (
@@ -225,7 +225,7 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
           </div>
           <button
             onClick={downloadTemplate}
-            className="mt-3 text-xs text-gold-700 underline-offset-2 hover:underline"
+            className="mt-3 inline-flex min-h-11 items-center text-xs text-gold-700 underline-offset-2 hover:underline"
           >
             Download this as a template
           </button>
@@ -284,7 +284,7 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
               </div>
               <button
                 onClick={exportPayoutCalendar}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+                className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
               >
                 <CalendarPlus size={15} /> Add to calendar
               </button>

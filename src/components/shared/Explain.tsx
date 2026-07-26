@@ -26,7 +26,10 @@ export default function Explain({
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="flex min-h-[32px] items-center gap-1 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
+        /* 44px, not 32px. This is a disclosure for the reader who does not yet
+           trust the number — the one most likely to be on a cheap phone, and
+           the last person who should have to tap twice. */
+        className="flex min-h-11 items-center gap-1 py-1 text-xs font-medium text-ink-muted transition-colors hover:text-ink"
       >
         <ChevronDown size={13} className={cn('transition-transform', open && 'rotate-180')} />
         {label}

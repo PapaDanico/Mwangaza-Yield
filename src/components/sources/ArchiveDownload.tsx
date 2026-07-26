@@ -58,7 +58,7 @@ export default function ArchiveDownload() {
         type="button"
         onClick={download}
         disabled={state === 'working'}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-sand-400 px-2.5 py-1 text-sm text-ink-soft transition hover:border-ink-muted hover:text-ink disabled:opacity-60"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-sand-400 px-2.5 py-1 text-sm text-ink-soft transition hover:border-ink-muted hover:text-ink disabled:opacity-60"
       >
         <Download size={13} aria-hidden="true" />
         {state === 'working' ? 'Preparing…' : 'CSV'}

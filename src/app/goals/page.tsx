@@ -214,7 +214,11 @@ export default function GoalsPage() {
             Start from what the money is for. We&apos;ll shape the bonds around it.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* One wrap context, full width on a phone. The export buttons and the
+            plan controls used to be two separately-wrapping groups side by
+            side, which at 390px stepped down the screen in different
+            directions. */}
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <ReportActions sheetId="goal-report-sheet" filename={`mwangaza-${goal}-plan`} />
           {/* Saved plans: unbounded list, one choice, no comparison — a dropdown. */}
           {plans.length > 0 && (
@@ -222,7 +226,7 @@ export default function GoalsPage() {
               value={activePlanId}
               onChange={(e) => applyPlan(e.target.value)}
               aria-label="Saved plans"
-              className="max-w-[12rem] rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500"
+              className="min-h-11 min-w-0 flex-1 rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500 sm:max-w-[12rem] sm:flex-none"
             >
               <option value="">Saved plans…</option>
               {plans.map((p) => (
@@ -234,14 +238,14 @@ export default function GoalsPage() {
             <button
               onClick={() => { removePlan(activePlanId); setActivePlanId(''); }}
               aria-label="Delete this plan"
-              className="rounded-xl border border-sand-400 p-2 text-ink-faint transition hover:border-red-400 hover:text-red-500"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-sand-400 p-2 text-ink-faint transition hover:border-red-400 hover:text-red-500"
             >
               <Trash2 size={15} />
             </button>
           )}
           <button
             onClick={beginSave}
-            className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-soft"
+            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-soft sm:flex-none"
           >
             {justSaved ? <Check size={15} /> : <Save size={15} />}
             {justSaved ? 'Saved' : activePlanId ? 'Update' : 'Save plan'}

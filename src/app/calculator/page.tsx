@@ -246,7 +246,7 @@ export default function CalculatorPage() {
               id="calc-price"
               type="range" min={70} max={120} step={0.05} value={price}
               onChange={(e) => { setPrice(Number(e.target.value)); setSaved(false); }}
-              className="w-full accent-gold-600"
+              className="h-11 w-full cursor-pointer accent-gold-600"
             />
 
             {/* The slider was a dead end: someone looked a price up, dragged to

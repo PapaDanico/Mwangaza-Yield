@@ -50,14 +50,19 @@ period, it fails loudly instead of quietly answering wrong.
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.
-**Now settled (2026-07-25).** The blocker is legal, not technical. NSE's Market Statistics
-page does serve tables in plain HTML — but its terms forbid copying, storing, redistributing
-*or building a product on* the data, except for personal use. See `DATA-SOURCES.md` §11.
-**Options, in order.** (a) Let the USER fetch and enter a price — explicitly permitted as
-personal use, and it never leaves their device; (b) request written permission, which the
-terms contemplate; (c) buy the licence once there is revenue.
-**Interim.** Make the par fallback explicit in the UI rather than silent, and say plainly
-why we cannot fill it in for them.
+**Settled, then closed entirely (2026-07-25).** The blocker was legal, not technical, and
+the resolution is to stop depending on the Exchange at all rather than to find a permitted
+route through it. Publicly reachable is not freely redistributable; the terms forbid
+copying, storing, redistributing *or building a product on* the data, and being a small
+well-intentioned user is not a licence. See the superseding decision at the top of
+`DATA-SOURCES.md`.
+**What shipped.** No exchange data, no scraper, no link, no claim. The par fallback is
+explicit in the UI and labelled as a placeholder wherever it appears. The price a plan is
+built on comes from the reader's own **price book** — the price they paid, or the one their
+broker or DhowCSD quoted — held only on their device.
+**Not pursued:** asking for permission or buying a licence. Both re-introduce a dependency
+on a counterparty whose terms can change, for a number the reader already knows better than
+any published average: what they are actually being charged.
 
 ---
 

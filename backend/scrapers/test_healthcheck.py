@@ -40,7 +40,7 @@ def fixture_dir(tmp: Path, **overrides) -> Path:
 
 
 def test_empty_secondary_is_not_a_problem():
-    """The shipped state: no NSE licence, so no trades. Must not alarm."""
+    """The shipped state: we publish no market prices, so no trades. Must not alarm."""
     with tempfile.TemporaryDirectory() as tmp:
         d = fixture_dir(Path(tmp), secondary=[])
         res = run_healthcheck(d)

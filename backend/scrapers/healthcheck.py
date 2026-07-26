@@ -39,18 +39,18 @@ BUDGETS = [
     ("meta.json", "Pipeline last ran", "generatedAt", 7, "refresh runs every weekday"),
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
-    # Secondary trades are OPTIONAL_IF_EMPTY (see below). We ship this file
-    # empty on purpose: the NSE licenses its price data and its terms forbid
-    # republication, so there is nothing to be fresh. Held as an ordinary
+    # Secondary trades are OPTIONAL_IF_EMPTY (see below). This file is empty
+    # and stays empty: exchange price data is licensed, and we publish none of
+    # it. Nothing in this repository fetches it any more. Held as an ordinary
     # budget, this line failed on every single run — and because the refresh
     # job opens a GitHub issue on failure, it would have raised a daily alarm
     # about a condition that cannot be fixed. That is precisely the wolf-crying
     # the context.json budget below was widened to avoid, except permanent.
     #
-    # The signal is still worth keeping for anyone who holds a licence and sets
-    # NSE_DAILY_TRADE_URL: once the file HAS trades, going stale is a real
-    # fault and is reported as one.
-    ("secondary.json", "Secondary trades", "tradeDate", 30, "NSE publishes daily"),
+    # The slot is kept, not the source: a deployer who lawfully holds priced
+    # data of their own can drop it in, and then going stale is a real fault
+    # and is reported as one.
+    ("secondary.json", "Secondary trades", "tradeDate", 30, "a supplied feed should be current"),
     # World Bank annual indicators are dated by VINTAGE, not by fetch date: the
     # newest Kenya figure on 2026-07-25 is "2025", which reads as 570 days old
     # and is nonetheless the freshest that exists. National accounts are

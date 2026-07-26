@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       <h2>What we store, and where</h2>
       <ul>
         <li><strong>Your portfolio and imported CSV data</strong> — stored locally in your browser only. Clearing your browser data or tapping &ldquo;Clear all holdings&rdquo; deletes it permanently. We cannot recover it, because we never had it.</li>
-        <li><strong>Prices you record</strong> — the bond prices you look up and save in your price book stay in the same local database as your holdings. They are never uploaded, and we never fetch prices on your behalf: the Nairobi Securities Exchange licenses its price data and does not permit us to republish it.</li>
+        <li><strong>Prices you record</strong> — the bond prices you enter in your price book stay in the same local database as your holdings. They are never uploaded, and we never fetch prices on your behalf, from anyone. We publish no market prices at all.</li>
         <li><strong>Market data</strong> — bond, bill, auction and macro figures are downloaded to your device and cached so the app works offline. This is public information flowing to you, not data flowing from you.</li>
         <li><strong>No cookies</strong> are set for tracking, advertising or profiling.</li>
       </ul>
@@ -48,7 +48,8 @@ export default function PrivacyPage() {
 
       <h2>Links away from the app</h2>
       <p>
-        We link to the Central Bank of Kenya, the NSE, KNBS and CBK&apos;s WhatsApp channel. Once
+        We link to the Central Bank of Kenya, the National Treasury, KNBS and CBK&apos;s WhatsApp
+        channel. Once
         you follow a link you are on their service, under their privacy policy, not ours. Sharing a
         summary to WhatsApp hands that text to WhatsApp — we neither see nor keep a copy.
       </p>

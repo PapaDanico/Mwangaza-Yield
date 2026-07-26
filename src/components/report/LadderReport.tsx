@@ -60,7 +60,7 @@ export default function LadderReport({
             most rungs are sitting on the par placeholder. */}
         {plan.priceCoverage.parFallback > 0
           ? ` ${plan.priceCoverage.parFallback} of ${plan.priceCoverage.total} rungs are priced at par 100 — a placeholder, not the market — so the yields shown are indicative only.`
-          : ' Priced from recorded market prices.'}
+          : ' Priced from the prices you recorded.'}
       </p>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
@@ -134,7 +134,7 @@ export default function LadderReport({
         withholding tax is applied to coupons only (infrastructure bonds are exempt), principal
         redemption untaxed. Accrued interest uses Actual/364 and coupon dates run in exact 182-day
         steps from issue, the basis Kenyan government bonds are built on. Analytics for education
-        only, not investment advice. Sources: Central Bank of Kenya, NSE, KNBS.
+        only, not investment advice. Sources: Central Bank of Kenya, National Treasury, KNBS.
       </footer>
     </div>
   );

@@ -44,15 +44,23 @@ non-zero and leaves the previous file untouched — stale-but-valid beats empty.
 (`published-cross-check`, `schedule-vs-dataset`, `check_archive.py`). Source formats change without
 notice, so the `validate-sources` job probes them on every run.
 
-⚠️ **`secondary.json` is deliberately empty.** The Nairobi Securities Exchange licenses its price
-data and its terms do not permit republication, so the app ships no market prices. Anywhere a price
-is missing, planners fall back to par 100 — always labelled as a placeholder, never presented as the
-market (`src/lib/prices.ts`). Readers may look prices up for their own use and record them in the
-**price book** (`/prices`), which is stored only on their device and takes precedence over
-everything else. Setting the `NSE_DAILY_TRADE_URL` repository variable enables the trade scraper for
-anyone who holds a licence permitting it.
+### Sourcing: CBK, National Treasury, KNBS and the World Bank — and nothing else
+
+⚠️ **No Nairobi Securities Exchange data is used anywhere in this project.** Its terms make the
+data proprietary — not copyable, storable or distributable, and not usable to build a product —
+and that applies to what sits publicly on its website as much as to a paid feed. Rather than rely
+on being a use small enough that nobody minds, the dependency was removed outright: the scrapers
+that could once fetch it are deleted, no configuration reinstates them, and no claim to use
+exchange data appears anywhere in the app.
+
+`secondary.json` is therefore empty. Anywhere a price is missing, planners fall back to par 100 —
+always labelled as a placeholder, never presented as the market (`src/lib/prices.ts`). The price a
+reader actually pays is supplied by the reader, in the **price book** (`/prices`): the price paid,
+or the one a broker or DhowCSD quotes. It is stored only on their device and takes precedence over
+everything else. The `secondary.json` slot remains for a deployer who lawfully holds priced data of
+their own.
 
 ## Disclaimer
 
 Analytics for education only — not investment advice. Verify all figures against official
-CBK/NSE publications before investing.
+CBK and National Treasury publications before investing.

@@ -82,8 +82,9 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: 'Where does your data come from, and how fresh is it?',
     a: (
       <>
-        Published CBK auction results and prospectuses, NSE trading data and KNBS inflation
-        releases. Figures are labelled with their source and date. Some values — coupon dates
+        Published CBK auction results and prospectuses, National Treasury material and KNBS inflation
+        releases — and nothing else. We use no exchange price data of any kind, so a bond&rsquo;s
+        market price is the one thing only you can supply. Figures are labelled with their source and date. Some values — coupon dates
         derived from issue schedules, and yields without an auction print — are estimates, and the
         app says so where they appear. Always confirm against the official prospectus.
       </>

@@ -67,13 +67,13 @@ export function CoverageNotice({ coverage }: { coverage: PriceCoverage }) {
   return (
     <p className="rounded-xl bg-sand-200/70 px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
       <span className="font-semibold">{coverage.parFallback}</span> of {coverage.total} bonds below are
-      priced at <span className="num">100</span> because we have no price for them — that is a
-      placeholder, not the market, and it flatters the yields shown. The NSE licenses its prices and
-      does not permit us to republish them, but you may look them up for your own use and{' '}
+      priced at <span className="num">100</span> because we hold no price for them — that is a
+      placeholder, not the market, and it flatters the yields shown. We publish no market prices at
+      all, so use the price you paid or were quoted and{' '}
       <Link href="/prices/" className="font-medium text-gold-700 underline underline-offset-2">
-        record them here
+        record it here
       </Link>
-      . They stay on your device.
+      . It stays on your device.
     </p>
   );
 }

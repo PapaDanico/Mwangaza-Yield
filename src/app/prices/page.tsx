@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Tag, Trash2, ExternalLink } from 'lucide-react';
+import { Tag, Trash2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
@@ -14,9 +14,14 @@ import { PriceBadge } from '@/components/shared/PriceProvenance';
 /**
  * The price book.
  *
- * This page is the app's answer to a constraint it cannot legally remove. The
- * NSE will not let us publish prices; nothing stops the reader from looking one
- * up and writing it down. So we give them the place to write it down, and every
+ * We publish no market prices at all. This app is built on public CBK, National
+ * Treasury and KNBS data, and exchange price data is none of those — it is
+ * licensed, and we hold no licence, so we take none of it rather than lean on
+ * being a use small enough that nobody minds.
+ *
+ * But the reader knows what they paid, or what they were quoted. That number is
+ * theirs, it is the one their own return actually depends on, and it never
+ * leaves their device. So we give them the place to write it down, and every
  * planner in the app reads from it.
  */
 export default function PricesPage() {
@@ -123,17 +128,15 @@ export default function PricesPage() {
 
       <div className="card space-y-2">
         <p className="text-sm leading-relaxed text-ink-soft">
-          The Nairobi Securities Exchange licenses its price data and does not permit us to republish
-          it — so we don&apos;t. You are free to look prices up for your own use.
+          We publish no market prices at all. This app is built only on public Central Bank of
+          Kenya, National Treasury and KNBS data, and exchange price data is none of those — so
+          the price of a bond is something only you can supply.
         </p>
-        <a
-          href="https://www.nse.co.ke/dataservices/market-statistics/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-700 hover:underline"
-        >
-          NSE market statistics <ExternalLink size={14} />
-        </a>
+        <p className="text-sm leading-relaxed text-ink-soft">
+          Use the price you actually paid, or the price your broker or DhowCSD quotes you. That is
+          the number your own return depends on anyway, and it is more accurate for you than any
+          published average.
+        </p>
         <p className="text-[12px] leading-relaxed text-ink-faint">
           Prices you enter are stored only on this device, in the same local database as your
           holdings. They are never uploaded, and clearing your browser data removes them.
@@ -220,7 +223,7 @@ export default function PricesPage() {
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="NSE daily list, broker quote…"
+                    placeholder="Broker quote, price I paid…"
                     className={inputCls}
                   />
                 </label>

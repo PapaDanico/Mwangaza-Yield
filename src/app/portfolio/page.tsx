@@ -30,9 +30,9 @@ export default function PortfolioPage() {
       const result = computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, new Date(h.purchaseDate));
       // ...versus what the same bond yields at today's price.
       //
-      // This looked only at `secondary`, which ships empty because the NSE will
-      // not let us republish prices — so the mark-to-market column never once
-      // rendered for anybody. Reading the price book too makes it work for a
+      // This looked only at `secondary`, which ships empty because we publish no
+      // market prices at all — so the mark-to-market column never once rendered
+      // for anybody. Reading the price book too makes it work for a
       // reader who has recorded what their bonds are worth.
       //
       // Par is deliberately NOT accepted here. Everywhere else par is a

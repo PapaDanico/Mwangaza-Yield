@@ -1,5 +1,26 @@
 # Data Source Map — Kenyan Government Bonds
 
+> ## ⛔ SUPERSEDING DECISION (2026-07-25): no NSE data, in any form
+>
+> **Mwangaza Yield uses no Nairobi Securities Exchange data.** Not the free daily list,
+> not the dropdown tables, not by manual transcription on our side — none of it.
+>
+> Sections 2, 11 and parts of 5 below record the investigation that led here and are kept
+> as history. **Where they describe routes to obtain exchange data, treat them as closed.**
+> In particular, the earlier "route 1: personal use, by the user" is no longer part of the
+> product: the app does not direct anyone to the Exchange, links to it nowhere, and its
+> price book asks for the price the reader *paid or was quoted* by their broker or DhowCSD.
+>
+> The reasoning is that publicly reachable is not the same as freely redistributable. The
+> terms make the data proprietary and forbid using it to build a product; being a small,
+> well-intentioned user is not a licence. So the dependency was removed outright rather
+> than managed: `nse_parser.py`, `discover_nse.py` and `discover_secondary_sources.py` are
+> deleted, the CI steps that ran them are gone, `NSE_DAILY_TRADE_URL` is not read anywhere,
+> and `validate.py` no longer probes an Exchange endpoint.
+>
+> **Everything the app publishes now comes from CBK, the National Treasury, KNBS and the
+> World Bank.** `secondary.json` ships empty and stays that way.
+
 Verified via web research on 2026-07-24. This is the authoritative reference for where
 Mwangaza Yield's data comes from and how to refresh it.
 
@@ -38,7 +59,7 @@ Scrapers still send a browser User-Agent, which is harmless and polite.
 Rates captured 16 Jul 2026 auction: 91d **8.7986%**, 182d **8.9695%**, 364d **9.0415%**
 (KES 30.62B accepted on KES 44.02B bids, 157% performance).
 
-## 2. NSE — secondary market
+## 2. NSE — secondary market (CLOSED — see the superseding decision at the top)
 
 Probed live 2026-07-25 (`discover_nse.py`). The free Daily Bond Price List is linked from
 `nse.co.ke/bonds-statistics/` as:
@@ -192,7 +213,7 @@ often each source actually publishes:
 | `meta.json` | `generatedAt` | 7d | refresh runs every weekday |
 | `macro.json` | `date` | 40d | CPI is monthly |
 | `tbills.json` | `auctionDate` | 21d | auctioned weekly |
-| `secondary.json` | `tradeDate` | 30d | NSE publishes daily |
+| `secondary.json` | `tradeDate` | 30d | empty by design; only checked if a deployer supplies a feed |
 | `context.json` | `asOf` | 400d | annual indicators |
 
 Freshness is read from **named date fields only**. An earlier version scanned the whole
@@ -350,7 +371,7 @@ ships static files to the public, so "available" and "usable" are very different
 | Bloomberg | HTTP 403 to bots | — | Commercially licensed | **Declined** |
 | NSE Data Services | HTTP 200, 6 tables, 32 rows in HTML | **Yes** | **No** | **Declined on terms** |
 
-### The NSE dropdown: technically yes, legally no
+### The NSE dropdown: technically yes, legally no (CLOSED — no route is taken)
 
 The Market Statistics page (Bonds Statistics tab, with the tenor dropdown — TWO YEAR
 BONDS, and so on) does serve tables in plain HTML: **6 tables, 32 rows**, no OCR needed.

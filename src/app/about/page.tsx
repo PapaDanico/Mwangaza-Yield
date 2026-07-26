@@ -48,7 +48,7 @@ export default function AboutPage() {
         Everything runs in your browser. The financial engine — accrued interest, yield solving,
         withholding tax, ladder construction — is plain arithmetic executing on your device, tested
         against known values on every change. Market data is published as static files sourced from
-        CBK, NSE and KNBS. Your portfolio lives in your phone&apos;s local storage and is never
+        CBK and KNBS. Your portfolio lives in your phone&apos;s local storage and is never
         transmitted anywhere.
       </p>
       <p>

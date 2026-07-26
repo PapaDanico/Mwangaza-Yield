@@ -278,25 +278,15 @@ export default function CalculatorPage() {
               </button>
             ) : (
               // Silence here would be the dishonest option: 100 looks like a
-              // market price and is really just a default. The NSE terms permit
-              // the USER to look a price up for personal use — they simply do
-              // not permit us to fetch it for them. So we say so and hand them
-              // the link.
+              // market price and is really just a default. We hold no market
+              // prices at all — the app is built on CBK, Treasury and KNBS data
+              // and nothing else — so the only price that can be right is the
+              // one the reader is actually being offered.
               <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
-                We are showing <span className="num">100</span> because we have no traded price
-                for this bond — that is a placeholder, not the market. The Nairobi Securities
-                Exchange licenses its prices and does not permit us to republish them, but you
-                may look one up for your own use:{' '}
-                <a
-                  href="https://www.nse.co.ke/dataservices/market-statistics/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gold-700 hover:underline"
-                >
-                  NSE Market Statistics
-                </a>
-                . Drag the slider to whatever you find and keep it — it stays on your phone, and
-                every other page will use it too.
+                We are showing <span className="num">100</span> because we hold no price for this
+                bond — that is a placeholder, not the market. We publish no market prices at all.
+                Set the slider to the price you paid, or the one your broker or DhowCSD quotes
+                you, and keep it — it stays on your phone, and every other page will use it too.
               </p>
             )}
           </div>

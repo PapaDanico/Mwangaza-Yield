@@ -5,8 +5,8 @@ Why this source, when most of the others on the list are unusable:
     from the browser if we ever wanted live refresh.
   * Documented, stable, versioned REST/JSON (v2).
   * CC BY 4.0 licensed, so we may redistribute with attribution. Most Kenyan
-    market data is either licensed (NSE bulk feeds) or copyrighted research
-    (broker notes), which we link to instead of copying.
+    market data is either licensed (exchange feeds) or copyrighted research
+    (broker notes). We take neither.
 
 The indicators chosen are the ones that tell a BOND investor whether the
 borrower is good for the money — not general development statistics.

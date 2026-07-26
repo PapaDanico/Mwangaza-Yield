@@ -1,9 +1,9 @@
 """Probe candidate data sources and report whether they are machine-readable.
 
-Generalises the NSE investigation: for each candidate page, find linked PDFs
+Generalises the price-list investigation: for each candidate page, find linked PDFs
 and report each one's structure — character count, images, tables. That
 distinguishes a usable text PDF from a scanned image BEFORE any parser is
-written, which is the lesson the NSE price list taught us the expensive way.
+written, which is the lesson the exchange price list taught us the expensive way.
 
 Read-only. Never gates CI.
 """

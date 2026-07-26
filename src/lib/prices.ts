@@ -1,18 +1,18 @@
 // The price book — where a number the reader found becomes a number the app plans on.
 //
-// Every yield in this application is a function of price, and for most of the
-// paper on the NSE we do not have one. The Exchange licenses its prices and its
-// terms do not permit us to republish them, so `secondary.json` is empty and
-// each planner silently fell back to par 100. That fallback is not neutral: a
-// bond trading at 92 shows a materially lower yield at 100, and the reader has
-// no way to tell a real price from a placeholder.
+// Every yield in this application is a function of price, and we hold no market
+// prices at all. This app is built on public CBK, National Treasury and KNBS
+// data; exchange price data is licensed and we take none of it, so
+// `secondary.json` is empty and each planner used to fall back silently to par
+// 100. That fallback is not neutral: a bond trading at 92 shows a materially
+// lower yield at 100, and the reader had no way to tell a real price from a
+// placeholder.
 //
-// The legal constraint binds US, not the reader. Anyone may look a price up on
-// the NSE's own site for their own use. So instead of fetching prices we let
-// people record the ones they find, keep them on their own device exactly as we
-// keep holdings, and — the part that matters — carry the PROVENANCE of every
-// price alongside its value, so no figure in this app can present a placeholder
-// as though it were the market.
+// The price a reader actually pays is theirs, not ours to source. So they
+// record it — the price paid, or the one a broker or DhowCSD quotes — it stays
+// on their own device exactly as holdings do, and, the part that matters, the
+// PROVENANCE travels with the value so no figure in this app can present a
+// placeholder as though it were the market.
 
 import type { Bond, SecondaryTrade } from '@/types/bond';
 
@@ -23,7 +23,7 @@ export interface UserPrice {
   price: number;
   /** ISO date the reader observed it — not the date they typed it in. */
   observedOn: string;
-  /** Free text: "NSE daily list", "my broker's quote". Optional, for recall. */
+  /** Free text: "my broker's quote", "price I paid". Optional, for recall. */
   note?: string;
   updatedAt: string;
 }
@@ -66,8 +66,8 @@ function daysBetween(fromISO: string, to: Date): number | null {
 /**
  * Resolve one bond's price, most trustworthy source first.
  *
- * The reader's own price outranks a published trade deliberately. If someone
- * has gone to the NSE, read today's list and typed in 96.40, that is a better
+ * The reader's own price outranks a supplied feed deliberately. If someone has
+ * been quoted 96.40 and typed it in, that is a better
  * description of what they would actually pay than a print we hold from an
  * earlier session. They looked; we only remembered.
  */

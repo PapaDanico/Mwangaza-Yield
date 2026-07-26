@@ -200,8 +200,45 @@ export const GLOSSARY: Term[] = [
     term: 'Real return',
     also: 'after inflation',
     plain:
-      'What your money earns after prices have risen. Earning 13% while inflation runs at 6% means you are about 7% better off in what your money can actually buy.',
-    why: 'A high rate in a high-inflation year can leave you standing still. This is the number that decides whether you are genuinely getting ahead.',
+      'What your money earns after prices have risen — the growth in what it can actually buy, rather than in how many shillings there are.',
+    precise:
+      'Divide, do not subtract: (1 + your return) / (1 + inflation) - 1. At Kenyan rates the difference is not academic. An 11.56% net yield against 6.41% inflation is 4.84% real, where subtracting gives 5.15% — a 31 basis point overstatement, and it grows as both rates rise.',
+    why: 'A high rate in a high-inflation year can leave you standing still. This is the number that decides whether you are genuinely getting ahead, and the calculator shows it for every bond.',
+  },
+  {
+    slug: 'nominal',
+    term: 'Nominal',
+    also: 'before inflation',
+    plain:
+      'A figure counted in shillings, without asking what those shillings will buy. Almost every rate you will ever be quoted is nominal.',
+    why: 'Nominal and real are not two views of the same number — they answer different questions. "Will my balance be bigger?" is nominal. "Will I be better off?" is real, and it is the one you meant.',
+  },
+  {
+    slug: 'purchasing-power',
+    term: 'Purchasing power',
+    plain:
+      'What a fixed amount of money can actually buy. Inflation erodes it even when the amount never changes.',
+    precise:
+      'This is where a bond quietly loses money that no yield figure shows. The face value comes back exactly as promised — but at 6.41% inflation, KES 100 repaid in fifteen years buys what KES 39 buys today.',
+    why: 'The longer the bond, the more of the real loss sits in the principal rather than the coupon. It is invisible in a yield and decisive over a long holding.',
+  },
+  {
+    slug: 'break-even-inflation',
+    term: 'Break-even inflation',
+    plain:
+      'The inflation rate at which your investment exactly stands still — you end up with more shillings and the same purchasing power.',
+    precise:
+      'Arithmetically it is just your net yield restated. The value is in the restatement: "inflation would have to average above 11.56% for the rest of the term before I lost ground" is a question you can form a view on. "My net yield is 11.56%" is not.',
+  },
+  {
+    slug: 'clearing-benchmark',
+    term: 'Comparable clearing rate',
+    also: 'what the government has been paying',
+    plain:
+      'The median rate that similar bonds have actually cleared at in recent CBK auctions — similar meaning the same tax treatment and roughly the same time left to run.',
+    precise:
+      'Kenya has no published secondary-market benchmark a retail buyer can check a broker quote against, and this app holds no exchange prices at all. What it does hold is every auction CBK has settled, which is a defensible answer to "is this price generous or poor?".',
+    why: 'It is the only honest way to judge a quote you have been given. Comparison requires matching four things — gross against gross, tax status, remaining term rather than the tenor label, and recency — and getting any of them wrong produces a confident wrong answer.',
   },
 ];
 

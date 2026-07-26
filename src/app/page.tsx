@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {
   Calculator, Radar, Briefcase, Layers, WifiOff, LockKeyhole, ArrowRight, CalendarCheck, Receipt,
   RefreshCw, Landmark, Users, BarChart3, Target, GraduationCap, Flame, CalendarHeart, BookOpen,
+  ArrowRightLeft,
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
 import EvidenceStrip from '@/components/landing/EvidenceStrip';
@@ -20,7 +21,7 @@ const features = [
 const steps = [
   { n: '01', title: 'See what is really on offer', desc: 'We rank every current government bond by what it pays you after tax — so the tax-free ones and the taxable ones can finally be compared honestly.' },
   { n: '02', title: 'Shape it around your life', desc: 'Say what the money is for and how much you have. We work out the cost, the payment dates and what lands in your hand.' },
-  { n: '03', title: 'Place your bid, then relax', desc: 'Follow the step-by-step guide on DhowCSD, record what you bought, and let the app tell you when each payment is coming.' },
+  { n: '03', title: 'Place your bid, then relax', desc: 'Follow the step-by-step guide on DhowCSD, record what you bought, and let the app tell you when each payment is coming — and what it is worth if you ever decide to sell.' },
 ];
 
 export default function LandingPage() {
@@ -42,9 +43,10 @@ export default function LandingPage() {
             Government bonds, made plain
           </p>
           <p className="mt-5 max-w-lg text-lg text-ink-muted">
-            Buying a government bond means lending your money to your own country, and being
-            paid for it. We show you exactly what one pays <em>after tax</em> — in plain
-            language, before you commit a single shilling.
+            Buying a government bond means lending your money to your own country, and being paid
+            for it. The arithmetic behind it is not difficult — it has just rarely been shown to
+            the people whose money it is. So we show it: what a bond pays <em>after tax</em>, in
+            plain language, before you commit a single shilling.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
@@ -91,11 +93,12 @@ export default function LandingPage() {
       {/* Features */}
       <section>
         <h2 className="text-center text-2xl font-bold text-ink md:text-3xl">
-          Everything you need. No finance degree required.
+          The whole picture, in your own hands.
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-center text-sm text-ink-muted">
-          The same analysis banks run on their trading desks, rebuilt for a phone, a KES 50,000
-          starting balance, and someone who has never bought a bond before.
+          The same analysis a trading desk runs, rebuilt for a phone, a KES 50,000 starting
+          balance, and an evening at the kitchen table. Nothing here assumes you have done this
+          before — and nothing here talks down to you if you have.
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ Icon, title, desc }) => (
@@ -147,6 +150,64 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* The sell side.
+          Placed after the objectives band and before "how it works" on purpose:
+          by this point the reader has been shown what buying gives them, and
+          the honest next question is what happens when they want out. Every
+          other tool in this market stops at the purchase. */}
+      <section className="grid items-center gap-8 md:grid-cols-[1fr,1fr]">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">
+            The part nobody prepares you for
+          </p>
+          <h2 className="mt-3 text-2xl font-bold leading-tight text-ink md:text-3xl">
+            One day you will want to sell. <br className="hidden md:block" />
+            <span className="text-gold-700">We will still be here.</span>
+          </h2>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-ink-muted">
+            When that day comes, a broker sends a pricing sheet: a yield, a dirty price, a
+            consideration, some charges. Every figure on it is accurate, and none of them answers
+            the question you actually have — whether to do it at all.
+          </p>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+            So we work out the two numbers the sheet leaves out. What you are{' '}
+            <em>really</em> selling at once the commission and levies are paid. And what your next
+            investment has to earn for the swap to leave you no worse off — grossed up for tax,
+            because a tax-free infrastructure bond cannot be replaced by an ordinary one at the
+            same headline rate. That single point of difference is the most expensive thing in
+            this market, and it appears on no statement anywhere.
+          </p>
+          <Link
+            href="/sell/"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-sand-400 bg-sand-50 px-6 py-3 font-display text-sm font-semibold text-ink transition hover:border-gold-500"
+          >
+            <ArrowRightLeft size={16} className="text-gold-700" /> Check a sale quote
+          </Link>
+        </div>
+        <div className="card space-y-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+            From a real broker sheet
+          </p>
+          {[
+            { k: 'Quoted to you', v: '12.50%', muted: true },
+            { k: 'What you actually sell at', v: '12.57%' },
+            { k: 'A taxed bond must then yield', v: '13.97%', accent: true },
+          ].map(({ k, v, muted, accent }) => (
+            <div key={k} className="flex items-baseline justify-between gap-3 border-b border-sand-300/70 pb-2 last:border-0">
+              <span className="text-sm text-ink-muted">{k}</span>
+              <span className={`num shrink-0 font-semibold ${accent ? 'text-lg text-gold-700' : muted ? 'text-sm text-ink-faint' : 'text-sm text-ink'}`}>
+                {v}
+              </span>
+            </div>
+          ))}
+          <p className="text-[11px] leading-relaxed text-ink-faint">
+            A tax-free bond sold at 12.50% needs nearly <span className="num">14%</span> from
+            ordinary paper to break even. Sell into a 13% bond thinking you have gained, and you
+            have quietly lost income for the next thirteen years.
+          </p>
+        </div>
+      </section>
+
       {/* How it works */}
       <section>
         <h2 className="text-center text-2xl font-bold text-ink md:text-3xl">How it works</h2>
@@ -167,9 +228,10 @@ export default function LandingPage() {
           Mwangaza means light. That is the whole idea.
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-sm text-sand-300/80">
-          Kenya&apos;s bond market has been open to ordinary savers for years — most people were
-          simply never shown the door. It is free, it works offline, and it asks nothing of you.
-          Add it to your home screen and have a look around.
+          Kenya&apos;s bond market has been open to ordinary savers for years. What has been in
+          short supply is not access — it is a clear view of the numbers, offered without an
+          agenda. That is all this is. It is free, it works offline, it has no account to open,
+          and it never sees a shilling of what you hold. Have a look around.
         </p>
         <Link
           href="/dashboard/"

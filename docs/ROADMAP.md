@@ -47,6 +47,47 @@ that agree with it by construction. If CBK ever issues a bond with a genuine stu
 period, it fails loudly instead of quietly answering wrong.
 
 ---
+### 2b. Amortising bonds are not modelled by the main engine — FOUND 2026-07-26
+
+**How it surfaced.** A reader sent in a real broker sheet for `IFB1/2022/18`
+(ABC Capital, value date 20-Jul-2026, quoted 12.5000%, dirty 107.8145). Two of
+its figures reconciled to the cent against our conventions — accrued interest
+`27,484 x 42/182 = 6,342.46`, and coupon dates stepping 182 days from issue to
+land exactly on maturity in 28 periods. Independent confirmation of §1, from
+somebody else's pricing engine.
+
+The price did not reconcile. At the broker's own yield we produced **109.6395**
+against their **107.8145**.
+
+**Cause.** The sheet carries `{Amortization Dates: 02/06/31}`. Solving for the
+principal fraction that reconciles the two gives **exactly 50.00%** — the
+standard structure for these bonds. Once modelled, our price lands on theirs.
+
+**What it costs.** `bonds.json` has no amortisation field, and
+`financial-engine.ts` assumes a bullet repayment. So the calculator, the ladder
+and every goal plan overstate this bond by **1.83 per 100** — about
+**KES 7,300 on a KES 400,000 holding**. The error is silent: every figure looks
+ordinary.
+
+**Partly addressed.** `sell.ts` models amortisation as a first-class input and
+`/sell` asks for it, because that is where real money moves and where the
+reader has the schedule in front of them. When our price disagrees with a
+quoted yield the page says so and names amortisation as the likely cause,
+rather than quietly printing a different number.
+
+**Still open.** The main engine. Two things are needed and neither is hard:
+an optional `amortisation` field on `Bond`, and cash-flow generation that
+respects it. The blocker is not code, it is **data** — we do not know which of
+the 58 bonds amortise or on what schedule, and guessing would be exactly the
+confident-wrong-claim this project keeps catching.
+
+**Do not infer the schedule from a price.** The 50% above reconciles to four
+decimal places and is very probably right, but it was derived from one sheet
+for one bond. Before it is treated as fact for anybody else, it wants
+confirming against the prospectus — which `discover_prospectus.py` already
+knows how to reach.
+
+---
 ### 3. Real secondary-market prices
 **Problem.** The calculator falls back to par (100) when there is no traded price. Par
 is rarely the truth, and users may not notice the assumption.

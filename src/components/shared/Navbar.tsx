@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import OfflineBadge from './OfflineBadge';
@@ -57,9 +57,20 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
-            {/* Same reasoning as Alerts below: the price book earns a place on
-                every page — it changes every yield in the app — but not 40px of
-                a 360px tab row. */}
+            {/* Selling is decided once and cannot be undone, so it earns a
+                place on every page — but not 40px of a 360px tab row. Same
+                reasoning as the price book and Alerts that follow. */}
+            <Link
+              href="/sell/"
+              aria-label="Should you sell?"
+              className={cn(
+                'rounded-lg p-2 transition-colors hover:bg-sand-200',
+                isActive('/sell/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <ArrowRightLeft size={20} />
+            </Link>
+            {/* The price book changes every yield in the app. */}
             <Link
               href="/prices/"
               aria-label="Your price book"

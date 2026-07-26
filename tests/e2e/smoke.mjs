@@ -59,9 +59,9 @@ function startServer() {
 
 const ROUTES = [
   '/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/calculator/',
-  '/auctions/', '/portfolio/', '/prices/', '/alerts/', '/sources/', '/learn/',
-  '/glossary/', '/faq/', '/about/', '/support/', '/terms/', '/privacy/',
-  '/disclaimer/',
+  '/auctions/', '/portfolio/', '/prices/', '/sell/', '/alerts/', '/sources/',
+  '/learn/', '/glossary/', '/faq/', '/about/', '/support/', '/terms/',
+  '/privacy/', '/disclaimer/',
 ];
 
 const failures = [];
@@ -216,6 +216,44 @@ async function main() {
     }
   }
   if (failures.length === mtmBefore) pass('imported a holding, priced it, at-market yield appeared');
+
+  /* ---------------- the sell evaluator reproduces a real broker sheet */
+  // Pinned to the ABC Capital quote for IFB1/2022/18 (20-Jul-2026). The point
+  // is not that the arithmetic is right — sell.test.ts proves that — but that
+  // a reader typing their own sheet in actually sees the answer.
+  console.log('\nsell evaluator');
+  const sellBefore = failures.length;
+  await go('/sell/');
+  if (!(await page.locator('#sell-bond').count())) {
+    fail('sell: the quote form did not render');
+  } else {
+    await page.locator('#sell-bond').selectOption('KE8000002322').catch(() => {});
+    await page.locator('#sell-face').fill('400000');
+    await page.locator('#sell-date').fill('2026-07-20');
+    await page.locator('#sell-dirty').fill('107.8145');
+    await page.locator('#sell-ytm').fill('12.5');
+    await page.locator('#sell-comm').fill('1500');
+    await page.locator('#sell-levy').fill('47.44');
+    await page.waitForTimeout(700);
+
+    // Without the amortisation the sheet cannot be reproduced, and the page
+    // must say so rather than quietly print a different price.
+    if (!/does not match your sheet/i.test(await page.innerText('body'))) {
+      fail('sell: no warning when our price disagrees with the quoted yield');
+    }
+
+    await page.locator('input[type=date]').nth(1).fill('2031-06-02');
+    await page.locator('input[aria-label="Percent of principal repaid"]').fill('50');
+    await page.waitForTimeout(900);
+
+    const body = await page.innerText('body');
+    if (!/reproduces your broker/i.test(body)) {
+      fail('sell: amortisation entered but the sheet still does not reconcile');
+    }
+    if (!/429,711/.test(body)) fail('sell: net proceeds not shown');
+    if (!/13\.97%/.test(body)) fail('sell: grossed-up break-even not shown');
+  }
+  if (failures.length === sellBefore) pass('reproduced a real broker sheet and grossed up the break-even');
 
   /* ------------------------------------------------------ offline (PWA) */
   console.log('\noffline');

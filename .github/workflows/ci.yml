@@ -32,6 +32,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # Typecheck EVERYTHING, not just what next build compiles.
+      #
+      # `next build` typechecks the app and injects its own compiler target, so
+      # it stayed green while `tsc --noEmit` failed on main: a test file used
+      # `[...str.matchAll(re)]`, which is fine under any modern target and
+      # TS2802 under the ES5 default a bare tsc fell back to. The target is now
+      # pinned in tsconfig.json; this step is what makes the gap visible if it
+      # ever reopens, since tests and scripts are outside the build's reach.
+      - run: npm run typecheck
       - run: npm run build
 
       # The unit suite proves the maths; this proves the reader sees it. Every

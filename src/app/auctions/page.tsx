@@ -7,6 +7,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
 import { BidAssistant } from '@/components/auctions/BidAssistant';
+import TrackRecord from '@/components/auctions/TrackRecord';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -111,6 +112,8 @@ export default function AuctionsPage() {
           );
         })}
       </div>
+
+      <TrackRecord />
 
       <a
         href={CBK_WHATSAPP_CHANNEL}

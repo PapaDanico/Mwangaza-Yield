@@ -33,3 +33,20 @@
     Cache-Control = "public, max-age=900"
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, OPTIONS"
+
+# The CSV is the same feed and needs the same treatment. It was added without
+# this rule, so it fell through to the generic /data/* entry — served, cached
+# for five minutes, and with NO Access-Control-Allow-Origin. A browser could
+# download it by typing the URL and could not fetch() it from anywhere else,
+# which is precisely the use it exists for: docs/REVENUE.md publishes it so an
+# analyst evaluating a licence can pull it into their own sheet or dashboard
+# without writing a JSON parser first. Content-Type is pinned because a feed
+# meant to open in a spreadsheet should not depend on the extension being
+# guessed correctly.
+[[headers]]
+  for = "/data/rates.csv"
+  [headers.values]
+    Content-Type = "text/csv; charset=utf-8"
+    Cache-Control = "public, max-age=900"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"

@@ -286,6 +286,14 @@ jobs:
             && npm run build:engine \
             && node scripts/update-predictions.mjs; } \
             || echo "failed=predictions" >> "$GITHUB_OUTPUT"
+      # Republish the computed rates feed from the freshly scraped figures.
+      # Separate from the ledger step so a ledger failure cannot silently
+      # leave consumers reading yesterday's yields — this is the file other
+      # products build on. Depends on build:engine having run above.
+      - name: Rebuild the published rates feed
+        if: ${{ !cancelled() && !inputs.test_alert }}
+        id: rates
+        run: node scripts/build-rates-feed.mjs || echo "failed=rates-feed" >> "$GITHUB_OUTPUT"
       - name: Commit updated data
         if: ${{ !cancelled() && !inputs.test_alert }}
         run: |
@@ -362,6 +370,7 @@ jobs:
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.predictions.outputs.failed }}',
+              '${{ steps.rates.outputs.failed }}',
             ].filter(Boolean);
 
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

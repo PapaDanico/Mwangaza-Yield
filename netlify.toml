@@ -20,3 +20,16 @@
   for = "/data/*"
   [headers.values]
     Cache-Control = "public, max-age=300"
+
+# The rates feed is published FOR other people to read — see
+# scripts/build-rates-feed.mjs and docs/RATES-FEED.md. Cross-origin reads are
+# therefore the point, not an oversight. This is a deliberate trade: the
+# underlying figures are public CBK releases and the product being sold is the
+# verified engine and its support, not gatekeeping a JSON file. An open feed
+# that carries our attribution is worth more than a closed one nobody cites.
+[[headers]]
+  for = "/data/rates.json"
+  [headers.values]
+    Cache-Control = "public, max-age=900"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"

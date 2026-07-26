@@ -161,6 +161,74 @@ const feed = {
 
 writeFileSync('public/data/rates.json', JSON.stringify(feed, null, 2) + '\n');
 
+/* ------------------------------------------------------------------ CSV */
+
+/**
+ * The same figures, in the format the buyer actually uses.
+ *
+ * docs/REVENUE.md §2 names this as the gap between a packaged engine and a
+ * sellable one: the analyst evaluating this works in Excel, not in
+ * `npm install`. A JSON feed asks them to write a parser before they can see
+ * whether the numbers are any good; a CSV they can open is the difference
+ * between a demo and a document they can check against their own book.
+ *
+ * Deliberately one flat table rather than a faithful serialisation of the
+ * JSON. Nested structures do not survive a spreadsheet, and a file that opens
+ * wrong is worse than no file. T-bills and bond bands share a `series` column
+ * so both fit one sheet; the caveats travel in a header block, because a
+ * figure that outlives its caveats is how a careful calculation becomes a
+ * careless claim somewhere downstream.
+ */
+const csvCell = (v) => {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+const csvRows = [
+  ['# Rates via Mwangaza Yield (mwangazayield.org)'],
+  [`# Generated ${generatedAt} | schema ${feed.schema}`],
+  [`# ${feed.notes.sourcing}`],
+  [`# T-BILLS: ${feed.notes.tbills}`],
+  [`# BANDS: ${feed.notes.benchmarks}`],
+  [`# ${feed.notes.warranty}`],
+  [],
+  [
+    'series', 'label', 'tenorDays', 'fromYears', 'toYears',
+    'quotedDiscountRate', 'grossRate', 'netRate', 'whtRate',
+    'sampleSize', 'lowRate', 'highRate', 'asOf', 'source',
+  ],
+];
+
+for (const b of tbills) {
+  csvRows.push([
+    'tbill', `${b.tenorDays}-day Treasury bill`, b.tenorDays, '', '',
+    b.quotedDiscountRate, b.grossEAY, b.netEAY, b.whtRate,
+    '', '', '', b.auctionDate, b.source ?? 'CBK',
+  ]);
+}
+
+for (const band of benchmarks) {
+  csvRows.push([
+    'bondAuctionBand', band.label, '', band.fromYears, band.toYears,
+    '', band.medianClearingRate, '', '',
+    band.auctions, band.lowClearingRate, band.highClearingRate,
+    band.latestAuctionDate, 'CBK auction results',
+  ]);
+}
+
+for (const [key, m] of Object.entries(feed.macro)) {
+  if (!m) continue;
+  csvRows.push([
+    'macro', key, '', '', '', '', m.value, '', '', '', '', '', m.date, m.source,
+  ]);
+}
+
+writeFileSync(
+  'public/data/rates.csv',
+  csvRows.map((r) => r.map(csvCell).join(',')).join('\n') + '\n'
+);
+
 const t = tbills.map((x) => `${x.tenorDays}d net ${x.netEAY}%`).join(', ');
 const quotable = benchmarks.filter((x) => x.medianClearingRate !== null).length;
 console.log(`rates feed: ${t} | ${quotable}/${benchmarks.length} bond bands quotable`);

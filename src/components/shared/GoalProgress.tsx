@@ -75,7 +75,10 @@ export default function GoalProgress({
   }));
 
   return (
-    <div className="card space-y-4">
+    // Screen-only: the printable one-pager is GoalReport, and a progress
+    // tracker with its own record-a-reading control is a thing you use, not a
+    // thing you hand to somebody.
+    <div className="no-print card space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="font-semibold text-ink">How {plan.name} is going</h2>

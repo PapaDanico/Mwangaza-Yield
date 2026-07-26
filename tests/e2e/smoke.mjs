@@ -92,7 +92,7 @@ const visibleGarbage = (page) => page.evaluate(() => {
 async function main() {
   const server = await startServer();
   const browser = await chromium.launch({ executablePath: EXECUTABLE, args: ['--no-sandbox'] });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
   const page = await ctx.newPage();
 
   const errors = [];
@@ -282,6 +282,109 @@ async function main() {
     if (!/13\.97%/.test(body)) fail('sell: grossed-up break-even not shown');
   }
   if (failures.length === sellBefore) pass('reproduced a real broker sheet and grossed up the break-even');
+
+  /* ------------------------------- buttons that actually do something */
+  /*
+   * The class of bug this section exists for: a control that renders, passes
+   * every unit test, and does nothing when pressed.
+   *
+   * Two shipped. "Save plan" called `window.prompt`, which installed PWAs and
+   * several mobile WebViews simply refuse — the handler read null and returned,
+   * so there was no plan, no message and no clue. "PDF report" called
+   * `window.print`, which iOS has no dialog for when the app is running from
+   * the home screen, and the report sheet is display:none until print media
+   * applies — so nothing appeared at all. Both were reported to us as dead
+   * buttons, which is exactly what they were.
+   *
+   * Anything asserted here must be observable from pressing the control.
+   */
+  console.log('\nthe report and the plan actually come out');
+  const btnBefore = failures.length;
+
+  // No blocking platform dialog may be involved. If one appears, the test
+  // dismisses it and fails — that is the bug, reproduced.
+  let dialogs = 0;
+  page.on('dialog', async (d) => { dialogs++; await d.dismiss().catch(() => {}); });
+
+  await go('/ladder/');
+  await page.waitForTimeout(1200);
+  const download = page.waitForEvent('download', { timeout: 30000 }).catch(() => null);
+  const clicked = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /save image/i.test(x.textContent));
+    if (!b) return false;
+    b.click();
+    return true;
+  });
+  if (!clicked) fail('ladder: no image export control on the page');
+  else {
+    const file = await download;
+    if (!file) fail('ladder: the image export button produced no file');
+    else {
+      const path = await file.path();
+      const bytes = path ? (await stat(path)).size : 0;
+      // A blank canvas still downloads. The report is dense enough that a real
+      // one is tens of kilobytes; a few hundred bytes means an empty sheet.
+      if (bytes < 20_000) fail(`ladder: exported image is only ${bytes} bytes — probably blank`);
+    }
+  }
+
+  // Saving a plan must name it in the page, not through a platform dialog.
+  await go('/goals/');
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /save plan|update/i.test(x.textContent));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(500);
+  if (!(await page.$('#plan-name'))) fail('goals: Save plan did not offer a name field in the page');
+  else {
+    await page.fill('#plan-name', 'Smoke test plan');
+    await page.evaluate(() => {
+      const b = [...document.querySelectorAll('button')].filter((x) => /^save$|^update$/i.test(x.textContent.trim()))[0];
+      if (b) b.click();
+    });
+    await page.waitForTimeout(1200);
+    if (!/Smoke test plan/.test(await page.innerText('body'))) {
+      fail('goals: the saved plan never appeared in the saved-plans list');
+    }
+  }
+  if (dialogs > 0) fail(`${dialogs} blocking browser dialog(s) were raised — these are refused on mobile`);
+  if (failures.length === btnBefore) pass('image export produced a real file; plan saved without a platform dialog');
+
+  /* ------------------------------------ a tailored ladder survives a reload */
+  /*
+   * Hand-picking six rungs and losing them on reload is not a tool. On a phone
+   * this needs no deliberate act: an installed PWA is routinely evicted and
+   * re-launched from the background.
+   */
+  console.log('\na tailored ladder is still there tomorrow');
+  const persistBefore = failures.length;
+  await go('/ladder/');
+  await page.waitForTimeout(1200);
+  await page.fill('#ladder-amount', '6500000');
+  const picked = await page.evaluate(() => {
+    const s = document.getElementById('rung-0');
+    if (!s) return null;
+    const other = [...s.options].map((o) => o.value).filter((v) => v && v !== s.value);
+    const next = other[5];
+    if (!next) return null;
+    s.value = next;
+    s.dispatchEvent(new Event('change', { bubbles: true }));
+    return next;
+  });
+  if (!picked) fail('ladder: could not pick a different bond for rung 1');
+  else {
+    await page.waitForTimeout(1000);
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForTimeout(1800);
+    const kept = await page.evaluate(() => ({
+      amount: document.getElementById('ladder-amount')?.value,
+      rung0: document.getElementById('rung-0')?.value,
+    }));
+    if (kept.amount !== '6500000') fail(`ladder: capital reset to ${kept.amount} after reload`);
+    if (kept.rung0 !== picked) fail('ladder: the hand-picked bond was lost on reload');
+  }
+  if (failures.length === persistBefore) pass('capital and the hand-picked rung both survived a reload');
 
   /* ------------------------------------------------------ offline (PWA) */
   console.log('\noffline');

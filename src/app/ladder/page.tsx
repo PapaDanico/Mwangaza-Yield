@@ -1,26 +1,31 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, Layers, Share2, FileText, X, RotateCcw } from 'lucide-react';
+import { CalendarPlus, Layers, Share2, X, RotateCcw } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance';
 import { buildLadder } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
-import { APP_URL, formatLadderSummary, shareText, printReport } from '@/lib/share';
+import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
 import { nonNegativeNumber } from '@/lib/utils';
+import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
 import LadderReport from '@/components/report/LadderReport';
+import ReportActions from '@/components/report/ReportActions';
 import LiveResult from '@/components/shared/LiveResult';
 
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
-  const [amount, setAmount] = useState(3_000_000);
-  const [horizon, setHorizon] = useState(10);
-  const [rungCount, setRungCount] = useState(4);
+  // Persisted, not useState. A reader who hand-builds a six-rung ladder and
+  // comes back to find it gone has not been given a tool, and on a phone that
+  // happens without them ever deciding to leave. See lib/persisted.ts.
+  const [amount, setAmount] = usePersistedState('ladder:amount', 3_000_000);
+  const [horizon, setHorizon] = usePersistedState('ladder:horizon', 10);
+  const [rungCount, setRungCount] = usePersistedState('ladder:rungs', 4);
   /**
    * Bonds the reader has chosen for themselves.
    *
@@ -31,7 +36,7 @@ export default function LadderPage() {
    * underneath it, and the ladder would rearrange itself around a choice the
    * reader thought they had fixed.
    */
-  const [chosenIsins, setChosenIsins] = useState<string[]>([]);
+  const [chosenIsins, setChosenIsins] = usePersistedState<string[]>('ladder:chosen', []);
   const tailored = chosenIsins.length > 0;
   // Set after mount: a build-time date would mismatch on hydration.
   const [today, setToday] = useState('');
@@ -111,12 +116,7 @@ export default function LadderPage() {
         </div>
         {plan.rungs.length > 0 && (
           <div className="flex gap-2">
-            <button
-              onClick={() => printReport()}
-              className="flex items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink-soft hover:border-ink-muted"
-            >
-              <FileText size={15} /> PDF report
-            </button>
+            <ReportActions sheetId="ladder-report-sheet" filename="mwangaza-ladder-plan" />
             <button
               onClick={() =>
                 shareText(formatLadderSummary(plan, APP_URL))

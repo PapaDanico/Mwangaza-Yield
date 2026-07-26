@@ -142,7 +142,7 @@ export default function LadderPage() {
       <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr] [&>*]:min-w-0">
         <div className="card h-fit space-y-4">
           <div>
-            <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (KES)</label>
+            <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (Ksh)</label>
             <input
               id="ladder-amount"
               type="number" min={100_000} step={50_000} value={amount}
@@ -175,7 +175,7 @@ export default function LadderPage() {
           <p className="text-[11px] leading-relaxed text-ink-faint">
             Rungs are spread across the horizon — best net yield in each window, one bond per
             maturity year, tax-free IFBs competing on equal footing. Where the market has no paper
-            in a window, the next-best yield fills in. Equal split in KES 50k steps, priced from
+            in a window, the next-best yield fills in. Equal split in Ksh 50k steps, priced from
             your price book where you have recorded one and par where nobody has.
             Educational planning — actual auction allocations vary.
           </p>
@@ -319,7 +319,7 @@ export default function LadderPage() {
                     ))}
                 </select>
                 <span className="text-ink-faint">
-                  Capital re-splits evenly across every rung, in KES 50k steps.
+                  Capital re-splits evenly across every rung, in Ksh 50k steps.
                 </span>
               </div>
 

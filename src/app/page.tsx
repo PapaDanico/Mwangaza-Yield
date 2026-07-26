@@ -15,7 +15,7 @@ const features = [
   { Icon: CalendarCheck, title: 'Payments in your calendar', desc: 'Every interest payment and repayment date on your phone, with a reminder the day before. One tap.' },
   { Icon: WifiOff, title: 'Works without a network', desc: 'Add it to your home screen and it keeps working on the matatu, in the shamba, wherever the signal goes.' },
   { Icon: LockKeyhole, title: 'Yours alone', desc: 'No account, no sign-up, no e-mail. What you hold stays on your phone and is never sent to us.' },
-  { Icon: BookOpen, title: 'Learn as you go', desc: 'Six short lessons from your first KES 50,000 to a full ladder — plus every term explained in plain English.' },
+  { Icon: BookOpen, title: 'Learn as you go', desc: 'Six short lessons from your first Ksh 50,000 to a full ladder — plus every term explained in plain English.' },
 ];
 
 const steps = [
@@ -96,7 +96,7 @@ export default function LandingPage() {
           The whole picture, in your own hands.
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-center text-sm text-ink-muted">
-          The same analysis a trading desk runs, rebuilt for a phone, a KES 50,000 starting
+          The same analysis a trading desk runs, rebuilt for a phone, a Ksh 50,000 starting
           balance, and an evening at the kitchen table. Nothing here assumes you have done this
           before — and nothing here talks down to you if you have.
         </p>

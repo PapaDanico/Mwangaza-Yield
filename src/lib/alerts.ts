@@ -109,7 +109,7 @@ export const RULE_LABELS: Record<AlertRuleKind, { title: string; blurb: string }
 /** Half a year's coupon on one holding, in shillings, gross and after WHT.
  *  `determineWHTRate` returns a FRACTION (0.1, not 10) — treating it as a
  *  percentage understated the tax by two orders of magnitude, turning a
- *  KES 8,000 deduction into KES 80. */
+ *  Ksh 8,000 deduction into Ksh 80. */
 function couponAmounts(bond: Bond, holding: Holding) {
   const gross = (holding.faceValueKES * bond.couponRate) / 100 / bond.couponFrequencyPerYear;
   const wht = determineWHTRate(bond);

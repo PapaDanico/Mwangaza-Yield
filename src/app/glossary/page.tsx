@@ -66,7 +66,7 @@ export default function GlossaryPage() {
         If a term here left you more confused than before, that is our failing rather than
         yours, and we would genuinely like to know — see <Link href="/support/">Support</Link>.
         For the longer walk-through, the <Link href="/learn/">tutorials</Link> take you from
-        your first KES 50,000 to a full ladder in six short lessons.
+        your first Ksh 50,000 to a full ladder in six short lessons.
       </p>
     </Prose>
   );

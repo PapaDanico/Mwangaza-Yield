@@ -12,8 +12,8 @@
  * computed bid-to-cover for every month in the archive and reported that
  * Kenyan bond auctions were persistently UNDERSUBSCRIBED — medians of 0.5x to
  * 0.8x, month after month. That is the opposite of the truth. CBK's own
- * published results for February 2026 show KES 213.7bn of bids against a
- * KES 50bn target: 427%. April 2026 drew KES 74.89bn against KES 40bn. Kenyan
+ * published results for February 2026 show Ksh 213.7bn of bids against a
+ * Ksh 50bn target: 427%. April 2026 drew Ksh 74.89bn against Ksh 40bn. Kenyan
  * auctions are persistently OVERSUBSCRIBED and have been for years.
  *
  * The cause was arithmetic, not the market. Bids are parsed PER BOND; the

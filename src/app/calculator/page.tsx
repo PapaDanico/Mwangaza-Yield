@@ -211,7 +211,7 @@ export default function CalculatorPage() {
               than not stating it, because the reader takes the silence as
               consent and the arithmetic as an order they could place.
 
-              It still computes. Someone comparing bonds at a round KES 10,000
+              It still computes. Someone comparing bonds at a round Ksh 10,000
               is doing something reasonable, and refusing to answer would be
               obstruction. What changes is that the figures no longer pretend to
               be purchasable. The minimum is per bond — two of the infrastructure
@@ -326,9 +326,9 @@ export default function CalculatorPage() {
             <Row label="Lost to tax" value={taxDrag(result.grossYTM, result.netYTM, result.taxDragBps)}
               hint="The gap between the two figures above. Infrastructure bonds have none." />
             <Row label="Interest owed to the seller" value={result.accruedInterestPer100.toFixed(2)}
-              hint="Per KES 100. Interest built up since the last payment — you repay it now and get it back at the next coupon." />
+              hint="Per Ksh 100. Interest built up since the last payment — you repay it now and get it back at the next coupon." />
             <Row label="Price including that interest" value={result.dirtyPrice.toFixed(2)}
-              hint="Called the dirty price. Per KES 100 of face value." />
+              hint="Called the dirty price. Per Ksh 100 of face value." />
             <Row label="Total you would pay" value={formatKES(result.settlementCostKES)}
               hint="What leaves your account on settlement day." />
             <Row label="Paid to you every six months" value={formatKES(result.netCouponPerPeriodKES)}

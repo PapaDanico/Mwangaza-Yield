@@ -34,7 +34,7 @@ export const GLOSSARY: Term[] = [
     slug: 'coupon',
     term: 'Coupon',
     plain:
-      'The interest the government pays you, usually twice a year. A 13% coupon on KES 100,000 pays KES 13,000 a year — KES 6,500 every six months.',
+      'The interest the government pays you, usually twice a year. A 13% coupon on Ksh 100,000 pays Ksh 13,000 a year — Ksh 6,500 every six months.',
     precise:
       'The annual interest rate stated on the bond, paid in instalments at the coupon frequency (twice yearly for most Kenyan issues).',
     why: 'The coupon is fixed for the life of the bond. It never changes, whatever happens to rates later.',
@@ -44,7 +44,7 @@ export const GLOSSARY: Term[] = [
     term: 'Face value',
     also: 'par, principal, nominal',
     plain:
-      'The amount the government promises to give back at the end. Prices are quoted per KES 100 of face value, so a price of 98 means you pay 98 to be repaid 100 later.',
+      'The amount the government promises to give back at the end. Prices are quoted per Ksh 100 of face value, so a price of 98 means you pay 98 to be repaid 100 later.',
     why: 'This is why a bond bought below 100 earns you more than its coupon suggests.',
   },
   {
@@ -133,7 +133,7 @@ export const GLOSSARY: Term[] = [
     slug: 'discount-rate',
     term: 'Discount rate',
     plain:
-      'How Treasury bills are quoted. You buy below KES 100 and are repaid KES 100 — the gap is your interest. A "9% discount rate" is not a 9% return.',
+      'How Treasury bills are quoted. You buy below Ksh 100 and are repaid Ksh 100 — the gap is your interest. A "9% discount rate" is not a 9% return.',
     why: 'Your true annual return is always higher than the quoted discount rate, and the gap widens the longer the bill runs. Our T-bills page does the conversion.',
   },
   {
@@ -141,7 +141,7 @@ export const GLOSSARY: Term[] = [
     term: 'Treasury bill',
     also: 'T-bill',
     plain:
-      'A short government loan of 91, 182 or 364 days. No coupons — you simply pay less than KES 100 today and receive KES 100 at the end.',
+      'A short government loan of 91, 182 or 364 days. No coupons — you simply pay less than Ksh 100 today and receive Ksh 100 at the end.',
     why: 'The natural home for money you will need soon but do not want sitting idle.',
   },
   {
@@ -156,7 +156,7 @@ export const GLOSSARY: Term[] = [
     term: 'Auction',
     also: 'primary issue',
     plain:
-      'How new bonds are first sold. CBK announces an offer, investors bid, and the accepted bids set the rate. You can bid from KES 50,000.',
+      'How new bonds are first sold. CBK announces an offer, investors bid, and the accepted bids set the rate. You can bid from Ksh 50,000.',
   },
   {
     slug: 'clearing-rate',
@@ -219,7 +219,7 @@ export const GLOSSARY: Term[] = [
     plain:
       'What a fixed amount of money can actually buy. Inflation erodes it even when the amount never changes.',
     precise:
-      'This is where a bond quietly loses money that no yield figure shows. The face value comes back exactly as promised — but at 6.41% inflation, KES 100 repaid in fifteen years buys what KES 39 buys today.',
+      'This is where a bond quietly loses money that no yield figure shows. The face value comes back exactly as promised — but at 6.41% inflation, Ksh 100 repaid in fifteen years buys what Ksh 39 buys today.',
     why: 'The longer the bond, the more of the real loss sits in the principal rather than the coupon. It is invisible in a yield and decisive over a long holding.',
   },
   {

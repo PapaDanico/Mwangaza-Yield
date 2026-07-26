@@ -674,7 +674,7 @@ export default function GoalsPage() {
       {goal === 'capital-preservation' && (
         <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.3fr]">
           <div className="card h-fit space-y-4">
-            <Field label="Amount to park" hint="Treasury bill minimum is KES 100,000.">
+            <Field label="Amount to park" hint="Treasury bill minimum is Ksh 100,000.">
               <input type="number" step={50_000} value={parkCapital}
                 onChange={(e) => setParkCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>

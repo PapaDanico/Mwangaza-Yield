@@ -186,7 +186,7 @@ export function BidAssistant({
       {demandLine && <p className="mt-3 text-[11px] text-ink-faint">{demandLine}</p>}
 
       <p className="mt-2 text-[11px] text-ink-faint">
-        History, not advice. Non-competitive bids (up to KES 50M) take the weighted average rate and
+        History, not advice. Non-competitive bids (up to Ksh 50M) take the weighted average rate and
         skip this question entirely — usually the right choice for retail.
       </p>
     </div>

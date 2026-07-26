@@ -197,7 +197,7 @@ export default function GoalProgress({
           </div>
           <div className="min-w-0 flex-[1.4]">
             <label htmlFor="cp-amount" className="mb-1 block text-xs font-medium text-ink-soft">
-              What it is worth (KES)
+              What it is worth (Ksh)
             </label>
             <input
               id="cp-amount" type="number" min={0} step={10_000}

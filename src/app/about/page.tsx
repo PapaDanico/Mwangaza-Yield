@@ -13,7 +13,7 @@ export default function AboutPage() {
       <h2>Why this exists</h2>
       <p>
         Kenya has one of the most accessible government securities markets in Africa. Since
-        DhowCSD opened direct participation, anyone with a KRA PIN and KES 50,000 can lend to the
+        DhowCSD opened direct participation, anyone with a KRA PIN and Ksh 50,000 can lend to the
         government on the same terms as a bank. Yet the numbers that reach retail investors are
         almost never the numbers they will actually receive.
       </p>

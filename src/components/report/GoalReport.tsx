@@ -1,0 +1,343 @@
+'use client';
+
+import { formatKES, formatPct } from '@/lib/financial-engine';
+import type {
+  FirePlan,
+  GoalDefinition,
+  IncomePlan,
+  PreservationPlan,
+  SchoolFeesPlan,
+} from '@/lib/goals';
+
+/**
+ * Print-only one-page report for whichever objective is on screen.
+ *
+ * WHY THE PLANNER NEEDED ITS OWN SHEET
+ * ------------------------------------
+ * The ladder has printed a proper report since it shipped, and this page —
+ * the one where somebody works out whether they can retire, or fund four
+ * years of school fees — printed the app: navigation, sliders, cards clipped
+ * across a page break. So the most consequential output in the product was
+ * the one you could not hand to a spouse or take to a meeting.
+ *
+ * ONE PAGE IS A CONSTRAINT, NOT AN ASPIRATION
+ * -------------------------------------------
+ * Each objective renders a fixed, bounded block: no unbounded lists, and the
+ * fee and month tables are capped by the inputs themselves (fee years are
+ * limited on screen; months are always twelve). That is what keeps the sheet
+ * to a single side without CSS tricks, and it is checked by driving the print
+ * path and counting the pages in the PDF rather than by hoping.
+ *
+ * Every figure is passed in already computed. The report derives nothing of
+ * its own — a second implementation of any of this maths is a second thing to
+ * be wrong, and the number on the printout must be the number on the screen.
+ */
+export default function GoalReport({
+  goal,
+  generatedAt,
+  fire,
+  fees,
+  income,
+  preservation,
+}: {
+  goal: GoalDefinition;
+  generatedAt: string;
+  fire?: FirePlan | null;
+  fees?: SchoolFeesPlan | null;
+  income?: IncomePlan | null;
+  preservation?: PreservationPlan | null;
+}) {
+  const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const hasContent = Boolean(fire || fees || income || preservation);
+  if (!hasContent) return null;
+
+  return (
+    <div className="print-only text-ink">
+      <header className="flex items-start justify-between border-b-2 border-gold-500 pb-4">
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="" className="h-12 w-12 rounded-lg" />
+          <div>
+            <p className="font-display text-xl font-bold">
+              Mwangaza <span className="text-gold-600">Yield</span>
+            </p>
+            <p className="text-[10px] uppercase tracking-widest text-ink-faint">
+              Intelligence layer for Kenya&apos;s bond market
+            </p>
+          </div>
+        </div>
+        <div className="text-right text-[10px] text-ink-faint">
+          <p>{goal.title} plan</p>
+          <p>{generatedAt}</p>
+        </div>
+      </header>
+
+      {/* h2 for the same reason as the ladder report: this sheet lives inside a
+          page that already owns the h1, and two h1s is a document outline lie. */}
+      <h2 className="mt-5 font-display text-2xl font-bold">{goal.tagline}</h2>
+      <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-ink-muted">
+        {goal.description}
+      </p>
+
+      {/* ------------------------------------------------ financial independence */}
+      {fire && (
+        <>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <Metric label="Capital required" value={formatKES(fire.requiredCapitalKES)} />
+            <Metric
+              label="Funded so far"
+              value={`${Math.round(Math.min(fire.coverageRatio, 1) * 100)}%`}
+              tone="mint"
+            />
+            <Metric
+              label="Years to target"
+              value={fire.yearsToTarget === null ? 'Beyond 40' : `${fire.yearsToTarget.toFixed(1)}`}
+            />
+          </div>
+          <Section title="How this was worked out" />
+          <table className="w-full text-[11px]">
+            <tbody>
+              <Row label="Target annual income (net)" value={formatKES(fire.targetAnnualIncomeKES)} />
+              <Row
+                label="Planning yield — a ladder, marked down for rate falls already on the record"
+                value={formatPct(fire.planningNetYield)}
+              />
+              <Row
+                label="Same ladder at today's rates (the optimistic end)"
+                value={formatPct(fire.currentLadderNetYield)}
+              />
+              <Row label="Capital you have today" value={formatKES(fire.currentCapitalKES)} />
+              <Row label="Net income that already produces" value={formatKES(fire.incomeFromCurrentKES)} />
+              <Row label="Shortfall" value={formatKES(fire.shortfallKES)} />
+            </tbody>
+          </table>
+          <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+            Planned on a <strong>{fire.ladderRungs}-bond ladder</strong> at{' '}
+            {formatPct(fire.planningNetYield)}, which is {fire.downsidePp.toFixed(2)} percentage
+            points below what the same ladder yields today — the fall the Central Bank Rate has
+            genuinely made on the record, not a guess about the future. Highest single net yield on
+            the board is {formatPct(fire.bestNetYield)}
+            {fire.bestBond ? ` (${fire.bestBond.issueCode})` : ''}, reported for context and
+            deliberately not planned on: one bond is not a plan.
+          </p>
+        </>
+      )}
+
+      {/* --------------------------------------------------------- school fees */}
+      {fees && (
+        <>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <Metric label="Total fees" value={formatKES(fees.totalFeesKES)} />
+            <Metric label="Covered by this plan" value={formatKES(fees.totalCoveredKES)} tone="mint" />
+            <Metric
+              label="Status"
+              value={fees.fullyFunded ? 'Fully funded' : 'Shortfall'}
+              tone={fees.fullyFunded ? 'mint' : 'gold'}
+            />
+          </div>
+          <Section title="Year by year" />
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+                <th className="py-1.5">Year</th>
+                <th className="py-1.5 text-right">Fee due</th>
+                <th className="py-1.5 text-right">Principal maturing</th>
+                <th className="py-1.5 text-right">Coupons</th>
+                <th className="py-1.5 text-right">Covered</th>
+                <th className="py-1.5 text-right">Shortfall</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fees.years.map((y) => (
+                <tr key={y.year} className="border-b border-sand-200 last:border-0">
+                  <td className="num py-1.5 font-medium">{y.year}</td>
+                  <td className="num py-1.5 text-right">{formatKES(y.feeKES)}</td>
+                  <td className="num py-1.5 text-right">{formatKES(y.principalMaturingKES)}</td>
+                  <td className="num py-1.5 text-right">{formatKES(y.couponsKES)}</td>
+                  <td className="num py-1.5 text-right text-mint-700">{formatKES(y.coveredKES)}</td>
+                  <td className="num py-1.5 text-right">
+                    {y.shortfallKES > 0 ? formatKES(y.shortfallKES) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Section title="The bonds behind it" />
+          <BondTable rungs={fees.ladder.rungs} />
+        </>
+      )}
+
+      {/* ------------------------------------------------------ passive income */}
+      {income && (
+        <>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <Metric label="Net income / year" value={formatKES(income.totalNetAnnualKES)} tone="mint" />
+            <Metric label="Average / month" value={formatKES(income.averageMonthlyKES)} />
+            <Metric label="Months paid" value={`${income.monthsPaid} of 12`} />
+          </div>
+          <Section title="When the money lands" />
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="text-left text-[9px] uppercase tracking-wide text-ink-faint">
+                {MONTHS.map((m, i) => (
+                  <th key={i} className="pb-1 text-center">{m}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {income.monthlyIncomeKES.map((v, i) => (
+                  <td
+                    key={i}
+                    className={`num border border-sand-200 py-2 text-center text-[9px] ${
+                      v > 0 ? 'bg-mint-500/10 font-semibold text-mint-700' : 'text-ink-faint'
+                    }`}
+                  >
+                    {v > 0 ? Math.round(v / 1000) + 'k' : '—'}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          <Section title="The bonds behind it" />
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+                <th className="py-1.5">Bond</th>
+                <th className="py-1.5 text-right">Face value</th>
+                <th className="py-1.5 text-right">Net coupon / period</th>
+                <th className="py-1.5 text-right">Pays in</th>
+              </tr>
+            </thead>
+            <tbody>
+              {income.holdings.map((h) => (
+                <tr key={h.bond.isin} className="border-b border-sand-200 last:border-0">
+                  <td className="py-1.5 font-medium">
+                    {h.bond.issueCode}
+                    {h.bond.taxExempt && (
+                      <span className="ml-1 text-[8px] font-semibold uppercase text-mint-700">tax-free</span>
+                    )}
+                  </td>
+                  <td className="num py-1.5 text-right">{formatKES(h.faceValueKES)}</td>
+                  <td className="num py-1.5 text-right">{formatKES(h.netCouponKES)}</td>
+                  <td className="num py-1.5 text-right">
+                    {h.months.map((m) => MONTHS[m]).join(' · ')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {/* --------------------------------------------------- capital preservation */}
+      {preservation && (
+        <>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <Metric label="Net yield" value={formatPct(preservation.netEAY)} tone="mint" />
+            <Metric label="You pay today" value={formatKES(preservation.costKES)} />
+            <Metric
+              label={`Back in ${preservation.tenorDays} days`}
+              value={formatKES(preservation.netProceedsKES)}
+            />
+          </div>
+          <Section title="The arithmetic" />
+          <table className="w-full text-[11px]">
+            <tbody>
+              <Row
+                label={`Quoted discount rate (${preservation.tenorDays}-day bill)`}
+                value={formatPct(preservation.discountRate)}
+              />
+              <Row label="Net effective annual yield" value={formatPct(preservation.netEAY)} />
+              <Row label="Interest kept after 15% withholding tax" value={formatKES(preservation.netInterestKES)} />
+            </tbody>
+          </table>
+          <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+            The shortest tenor on offer, chosen because liquidity is the objective here rather than
+            yield. The quoted rate is a discount, not a return: it is earned on a smaller outlay, so
+            the true yield is higher — and 15% withholding tax then pulls the net below the quote.
+            The figure above is the net.
+          </p>
+        </>
+      )}
+
+      <footer className="mt-6 border-t border-sand-300 pt-3 text-[9px] leading-relaxed text-ink-faint">
+        Yields are solved from each bond&apos;s remaining cash-flow schedule; withholding tax applies
+        to coupons only (infrastructure bonds are exempt) and principal redemption is untaxed.
+        Accrued interest uses Actual/364 and coupon dates run in exact 182-day steps from issue — the
+        basis Kenyan government bonds are built on. Analytics for education only, not investment
+        advice, and not an offer to buy or sell. Verify every figure against the official prospectus
+        before you commit funds. Sources: Central Bank of Kenya, National Treasury, KNBS.
+      </footer>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  tone = 'ink',
+}: {
+  label: string;
+  value: string;
+  tone?: 'ink' | 'mint' | 'gold';
+}) {
+  const colour =
+    tone === 'mint' ? 'text-mint-700' : tone === 'gold' ? 'text-gold-700' : 'text-ink';
+  return (
+    <div className="rounded-lg border border-sand-300 px-3 py-2">
+      <p className="text-[9px] uppercase tracking-wide text-ink-faint">{label}</p>
+      <p className={`num mt-0.5 text-base font-bold ${colour}`}>{value}</p>
+    </div>
+  );
+}
+
+function Section({ title }: { title: string }) {
+  return (
+    <h3 className="mt-5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
+      {title}
+    </h3>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <tr className="border-b border-sand-200 last:border-0">
+      <td className="py-1.5 pr-4 text-ink-soft">{label}</td>
+      <td className="num py-1.5 text-right font-medium">{value}</td>
+    </tr>
+  );
+}
+
+/** Shared by the fee plan; kept here so the report has one bond-table style. */
+function BondTable({ rungs }: { rungs: SchoolFeesPlan['ladder']['rungs'] }) {
+  return (
+    <table className="w-full text-[11px]">
+      <thead>
+        <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+          <th className="py-1.5">Bond</th>
+          <th className="py-1.5 text-right">Face value</th>
+          <th className="py-1.5 text-right">Price</th>
+          <th className="py-1.5 text-right">Net yield</th>
+          <th className="py-1.5 text-right">Matures</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rungs.map((r) => (
+          <tr key={r.bond.isin} className="border-b border-sand-200 last:border-0">
+            <td className="py-1.5 font-medium">
+              {r.bond.issueCode}
+              {r.bond.taxExempt && (
+                <span className="ml-1 text-[8px] font-semibold uppercase text-mint-700">tax-free</span>
+              )}
+            </td>
+            <td className="num py-1.5 text-right">{formatKES(r.faceValueKES)}</td>
+            <td className="num py-1.5 text-right">{r.price.toFixed(2)}</td>
+            <td className="num py-1.5 text-right text-gold-700">{formatPct(r.result.netYTM)}</td>
+            <td className="num py-1.5 text-right text-ink-soft">{r.bond.maturityDate}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}

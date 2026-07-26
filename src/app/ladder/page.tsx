@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, Layers, Share2, FileText } from 'lucide-react';
+import { CalendarPlus, Layers, Share2, FileText, X, RotateCcw } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance';
@@ -21,14 +21,52 @@ export default function LadderPage() {
   const [amount, setAmount] = useState(3_000_000);
   const [horizon, setHorizon] = useState(10);
   const [rungCount, setRungCount] = useState(4);
+  /**
+   * Bonds the reader has chosen for themselves.
+   *
+   * Empty means "let the tool pick" — the default, and the state most readers
+   * stay in. The moment they change one rung we hold the WHOLE selection, not
+   * a diff against the automatic pick: an override expressed as "swap rung 2"
+   * silently re-resolves when the amount or horizon changes the auto-pick
+   * underneath it, and the ladder would rearrange itself around a choice the
+   * reader thought they had fixed.
+   */
+  const [chosenIsins, setChosenIsins] = useState<string[]>([]);
+  const tailored = chosenIsins.length > 0;
   // Set after mount: a build-time date would mismatch on hydration.
   const [today, setToday] = useState('');
   useEffect(() => setToday(new Date().toLocaleDateString('en-KE', { dateStyle: 'long' })), []);
 
   const plan = useMemo(
-    () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices),
-    [bonds, secondary, userPrices, amount, horizon, rungCount]
+    () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices, chosenIsins),
+    [bonds, secondary, userPrices, amount, horizon, rungCount, chosenIsins]
   );
+
+  /** Every bond a reader could still buy, soonest maturity first. */
+  const selectable = useMemo(() => {
+    const now = new Date();
+    return bonds
+      .filter((b) => new Date(b.maturityDate) > now)
+      .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
+  }, [bonds]);
+
+  /** Swap one rung, promoting the current auto-pick to an explicit selection. */
+  const swapRung = (index: number, isin: string) => {
+    const base = tailored ? chosenIsins : plan.rungs.map((r) => r.bond.isin);
+    const next = [...base];
+    next[index] = isin;
+    setChosenIsins(next);
+  };
+
+  const dropRung = (index: number) => {
+    const base = tailored ? chosenIsins : plan.rungs.map((r) => r.bond.isin);
+    setChosenIsins(base.filter((_, i) => i !== index));
+  };
+
+  const addRung = (isin: string) => {
+    const base = tailored ? chosenIsins : plan.rungs.map((r) => r.bond.isin);
+    setChosenIsins([...base, isin]);
+  };
 
   useEffect(() => {
     if (plan.rungs.length) track('act:ladder-built');
@@ -183,37 +221,99 @@ export default function LadderPage() {
                 </div>
               </div>
 
+              {tailored && (
+                <div className="no-print flex flex-wrap items-center gap-3 rounded-xl bg-sand-100 px-4 py-3 text-xs text-ink-soft">
+                  <span>
+                    This is <strong>your</strong> selection — {plan.rungs.length}{' '}
+                    bond{plan.rungs.length === 1 ? '' : 's'} you chose, not the ones we would pick.
+                    The horizon slider no longer filters it.
+                  </span>
+                  <button
+                    onClick={() => setChosenIsins([])}
+                    className="ml-auto flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 font-medium text-ink transition-colors hover:bg-sand-200"
+                  >
+                    <RotateCcw size={13} /> Back to our picks
+                  </button>
+                </div>
+              )}
+
               <div className="card overflow-x-auto p-0">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
-                      <th className="px-4 py-3">Rung</th>
-                      <th className="px-4 py-3 text-right">Face value</th>
-                      <th className="px-4 py-3 text-right">Price</th>
-                      <th className="px-4 py-3 text-right">Net yield</th>
-                      <th className="px-4 py-3 text-right">Matures</th>
+                      <th className="px-3 py-3">Rung</th>
+                      <th className="px-3 py-3 text-right">Face value</th>
+                      <th className="px-3 py-3 text-right">Price</th>
+                      <th className="px-3 py-3 text-right">Net yield</th>
+                      <th className="px-3 py-3 text-right">Matures</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {plan.rungs.map((r) => (
+                    {plan.rungs.map((r, i) => (
                       <tr key={r.bond.isin} className="border-b border-sand-300/60 last:border-0">
-                        <td className="px-4 py-3">
-                          <span className="font-medium text-ink">{r.bond.issueCode}</span>
-                          {r.bond.taxExempt && (
-                            <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
-                          )}
+                        <td className="px-3 py-3">
+                          {/* A real select, not a custom menu: 58 bonds is a long
+                              list, and the platform control already gives type-to-
+                              find, keyboard navigation and a native picker on a
+                              phone. Rebuilding that badly is the usual cost of a
+                              prettier one. */}
+                          <label className="sr-only" htmlFor={`rung-${i}`}>Bond for rung {i + 1}</label>
+                          <div className="flex items-center gap-1.5">
+                            <select
+                              id={`rung-${i}`}
+                              value={r.bond.isin}
+                              onChange={(e) => swapRung(i, e.target.value)}
+                              className="max-w-[11rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
+                            >
+                              {selectable.map((b) => (
+                                <option key={b.isin} value={b.isin}>
+                                  {b.issueCode}{b.taxExempt ? ' · tax-free' : ''}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => dropRung(i)}
+                              aria-label={`Remove ${r.bond.issueCode} from the ladder`}
+                              title="Remove this rung"
+                              className="rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-sand-200 hover:text-ink"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
                         </td>
-                        <td className="num px-4 py-3 text-right text-ink">{formatKES(r.faceValueKES)}</td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="num px-3 py-3 text-right text-ink">{formatKES(r.faceValueKES)}</td>
+                        <td className="px-3 py-3 text-right">
                           <span className="num text-ink">{r.price.toFixed(2)}</span>
                           <PriceBadge info={r.priceInfo} className="ml-1.5 align-middle" />
                         </td>
-                        <td className="num px-4 py-3 text-right text-gold-700">{formatPct(r.result.netYTM)}</td>
-                        <td className="num px-4 py-3 text-right text-ink-soft">{r.bond.maturityDate}</td>
+                        <td className="num px-3 py-3 text-right text-gold-700">{formatPct(r.result.netYTM)}</td>
+                        <td className="num px-3 py-3 text-right text-ink-soft">{r.bond.maturityDate}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="no-print flex flex-wrap items-center gap-2 text-xs text-ink-soft">
+                <label htmlFor="add-rung" className="font-medium">Add a bond:</label>
+                <select
+                  id="add-rung"
+                  value=""
+                  onChange={(e) => { if (e.target.value) addRung(e.target.value); }}
+                  className="max-w-[15rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink outline-none focus:border-gold-600"
+                >
+                  <option value="">Choose a bond…</option>
+                  {selectable
+                    .filter((b) => !plan.rungs.some((r) => r.bond.isin === b.isin))
+                    .map((b) => (
+                      <option key={b.isin} value={b.isin}>
+                        {b.issueCode} · matures {b.maturityDate}{b.taxExempt ? ' · tax-free' : ''}
+                      </option>
+                    ))}
+                </select>
+                <span className="text-ink-faint">
+                  Capital re-splits evenly across every rung, in KES 50k steps.
+                </span>
               </div>
 
               <div className="card">

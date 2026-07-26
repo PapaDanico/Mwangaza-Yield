@@ -39,12 +39,40 @@ export interface LadderPlan {
 
 const STEP = 50_000; // CBK face values move in KES 50k increments
 
+/** A bond with its resolved price and net yield — what both selection paths produce. */
+interface PricedBond {
+  bond: Bond;
+  price: number;
+  priceInfo: ResolvedPrice;
+  netYTM: number;
+}
+
 /**
  * Build a ladder: choose up to `maxRungs` bonds maturing within `horizonYears`,
  * spread across distinct maturity years (highest net yield wins a contested
  * year), split `totalKES` equally, rounded down to 50k steps and each bond's
  * own minimum. Prices come from the reader's own price book first, then the
  * latest secondary trade, then par — see `prices.ts` for why that order.
+ *
+ * CHOOSING THE BONDS YOURSELF
+ * ---------------------------
+ * Pass `selectedIsins` and those bonds become the ladder exactly, in maturity
+ * order, bypassing the automatic pick. This is what lets a reader tailor the
+ * plan: the tool's own selection optimises for net yield inside each maturity
+ * window, which is a defensible default and frequently not what somebody
+ * actually wants — a school fee falls in a particular year, an infrastructure
+ * bond is worth holding for the tax exemption even at a lower headline, and a
+ * bond already owned should be modelled rather than replaced.
+ *
+ * Everything downstream is unchanged: the same 50k step, the same per-bond
+ * minimum, the same price resolution and the same net-of-tax maths. A hand-
+ * built ladder is priced exactly as honestly as a generated one — including
+ * dropping a rung whose minimum the split cannot meet.
+ *
+ * The horizon does NOT filter an explicit selection. If a reader picks a bond
+ * maturing beyond it, they have said something more specific than the slider
+ * did, and silently discarding it would be the tool overruling the user.
+ * Matured paper is still excluded — that is arithmetic, not preference.
  */
 export function buildLadder(
   bonds: Bond[],
@@ -53,25 +81,43 @@ export function buildLadder(
   horizonYears: number,
   maxRungs = 5,
   asOf: Date = new Date(),
-  userPrices: UserPrice[] = []
+  userPrices: UserPrice[] = [],
+  selectedIsins: string[] = []
 ): LadderPlan {
   const horizonEnd = new Date(asOf);
   horizonEnd.setFullYear(horizonEnd.getFullYear() + horizonYears);
 
   const priceInfoOf = makePriceResolver(secondary, userPrices, asOf);
 
+  const priced = (b: Bond) => {
+    const priceInfo = priceInfoOf(b);
+    return {
+      bond: b,
+      price: priceInfo.price,
+      priceInfo,
+      netYTM: computeBondInvestment(b, STEP, priceInfo.price, asOf).netYTM,
+    };
+  };
+
+  // An explicit selection is honoured as given — see the note above on why the
+  // horizon is not applied to it. Duplicates collapse: two rungs of the same
+  // bond is one holding, and presenting it as two would double-count the
+  // diversification the ladder is for.
+  if (selectedIsins.length) {
+    const seen = new Set<string>();
+    const chosenBonds = selectedIsins
+      .filter((isin) => (seen.has(isin) ? false : (seen.add(isin), true)))
+      .map((isin) => bonds.find((b) => b.isin === isin))
+      .filter((b): b is Bond => Boolean(b) && new Date(b!.maturityDate) > asOf)
+      .map(priced)
+      .sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
+    return assemble(chosenBonds, totalKES, asOf);
+  }
+
   // Rank candidates by net yield at their price, then keep one per maturity year.
   const candidates = bonds
     .filter((b) => new Date(b.maturityDate) > asOf && new Date(b.maturityDate) <= horizonEnd)
-    .map((b) => {
-      const priceInfo = priceInfoOf(b);
-      return {
-        bond: b,
-        price: priceInfo.price,
-        priceInfo,
-        netYTM: computeBondInvestment(b, STEP, priceInfo.price, asOf).netYTM,
-      };
-    })
+    .map(priced)
     .sort((a, x) => x.netYTM - a.netYTM);
 
   // Spread rungs ACROSS the horizon: split it into `maxRungs` equal windows and
@@ -102,6 +148,22 @@ export function buildLadder(
   }
   picked.sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
 
+  return assemble(picked, totalKES, asOf);
+}
+
+/**
+ * Split capital across chosen rungs and price the whole plan.
+ *
+ * Shared by both paths on purpose. When the reader hand-picks bonds their
+ * ladder must be costed by exactly the same code that costs a generated one —
+ * otherwise "what the tool suggests" and "what I chose" become two different
+ * kinds of number, and comparing them would mean nothing.
+ */
+function assemble(
+  picked: PricedBond[],
+  totalKES: number,
+  asOf: Date
+): LadderPlan {
   if (!picked.length) {
     return {
       rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0,

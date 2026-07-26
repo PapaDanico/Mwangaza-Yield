@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check } from 'lucide-react';
+import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
@@ -14,6 +14,9 @@ import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
+import GoalReport from '@/components/report/GoalReport';
+import BondPicker from '@/components/shared/BondPicker';
+import { printReport } from '@/lib/share';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
 import { yearsLabel } from '@/lib/years-label';
@@ -74,6 +77,15 @@ export default function GoalsPage() {
   // Income / preservation
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
   const [parkCapital, setParkCapital] = useState(500_000);
+  /**
+   * Bonds the reader has chosen, per objective.
+   *
+   * Kept apart on purpose: the bonds that suit a fee schedule are not the ones
+   * that suit a monthly income, and a single shared list would carry a choice
+   * across objectives that never meant it. Empty means "let the tool pick".
+   */
+  const [feeIsins, setFeeIsins] = useState<string[]>([]);
+  const [incomeIsins, setIncomeIsins] = useState<string[]>([]);
 
   const { plans, load: loadPlans, save: savePlan, remove: removePlan } = usePlanStore();
   const [activePlanId, setActivePlanId] = useState('');
@@ -130,12 +142,12 @@ export default function GoalsPage() {
     [bonds, secondary, userPrices, targetIncome, capital, monthly, cbrHistory]
   );
   const fees = useMemo(
-    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices),
-    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee]
+    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins),
+    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins]
   );
   const income = useMemo(
-    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices),
-    [bonds, secondary, userPrices, incomeCapital]
+    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
+    [bonds, secondary, userPrices, incomeCapital, incomeIsins]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
@@ -145,14 +157,35 @@ export default function GoalsPage() {
   // not show one plan's readings under another's heading.
   const activePlan = plans.find((p) => p.id === activePlanId && p.goal === goal) ?? null;
 
+  // Set after mount for the same reason the ladder does it: a build-time date
+  // would differ from the client's and trip hydration.
+  const [reportDate, setReportDate] = useState('');
+  useEffect(
+    () => setReportDate(new Date().toLocaleDateString('en-KE', { dateStyle: 'long' })),
+    []
+  );
+
   if (!bonds.length) return <DataState />;
 
   const def = GOALS.find((g) => g.key === goal)!;
+  /** Every bond a reader could still buy, soonest maturity first. */
+  const selectableBonds = bonds
+    .filter((b) => new Date(b.maturityDate) > new Date())
+    .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
   const maxMonthly = Math.max(...income.monthlyIncomeKES, 1);
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <GoalReport
+        goal={def}
+        generatedAt={reportDate}
+        fire={goal === 'fire' ? fire : null}
+        fees={goal === 'school-fees' ? fees : null}
+        income={goal === 'passive-income' ? income : null}
+        preservation={goal === 'capital-preservation' ? park : null}
+      />
+
+      <div className="no-print flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-ink">Plan by objective</h1>
           <p className="text-sm text-ink-muted">
@@ -160,6 +193,12 @@ export default function GoalsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => printReport()}
+            className="flex items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200"
+          >
+            <FileText size={15} /> PDF report
+          </button>
           {/* Saved plans: unbounded list, one choice, no comparison — a dropdown. */}
           {plans.length > 0 && (
             <select
@@ -195,7 +234,7 @@ export default function GoalsPage() {
 
       {/* Mobile: a single control. The four cards are mode selection, not
           comparison, and stacked they push every input below the fold. */}
-      <div className="sm:hidden">
+      <div className="no-print sm:hidden">
         <label htmlFor="goal-select" className="mb-1 block text-sm font-medium text-ink-soft">
           What is the money for?
         </label>
@@ -214,7 +253,7 @@ export default function GoalsPage() {
       </div>
 
       {/* Tablet and up: cards, where they cost nothing and read faster. */}
-      <div className="hidden gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+      <div className="no-print hidden gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-4">
         {GOALS.map((g) => {
           const Icon = ICONS[g.key];
           const active = g.key === goal;
@@ -235,11 +274,11 @@ export default function GoalsPage() {
         })}
       </div>
 
-      <p className="text-sm text-ink-muted">{def.description}</p>
+      <p className="no-print text-sm text-ink-muted">{def.description}</p>
 
       {/* ------------------------------------------------------------ FIRE */}
       {goal === 'fire' && (
-        <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
+        <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.3fr]">
           <div className="card h-fit space-y-4">
             <Field label="Annual income you want (today's money)">
               <input type="number" step={50_000} value={targetIncome}
@@ -379,7 +418,7 @@ export default function GoalsPage() {
 
       {/* ------------------------------------------------------ School fees */}
       {goal === 'school-fees' && (
-        <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
+        <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.3fr]">
           <div className="card h-fit space-y-4">
             <Field label="Capital to invest now">
               <input type="number" step={100_000} value={feeCapital}
@@ -439,6 +478,24 @@ export default function GoalsPage() {
               </table>
             </div>
 
+            <div className="card">
+              <h3 className="mb-1 font-display text-sm font-semibold text-ink">
+                The bonds funding these fees
+              </h3>
+              <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+                We pick for the best net yield in each maturity window. If you know the term the
+                first invoice lands, or you already hold something, say so — capital re-splits
+                evenly across whatever you choose.
+              </p>
+              <BondPicker
+                selectable={selectableBonds}
+                current={fees.ladder.rungs.map((r) => r.bond)}
+                chosen={feeIsins}
+                onChange={setFeeIsins}
+                slotLabel="fee-bond"
+              />
+            </div>
+
             <p className="text-[11px] leading-relaxed text-ink-faint">
               Maturities are matched to fee years so principal returns near the invoice rather than
               forcing a sale at whatever price the market offers. Where the market has no bond
@@ -467,7 +524,7 @@ export default function GoalsPage() {
 
       {/* --------------------------------------------------- Passive income */}
       {goal === 'passive-income' && (
-        <div className="space-y-4">
+        <div className="no-print space-y-4">
           <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
             <div className="card h-fit space-y-4">
               <Field label="Capital to invest" hint="Split across up to three bonds with complementary coupon months.">
@@ -530,6 +587,24 @@ export default function GoalsPage() {
             </table>
           </div>
 
+          <div className="card">
+            <h3 className="mb-1 font-display text-sm font-semibold text-ink">
+              The bonds paying this income
+            </h3>
+            <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+              We pick for the widest spread of payout months. Swap any of them and the calendar
+              above recomputes from your choice — including if that leaves a month empty, because
+              seeing the real consequence beats being quietly corrected.
+            </p>
+            <BondPicker
+              selectable={selectableBonds}
+              current={income.holdings.map((h) => h.bond)}
+              chosen={incomeIsins}
+              onChange={setIncomeIsins}
+              slotLabel="income-bond"
+            />
+          </div>
+
           <p className="text-[11px] leading-relaxed text-ink-faint">
             Bonds are chosen to add new payout months first and yield second — six paying months
             beats a marginally higher coupon arriving twice a year when the money is meant to live
@@ -541,7 +616,7 @@ export default function GoalsPage() {
 
       {/* -------------------------------------------- Capital preservation */}
       {goal === 'capital-preservation' && (
-        <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
+        <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.3fr]">
           <div className="card h-fit space-y-4">
             <Field label="Amount to park" hint="Treasury bill minimum is KES 100,000.">
               <input type="number" step={50_000} value={parkCapital}
@@ -586,7 +661,7 @@ export default function GoalsPage() {
           has no view at all on where that money comes from. Sending someone
           away to answer that is more useful than pretending the question does
           not exist. */}
-      <div className="mt-8">
+      <div className="no-print mt-8">
         <WiderView
           wider={{
             question: 'Can you actually free up that monthly contribution?',

@@ -15,6 +15,7 @@ import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
 import GoalReport from '@/components/report/GoalReport';
+import BondPicker from '@/components/shared/BondPicker';
 import { printReport } from '@/lib/share';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
@@ -76,6 +77,15 @@ export default function GoalsPage() {
   // Income / preservation
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
   const [parkCapital, setParkCapital] = useState(500_000);
+  /**
+   * Bonds the reader has chosen, per objective.
+   *
+   * Kept apart on purpose: the bonds that suit a fee schedule are not the ones
+   * that suit a monthly income, and a single shared list would carry a choice
+   * across objectives that never meant it. Empty means "let the tool pick".
+   */
+  const [feeIsins, setFeeIsins] = useState<string[]>([]);
+  const [incomeIsins, setIncomeIsins] = useState<string[]>([]);
 
   const { plans, load: loadPlans, save: savePlan, remove: removePlan } = usePlanStore();
   const [activePlanId, setActivePlanId] = useState('');
@@ -132,12 +142,12 @@ export default function GoalsPage() {
     [bonds, secondary, userPrices, targetIncome, capital, monthly, cbrHistory]
   );
   const fees = useMemo(
-    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices),
-    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee]
+    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins),
+    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins]
   );
   const income = useMemo(
-    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices),
-    [bonds, secondary, userPrices, incomeCapital]
+    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
+    [bonds, secondary, userPrices, incomeCapital, incomeIsins]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
@@ -158,6 +168,10 @@ export default function GoalsPage() {
   if (!bonds.length) return <DataState />;
 
   const def = GOALS.find((g) => g.key === goal)!;
+  /** Every bond a reader could still buy, soonest maturity first. */
+  const selectableBonds = bonds
+    .filter((b) => new Date(b.maturityDate) > new Date())
+    .sort((a, b) => a.maturityDate.localeCompare(b.maturityDate));
   const maxMonthly = Math.max(...income.monthlyIncomeKES, 1);
 
   return (
@@ -464,6 +478,24 @@ export default function GoalsPage() {
               </table>
             </div>
 
+            <div className="card">
+              <h3 className="mb-1 font-display text-sm font-semibold text-ink">
+                The bonds funding these fees
+              </h3>
+              <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+                We pick for the best net yield in each maturity window. If you know the term the
+                first invoice lands, or you already hold something, say so — capital re-splits
+                evenly across whatever you choose.
+              </p>
+              <BondPicker
+                selectable={selectableBonds}
+                current={fees.ladder.rungs.map((r) => r.bond)}
+                chosen={feeIsins}
+                onChange={setFeeIsins}
+                slotLabel="fee-bond"
+              />
+            </div>
+
             <p className="text-[11px] leading-relaxed text-ink-faint">
               Maturities are matched to fee years so principal returns near the invoice rather than
               forcing a sale at whatever price the market offers. Where the market has no bond
@@ -553,6 +585,24 @@ export default function GoalsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="card">
+            <h3 className="mb-1 font-display text-sm font-semibold text-ink">
+              The bonds paying this income
+            </h3>
+            <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+              We pick for the widest spread of payout months. Swap any of them and the calendar
+              above recomputes from your choice — including if that leaves a month empty, because
+              seeing the real consequence beats being quietly corrected.
+            </p>
+            <BondPicker
+              selectable={selectableBonds}
+              current={income.holdings.map((h) => h.bond)}
+              chosen={incomeIsins}
+              onChange={setIncomeIsins}
+              slotLabel="income-bond"
+            />
           </div>
 
           <p className="text-[11px] leading-relaxed text-ink-faint">

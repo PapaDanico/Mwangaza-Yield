@@ -212,7 +212,17 @@ export function planSchoolFees(
   yearsOfFees: number,
   annualFeeKES: number,
   asOf: Date = new Date(),
-  userPrices: UserPrice[] = []
+  userPrices: UserPrice[] = [],
+  /**
+   * Bonds the reader has chosen for themselves, passed straight through to
+   * buildLadder. Empty means "let the tool pick", which is the default.
+   *
+   * This objective is the one where the choice matters most: a fee falls in a
+   * particular calendar year, and the automatic ladder optimises net yield
+   * inside each maturity window rather than aiming at the invoice. A parent
+   * who knows the first term is January 2032 can say so.
+   */
+  selectedIsins: string[] = []
 ): SchoolFeesPlan {
   // Clamped HERE, not only in the form. `min` and `max` on a number input are
   // form-validation hints; typing or pasting past them sets the value anyway.
@@ -229,7 +239,10 @@ export function planSchoolFees(
   const lastFeeYear = firstFeeYear + yearsOfFees - 1;
   const horizonYears = Math.max(1, lastFeeYear - asOf.getFullYear() + 1);
   // One rung per fee year: principal should land the year the invoice does.
-  const ladder = buildLadder(bonds, secondary, capitalKES, horizonYears, Math.min(6, yearsOfFees), asOf, userPrices);
+  const ladder = buildLadder(
+    bonds, secondary, capitalKES, horizonYears,
+    Math.min(6, yearsOfFees), asOf, userPrices, selectedIsins
+  );
 
   const years: FeeYear[] = [];
   for (let i = 0; i < yearsOfFees; i++) {
@@ -290,7 +303,19 @@ export function planPassiveIncome(
   secondary: SecondaryTrade[],
   capitalKES: number,
   maxHoldings = 3,
-  userPrices: UserPrice[] = []
+  userPrices: UserPrice[] = [],
+  /**
+   * Bonds the reader has chosen. Empty means "let the tool pick".
+   *
+   * The greedy month-coverage pick below is good at what it optimises and
+   * blind to everything else — it will happily swap a bond somebody already
+   * owns, or one they hold for the tax exemption, for a marginally wider
+   * spread of payout months. An explicit selection is used as given, in the
+   * order named, and the month calendar is then computed from THOSE bonds so
+   * the reader sees the real consequence of their choice rather than a
+   * corrected version of it.
+   */
+  selectedIsins: string[] = []
 ): IncomePlan {
   // Greedy: repeatedly take the bond that adds the most *new* payout months,
   // breaking ties on net yield. Spreading beats a marginally higher coupon
@@ -302,8 +327,22 @@ export function planPassiveIncome(
   }));
 
   const chosen: typeof pool = [];
+
+  // An explicit selection short-circuits the greedy search. Duplicates
+  // collapse and unknown ISINs are ignored, matching buildLadder.
+  if (selectedIsins.length) {
+    const seen = new Set<string>();
+    for (const isin of selectedIsins) {
+      if (seen.has(isin)) continue;
+      seen.add(isin);
+      const hit = pool.find((p) => p.bond.isin === isin);
+      if (hit) chosen.push(hit);
+    }
+  }
+
   const covered = new Set<number>();
-  while (chosen.length < maxHoldings && chosen.length < pool.length) {
+  chosen.forEach((c) => c.months.forEach((m) => covered.add(m)));
+  while (!selectedIsins.length && chosen.length < maxHoldings && chosen.length < pool.length) {
     const next = pool
       .filter((p) => !chosen.includes(p))
       .map((p) => ({ p, gain: p.months.filter((m) => !covered.has(m)).length }))

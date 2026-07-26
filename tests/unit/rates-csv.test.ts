@@ -77,6 +77,43 @@ describe('the CSV opens as a spreadsheet would read it', () => {
   });
 });
 
+describe('the feed is actually reachable by the people it is published for', () => {
+  /**
+   * Shipping the file is not publishing it.
+   *
+   * The CSV went out with no `Access-Control-Allow-Origin`: it fell through to
+   * the generic `/data/*` rule, so a browser could download it by typing the
+   * URL and could NOT `fetch()` it from anywhere else. That is exactly the use
+   * it exists for — docs/REVENUE.md publishes it so an analyst evaluating a
+   * licence can pull it straight into their own sheet or dashboard. Served but
+   * unfetchable is the worst of both: it looks fine from here and fails for
+   * everyone it was built for.
+   *
+   * This asserts against netlify.toml rather than a live response on purpose.
+   * The deploy is not reachable from the test runner, and a rule that is in the
+   * config is a rule Netlify will apply.
+   */
+  const toml = readFileSync(
+    new URL('../../netlify.toml', import.meta.url),
+    'utf8',
+  );
+
+  /** Every artifact the feed publishes for third parties. */
+  const PUBLISHED = ['/data/rates.json', '/data/rates.csv'];
+
+  it.each(PUBLISHED)('grants cross-origin reads to %s', (path) => {
+    const block = toml.split('[[headers]]').find((b) => b.includes(`for = "${path}"`));
+    expect(block, `no header rule for ${path}`).toBeDefined();
+    expect(block).toMatch(/Access-Control-Allow-Origin\s*=\s*"\*"/);
+    expect(block).toMatch(/Access-Control-Allow-Methods/);
+  });
+
+  it('serves the CSV as a CSV rather than leaving it to be guessed', () => {
+    const block = toml.split('[[headers]]').find((b) => b.includes('for = "/data/rates.csv"'))!;
+    expect(block).toMatch(/Content-Type\s*=\s*"text\/csv/);
+  });
+});
+
 describe('the CSV and the JSON say the same thing', () => {
   const tbillRows = rows.filter((r) => r.series === 'tbill');
 

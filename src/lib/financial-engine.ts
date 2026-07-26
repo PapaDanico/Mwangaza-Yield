@@ -1,7 +1,7 @@
 // Pure financial math for Kenyan government bonds.
 // All prices are per 100 face value.
 
-import type { Bond } from '@/types/bond';
+import type { Bond } from '../types/bond';
 
 /**
  * Kenya runs its government securities on a 364-day year, and this is not an

@@ -34,14 +34,16 @@ export default function PrivacyPage() {
         loading a page does not notify anyone else that you did.
       </p>
       <p>
-        We use <strong>Simple Analytics</strong> to count page views. It sets no cookies, stores no
-        IP addresses, builds no profile and cannot follow you to another site — which is why this
-        page carries no consent banner. It tells us how many people opened the calculator this week
-        and nothing whatsoever about who they are. We use it for one reason: to know whether this is
-        worth continuing to build.
+        We run our own <strong>tool counter</strong> — a first-party tally of which tools get used,
+        hosted alongside the site with no third party involved. It sets no cookies, records no IP
+        address, and carries no identifier of any kind: the stored record is a name like
+        &ldquo;calculator&rdquo; next to a number, per day. Two visits by you are indistinguishable
+        from one visit each by two people — deliberately, which is why this page carries no consent
+        banner. It exists for one reason: to know which tools are worth continuing to build. If your
+        browser sends Do Not Track or Global Privacy Control, we do not count you at all.
       </p>
       <p>
-        It counts page views only. It cannot see the figures you type, the holdings you import or
+        It counts tool use only. It cannot see the figures you type, the holdings you import or
         the goals you set, because those never leave your device — that is a property of how the app
         is built, not a promise about how we behave.
       </p>

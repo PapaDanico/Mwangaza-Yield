@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:e2e": "node tests/e2e/smoke.mjs"
+    "test:e2e": "node tests/e2e/smoke.mjs",
+    "build:engine": "node scripts/build-engine.mjs",
+    "test:engine": "node scripts/engine-smoke.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.10",

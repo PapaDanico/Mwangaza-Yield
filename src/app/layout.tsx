@@ -8,6 +8,7 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '600'], v
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import AppInit from '@/components/shared/AppInit';
+import Analytics from '@/components/shared/Analytics';
 import { APP_URL } from '@/lib/share';
 
 export const metadata: Metadata = {
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${jakarta.variable} ${roboto.variable} ${jetbrains.variable}`}>
       <body>
         <AppInit />
+        <Analytics />
         {/* The first thing a keyboard or screen-reader user meets. Without it
             every page makes them walk the whole nav — nine links, on every
             navigation — before reaching a word of content. Visually hidden

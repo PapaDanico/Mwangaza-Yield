@@ -23,7 +23,7 @@
 // Everything here works from the reader's own quote. No market data is fetched,
 // looked up or required — the numbers come off the sheet in front of them.
 
-import type { Bond } from '@/types/bond';
+import type { Bond } from '../types/bond';
 import { determineWHTRate, getCouponDates, getLastCouponDate } from './financial-engine';
 
 /** 364-day year, 182-day coupon period — the convention Kenyan paper is built on. */

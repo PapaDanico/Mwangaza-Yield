@@ -23,7 +23,7 @@
  *    meaningless number. The yield path is measured per bond and is the honest
  *    thing to show.
  */
-import type { AuctionPrint } from '@/types/bond';
+import type { AuctionPrint } from '../types/bond';
 
 // The tenor is usually a whole number of years and is NOT always one: CBK
 // issued IFB1/2023/6.5 and IFB1/2024/8.5. A pattern of `\d+` matches those as

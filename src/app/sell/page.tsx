@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
@@ -8,6 +8,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { analyseSale, findReplacements, verdict, type SaleQuote } from '@/lib/sell';
+import { track } from '@/lib/analytics';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import LiveResult from '@/components/shared/LiveResult';
@@ -63,6 +64,10 @@ export default function SellPage() {
     () => (bond && quote ? analyseSale(bond, quote) : null),
     [bond, quote]
   );
+
+  useEffect(() => {
+    if (analysis) track('act:sell-analysed');
+  }, [analysis]);
 
   const replacements = useMemo(() => {
     if (!analysis || !bond) return [];

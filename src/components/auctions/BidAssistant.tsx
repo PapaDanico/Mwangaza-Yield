@@ -24,6 +24,7 @@ import {
   type BidVerdict,
 } from '@/lib/bid';
 import { cn } from '@/lib/utils';
+import { track } from '@/lib/analytics';
 
 const VERDICT_STYLES: Record<BidVerdict, string> = {
   aggressive: 'border-l-red-500 bg-red-500/5',
@@ -163,7 +164,11 @@ export function BidAssistant({
               inputMode="decimal"
               placeholder={guidance.median.toFixed(2)}
               value={rateStr}
-              onChange={(e) => setRateStr(e.target.value)}
+              onChange={(e) => {
+                setRateStr(e.target.value);
+                const v = parseFloat(e.target.value);
+                if (Number.isFinite(v) && v > 0 && v < 100) track('act:bid-tested');
+              }}
               className="num w-24 rounded-lg border border-sand-300 bg-white px-2 py-1 text-sm text-ink outline-none focus:border-gold-600"
             />
             <span className="text-xs text-ink-faint">%</span>

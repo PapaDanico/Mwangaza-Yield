@@ -25,11 +25,14 @@ export default function Navbar() {
   return (
     <>
       <header className="no-print sticky top-0 z-40 border-b border-sand-300 bg-sand-100/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-          <Link href="/" className="flex items-center gap-2.5">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 lg:gap-3">
+          <Link href="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="" className="h-9 w-9 rounded-xl" />
-            <span className="font-display text-lg font-bold tracking-tight text-ink">
+            {/* nowrap: without it the wordmark broke into two lines whenever
+                the nav row got tight, while rendering on one line on phones —
+                the brand should not depend on viewport luck. */}
+            <span className="whitespace-nowrap font-display text-base font-bold tracking-tight text-ink lg:text-lg">
               {/* gold-700, not gold-600: on the sand header the lighter gold
                   measures 2.87:1, which fails WCAG AA at this size (18px bold
                   needs 4.5:1, and it misses even the 3:1 large-text bar). 700
@@ -39,13 +42,17 @@ export default function Navbar() {
               Mwangaza <span className="text-gold-700">Yield</span>
             </span>
           </Link>
-          <nav className="ml-8 hidden gap-1 md:flex">
+          {/* Tighter spacing until lg: at md this row must fit the wordmark,
+              seven labels and four icons into 768px. Without nowrap the row
+              "fit" by hyphenating T-Bills into two lines instead of showing
+              its width problem honestly. */}
+          <nav className="ml-1 hidden gap-0.5 md:flex lg:ml-8 lg:gap-1">
             {links.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                  'whitespace-nowrap rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors lg:px-3 lg:text-sm',
                   isActive(href)
                     ? 'bg-ink text-sand-50'
                     : 'text-ink-muted hover:bg-sand-200 hover:text-ink'
@@ -64,7 +71,7 @@ export default function Navbar() {
               href="/sell/"
               aria-label="Should you sell?"
               className={cn(
-                'rounded-lg p-2 transition-colors hover:bg-sand-200',
+                'rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
                 isActive('/sell/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >
@@ -75,7 +82,7 @@ export default function Navbar() {
               href="/prices/"
               aria-label="Your price book"
               className={cn(
-                'rounded-lg p-2 transition-colors hover:bg-sand-200',
+                'rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
                 isActive('/prices/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >

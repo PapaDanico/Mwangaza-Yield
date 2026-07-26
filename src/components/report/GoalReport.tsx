@@ -52,7 +52,7 @@ export default function GoalReport({
   if (!hasContent) return null;
 
   return (
-    <div className="print-only text-ink">
+    <div id="goal-report-sheet" className="print-only text-ink">
       <header className="flex items-start justify-between border-b-2 border-gold-500 pb-4">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}

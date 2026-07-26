@@ -20,7 +20,7 @@ export default function LadderReport({
   const maxYear = Math.max(...plan.yearlyPayouts.map((p) => p.couponsKES + p.principalKES), 1);
 
   return (
-    <div className="print-only text-ink">
+    <div id="ladder-report-sheet" className="print-only text-ink">
       <header className="flex items-start justify-between border-b-2 border-gold-500 pb-4">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}

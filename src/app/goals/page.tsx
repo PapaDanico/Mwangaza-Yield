@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check, FileText } from 'lucide-react';
+import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
@@ -15,8 +15,8 @@ import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
 import DataState from '@/components/shared/DataState';
 import GoalReport from '@/components/report/GoalReport';
+import ReportActions from '@/components/report/ReportActions';
 import BondPicker from '@/components/shared/BondPicker';
-import { printReport } from '@/lib/share';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
 import { yearsLabel } from '@/lib/years-label';
@@ -115,13 +115,34 @@ export default function GoalsPage() {
     if (i.parkCapital !== undefined) setParkCapital(i.parkCapital);
   }
 
-  async function handleSave() {
+  /**
+   * Naming a plan used to go through `window.prompt`, and that is why the Save
+   * button did nothing for a large share of readers.
+   *
+   * `prompt` is a blocking dialog the platform is free to refuse, and mobile
+   * platforms increasingly do: installed PWAs and Android WebViews suppress it,
+   * and every desktop browser lets a reader tick "prevent this page from
+   * creating additional dialogs" — after which the button is dead forever, with
+   * no error and no way back. The handler read `null` and returned, so the
+   * failure was perfectly silent: no plan, no message, no clue.
+   *
+   * The name is now an ordinary field in the page. It cannot be suppressed, it
+   * works the same on every device, and it is visible before you commit rather
+   * than sprung on you afterwards.
+   */
+  const [naming, setNaming] = useState(false);
+  const [draftName, setDraftName] = useState('');
+
+  function beginSave() {
     const existing = plans.find((p) => p.id === activePlanId);
-    const name = window.prompt(
-      'Name this plan',
-      existing?.name ?? suggestPlanName(goal, currentInputs)
-    );
-    if (name === null) return;
+    setDraftName(existing?.name ?? suggestPlanName(goal, currentInputs));
+    setNaming(true);
+  }
+
+  async function handleSave(rawName: string) {
+    const name = rawName.trim();
+    if (!name) return;
+    const existing = plans.find((p) => p.id === activePlanId);
     const now = new Date().toISOString();
     const plan = makePlan(goal, currentInputs, name, now, existing?.id);
     // Re-saving a plan must not wipe the readings recorded against it. makePlan
@@ -133,6 +154,7 @@ export default function GoalsPage() {
         : plan
     );
     setActivePlanId(plan.id);
+    setNaming(false);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2200);
   }
@@ -193,12 +215,7 @@ export default function GoalsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => printReport()}
-            className="flex items-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200"
-          >
-            <FileText size={15} /> PDF report
-          </button>
+          <ReportActions sheetId="goal-report-sheet" filename={`mwangaza-${goal}-plan`} />
           {/* Saved plans: unbounded list, one choice, no comparison — a dropdown. */}
           {plans.length > 0 && (
             <select
@@ -223,7 +240,7 @@ export default function GoalsPage() {
             </button>
           )}
           <button
-            onClick={handleSave}
+            onClick={beginSave}
             className="flex items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-soft"
           >
             {justSaved ? <Check size={15} /> : <Save size={15} />}
@@ -231,6 +248,41 @@ export default function GoalsPage() {
           </button>
         </div>
       </div>
+
+      {/* The name field that replaced window.prompt. In the page, not over it. */}
+      {naming && (
+        <div className="no-print card flex flex-wrap items-end gap-3">
+          <div className="min-w-[12rem] flex-1">
+            <label htmlFor="plan-name" className="mb-1 block text-sm font-medium text-ink-soft">
+              Name this plan
+            </label>
+            <input
+              id="plan-name"
+              autoFocus
+              value={draftName}
+              onChange={(e) => setDraftName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave(draftName);
+                if (e.key === 'Escape') setNaming(false);
+              }}
+              className={inputCls}
+            />
+          </div>
+          <button
+            onClick={() => handleSave(draftName)}
+            disabled={!draftName.trim()}
+            className="min-h-11 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-soft disabled:opacity-40"
+          >
+            {activePlanId ? 'Update' : 'Save'}
+          </button>
+          <button
+            onClick={() => setNaming(false)}
+            className="min-h-11 rounded-xl border border-sand-400 px-4 py-2 text-sm font-medium text-ink transition hover:bg-sand-200"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {/* Mobile: a single control. The four cards are mode selection, not
           comparison, and stacked they push every input below the fold. */}

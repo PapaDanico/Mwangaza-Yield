@@ -37,7 +37,7 @@ export interface LadderPlan {
   priceCoverage: PriceCoverage;
 }
 
-const STEP = 50_000; // CBK face values move in KES 50k increments
+const STEP = 50_000; // CBK face values move in Ksh 50k increments
 
 /** A bond with its resolved price and net yield — what both selection paths produce. */
 interface PricedBond {

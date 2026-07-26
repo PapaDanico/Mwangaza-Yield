@@ -37,7 +37,7 @@ export default function TBillsPage() {
       <div>
         <h1 className="text-2xl font-bold text-ink">Lending for months, not years</h1>
         <p className="text-sm text-ink-muted">
-          Treasury bills run 91, 182 or 364 days. You pay less than KES 100 now and are repaid
+          Treasury bills run 91, 182 or 364 days. You pay less than Ksh 100 now and are repaid
           the full 100 at the end — the gap is your interest. Sold every Thursday.
         </p>
       </div>
@@ -120,7 +120,7 @@ export default function TBillsPage() {
               ))}
             </div>
             <p className="mt-2 text-xs text-ink-faint">
-              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of KES 50,000 ·
+              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of Ksh 50,000 ·
               next auction {selected.nextAuctionDate}
             </p>
           </div>
@@ -151,7 +151,7 @@ export default function TBillsPage() {
             ['What you actually earn', formatPct(result.netEAY), true],
             ['Before tax', formatPct(result.grossEAY), false],
             ['The advertised rate', formatPct(result.discountRate, 2), false],
-            ['What you pay per KES 100', result.pricePer100.toFixed(2), false],
+            ['What you pay per Ksh 100', result.pricePer100.toFixed(2), false],
             ['Interest earned', formatKES(result.grossInterestKES), false],
             ['Tax taken off (15%)', `−${formatKES(result.whtKES)}`, false],
             ['Interest you keep', formatKES(result.netInterestKES), false],

@@ -63,7 +63,7 @@ export function determineWHTRate(bond: Pick<Bond, 'taxExempt' | 'tenorYears'>): 
  * step; a ten-year bond's dates ended up as much as twelve days adrift, and the
  * final period was silently truncated by a guard that forced the last date onto
  * maturity. Those dates fed accrued interest, so the error was money: twelve
- * days of a 13% coupon is 0.43 per 100, or KES 4,300 wrongly said to be owed to
+ * days of a 13% coupon is 0.43 per 100, or Ksh 4,300 wrongly said to be owed to
  * the seller on a million-shilling purchase.
  *
  * `frequencyPerYear` is honoured for anything that is not semi-annual, but no

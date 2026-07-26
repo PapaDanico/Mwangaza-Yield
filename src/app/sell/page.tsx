@@ -123,7 +123,7 @@ export default function SellPage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="sell-face" className={labelCls}>Face value (KES)</label>
+              <label htmlFor="sell-face" className={labelCls}>Face value (Ksh)</label>
               <input id="sell-face" type="number" inputMode="numeric" value={face}
                 onChange={(e) => setFace(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>
@@ -145,20 +145,20 @@ export default function SellPage() {
                 onChange={(e) => setQuotedYTM(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="sell-comm" className={labelCls}>Commission (KES)</label>
+              <label htmlFor="sell-comm" className={labelCls}>Commission (Ksh)</label>
               <input id="sell-comm" type="number" inputMode="numeric" value={commission}
                 onChange={(e) => setCommission(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="sell-levy" className={labelCls}>CMA / NSE / CDSC levies (KES)</label>
+              <label htmlFor="sell-levy" className={labelCls}>CMA / NSE / CDSC levies (Ksh)</label>
               <input id="sell-levy" type="number" step="0.01" inputMode="decimal" value={levies}
                 onChange={(e) => setLevies(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>
           </div>
 
           {/* Amortisation is not an exotic detail. On the sheet that prompted this
-              page it moved the price by 1.8 per 100 — about KES 7,300 on a
-              KES 400,000 trade — and it appears as a single line in braces that
+              page it moved the price by 1.8 per 100 — about Ksh 7,300 on a
+              Ksh 400,000 trade — and it appears as a single line in braces that
               is easy to read past. */}
           <div className="rounded-xl border border-sand-300 bg-sand-100/60 p-3">
             <p className="text-[12px] font-medium text-ink-soft">

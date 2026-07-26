@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
+import { formatKES } from './financial-engine';
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -24,10 +25,21 @@ export function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
 }
 
+/**
+ * The compact form of formatKES — and it must carry the SAME currency label.
+ *
+ * It said "KES" while formatKES said "Ksh", so the goals card led with
+ * "KES 9.2M" and explained it one line later as "to draw Ksh 1,200,000 a
+ * year". Two formatters, one screen, two names for the shilling. The prefix is
+ * now taken from formatKES itself rather than typed again here, so there is
+ * nothing left to drift.
+ */
+const CURRENCY_PREFIX = formatKES(0).replace(/[\d.,\s]+$/, '');
+
 export function formatCompactKES(v: number): string {
-  if (v >= 1e9) return `KES ${(v / 1e9).toFixed(1)}B`;
-  if (v >= 1e6) return `KES ${(v / 1e6).toFixed(1)}M`;
-  return `KES ${Math.round(v).toLocaleString('en-KE')}`;
+  if (v >= 1e9) return `${CURRENCY_PREFIX} ${(v / 1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `${CURRENCY_PREFIX} ${(v / 1e6).toFixed(1)}M`;
+  return `${CURRENCY_PREFIX} ${Math.round(v).toLocaleString('en-KE')}`;
 }
 
 /**

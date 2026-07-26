@@ -30,7 +30,7 @@
  * 3. THE PRINCIPAL IS NOT PROTECTED. A coupon-bearing bond returns a fixed
  *    nominal face at maturity. Over a long bond that is where most of the real
  *    loss happens, and it is invisible in a yield figure. On a 15-year bond at
- *    6.41%, KES 100 of face comes back worth KES 39.5 in today's money.
+ *    6.41%, Ksh 100 of face comes back worth Ksh 39.5 in today's money.
  *
  * WHAT IT WILL NOT DO
  * -------------------
@@ -105,7 +105,7 @@ export interface RealReturn {
   gainsPurchasingPower: boolean;
   yearsToMaturity: number;
   /**
-   * What KES 100 of face value will buy at maturity, in today's money, at this
+   * What Ksh 100 of face value will buy at maturity, in today's money, at this
    * inflation rate held constant.
    */
   principalRealValuePer100: number;
@@ -157,11 +157,11 @@ export function realReturn(
       ? `After withholding tax and inflation this returns ${realNetYTM.toFixed(2)}% a year in `
         + `today's money — real growth, but ${(100 - (realNetYTM / netYTM) * 100).toFixed(0)}% less than `
         + `the ${netYTM.toFixed(2)}% headline suggests. Over ${term} the principal itself comes back `
-        + `worth KES ${principalRealValuePer100.toFixed(0)} for every KES 100 of face value, ${held}.`
+        + `worth Ksh ${principalRealValuePer100.toFixed(0)} for every Ksh 100 of face value, ${held}.`
       : `After withholding tax and inflation this LOSES ${Math.abs(realNetYTM).toFixed(2)}% a year in `
         + `purchasing power. The ${netYTM.toFixed(2)}% net headline is below the ${inflationPct.toFixed(2)}% `
         + `inflation rate, so the money grows in shillings and shrinks in what it buys. Over ${term} the `
-        + `principal comes back worth KES ${principalRealValuePer100.toFixed(0)} per KES 100 of face, ${held}.`;
+        + `principal comes back worth Ksh ${principalRealValuePer100.toFixed(0)} per Ksh 100 of face, ${held}.`;
 
   return {
     nominalNetYTM: netYTM,

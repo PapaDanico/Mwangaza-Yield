@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Tutorials — Mwangaza Yield',
-  description: 'Learn how Kenyan government securities work, from your first KES 50,000 to a full ladder.',
+  description: 'Learn how Kenyan government securities work, from your first Ksh 50,000 to a full ladder.',
 };
 
 const LESSONS = [
@@ -93,7 +93,7 @@ const LESSONS = [
         <p>
           At the auction you choose <strong>non-competitive</strong> or{' '}
           <strong>competitive</strong> bidding. Non-competitive means you accept the weighted
-          average rate the market clears at, and is available up to KES 50 million — this is what
+          average rate the market clears at, and is available up to Ksh 50 million — this is what
           almost every retail investor should use. Competitive bidding means naming your own rate,
           and if you bid too aggressively you simply get nothing.
         </p>
@@ -170,7 +170,7 @@ const LESSONS = [
           auction&apos;s offer makes demand look far weaker than it is.
         </p>
         <p>
-          Or skip the question: <strong>non-competitive bidding</strong> (up to KES 50 million)
+          Or skip the question: <strong>non-competitive bidding</strong> (up to Ksh 50 million)
           takes the weighted average rate the auction clears at, and is the right choice for almost
           every retail investor. Our auction radar shows where comparable paper has been clearing —
           and keeps a public record of its own predictions, scored against what actually happened.
@@ -233,8 +233,8 @@ const LESSONS = [
         <p>
           Then there is the part a yield figure structurally cannot show. A bond returns a{' '}
           <strong>fixed nominal face value</strong> at maturity, however long it has been away. On
-          a fifteen-year bond at 6.41%, KES 100 of principal comes back worth about{' '}
-          <strong>KES 39</strong> in today&apos;s money. On a long bond that is where most of the
+          a fifteen-year bond at 6.41%, Ksh 100 of principal comes back worth about{' '}
+          <strong>Ksh 39</strong> in today&apos;s money. On a long bond that is where most of the
           real loss lives, and no amount of coupon arithmetic reveals it.
         </p>
         <p>
@@ -300,7 +300,7 @@ export default function LearnPage() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">Tutorials</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
-          From your first KES 50,000 to a full ladder
+          From your first Ksh 50,000 to a full ladder
         </h1>
         <p className="mt-2 text-lg text-ink-muted">
           Eight short lessons on how Kenyan government securities really work — written for people

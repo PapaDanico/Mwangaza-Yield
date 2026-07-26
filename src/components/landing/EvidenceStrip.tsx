@@ -54,7 +54,7 @@ function stats() {
   };
 }
 
-const kes = (n: number) => `KES ${n.toLocaleString('en-KE')}`;
+const kes = (n: number) => `Ksh ${n.toLocaleString('en-KE')}`;
 
 export default function EvidenceStrip() {
   const s = stats();
@@ -62,7 +62,7 @@ export default function EvidenceStrip() {
   const facts = [
     {
       figure: kes(s.medianLost),
-      unit: 'a year, per KES 1M',
+      unit: 'a year, per Ksh 1M',
       claim: 'is what withholding tax quietly removes',
       detail: `The typical taxable bond on issue today loses this much of its annual interest before it reaches you. Every figure in this app is shown after that deduction — because it is the only one you can spend.`,
     },
@@ -114,7 +114,7 @@ export default function EvidenceStrip() {
       <p className="mt-4 text-[11px] leading-relaxed text-ink-faint">
         Figures recomputed from the Central Bank of Kenya auction record and MPC decisions each time
         this page is published. Tax impact is the median across taxable bonds currently on issue, on
-        KES 1,000,000 of face value at par. Analytics for education, not investment advice.
+        Ksh 1,000,000 of face value at par. Analytics for education, not investment advice.
       </p>
     </section>
   );

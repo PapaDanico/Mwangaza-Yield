@@ -19,8 +19,8 @@ const STATUS_STYLES: Record<string, string> = {
 const BID_STEPS = [
   'Register on DhowCSD (dhowcsd.centralbank.go.ke) with your ID, KRA PIN and bank details.',
   'Wait for CSD account approval (usually 1–3 business days).',
-  'Under "Auctions", select the bond and choose non-competitive bidding (amounts up to KES 50M take the weighted average rate — recommended for retail).',
-  'Enter your face-value amount (minimum KES 50,000; KES 100,000 for IFBs).',
+  'Under "Auctions", select the bond and choose non-competitive bidding (amounts up to Ksh 50M take the weighted average rate — recommended for retail).',
+  'Enter your face-value amount (minimum Ksh 50,000; Ksh 100,000 for IFBs).',
   'Submit before the offer close date, then fund your payment obligation by the settlement date via RTGS or bank transfer.',
 ];
 

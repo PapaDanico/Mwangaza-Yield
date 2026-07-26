@@ -10,6 +10,27 @@ GET https://mwangazayield.org/data/rates.json
 Cross-origin reads are enabled and the file is cached for 15 minutes. It is
 rebuilt every morning by the same CI job that refreshes the underlying data.
 
+## Or as a spreadsheet
+
+```
+GET https://mwangazayield.org/data/rates.csv
+```
+
+The same figures as one flat table, generated from the same build step and
+pinned to the JSON by `tests/unit/rates-csv.test.ts` so the two cannot drift.
+It exists because the person evaluating these numbers usually works in Excel,
+not in `npm install` — a JSON feed asks them to write a parser before they can
+check a single figure against their own book.
+
+Deliberately not a faithful serialisation of the JSON: nested structures do not
+survive a spreadsheet, so T-bills, bond auction bands and macro readings share
+one `series` column and one set of rate columns. Every row carries its own
+date and source, and the caveats travel as a comment block above the header
+rather than in a separate document.
+
+A blank rate cell means **we have too little evidence to quote one**. It is
+never a zero — a zero in a rate column is a claim.
+
 ## Why this exists
 
 CBK's published quote for a Treasury bill is a **discount rate**, and it is

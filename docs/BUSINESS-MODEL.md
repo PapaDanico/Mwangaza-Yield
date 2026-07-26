@@ -36,6 +36,14 @@ Two options fail that test and are ruled out, not deferred:
 
 ---
 
+**See also `REVENUE.md`**, which takes the strategy set out here and asks the
+narrower, more uncomfortable question: what would actually put money in the
+account, in what order, and what does each path cost before it pays anything.
+It covers both this repo and JiPange, and it records that the answer today is
+KES 0 from both.
+
+---
+
 ## 1. Chosen direction: B2B engine licensing
 
 **The retail PWA stays free and private, permanently.** Revenue comes from

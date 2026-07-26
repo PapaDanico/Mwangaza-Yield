@@ -10,6 +10,8 @@ import { resolvePrice, MIN_PRICE, MAX_PRICE, isPlausiblePrice } from '@/lib/pric
 import { computeBondInvestment, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
+import { benchmarkQuote } from '@/lib/quote-benchmark';
+import { cn } from '@/lib/utils';
 
 /**
  * The price book.
@@ -28,6 +30,7 @@ export default function PricesPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
+  const auctionResults = useBondStore((s) => s.auctionResults);
   const setPrice = usePriceStore((s) => s.setPrice);
   const removePrice = usePriceStore((s) => s.removePrice);
 
@@ -175,6 +178,35 @@ export default function PricesPage() {
                 <span className="num text-sm text-gold-700">{pct(netYTM)} net</span>
               </div>
             </div>
+            {/*
+              Is this a good price?
+              *
+              * Only for a price the reader actually recorded — benchmarking the
+              * par placeholder would be benchmarking our own guess, and the
+              * answer would be about nothing.
+              */}
+            {info.source === 'user' && (() => {
+              const mark = benchmarkQuote(bond, info.price, auctionResults, bonds);
+              const tone =
+                mark.verdict === 'above'
+                  ? 'border-l-mint-600 bg-mint-500/5'
+                  : mark.verdict === 'below'
+                    ? 'border-l-gold-600 bg-gold-500/5'
+                    : 'border-l-sand-400 bg-sand-100';
+              return (
+                <div className={cn('mt-2 rounded-r-lg border-l-4 px-3 py-2', tone)}>
+                  <p className="text-[11px] font-semibold text-ink">
+                    {mark.verdict === 'unknown'
+                      ? 'No comparable auctions to price this against'
+                      : mark.verdict === 'in-line'
+                        ? `In line with recent auctions — ${pct(mark.impliedGrossYTM)} gross`
+                        : `${pct(mark.impliedGrossYTM)} gross · ${mark.gapBps! > 0 ? '+' : ''}${mark.gapBps} bps vs recent auctions`}
+                  </p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-ink-soft">{mark.summary}</p>
+                </div>
+              );
+            })()}
+
             {daysToMaturity > 0 && daysToMaturity < SHORT_DATED_DAYS && (
               <p className="mt-1 text-[11px] leading-snug text-ink-faint">
                 Redeems in {daysToMaturity} days — at that range the yield is dominated by the

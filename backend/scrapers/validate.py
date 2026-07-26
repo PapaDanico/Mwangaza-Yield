@@ -27,7 +27,6 @@ CHECKS = [
     ("CBK prospectus list", "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/", r"(?i)prospectus"),
     ("CBK treasury bills", "https://www.centralbank.go.ke/securities/treasury-bills/", r"(?i)treasury bill"),
     ("KNBS", "https://www.knbs.or.ke/", r"(?i)inflation|consumer price"),
-    ("NSE bonds statistics", "https://www.nse.co.ke/bonds-statistics/", r"(?i)bond"),
     ("World Bank API (GDP growth)",
      "https://api.worldbank.org/v2/country/KE/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=5&mrnev=1",
      None),

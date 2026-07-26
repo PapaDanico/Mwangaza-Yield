@@ -48,10 +48,13 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
   },
   {
     name: 'Nairobi Securities Exchange',
-    url: 'https://www.nse.co.ke/',
-    status: 'reference',
-    used: 'Linked only — we are not permitted to republish it',
-    why: 'Two separate blocks, verified July 2026. The free Daily Bond Price List is published as scanned images with no text layer, so software cannot read it, and we will not OCR it — a misread digit in a bond price is a wrong number stated with full confidence. More decisively, the NSE Data Services terms state their data is proprietary, may not be copied, stored or distributed, and may not be used to develop a product, except for your own personal use. We respect that. Look up a price there yourself and enter it in our calculator — that is personal use, and it stays on your device.',
+    // No link, deliberately. Sending readers to the Exchange to fetch figures
+    // for this app is the behaviour the terms exist to prevent, and a link that
+    // exists to be used that way is not meaningfully different from using it.
+    url: '',
+    status: 'declined',
+    used: 'Nothing. We hold no exchange data and no agreement to use any.',
+    why: 'We take no data from the Exchange, in any form, and nothing we publish is derived from it. Its terms make the data proprietary — not copyable, storable or distributable, and not usable to build a product — and that applies to what sits publicly on its website as much as to a paid feed. Reading a page in a browser does not make its contents free to redistribute. Rather than rely on being the kind of small use nobody minds, we removed the dependency: the scraper that could once fetch it is gone, and no configuration will bring it back. Everything on this page comes from CBK, the National Treasury, KNBS and the World Bank instead. If you want a market price for a bond, get it from your broker or from DhowCSD and enter it yourself — it stays on your device, and it is yours, not ours to publish.',
   },
   {
     name: 'IMF — Kenya country page',
@@ -147,9 +150,14 @@ export default function SourcesPage() {
                 <Icon size={16} className={`mt-0.5 shrink-0 ${cls}`} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-x-2">
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="font-display font-semibold text-ink">
-                      {s.name}
-                    </a>
+                    {/* A source we take nothing from gets no outbound link. */}
+                    {s.url ? (
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="font-display font-semibold text-ink">
+                        {s.name}
+                      </a>
+                    ) : (
+                      <span className="font-display font-semibold text-ink">{s.name}</span>
+                    )}
                     <span className={`text-[10px] font-semibold uppercase tracking-wider ${cls}`}>{label}</span>
                   </div>
                   {s.status !== 'declined' && (
@@ -214,8 +222,9 @@ export default function SourcesPage() {
         <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
           CC BY 4.0 <ExternalLink size={11} className="inline" />
         </a>
-        . CBK, KNBS, National Treasury and NSE materials remain the property of their publishers and
-        are used for information with attribution.
+        . CBK, KNBS and National Treasury materials remain the property of their publishers and are
+        used for information with attribution. No Nairobi Securities Exchange data is used,
+        stored or republished anywhere in this application.
       </p>
     </Prose>
   );

@@ -104,7 +104,7 @@ export default function Footer() {
             Mwangaza Yield provides analytics for education only and is <strong>not investment
             advice</strong>, nor an offer to buy or sell securities. We are not affiliated with, or
             endorsed by, the Central Bank of Kenya, the Nairobi Securities Exchange or the Capital
-            Markets Authority. Figures are derived from published CBK, NSE and KNBS data and may be
+            Markets Authority. Figures are derived from published CBK, National Treasury and KNBS data and may be
             delayed, estimated or incorrect — verify every number against the official prospectus
             before you invest. Capital is at risk; yields change at every auction.
           </p>

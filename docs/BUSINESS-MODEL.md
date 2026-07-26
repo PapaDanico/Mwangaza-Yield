@@ -80,7 +80,8 @@ building:
   364-day year, 182-day coupon period, WHT bands — so a buyer's auditor can
   check it rather than trust it.
 - A licence boundary that keeps the PWA's data pipeline separate from any
-  licensed redistribution of NSE-derived data (we hold no such licence).
+  exchange-derived data — the engine is priced by whatever the licensee lawfully
+  supplies, and we supply none.
 
 ---
 
@@ -159,11 +160,12 @@ The numbers survive an auditor, and the alerting survives a month.
 - [x] Freshness alarm no longer fails daily on a condition that cannot be fixed.
 - [x] WCAG AA contrast on sampled dashboard text; 44px touch targets on the
       most-repeated controls.
-- [ ] **Browser tests in CI.** Three of the four defects fixed this week were
-      invisible to 382 unit tests: a dead feature, an unguarded yield, and copy
-      contradicting the data. The unit suite is structurally blind to "renders
-      wrongly" and "renders nothing". This is the highest-value engineering item
-      outstanding.
+- [x] **Browser tests in CI** (`tests/e2e/smoke.mjs`). Three of the four defects
+      fixed that week were invisible to 382 unit tests: a dead feature, an
+      unguarded yield, and copy contradicting the data. The unit suite is
+      structurally blind to "renders wrongly" and "renders nothing"; this closes
+      that. Verified it can fail, by reverting the portfolio fix and watching it
+      go red.
 - [ ] `npm run lint` runnable in CI (`next lint` currently prompts
       interactively, which is why the workflow omits it).
 
@@ -191,17 +193,20 @@ An institution can buy and integrate the maths.
 - [ ] Conventions documented with their evidence, auditable by a third party.
 - [ ] Reference integration (a spreadsheet-shaped API is likely the real
       demand, not a JS import).
-- [ ] Licence terms that keep NSE-derived data out of scope.
+- [ ] Licence terms that keep exchange-derived data out of scope.
 
 **Exit test:** one paying pilot, most plausibly via DN Consultancy.
 
 ### M4 — Depends on others, so it is scheduled last
 
-- [ ] Written NSE permission (`ROADMAP.md` §3 option b). Worth asking *now*
-      that the product visibly declines to republish their data and routes
-      readers to their own site — a materially better opening position than
-      requesting a licence to resell.
 - [ ] Richer auction radar — gated on CBK publishing, not on code.
+
+**Removed from this milestone (2026-07-25): seeking NSE permission or a licence.**
+Both were listed here and both are now declined on purpose. The app takes no
+exchange data in any form, and the point of that is to owe nothing to a
+counterparty whose terms can change under a product people rely on. The price a
+plan needs is the one the reader is actually being charged, and they already
+know it.
 
 ---
 

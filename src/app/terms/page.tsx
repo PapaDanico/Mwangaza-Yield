@@ -61,10 +61,10 @@ export default function TermsPage() {
 
       <h2>7. Intellectual property</h2>
       <p>
-        The Mwangaza Yield name, logo, brand and application code are ours. Underlying market data
-        belongs to its publishers — the Central Bank of Kenya, the Nairobi Securities Exchange and
-        the Kenya National Bureau of Statistics — and is used here on the terms on which they
-        publish it. For licensing or reuse enquiries, write to{' '}
+        The Mwangaza Yield name, logo, brand and application code are ours. Underlying data belongs to
+        its publishers — the Central Bank of Kenya, the National Treasury and the Kenya National
+        Bureau of Statistics — and is used here on the terms on which they publish it. We use no
+        Nairobi Securities Exchange data of any kind. For licensing or reuse enquiries, write to{' '}
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 

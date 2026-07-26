@@ -44,8 +44,8 @@ export default function YieldCurveChart() {
    * date at all, the oldest being February 2017 sitting on the 12-year mark.
    *
    * There is no fixing that by computing harder. A current yield needs a
-   * current price, NSE licenses its prices, and this project does not
-   * republish them — so for a bond that has not been auctioned lately the
+   * current price, and this project holds none — we publish no market prices
+   * at all — so for a bond that has not been auctioned lately the
    * honest position is that we do not know today's yield.
    *
    * What we must not do is narrate a market from it. The shape text below read

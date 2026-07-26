@@ -78,7 +78,7 @@ jobs:
         run: python check_archive.py
 
   validate-sources:
-    # Probes the live CBK / KNBS / NSE / World Bank endpoints from a
+    # Probes the live CBK / KNBS / Treasury / World Bank endpoints from a
     # network-open runner and prints a reachability report. Changes nothing.
     #
     # The job-level bound is not belt-and-braces. Thirteen of this job's
@@ -111,18 +111,12 @@ jobs:
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
         run: python macro_parser.py || echo "macro scraper failed — see output above"
-      - name: Discover NSE downloadable files
-        working-directory: backend/scrapers
-        run: python discover_nse.py
       - name: Probe candidate sources (CBK Weekly Bulletin, CMA)
         working-directory: backend/scrapers
         run: python discover_sources.py
       - name: Probe CBK HTML data tables (CBR history)
         working-directory: backend/scrapers
         run: python discover_cbk_tables.py
-      - name: Probe secondary source shortlist (KIPPRA, Cbonds, AfricaFinancials, Bloomberg, NSE)
-        working-directory: backend/scrapers
-        run: python discover_secondary_sources.py
       - name: Probe CBK auction results (coupon rates, clearing yields)
         working-directory: backend/scrapers
         run: python discover_auction_results.py
@@ -173,10 +167,6 @@ jobs:
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py
-      - name: Dry-run the NSE parser
-        if: ${{ !inputs.validate_only }}
-        working-directory: backend/scrapers
-        run: python nse_parser.py || echo "NSE parser failed — see output above"
       # About one file in ten from 2020-2023 parses to nothing. Three very
       # different causes are possible — a scan with no text layer (which the
       # no-OCR policy would settle), a header the parser looks for along the
@@ -277,17 +267,11 @@ jobs:
         id: expand
         working-directory: backend/scrapers
         run: python expand_universe.py || echo "failed=expand-universe" >> "$GITHUB_OUTPUT"
-      - name: Run NSE scraper
-        if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
-        id: nse
-        working-directory: backend/scrapers
-        run: python nse_parser.py || echo "failed=nse" >> "$GITHUB_OUTPUT"
       # Runs even when a scraper above was killed on its timeout. Without this
       # a single hung third-party fetch discards every other scraper's work:
-      # the NSE step once held a completed auction-archive rebuild for over
-      # twenty minutes with nothing committed, and GitHub's default job limit
-      # is six hours. Partial data that is fresh beats complete data that never
+      # a since-removed exchange-price step once held a completed auction-archive
+      # rebuild for over twenty minutes with nothing committed, and GitHub's
+      # default job limit is six hours. Partial data that is fresh beats complete data that never
       # ships, and the freshness check below still reports anything stale.
       - name: Commit updated data
         if: ${{ !cancelled() && !inputs.test_alert }}
@@ -364,7 +348,6 @@ jobs:
               '${{ steps.auctions.outputs.failed }}',
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
-              '${{ steps.nse.outputs.failed }}',
             ].filter(Boolean);
 
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

@@ -31,7 +31,7 @@ export default function LandingPage() {
         <div>
           <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-sand-400 bg-sand-50 px-3 py-1 text-xs font-medium text-ink-soft">
             <span className="h-1.5 w-1.5 rounded-full bg-mint-600" />
-            Built on public CBK, NSE &amp; KNBS data · Always free
+            Built on public CBK, Treasury &amp; KNBS data · Always free
           </p>
           <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink md:text-6xl">
             When you lend to Kenya,

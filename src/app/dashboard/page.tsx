@@ -1,5 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Calculator, Briefcase, Radar } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Rates, Curve and Auctions at a Glance — Mwangaza Yield',
+  description:
+    'Where Kenyan government bond yields sit today, what the curve is doing, the next auction, and the rate cycle behind all of it.',
+};
 import AuctionBanner from '@/components/dashboard/AuctionBanner';
 import TopYields from '@/components/dashboard/TopYields';
 import YieldCurveChart from '@/components/dashboard/YieldCurveChart';

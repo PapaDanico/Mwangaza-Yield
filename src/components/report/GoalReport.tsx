@@ -1,6 +1,7 @@
 'use client';
 
 import { formatKES, formatPct } from '@/lib/financial-engine';
+import { CASHFLOW_SOURCES, NOT_ADVICE, dataAsOf } from '@/lib/provenance';
 import type {
   FirePlan,
   GoalDefinition,
@@ -269,9 +270,9 @@ export default function GoalReport({
         Yields are solved from each bond&apos;s remaining cash-flow schedule; withholding tax applies
         to coupons only (infrastructure bonds are exempt) and principal redemption is untaxed.
         Accrued interest uses Actual/364 and coupon dates run in exact 182-day steps from issue — the
-        basis Kenyan government bonds are built on. Analytics for education only, not investment
-        advice, and not an offer to buy or sell. Verify every figure against the official prospectus
-        before you commit funds. Sources: Central Bank of Kenya, National Treasury, KNBS.
+        basis Kenyan government bonds are built on. {NOT_ADVICE}
+        {' '}
+        {CASHFLOW_SOURCES} Bond data as of {dataAsOf()}.
       </footer>
     </div>
   );

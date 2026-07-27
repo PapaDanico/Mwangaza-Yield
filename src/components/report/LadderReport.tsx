@@ -1,6 +1,7 @@
 'use client';
 
 import { formatKES, formatPct } from '@/lib/financial-engine';
+import { CASHFLOW_SOURCES, NOT_ADVICE, dataAsOf } from '@/lib/provenance';
 import type { LadderPlan } from '@/lib/ladder';
 
 /**
@@ -137,8 +138,9 @@ export default function LadderReport({
         Yields are solved from the stated price on each bond&apos;s remaining cash-flow schedule;
         withholding tax is applied to coupons only (infrastructure bonds are exempt), principal
         redemption untaxed. Accrued interest uses Actual/364 and coupon dates run in exact 182-day
-        steps from issue, the basis Kenyan government bonds are built on. Analytics for education
-        only, not investment advice. Sources: Central Bank of Kenya, National Treasury, KNBS.
+        basis Kenyan government bonds are built on. {NOT_ADVICE}
+        {' '}
+        {CASHFLOW_SOURCES} Bond data as of {dataAsOf()}.
       </footer>
     </div>
   );

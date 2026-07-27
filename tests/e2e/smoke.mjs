@@ -537,6 +537,44 @@ async function main() {
     fail(`ladder: the report logo expands to ${logo.w}px without CSS — it will swallow the export`);
   }
 
+  /* The footer of the sheet that actually prints.
+   *
+   * The PDF is the artifact that leaves the building. A figure on screen carries
+   * the page around it; a printed sheet carries only its own footer, and it is
+   * the sheet somebody relies on six months later.
+   *
+   * Both footers used to credit "Central Bank of Kenya, National Treasury, KNBS"
+   * while the reports read none of the last two — they compute from bond cash
+   * flows and a price and consult nothing else. A unit test pins the source
+   * file; this reads the rendered sheet, because a footer assembled from
+   * constants can typecheck perfectly and still render an empty string. */
+  const footer = await page.evaluate(() => {
+    const sheet = document.getElementById('ladder-report-sheet');
+    if (!sheet) return { error: 'no ladder report sheet' };
+    const prev = sheet.style.cssText;
+    sheet.style.cssText = 'display:block;position:fixed;left:-10000px;top:0;width:794px';
+    const f = sheet.querySelector('footer');
+    const text = f ? f.textContent.replace(/\s+/g, ' ').trim() : '';
+    sheet.style.cssText = prev;
+    return { text };
+  });
+  if (footer.error) fail(`ladder: ${footer.error}`);
+  else if (!footer.text) fail('ladder: the printed report has no footer at all');
+  else {
+    if (/KNBS|National Treasury/.test(footer.text)) {
+      fail(`ladder: the printed footer credits a source the report never reads: "${footer.text}"`);
+    }
+    if (!/Central Bank of Kenya/.test(footer.text)) {
+      fail(`ladder: the printed footer names no source (got "${footer.text}")`);
+    }
+    if (!/\d{4}-\d{2}-\d{2}/.test(footer.text)) {
+      fail(`ladder: the printed footer does not date its data (got "${footer.text}")`);
+    }
+    if (!/not investment advice/i.test(footer.text)) {
+      fail(`ladder: the printed footer drops the not-advice line (got "${footer.text}")`);
+    }
+  }
+
   // Saving a plan must name it in the page, not through a platform dialog.
   await go('/goals/');
   await page.waitForTimeout(1200);

@@ -106,6 +106,49 @@ TIMEOUT = 45
 # Candidate landing pages per target. Several per target on purpose: Kenyan
 # government sites reorganise, and a single 404 should not be read as "the
 # source does not publish this".
+# The document categories listed on www.treasury.go.ke/pdmo-reports-and-documents,
+# read off a screenshot on 2026-07-27 because this runner cannot reach the host
+# (the egress proxy answers 403 to CONNECT — a fact about the runner, not the
+# site). They are recorded here for two reasons.
+#
+# First, as a coverage check: the probe reports which of these it did NOT see,
+# so a silent site restructure shows up as a gap rather than as fewer results.
+#
+# Second, because the link filter was missing six of them. It matched on
+# /debt|borrow/ and walked straight past "Monthly Bulletins" — the
+# highest-cadence publication on the page, and the one most able to keep the
+# ladder's fiscal card current instead of ageing out on a 455-day window.
+# A filter written from a guess about naming will always have this shape of
+# hole; the list below is what the page actually says.
+PDMO_CATEGORIES = [
+    "Annual Borrowing Plans",
+    "Annual Debt Management Reports",
+    "Borrowing Program Performance",
+    "Debt and Borrowing Policy",
+    "Debt and Debt Sustainability Indicators",
+    "Debt Sustainability Analysis",
+    "External Public Debt Register",
+    "External Resources Estimates Handbook",
+    "Fiscal Commitment & Contingent Liabilities",
+    "Guaranteed Debt",
+    "Kenya External Resources Policy",
+    "Medium Term Debt Management Strategy",
+    "Monthly Bulletins",
+    "PDMO Annual Performance Report",
+    "Sustainability-Linked Financing Framework",
+]
+
+# Widened to cover every category above. Verified offline by --selftest, which
+# needs no network and therefore still works on a runner that cannot reach the
+# host at all.
+PDMO_LINK_RE = re.compile(
+    r"debt|borrow|budgetary\s*review|qebr|bulletin|fiscal\s*commitment|"
+    r"contingent\s*liabilit|external\s*resources|performance\s*report|"
+    r"sustainability[-\s]*linked",
+    re.I,
+)
+
+
 TARGETS = [
     (
         "National Treasury — public debt",
@@ -119,7 +162,7 @@ TARGETS = [
             "https://www.treasury.go.ke/pdmo-reports-and-documents",
             "https://newsite.treasury.go.ke/directorate-public-debt-management",
         ],
-        re.compile(r"debt|budgetary\s*review|qebr|borrow", re.I),
+        PDMO_LINK_RE,
         # Figures worth extracting if the document proves readable.
         ["public debt", "debt to gdp", "debt-to-gdp", "domestic debt", "external debt",
          "debt service", "interest payment"],
@@ -408,5 +451,27 @@ def main() -> None:
               f"source and its silence must not be quoted as a finding.")
 
 
+def selftest() -> int:
+    """Check the link filter against the categories the page actually lists.
+
+    Runs with no network, which is the point: the host is unreachable from
+    several of the runners this repo uses, and "I could not check" was how the
+    filter kept a hole in it. An offline check has no such excuse.
+    """
+    missed = [c for c in PDMO_CATEGORIES if not PDMO_LINK_RE.search(c)]
+    for c in PDMO_CATEGORIES:
+        print(f"  {'ok ' if c not in missed else 'MISS'}  {c}")
+    if missed:
+        print(f"\nFAIL: the link filter would walk past {len(missed)} of "
+              f"{len(PDMO_CATEGORIES)} PDMO categories:")
+        for c in missed:
+            print(f"  - {c}")
+        return 1
+    print(f"\nOK: all {len(PDMO_CATEGORIES)} PDMO categories are matched.")
+    return 0
+
+
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        raise SystemExit(selftest())
     main()

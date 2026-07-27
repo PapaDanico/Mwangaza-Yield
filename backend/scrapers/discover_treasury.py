@@ -168,6 +168,24 @@ TARGETS = [
          "debt service", "interest payment"],
     ),
     (
+        # The URLs the ladder's fiscal card prints as its citation.
+        #
+        # Nobody had ever fetched them. A "Read the documents" link is a claim
+        # that the documents are there, and this run found four other
+        # parliament.go.ke paths answering 404 — including /publications — so
+        # the card may be pointing readers at a dead page. That is the defect
+        # this project keeps finding, in its most literal form: a link that was
+        # true when it was typed.
+        "Fiscal-context citations — the URLs the ladder card shows",
+        [
+            "http://www.parliament.go.ke/2026-2027-budget",
+            "https://www.parliament.go.ke/2026-2027-budget",
+            "http://www.parliament.go.ke",
+        ],
+        PDMO_LINK_RE,
+        ["public debt", "domestic borrowing", "budget policy statement", "borrowing"],
+    ),
+    (
         # The PDMO's own subdomain — never requested by runs 1 or 2, which
         # concluded the Treasury's debt documents were dead on the strength of
         # the parent site alone. The documents named here are the ones that
@@ -327,6 +345,7 @@ DOC_HREF_RE = re.compile(r"\.(pdf|xlsx?|csv)(\?|$)|/preview\?|/download|/file/",
 # calling it a survey.
 MAX_DOCS_PER_TARGET = 10
 _docs_opened = 0
+_visited: set = set()
 
 
 def inspect_document(url: str, wanted: list, depth: int = 2) -> None:
@@ -343,6 +362,18 @@ def inspect_document(url: str, wanted: list, depth: int = 2) -> None:
     global _docs_opened
     if _docs_opened >= MAX_DOCS_PER_TARGET:
         return
+    # Do not walk the same URL twice.
+    #
+    # Widening document detection to cover viewer links introduced a loop:
+    # /document-libraries/preview?id=3162 now matches as a document, so the
+    # probe fetched it, got HTML, followed it, found its own "Go Back" link
+    # pointing back at itself, and spent the whole hop budget going round in
+    # circles — three fetches of one page, per document, on Bajeti Yetu. The
+    # cure for a wider net is a memory of where it has already been.
+    if url in _visited:
+        print(f"\n    --- {url[:110]}\n        already inspected this run — not following it again")
+        return
+    _visited.add(url)
     _docs_opened += 1
     print(f"\n    --- {url[:110]}")
     r = fetch(url)
@@ -446,6 +477,7 @@ def probe(label: str, pages: list, link_re, wanted: list) -> None:
     print(f"\n=== {label} ===")
     global _docs_opened
     _docs_opened = 0
+    _visited.clear()
     before = len(_transport_failures)
     reached_any = False
     for page_url in pages:

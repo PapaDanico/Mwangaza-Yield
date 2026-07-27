@@ -88,7 +88,14 @@ export function latestInflation(
   return {
     rate: latest.value,
     asOf: latest.date,
-    source: latest.source,
+    // The legacy records encode the fallback in the source string as
+    // "CBK (KNBS unavailable)". The card now states that in words, so leaving
+    // the parenthetical in produced a sentence that said it twice: "Inflation
+    // is CBK (KNBS unavailable) ... — a stand-in, because KNBS could not be
+    // reached." The feed builder already strips it; this is the same strip on
+    // the app's own read of macro.json, and it is why `fallback` is derived
+    // BEFORE the string is cleaned.
+    source: String(latest.source ?? '').replace(/\s*\(.*unavailable\)\s*/i, '').trim(),
     ageDays,
     stale: ageDays > CPI_MAX_AGE_DAYS,
     fallback: latest.fallback === true || /unavailable/i.test(latest.source ?? ''),

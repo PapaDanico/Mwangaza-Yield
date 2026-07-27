@@ -23,6 +23,7 @@
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import zlibSync from 'node:zlib';
 import { join, extname } from 'node:path';
 
 const PORT = Number(process.env.E2E_PORT || 4399);
@@ -521,6 +522,33 @@ async function main() {
         if (!(w > h)) {
           fail(`ladder: exported PDF is ${w}x${h}pt — portrait, so the wide sheet is being squeezed`);
         }
+      }
+
+      /* The report must contain TEXT, not only a photograph of text.
+       *
+       * html2canvas paints a picture, which is why the PDF looks exactly like
+       * the app — and why, for a long time, nothing in it could be selected,
+       * searched, copied into a spreadsheet or read aloud. A reader handed
+       * this at a board meeting tries to select a figure and fails.
+       *
+       * An invisible text layer now sits over the image. Nothing visible
+       * changed, so no screenshot or byte count can tell whether it is there:
+       * this decompresses the content streams and counts real text-draw
+       * operators, then checks a figure and a bond code survived. */
+      const full = path ? await readFile(path) : Buffer.alloc(0);
+      const drawn = [];
+      for (const m of full.toString('latin1').matchAll(/stream\r?\n([\s\S]*?)endstream/g)) {
+        let body = Buffer.from(m[1], 'latin1');
+        try { body = zlibSync.inflateSync(body); } catch { /* already plain */ }
+        for (const t of body.toString('latin1').matchAll(/\((?:\\.|[^\\()])*\)\s*Tj/g)) {
+          const lit = t[0].slice(1, t[0].lastIndexOf(')'));
+          if (lit.trim()) drawn.push(lit);
+        }
+      }
+      if (drawn.length < 20) {
+        fail(`ladder: exported PDF draws only ${drawn.length} text run(s) — the layer is missing, so nothing can be selected or searched`);
+      } else if (!drawn.some((t) => /FXD1\/|IFB1\//.test(t))) {
+        fail('ladder: the PDF text layer contains no bond code — it is not the report');
       }
     }
   }

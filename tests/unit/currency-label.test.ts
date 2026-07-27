@@ -90,4 +90,27 @@ describe('currency labels', () => {
     expect(offenders, `write these as "Ksh", the same as formatKES:\n${offenders.join('\n')}`)
       .toEqual([]);
   });
+
+  /**
+   * An unknown amount must not print as a confident zero.
+   *
+   * Math.round(null) is 0, so an absent figure rendered as "Ksh 0" — a claim
+   * that nothing was on offer, in the same style as a real number, and
+   * invisible to the browser suite's NaN sweep because zero is not NaN.
+   *
+   * It stops being hypothetical the moment the auction calendar is read from
+   * prospectuses: CBK's current documents state no amount at all, so every
+   * auction on the page would have advertised Ksh 0.
+   */
+  it('shows an absent amount as absent, not as zero', () => {
+    for (const v of [null, undefined, NaN, Infinity]) {
+      expect(
+        formatCompactKES(v as number),
+        `formatCompactKES(${String(v)}) printed a figure for a value there isn't one for`
+      ).toBe('—');
+    }
+    // A real zero is still a real zero — someone offering nothing is a fact,
+    // and this must not swallow it.
+    expect(formatCompactKES(0)).toMatch(/0$/);
+  });
 });

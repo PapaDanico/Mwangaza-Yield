@@ -80,6 +80,8 @@ jobs:
           python discover_treasury.py --selftest
           python test_cbr_history.py
           python test_auction_results.py
+          python test_calendar_parser.py
+          python test_refresh_calendar.py
           python test_expand_universe.py
           python test_worldbank.py
           python test_check_archive.py
@@ -186,6 +188,16 @@ jobs:
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py
+      # auctions.json is hand-maintained and nothing here writes it, which is
+      # why Auction Radar has one placeholder entry and the prediction ledger
+      # has never recorded a forecast. This asks whether the prospectuses can
+      # supply the calendar, and above all how many bonds one document sells —
+      # cbk_parser.py reads only the first code, and the July 2026 prospectus
+      # sells three.
+      - name: Probe whether the auction calendar can be built from prospectuses
+        timeout-minutes: 6
+        working-directory: backend/scrapers
+        run: python probe_calendar.py || echo "calendar probe failed — see output above"
       # About one file in ten from 2020-2023 parses to nothing. Three very
       # different causes are possible — a scan with no text layer (which the
       # no-OCR policy would settle), a header the parser looks for along the
@@ -199,6 +211,14 @@ jobs:
       # separate fetches, each pulling more lines, never got back far enough,
       # while the probes that matter less were read every time. A diagnostic
       # nobody can retrieve is not a diagnostic.
+      # The IMF landing page is prose; the numbers live in a keyless JSON API,
+      # the same shape as the World Bank call this project already makes. This
+      # container's egress refuses imf.org at CONNECT, so the runner is the
+      # honest instrument — as it is for the Treasury.
+      - name: Probe IMF country data (API, not the landing page)
+        timeout-minutes: 5
+        working-directory: backend/scrapers
+        run: python probe_imf.py || echo "IMF probe failed — see output above"
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py
@@ -297,6 +317,15 @@ jobs:
       # append-only ledger behind the track record on /auctions. Runs after
       # the scrapers so it sees today's auction results; failure must not
       # block the data commit, but is surfaced like a scraper failure.
+      # The calendar must refresh BEFORE the ledger runs: the ledger records a
+      # forecast only for a future auction with named bonds, and this is what
+      # names them. Ordering is the whole point — see refresh_calendar.py.
+      - name: Refresh the auction calendar from CBK prospectuses
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 5
+        id: calendar
+        working-directory: backend/scrapers
+        run: python refresh_calendar.py || echo "failed=calendar" >> "$GITHUB_OUTPUT"
       - name: Update the prediction ledger
         if: ${{ !cancelled() && !inputs.test_alert }}
         id: predictions
@@ -396,6 +425,7 @@ jobs:
               '${{ steps.worldbank.outputs.failed }}',
               '${{ steps.registry.outputs.failed }}',
               '${{ steps.auctions.outputs.failed }}',
+              '${{ steps.calendar.outputs.failed }}',
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
               '${{ steps.predictions.outputs.failed }}',

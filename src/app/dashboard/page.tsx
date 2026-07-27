@@ -31,8 +31,20 @@ export default function DashboardPage() {
       <MacroPanel />
       <RateCycle />
       <YieldCurveChart />
-      <MarketPulse />
-      <SovereignContext />
+
+      {/* Two-up from `lg`. Measured at 1366px, the dashboard ran 3,381px —
+          nearly four screens — with every block full width in a single column,
+          including two cards that are 432px and 410px tall and side by side
+          would cost the height of one.
+
+          These two and not the charts: a yield curve and a rate path need
+          their width to stay legible, and buying vertical space by making a
+          chart harder to read is not a saving. These are stat-and-prose cards
+          that read perfectly well at half width. */}
+      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
+        <MarketPulse />
+        <SovereignContext />
+      </div>
 
       <div className="grid gap-3 md:grid-cols-3">
         {actions.map(({ href, title, desc, Icon }) => (

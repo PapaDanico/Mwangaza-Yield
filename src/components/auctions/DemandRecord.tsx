@@ -51,7 +51,13 @@ export default function DemandRecord() {
         )}
       </p>
 
-      <div className="mt-3 overflow-x-auto">
+      {/* Two columns from `lg`. This card measured 937px — the tallest block
+          anywhere in the app — with a twelve-row table stacked above prose
+          that then ran at about 140 characters a line, which is both wasteful
+          and hard to read. Side by side, the table keeps its width and the
+          prose gets a comfortable measure. */}
+      <div className="mt-3 grid gap-x-6 lg:grid-cols-[1.15fr,1fr] [&>*]:min-w-0">
+      <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
@@ -90,7 +96,8 @@ export default function DemandRecord() {
         </table>
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+      <div>
+      <p className="mt-3 text-sm leading-relaxed text-ink-soft lg:mt-0">
         {shortfall
           ? 'Auctions that fall short of the amount advertised tend to clear at higher rates, because the Treasury has to reach further to fill the book. That is good for a buyer and it is also the market telling you why.'
           : 'When bids run well above the amount offered, aggressive bids get rejected and the clearing rate settles lower. A non-competitive bid takes whatever that turns out to be.'}
@@ -131,6 +138,13 @@ export default function DemandRecord() {
         one number alone is either too old or too thin. It is a record of demand that has
         already happened, and the next auction is bid by people who can see the same thing.
       </Explain>
+      {/* The disclosure lives INSIDE the right column, in the space the
+          twelve-row table leaves empty. Below the grid it pushed the page
+          down when opened; here it costs nothing until it exceeds the table's
+          height, so the honest part of the card stopped being the expensive
+          part. */}
+      </div>
+      </div>
     </div>
   );
 }

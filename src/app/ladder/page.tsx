@@ -116,6 +116,12 @@ export default function LadderPage() {
             each year. Bankers call this a ladder.
           </p>
         </div>
+        {/* Measured at 390px: this block is 284px tall and appears only once a
+            plan exists, so on first paint everything below it jumped. 0.19 CLS
+            on the ladder page traced entirely to here. */}
+        {plan.rungs.length === 0 && (
+          <div className="h-[180px] w-full sm:h-[44px] sm:w-auto" aria-hidden="true" />
+        )}
         {plan.rungs.length > 0 && (
           /* flex-wrap, not bare flex: without it the export group and Share
              were pinned on one line and overflowed a 390px screen. */

@@ -501,6 +501,27 @@ async function main() {
       if (!head.startsWith('%PDF-')) fail(`ladder: export does not begin %PDF- (got ${JSON.stringify(head)})`);
       // A one-page report that rasterises to nothing still writes a valid PDF.
       if (bytes < 20_000) fail(`ladder: exported PDF is only ${bytes} bytes — probably blank`);
+
+      /* Landscape, and actually filling the page.
+       *
+       * The report sheet is wider than it is tall, and was being placed on A4
+       * PORTRAIT: it fitted to the page width and finished at 210x150mm on a
+       * 297mm page — 49% used, half of it blank, every figure shrunk to make
+       * room for nothing. Orientation is now chosen from the measured content,
+       * so this reads the page box out of the file rather than trusting that.
+       *
+       * Bytes and magic numbers cannot see this. A perfectly blank half-page
+       * satisfies both. */
+      const front = path ? (await readFile(path)).subarray(0, 4000).toString('latin1') : '';
+      const box = front.match(/\/MediaBox\s*\[([^\]]+)\]/);
+      if (!box) {
+        fail('ladder: exported PDF declares no MediaBox');
+      } else {
+        const [, , w, h] = box[1].trim().split(/\s+/).map(Number);
+        if (!(w > h)) {
+          fail(`ladder: exported PDF is ${w}x${h}pt — portrait, so the wide sheet is being squeezed`);
+        }
+      }
     }
   }
 

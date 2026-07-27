@@ -26,7 +26,10 @@ export default function TrackRecord() {
       .catch(() => setLedger([]));
   }, []);
 
-  if (!ledger) return null;
+  // Fetched separately from the store, so this is the last thing on the page
+  // to arrive and it sat below two other cards. Reserving is unconditional
+  // here: this component owns its own loading state rather than the store's.
+  if (!ledger) return <div className="card h-40 animate-pulse" aria-hidden="true" />;
   const s = summariseLedger(ledger);
   const rows = [...ledger].sort((a, b) => b.auctionDate.localeCompare(a.auctionDate)).slice(0, 12);
 

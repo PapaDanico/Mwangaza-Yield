@@ -9,6 +9,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { analyseCycle, recentDecisions, describeCycle, whatItMeans, phaseLabel, monthYear } from '@/lib/rate-cycle';
 import { cn } from '@/lib/utils';
 import Term from '@/components/shared/Term';
+import Reserve from '@/components/shared/Reserve';
 
 const RANGES = [
   { label: '2y', years: 2 },
@@ -48,7 +49,7 @@ export default function RateCycle() {
     [cbrHistory, years],
   );
 
-  if (!cycle || series.length < 2) return null;
+  if (!cycle || series.length < 2) return <Reserve height={340} />;
 
   const recent = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   const fell = cycle.runBps < 0;

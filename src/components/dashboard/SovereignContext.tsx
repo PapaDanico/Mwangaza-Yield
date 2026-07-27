@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
+import Reserve from '@/components/shared/Reserve';
 
 const SENTIMENT: Record<string, { dot: string; label: string }> = {
   good: { dot: 'bg-mint-600', label: 'Supportive' },
@@ -19,7 +20,7 @@ const SENTIMENT: Record<string, { dot: string; label: string }> = {
 export default function SovereignContext() {
   const context = useBondStore((s) => s.context);
   const [open, setOpen] = useState<string | null>(null);
-  if (!context.length) return null;
+  if (!context.length) return <Reserve height={180} />;
 
   return (
     <div className="card">

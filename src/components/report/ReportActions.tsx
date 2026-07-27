@@ -74,7 +74,20 @@ export default function ReportActions({
     el.style.position = 'fixed';
     el.style.left = '-10000px';
     el.style.top = '0';
-    el.style.width = '794px'; // A4 portrait at 96dpi
+    /* A4 LANDSCAPE at 96dpi, not portrait.
+     *
+     * The sheet was laid out at portrait width and then placed on a page
+     * chosen to suit it, which is the wrong way round: narrow width forces the
+     * content to stack, the stack makes the sheet tall, and a tall sheet wastes
+     * whichever page it lands on. Measured on a real ladder plan, the old
+     * portrait output covered 49% of its page.
+     *
+     * Given landscape width the sheet lays out wider, its own grids get to use
+     * two columns, and the result fits the landscape page it is placed on. The
+     * orientation choice in downloadPdf still measures the result rather than
+     * assuming it, so a report that genuinely comes out tall still gets
+     * portrait. */
+    el.style.width = '1123px'; // A4 landscape at 96dpi
     el.style.background = '#ffffff';
 
     try {
@@ -115,24 +128,52 @@ export default function ReportActions({
     try {
       const canvas = await renderSheet(el);
       const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+      /* ORIENTATION FOLLOWS THE CONTENT, rather than being assumed.
+       *
+       * The sheet is wider than it is tall — measured on a real ladder plan,
+       * 1588 x 1136, an aspect of 1.40. Dropped onto A4 portrait (0.707) it
+       * fitted to the page width and finished at 210 x 150mm on a 297mm page:
+       * 49% used, half the sheet blank, and every figure shrunk to make room
+       * for nothing.
+       *
+       * A4 landscape is 1.414 — within one percent of the sheet's own shape.
+       * So the page turns to suit the content instead of the content being
+       * squeezed to suit the page.
+       *
+       * Chosen from the measurement, not hardcoded the other way: a future
+       * report that is genuinely tall should get portrait, and this keeps
+       * working when the sheet's design changes. */
+      const A4_ASPECT = 297 / 210;
+      const contentAspect = canvas.width / canvas.height;
+      const landscape = contentAspect > 1;
+      const pdf = new jsPDF({
+        unit: 'mm',
+        format: 'a4',
+        orientation: landscape ? 'landscape' : 'portrait',
+      });
 
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      // Fit to the page width, then let the height follow the aspect ratio. The
-      // sheet is designed to be one page; if a longer one ever appears, this
-      // scales it down to fit rather than silently cropping the bottom off.
-      const imgW = pageW;
-      let imgH = (canvas.height * imgW) / canvas.width;
-      let x = 0;
-      if (imgH > pageH) {
-        const scale = pageH / imgH;
-        imgH = pageH;
-        x = (pageW - imgW * scale) / 2;
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, 0, imgW * scale, imgH);
+      const pageAspect = landscape ? A4_ASPECT : 1 / A4_ASPECT;
+
+      /* Fit to whichever edge binds, then centre on the other. Fitting to
+       * width unconditionally is what cropped or shrank things before: a
+       * sheet relatively taller than the page needs its HEIGHT matched, and a
+       * relatively wider one its width. Nothing is ever cropped. */
+      let imgW: number;
+      let imgH: number;
+      if (contentAspect > pageAspect) {
+        imgW = pageW;
+        imgH = pageW / contentAspect;
       } else {
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
+        imgH = pageH;
+        imgW = pageH * contentAspect;
       }
+      const x = (pageW - imgW) / 2;
+      const y = (pageH - imgH) / 2;
+
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, imgW, imgH);
       pdf.save(`${filename}.pdf`);
     } catch (err) {
       setError(

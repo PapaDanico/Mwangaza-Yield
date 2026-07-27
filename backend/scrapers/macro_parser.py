@@ -39,12 +39,15 @@ def scrape() -> list:
                         "date": today, "unit": "KES/USD", "source": "CBK"})
 
     # KNBS first; CBK publishes the same headline CPI and is the fallback.
+    # `fallback` is carried as its own field rather than smuggled into the
+    # source string: the UI cannot branch on prose, and "CBK (KNBS
+    # unavailable)" was being rendered as though it were an ordinary citation.
     cpi_value = None
     try:
         knbs = fetch_text("https://www.knbs.or.ke/")
         cpi = re.search(r"(?:inflation|CPI)[\s\S]{0,80}?([\d.]+)\s*%", knbs, re.I)
         if cpi:
-            cpi_value = (float(cpi.group(1)), "KNBS")
+            cpi_value = (float(cpi.group(1)), "KNBS", False)
     except requests.exceptions.SSLError as exc:
         # Verified 2026-07-25 on a network-open runner: knbs.or.ke fails TLS
         # verification (incomplete chain). We do NOT disable verification —
@@ -57,16 +60,64 @@ def scrape() -> list:
     if cpi_value is None:
         cpi = re.search(r"(?:Inflation Rate|Overall Inflation)[\s\S]{0,80}?([\d.]+)\s*%", cbk, re.I)
         if cpi:
-            cpi_value = (float(cpi.group(1)), "CBK (KNBS unavailable)")
+            cpi_value = (float(cpi.group(1)), "CBK", True)
 
     if cpi_value:
         records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi_value[0],
-                        "date": today, "unit": "% y/y", "source": cpi_value[1]})
+                        "date": today, "unit": "% y/y", "source": cpi_value[1],
+                        "fallback": cpi_value[2]})
 
-    return carry_forward(records)
+    existing = read_existing()
+    return carry_forward(date_by_observation(records, existing), existing)
 
 
-def carry_forward(records: list) -> list:
+def read_existing() -> list:
+    path = DATA_DIR / "macro.json"
+    if not path.exists():
+        return []
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+def date_by_observation(records: list, existing: list) -> list:
+    """Make `date` mean "when this figure changed", not "when we looked".
+
+    Every record used to be stamped with today's date because that is when the
+    scrape ran. For USD/KES, which moves daily, the two are near enough the
+    same thing. For CPI they are not: KNBS publishes it monthly, the CBR is set
+    at MPC meetings weeks apart, and re-stamping an unchanged number every
+    morning presents a figure from weeks ago as observed today.
+
+    That is not a cosmetic problem. It is the exact defect this project keeps
+    finding — a date refreshed over a value that was not — except automated, so
+    it renewed its own false freshness daily with nobody deciding to. Inflation
+    sat at 6.41% while its date advanced every day, and every staleness check
+    downstream was satisfied by a number nothing had confirmed.
+
+    So an unchanged value keeps the date it first appeared, and `lastChecked`
+    records that we looked and found it the same. A reader can then tell the
+    difference between "still 6.41% as of this morning" and "6.41%, unconfirmed
+    since June".
+    """
+    previous = {r.get("indicator"): r for r in existing}
+    for rec in records:
+        old = previous.get(rec["indicator"])
+        rec["lastChecked"] = today_iso()
+        if old and old.get("value") == rec["value"] and old.get("source") == rec.get("source"):
+            rec["date"] = old.get("date", rec["date"])
+            # The id follows the observation date so an unchanged figure keeps
+            # a stable identity across runs instead of minting a new row a day.
+            rec["id"] = old.get("id", rec["id"])
+    return records
+
+
+def today_iso() -> str:
+    return date.today().isoformat()
+
+
+def carry_forward(records: list, existing: list) -> list:
     """Keep indicators this run could not refresh.
 
     Without this, a partial scrape REPLACES the dataset and silently deletes
@@ -74,22 +125,12 @@ def carry_forward(records: list) -> list:
     KNBS was down that morning. A stale indicator, clearly dated, beats a
     missing one.
     """
-    path = DATA_DIR / "macro.json"
-    if not path.exists():
-        return records
-    try:
-        existing = json.loads(path.read_text())
-    except (json.JSONDecodeError, OSError):
-        return records
-
     fresh = {r["indicator"] for r in records}
     for old in existing:
         if old.get("indicator") not in fresh:
             print(f"[macro] carrying forward {old.get('indicator')} from {old.get('date')}",
                   file=sys.stderr)
             records.append(old)
-    return records
-
     return records
 
 

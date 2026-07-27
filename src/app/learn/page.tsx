@@ -225,16 +225,17 @@ const LESSONS = [
         </p>
         <p>
           Work it out by dividing, not subtracting. Real return is{' '}
-          <strong>(1 + your return) ÷ (1 + inflation) − 1</strong>. At 11.56% net against 6.41%
-          inflation that is <strong>4.84%</strong>, where subtracting gives 5.15%. Thirty-one basis
-          points sounds like pedantry; it is not, because the error grows with both rates and it
-          always flatters you.
+          <strong>(1 + your return) ÷ (1 + inflation) − 1</strong>. Take a 12% net yield against 6%
+          inflation: that is <strong>5.66%</strong>, where subtracting gives 6.00%. Thirty-four
+          basis points sounds like pedantry; it is not, because the error grows with both rates
+          and it always flatters you. Round numbers here to keep the arithmetic legible — the
+          calculator uses the current rate, whatever it is today.
         </p>
         <p>
           Then there is the part a yield figure structurally cannot show. A bond returns a{' '}
           <strong>fixed nominal face value</strong> at maturity, however long it has been away. On
-          a fifteen-year bond at 6.41%, Ksh 100 of principal comes back worth about{' '}
-          <strong>Ksh 39</strong> in today&apos;s money. On a long bond that is where most of the
+          a fifteen-year bond at 6% inflation, Ksh 100 of principal comes back worth about{' '}
+          <strong>Ksh 42</strong> in today&apos;s money. On a long bond that is where most of the
           real loss lives, and no amount of coupon arithmetic reveals it.
         </p>
         <p>

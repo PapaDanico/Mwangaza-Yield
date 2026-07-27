@@ -202,7 +202,7 @@ export const GLOSSARY: Term[] = [
     plain:
       'What your money earns after prices have risen — the growth in what it can actually buy, rather than in how many shillings there are.',
     precise:
-      'Divide, do not subtract: (1 + your return) / (1 + inflation) - 1. At Kenyan rates the difference is not academic. An 11.56% net yield against 6.41% inflation is 4.84% real, where subtracting gives 5.15% — a 31 basis point overstatement, and it grows as both rates rise.',
+      'Divide, do not subtract: (1 + your return) / (1 + inflation) - 1. At Kenyan rates the difference is not academic. Take a 12% net yield against 6% inflation: that is 5.66% real, where subtracting gives 6.00% — a 34 basis point overstatement, and it grows as both rates rise. (Round numbers, chosen to make the arithmetic legible; the calculator uses the current rate.)',
     why: 'A high rate in a high-inflation year can leave you standing still. This is the number that decides whether you are genuinely getting ahead, and the calculator shows it for every bond.',
   },
   {
@@ -219,7 +219,7 @@ export const GLOSSARY: Term[] = [
     plain:
       'What a fixed amount of money can actually buy. Inflation erodes it even when the amount never changes.',
     precise:
-      'This is where a bond quietly loses money that no yield figure shows. The face value comes back exactly as promised — but at 6.41% inflation, Ksh 100 repaid in fifteen years buys what Ksh 39 buys today.',
+      'This is where a bond quietly loses money that no yield figure shows. The face value comes back exactly as promised — but at 6% inflation, Ksh 100 repaid in fifteen years buys what about Ksh 42 buys today.',
     why: 'The longer the bond, the more of the real loss sits in the principal rather than the coupon. It is invisible in a yield and decisive over a long holding.',
   },
   {

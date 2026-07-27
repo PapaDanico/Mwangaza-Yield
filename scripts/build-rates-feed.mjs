@@ -82,7 +82,24 @@ const pickMacro = (indicator) => {
   const rows = macro.filter((m) => m.indicator === indicator);
   if (!rows.length) return null;
   const latest = rows.sort((a, b) => b.date.localeCompare(a.date))[0];
-  return { value: latest.value, unit: latest.unit, date: latest.date, source: latest.source };
+  return {
+    value: latest.value,
+    unit: latest.unit,
+    // `date` is when the FIGURE last changed; `lastChecked` is when we last
+    // confirmed it. Publishing only the first made an unchanged number look
+    // ancient; publishing only the second — which is what this feed used to
+    // do — made it look observed this morning. A consumer needs both to say
+    // "still 6.41% as of today" rather than guessing which it means.
+    date: latest.date,
+    lastChecked: latest.lastChecked ?? latest.date,
+    // Records written before `fallback` existed encode it in the source
+    // string as "CBK (KNBS unavailable)". Reading only the new field would
+    // have published `fallback: false` directly above that very string — a
+    // flatter contradiction than the one this change set out to fix. The
+    // legacy shape is understood until the next scrape rewrites it.
+    source: String(latest.source ?? "").replace(/\s*\(.*unavailable\)\s*/i, "").trim(),
+    fallback: latest.fallback === true || /unavailable/i.test(String(latest.source ?? "")),
+  };
 };
 
 /* ----------------------------------------------- bond auction benchmarks */

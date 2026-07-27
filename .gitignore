@@ -8,3 +8,13 @@ __pycache__/
 healthcheck-report.txt
 archive-integrity.txt
 dist/
+
+# Raw DhowCSD account exports. The instrument rows are useful reference data
+# and live, stripped, in backend/reference/. The files as downloaded carry a
+# six-line trailer with the account holder's name, email, address, phone,
+# CUI and KRA PIN — a trailer that reached this public repository once
+# already. tests/unit/no-personal-data.test.ts is the backstop; this is the
+# fence in front of it.
+Portfolio*.csv
+Securities*.csv
+Securities*.pdf

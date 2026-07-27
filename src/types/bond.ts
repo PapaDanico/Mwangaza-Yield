@@ -92,6 +92,10 @@ export interface AuctionPrint {
   amountOfferedKESM?: number;          // per AUCTION, which may cover several bonds
   amountAcceptedKESM?: number;
   bidsReceivedKESM?: number;
+  // The row label the bids figure came from. It carries the BASIS: a tap sale
+  // may state bids at face value while acceptance is at cost, 1-2% apart, so
+  // the two are not always comparable and this is how you tell.
+  bidsLabel?: string;
   sourceUrl?: string;
 }
 

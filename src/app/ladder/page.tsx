@@ -14,6 +14,7 @@ import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
 import LadderReport from '@/components/report/LadderReport';
 import IssuerIntent from '@/components/ladder/IssuerIntent';
+import ReinvestmentEvidence from '@/components/ladder/ReinvestmentEvidence';
 import ReportActions from '@/components/report/ReportActions';
 import LiveResult from '@/components/shared/LiveResult';
 
@@ -182,6 +183,7 @@ export default function LadderPage() {
           </p>
 
           <IssuerIntent />
+        <ReinvestmentEvidence />
         </div>
 
         <div className="space-y-4">

@@ -59,6 +59,10 @@ export interface MacroIndicator {
   date: string;
   unit: string;
   source: string;
+  /** Set when a substitute source stood in for the authoritative one. */
+  fallback?: boolean;
+  /** When the value was last CONFIRMED, as distinct from when it changed. */
+  lastChecked?: string;
 }
 
 export interface RateDecision {

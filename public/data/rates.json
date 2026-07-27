@@ -54,19 +54,25 @@
       "value": 8.75,
       "unit": "%",
       "date": "2026-06-09",
-      "source": "CBK MPC"
+      "lastChecked": "2026-06-09",
+      "source": "CBK MPC",
+      "fallback": false
     },
     "inflation": {
       "value": 6.41,
       "unit": "% y/y",
       "date": "2026-07-27",
-      "source": "CBK (KNBS unavailable)"
+      "lastChecked": "2026-07-27",
+      "source": "CBK",
+      "fallback": true
     },
     "usdKes": {
       "value": 129.5,
       "unit": "KES/USD",
       "date": "2026-07-20",
-      "source": "CBK indicative"
+      "lastChecked": "2026-07-20",
+      "source": "CBK indicative",
+      "fallback": false
     }
   },
   "bondAuctionBenchmarks": {

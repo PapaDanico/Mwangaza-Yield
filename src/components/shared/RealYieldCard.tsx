@@ -134,6 +134,9 @@ export default function RealYieldCard({
         the yield <em>after</em> withholding tax, because tax is charged on the nominal coupon
         and inflation deflates what survives it. Inflation is{' '}
         {reading.source} as at {reading.asOf}
+        {reading.fallback
+          ? ' — a stand-in, because KNBS, which publishes the official CPI, could not be reached'
+          : ''}
         {reading.stale ? ', which is older than we would like' : ''}. Holding one month&rsquo;s
         reading constant for the life of a bond is an assumption, not a forecast: Kenyan
         inflation was above 9% as recently as 2023. Move the slider to test your own.

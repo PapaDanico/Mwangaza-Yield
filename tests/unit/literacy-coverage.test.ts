@@ -34,13 +34,39 @@ describe('the glossary agrees with the engine', () => {
     expect(text).not.toMatch(/means you are about 7% better off/);
   });
 
+  /**
+   * Reads the numbers OUT of the prose and checks the engine reproduces them.
+   *
+   * The first version hardcoded the pair — 11.56 against 6.41 — so it verified
+   * that one sentence rather than the claim the sentence makes. When the
+   * example was rewritten (the old one quoted the live inflation rate, which
+   * made teaching copy look like a current reading and drift with the feed),
+   * the test failed for the arithmetic being DIFFERENT rather than wrong.
+   *
+   * A worked example is a promise that the arithmetic holds. This checks the
+   * promise, whatever numbers are used to make it.
+   */
   it('quotes a worked example the engine actually produces', () => {
-    // 11.56% net against 6.41% inflation, as printed in the glossary.
-    expect(realRate(11.56, 6.41)).toBeCloseTo(4.84, 2);
-    expect(11.56 - 6.41 - realRate(11.56, 6.41)).toBeCloseTo(0.31, 2);
     const text = GLOSSARY_BY_SLUG['inflation'].precise ?? '';
-    expect(text).toContain('4.84');
-    expect(text).toContain('31 basis point');
+    const m = text.match(
+      /([\d.]+)%\s*net yield against\s*([\d.]+)%\s*inflation[^\d]*([\d.]+)%\s*real[^\d]*([\d.]+)%[^\d]*(\d+)\s*basis point/i
+    );
+    expect(m, `could not find a worked example to verify in:\n${text}`).toBeTruthy();
+    const [, nominal, inflation, claimedReal, claimedSubtraction, claimedGapBp] = m!.map(Number);
+
+    const real = realRate(nominal, inflation);
+    expect(real, 'the stated real return is not what the engine computes').toBeCloseTo(
+      claimedReal,
+      2
+    );
+    expect(nominal - inflation, 'the stated subtraction result is wrong').toBeCloseTo(
+      claimedSubtraction,
+      2
+    );
+    expect(
+      (nominal - inflation - real) * 100,
+      'the stated basis-point overstatement does not follow from the two figures'
+    ).toBeCloseTo(claimedGapBp, 0);
   });
 
   it('has a unique slug for every term, since the page indexes by it', () => {

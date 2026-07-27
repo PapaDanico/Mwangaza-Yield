@@ -134,8 +134,8 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
       <>
         <p>
           Because the guarantee is in shillings, not in what they buy. A bond returns a fixed
-          nominal face value whenever it matures. At 6.41% inflation, Ksh 100 repaid in fifteen
-          years buys roughly what <strong>Ksh 39</strong> buys today — and no yield figure shows
+          nominal face value whenever it matures. At 6% inflation, Ksh 100 repaid in fifteen
+          years buys roughly what <strong>Ksh 42</strong> buys today — and no yield figure shows
           this, because it is not a yield effect at all.
         </p>
         <p>

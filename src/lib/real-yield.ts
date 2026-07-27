@@ -55,6 +55,17 @@ export interface InflationReading {
   source: string;
   ageDays: number;
   stale: boolean;
+  /**
+   * True when the figure came from a substitute source because the
+   * authoritative one could not be reached.
+   *
+   * KNBS publishes Kenya's CPI; CBK republishes the headline. When KNBS is
+   * unreachable the pipeline falls back, which is the right call — but it was
+   * recorded only inside the source string as "CBK (KNBS unavailable)" and no
+   * reader ever saw the distinction. A number standing in for another number
+   * should say so.
+   */
+  fallback: boolean;
 }
 
 /**
@@ -80,6 +91,7 @@ export function latestInflation(
     source: latest.source,
     ageDays,
     stale: ageDays > CPI_MAX_AGE_DAYS,
+    fallback: latest.fallback === true || /unavailable/i.test(latest.source ?? ''),
   };
 }
 

@@ -343,6 +343,10 @@ DOC_HREF_RE = re.compile(r"\.(pdf|xlsx?|csv)(\?|$)|/preview\?|/download|/file/",
 # earlier version inspected 2 links and 3 documents, which on a subdomain
 # offering 13 on-topic links meant reporting on a sixth of the library and
 # calling it a survey.
+# Hints that a listing continues beyond what we can see. Kept as data so the
+# self-test can check them against real href shapes rather than a hope.
+PAGER_RE = re.compile(r"[?&]page=|/page/|[?&]p=\d|pagenum|start=\d|older|next\s*(page|»|>)|»", re.I)
+
 MAX_DOCS_PER_TARGET = 10
 _docs_opened = 0
 _visited: set = set()
@@ -438,6 +442,43 @@ def inspect_document(url: str, wanted: list, depth: int = 2) -> None:
                         print(f'          -> "{txt}"')
                         inspect_document(child, wanted, depth=depth - 1)
             return
+        # A library that offers one document is usually not a library.
+        #
+        # pdmo.treasury.go.ke/monthly-bulletins returned exactly one file and it
+        # was January 2011 — a monthly publication with a single fifteen-year-old
+        # document. That is not an empty archive, it is an archive we cannot see:
+        # paginated, filtered by a form, or built by script after load.
+        #
+        # This reports the EVIDENCE rather than guessing a crawl strategy.
+        # Guessing how a page I cannot open is structured is what put a hole in
+        # the link filter to begin with, and the fix for that was reading what
+        # the page actually said. Same discipline here: gather, then decide.
+        if len(found) <= 1:
+            anchors = soup.find_all("a", href=True)
+            pagers = []
+            for a in anchors:
+                h = urljoin(url, a["href"])
+                t = " ".join(a.get_text().split())
+                if PAGER_RE.search(h) or PAGER_RE.search(t):
+                    if h not in [q[1] for q in pagers]:
+                        pagers.append((t[:40], h))
+            scripts = soup.find_all("script")
+            with_src = [sc.get("src") for sc in scripts if sc.get("src")]
+            print(f"        ?? only {len(found)} document(s) on a page with "
+                  f"{len(anchors)} link(s) — reporting structure before trusting that count:")
+            if pagers:
+                print(f"           pagination-like link(s): {len(pagers)}")
+                for t, h in pagers[:5]:
+                    print(f"             - {t or '(no text)'} -> {h[:95]}")
+            else:
+                print("           no pagination links found")
+            print(f"           <script>: {len(scripts)} ({len(with_src)} with src)"
+                  f"  <table>: {len(soup.find_all('table'))}"
+                  f"  <form>: {len(soup.find_all('form'))}")
+            if not pagers and len(anchors) < 40 and len(with_src) > 3:
+                print("           shape suggests the listing is rendered client-side —")
+                print("           a static fetch will never see it; needs the data endpoint")
+
         print(f"        {len(found)} document(s) linked; inspecting the first 4:")
         for text, child in found[:4]:
             print(f'          "{text}"')
@@ -572,6 +613,26 @@ def selftest() -> int:
             print(f"  - {u}")
         return 1
     print(f"OK: document-link detection correct on {len(should_match) + len(should_not)} real URL shapes.\n")
+
+    pager_yes = [
+        "https://pdmo.treasury.go.ke/monthly-bulletins?page=2",
+        "https://pdmo.treasury.go.ke/monthly-bulletins/page/3",
+        "https://example.go.ke/reports?p=4",
+        "Older",
+    ]
+    pager_no = [
+        "https://pdmo.treasury.go.ke/monthly-bulletins",
+        "https://example.go.ke/about",
+        "Download",
+    ]
+    pager_fail = [u for u in pager_yes if not PAGER_RE.search(u)]
+    pager_fail += [u for u in pager_no if PAGER_RE.search(u)]
+    if pager_fail:
+        print("FAIL: pagination detection is wrong for:")
+        for u in pager_fail:
+            print(f"  - {u}")
+        return 1
+    print(f"OK: pagination detection correct on {len(pager_yes) + len(pager_no)} shapes.\n")
 
     missed = [c for c in PDMO_CATEGORIES if not PDMO_LINK_RE.search(c)]
     for c in PDMO_CATEGORIES:

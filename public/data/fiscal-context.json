@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "curatedAt": "2026-07-27",
+  "note": "Hand-curated quarterly from statutory fiscal documents. NOT scraped: the PDMO site is unreachable from cloud runners (geo-blocked) and the MTDS is published as a scanned PDF with no text layer, so automated extraction was rejected in favour of fifteen minutes of reading per quarter. Update at each MTDS (February) and each supplementary budget. Every figure must carry its citation.",
+  "issuanceIntent": {
+    "grossDomesticBorrowingSharePct": 82,
+    "tbillShareOfDebtNowPct": 7.3,
+    "tbillShareOfDebtTargetPct": 5.3,
+    "targetYear": 2029,
+    "domesticAtmNowYears": 6.4,
+    "domesticAtmTargetYears": 7.6,
+    "asOf": "2026-02-01",
+    "source": "Medium-Term Debt Management Strategy 2026/27–2028/29, National Treasury (tabled in Parliament, Feb 2026), §VIII and Table 10, chosen strategy S2",
+    "sourceUrl": "http://www.parliament.go.ke/2026-2027-budget"
+  },
+  "nearTermSupply": {
+    "fiscalYear": "2025/26",
+    "netDomesticBorrowingKESBn": 947.8,
+    "revisedFromKESBn": 624.7,
+    "asOf": "2026-03-01",
+    "source": "Parliamentary Budget Office, Unpacking of the Supplementary I Estimates of FY 2025/26 (March 2026), ¶23",
+    "sourceUrl": "http://www.parliament.go.ke"
+  },
+  "outturn": {
+    "fiscalYear": "2024/25",
+    "tbillsIssuedKESTn": 1.55,
+    "bondsIssuedKESTn": 0.84,
+    "asOf": "2026-03-01",
+    "source": "PDMO Public Debt Dashboard, ‘Issued last financial year (2024/2025)’, read March 2026",
+    "sourceUrl": "https://pdmo.treasury.go.ke"
+  }
+}

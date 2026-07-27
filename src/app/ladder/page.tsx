@@ -13,6 +13,7 @@ import { nonNegativeNumber } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
 import LadderReport from '@/components/report/LadderReport';
+import IssuerIntent from '@/components/ladder/IssuerIntent';
 import ReportActions from '@/components/report/ReportActions';
 import LiveResult from '@/components/shared/LiveResult';
 
@@ -179,6 +180,8 @@ export default function LadderPage() {
             your price book where you have recorded one and par where nobody has.
             Educational planning — actual auction allocations vary.
           </p>
+
+          <IssuerIntent />
         </div>
 
         <div className="space-y-4">

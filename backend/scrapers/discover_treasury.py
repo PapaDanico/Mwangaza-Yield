@@ -90,8 +90,9 @@ Read-only. Never gates CI.
 """
 import re
 import sys
+import time
 from io import BytesIO
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -101,7 +102,30 @@ UA = {
                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
     "Accept-Language": "en-KE,en;q=0.9",
 }
-TIMEOUT = 45
+# (connect, read). Split deliberately.
+#
+# A single 45-second number meant a host refusing connections cost 45 seconds
+# PER URL. On the run that walked ten PDMO pages, every one timed out at
+# connect and the step took seventeen minutes of a twenty-minute job — nearly
+# a job failure caused entirely by waiting for a host that was never going to
+# answer. A connection either establishes quickly or it is not going to;
+# reading a three-megabyte PDF over a slow link legitimately takes a while.
+TIMEOUT = (8, 45)
+
+# Seconds to leave between requests to the same host.
+#
+# pdmo.treasury.go.ke answered HTTP 200 on three consecutive runs and then
+# refused every one of ten connections on the fourth — the first run that
+# asked it for ten URLs instead of one. That is consistent with rate limiting
+# and NOT established as its cause; the host may simply have been down.
+#
+# The delay is right either way. A probe that reads a government site should
+# not need to be told to knock politely, and one-and-a-half seconds across a
+# handful of pages costs nothing next to the seventeen minutes the timeouts
+# cost. If the next run reaches PDMO again, that is evidence; if it does not,
+# we have learned something about the host rather than about our own manners.
+POLITE_DELAY_SECONDS = 1.5
+_last_request_at: dict = {}
 
 # Candidate landing pages per target. Several per target on purpose: Kenyan
 # government sites reorganise, and a single 404 should not be read as "the
@@ -315,6 +339,13 @@ _transport_failures = []
 
 
 def fetch(url: str):
+    host = urlparse(url).netloc
+    last = _last_request_at.get(host)
+    if last is not None:
+        wait = POLITE_DELAY_SECONDS - (time.monotonic() - last)
+        if wait > 0:
+            time.sleep(wait)
+    _last_request_at[host] = time.monotonic()
     try:
         r = requests.get(url, headers=UA, timeout=TIMEOUT)
         return r

@@ -52,6 +52,109 @@ export default function ReportActions({
   const [busy, setBusy] = useState<'pdf' | 'image' | null>(null);
   const [error, setError] = useState('');
 
+/** Filled by renderSheet, consumed by downloadPdf on the very next line. */
+let lastTextRuns: TextRun[] = [];
+
+/** Where a run of text sits on the sheet, in CSS pixels from its top-left. */
+interface TextRun {
+  text: string;
+  x: number;
+  y: number;
+  /** Baseline-ish font size, for matching the invisible layer to the picture. */
+  size: number;
+}
+
+/**
+ * Every visible run of text on the sheet, with its position.
+ *
+ * The report is a rasterised screenshot — html2canvas paints a picture and
+ * jsPDF places it. That is why it looks exactly like the app, and also why a
+ * reader cannot select a figure, search for a bond code, or have a screen
+ * reader speak it. On a free download that is a shame. On a document tabled at
+ * a board or sent to an auditor it is the first thing somebody tries and the
+ * first thing that fails.
+ *
+ * Rewriting the report as vector primitives would fix it and would mean
+ * maintaining two renderings of every layout for ever. So this does what a
+ * scanned document does instead: keep the picture, and lay real text over it
+ * at matching coordinates with `renderingMode: 'invisible'`. Selection,
+ * search, copy and extraction all work; nothing about the appearance changes.
+ *
+ * Positions come from Range rectangles rather than from element boxes, because
+ * an element box is the whole paragraph and a wrapped line needs one rectangle
+ * per line for selection to track the words.
+ */
+/**
+ * Typographic punctuation to its ASCII equivalent, for the text layer only.
+ *
+ * jsPDF's built-in fonts are WinAnsi-encoded, so an em dash extracts as a gap:
+ * "par 100  a placeholder" instead of "par 100 — a placeholder". The picture
+ * is unaffected — this touches nothing the reader sees — but a text layer
+ * exists to be copied and searched, and it should hand over clean characters.
+ */
+function asciiPunctuation(text: string): string {
+  return text
+    .replace(/[\u2014\u2013]/g, '-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[\u00D7]/g, 'x');
+}
+
+function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
+  const runs: TextRun[] = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const raw = node.nodeValue ?? '';
+    if (!raw.trim()) continue;
+    const parent = node.parentElement;
+    if (!parent) continue;
+    const style = window.getComputedStyle(parent);
+    // Anything the picture does not show must not be searchable either — a
+    // hidden string that turns up in a Ctrl+F is worse than no text layer.
+    if (style.visibility === 'hidden' || style.display === 'none' || style.opacity === '0') {
+      continue;
+    }
+    const size = parseFloat(style.fontSize) || 10;
+
+    range.selectNodeContents(node);
+    const rects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+    if (!rects.length) continue;
+
+    if (rects.length === 1) {
+      runs.push({
+        text: asciiPunctuation(raw.replace(/\s+/g, ' ').trim()),
+        x: rects[0].left - bounds.left,
+        y: rects[0].bottom - bounds.top,
+        size,
+      });
+      continue;
+    }
+
+    /* Wrapped text: split the string across its line rectangles by width, so
+     * each visual line carries roughly the words drawn on it. Approximate by
+     * construction — the alternative is measuring every character — and good
+     * enough for selection and search, which is what this layer is for. */
+    const words = asciiPunctuation(raw.replace(/\s+/g, ' ').trim()).split(' ');
+    const total = rects.reduce((sum, r) => sum + r.width, 0);
+    let cursor = 0;
+    rects.forEach((r, i) => {
+      const share = i === rects.length - 1
+        ? words.length - cursor
+        : Math.max(1, Math.round((r.width / total) * words.length));
+      const slice = words.slice(cursor, cursor + share).join(' ');
+      cursor += share;
+      if (slice) {
+        runs.push({ text: slice, x: r.left - bounds.left, y: r.bottom - bounds.top, size });
+      }
+    });
+  }
+  return runs;
+}
+
   /**
    * Rasterise the report sheet.
    *
@@ -93,6 +196,7 @@ export default function ReportActions({
     try {
       const { default: html2canvas } = await import('html2canvas-pro');
       const bounds = el.getBoundingClientRect();
+      lastTextRuns = collectTextRuns(el, bounds);
       return await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -174,6 +278,30 @@ export default function ReportActions({
       const y = (pageH - imgH) / 2;
 
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, y, imgW, imgH);
+
+      /* THE TEXT LAYER, invisible, over the picture.
+       *
+       * Without it the report is a photograph of numbers: nothing selectable,
+       * nothing searchable, nothing a screen reader can speak, and no way to
+       * copy a figure into a spreadsheet. Every scanned document solves this
+       * the same way, and so does this — the picture is what you see, the text
+       * is what you can use.
+       *
+       * Coordinates are the sheet's own CSS pixels scaled into the placed
+       * image, so the layer tracks whatever orientation and fit were chosen
+       * above rather than assuming either. */
+      const sheetW = canvas.width / 2; // rendered at scale 2
+      const mmPerPx = imgW / sheetW;
+      pdf.setTextColor(0, 0, 0);
+      for (const run of lastTextRuns) {
+        if (!run.text) continue;
+        pdf.setFontSize(run.size * mmPerPx * 2.8346); // mm -> pt
+        pdf.text(run.text, x + run.x * mmPerPx, y + run.y * mmPerPx, {
+          renderingMode: 'invisible',
+          baseline: 'alphabetic',
+        });
+      }
+
       pdf.save(`${filename}.pdf`);
     } catch (err) {
       setError(

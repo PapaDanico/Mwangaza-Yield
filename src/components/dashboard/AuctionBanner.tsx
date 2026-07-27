@@ -27,7 +27,11 @@ export default function AuctionBanner() {
         <p className="text-xs font-semibold uppercase tracking-wider text-gold-700">
           {next.status === 'open' ? 'Auction open now' : 'Next auction'}
         </p>
-        <p className="truncate font-display font-semibold text-ink">
+        {/* Wraps rather than truncates. "TBA — August 202…" cut the year off
+            the one fact the banner exists to deliver, and a countdown to an
+            amputated date is worse than a second line. Two lines is the cap:
+            beyond that it would push the macro strip off the fold again. */}
+        <p className="font-display font-semibold leading-snug text-ink [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
           {next.issueCode} · {next.bondName}
         </p>
         <p className="text-sm text-ink-muted">

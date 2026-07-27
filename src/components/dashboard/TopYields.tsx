@@ -80,21 +80,28 @@ export default function TopYields() {
 
   return (
     <div className="space-y-2">
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* Two columns from the smallest screen. Stacked, these two tiles cost
+          about 500px — most of a phone viewport — to deliver two numbers, and
+          the reader had to scroll before learning anything else existed. Side
+          by side they are also the comparison they were always meant to be:
+          tax-free against taxable, at a glance. */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {tiles.map(({ bond, netYTM, price, isPar, label, Icon, accent }) => (
           <Link
             key={bond.isin}
             href="/calculator/"
-            className="card group relative overflow-hidden transition hover:border-gold-500"
+            className="card group relative overflow-hidden p-3 transition hover:border-gold-500 sm:p-4"
           >
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
-              <Icon size={14} className={accent} /> {label}
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-faint sm:gap-2 sm:text-xs">
+              <Icon size={13} className={`shrink-0 ${accent}`} /> {label}
             </div>
-            <p className={`num mt-2 text-4xl font-bold ${accent}`}>{formatPct(netYTM, 2)}</p>
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className={`num mt-1.5 text-3xl font-bold sm:mt-2 sm:text-4xl ${accent}`}>
+              {formatPct(netYTM, 2)}
+            </p>
+            <p className="mt-1 text-xs text-ink-soft sm:text-sm">
               net of tax · <span className="font-semibold text-ink">{bond.issueCode}</span>
             </p>
-            <p className="text-xs text-ink-faint">
+            <p className="text-[11px] text-ink-faint sm:text-xs">
               {bond.couponRate}% coupon · at {price.toFixed(2)}
               {isPar && ' (par — no market price published)'} · {bond.maturityDate.slice(0, 4)} maturity
             </p>

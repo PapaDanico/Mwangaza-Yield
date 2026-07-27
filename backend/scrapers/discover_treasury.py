@@ -176,7 +176,17 @@ TARGETS = [
         # it into a year of auctions.
         "PDMO (pdmo.treasury.go.ke) — borrowing plan and debt strategy",
         [
+            # Ordered by what a 2026-07-27 run actually reached. The root
+            # offered 13 on-topic links and the annual report behind it is a
+            # 33-page PDF WITH a text layer carrying "borrowing plan",
+            # "domestic borrowing" and "financing mix" — the first genuinely
+            # usable issuance-intent source this project has found. The parent
+            # site, by contrast, links debt PDFs that now 404.
             "https://pdmo.treasury.go.ke/",
+            "https://pdmo.treasury.go.ke/annual-borrowing-plans",
+            "https://pdmo.treasury.go.ke/annual-public-debt-management-reports",
+            "https://pdmo.treasury.go.ke/medium-term-debt-management-strategy",
+            "https://pdmo.treasury.go.ke/monthly-bulletins",
             "https://pdmo.treasury.go.ke/publications",
             "https://pdmo.treasury.go.ke/publications/",
             "https://pdmo.treasury.go.ke/reports",
@@ -302,8 +312,38 @@ def fetch(url: str):
         return None
 
 
-def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
-    """Report whether one linked document is machine-readable and on-topic."""
+# Links that ARE documents despite carrying no file extension.
+#
+# Bajeti Yetu serves every budget document through a viewer —
+# /document-libraries/preview?id=3162 — so an extension test sees an entire
+# library as "no file-extension links here" and reports the source empty. It
+# is not empty; the filter was looking for the wrong shape.
+DOC_HREF_RE = re.compile(r"\.(pdf|xlsx?|csv)(\?|$)|/preview\?|/download|/file/", re.I)
+
+# A hard ceiling on documents opened per target, because depth costs requests
+# and this job shares a twenty-minute bound with sixteen other steps. The
+# earlier version inspected 2 links and 3 documents, which on a subdomain
+# offering 13 on-topic links meant reporting on a sixth of the library and
+# calling it a survey.
+MAX_DOCS_PER_TARGET = 10
+_docs_opened = 0
+
+
+def inspect_document(url: str, wanted: list, depth: int = 2) -> None:
+    """Report whether one linked document is machine-readable and on-topic.
+
+    `depth` is how many further HTML hops are allowed. Two, not one, because
+    the National Treasury files its debt documents as
+    index -> category page -> document: the PDMO index links fifteen category
+    pages, and a one-hop probe sees only the categories, concludes there are no
+    documents, and reports a live library as a dead end. That is exactly what
+    it did — the only file it could reach from that index was an expenditure
+    requisition form.
+    """
+    global _docs_opened
+    if _docs_opened >= MAX_DOCS_PER_TARGET:
+        return
+    _docs_opened += 1
     print(f"\n    --- {url[:110]}")
     r = fetch(url)
     if r is None or r.status_code >= 400:
@@ -319,15 +359,15 @@ def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
         # useful about a source that was reachable and publishing exactly what
         # we wanted — the same failure discover_prospectus.py made, one level
         # up. Government sites file documents behind a landing page; follow it.
-        if not follow_index:
-            print("        HTML, and we are already one level deep — stopping")
+        if depth <= 0:
+            print("        HTML, and the hop budget is spent — stopping")
             return
-        print("        HTML index — following one level for linked documents")
+        print(f"        HTML index — following (hops left: {depth})")
         soup = BeautifulSoup(r.text, "lxml")
         found = []
         for a in soup.find_all("a", href=True):
             child = urljoin(url, a["href"])
-            if child.lower().split("?")[0].endswith((".pdf", ".xlsx", ".xls", ".csv")):
+            if DOC_HREF_RE.search(child):
                 text = " ".join(a.get_text().split())[:80]
                 if child not in [f[1] for f in found]:
                     found.append((text, child))
@@ -349,11 +389,28 @@ def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
                     break
             if not shown:
                 print("          nothing link-like at all — the page is probably script-rendered")
+            # ...then actually FOLLOW the on-topic ones, if hops remain. Listing
+            # a category page and stopping is how fifteen live categories were
+            # reported as one expenditure form.
+            if depth > 1:
+                kids = []
+                for a in soup.find_all("a", href=True):
+                    child = urljoin(url, a["href"])
+                    txt = " ".join(a.get_text().split())
+                    if child == url or child in [k[1] for k in kids]:
+                        continue
+                    if PDMO_LINK_RE.search(txt) or PDMO_LINK_RE.search(child):
+                        kids.append((txt[:80], child))
+                if kids:
+                    print(f"        following {min(len(kids), 4)} on-topic sub-page(s) of {len(kids)}:")
+                    for txt, child in kids[:4]:
+                        print(f'          -> "{txt}"')
+                        inspect_document(child, wanted, depth=depth - 1)
             return
-        print(f"        {len(found)} document(s) linked; inspecting the first 3:")
-        for text, child in found[:3]:
+        print(f"        {len(found)} document(s) linked; inspecting the first 4:")
+        for text, child in found[:4]:
             print(f'          "{text}"')
-            inspect_document(child, wanted, follow_index=False)
+            inspect_document(child, wanted, depth=depth - 1)
         return
 
     try:
@@ -387,6 +444,8 @@ def inspect_document(url: str, wanted: list, follow_index: bool = True) -> None:
 
 def probe(label: str, pages: list, link_re, wanted: list) -> None:
     print(f"\n=== {label} ===")
+    global _docs_opened
+    _docs_opened = 0
     before = len(_transport_failures)
     reached_any = False
     for page_url in pages:
@@ -413,8 +472,8 @@ def probe(label: str, pages: list, link_re, wanted: list) -> None:
             print("    no on-topic links found on this page")
             continue
 
-        print(f"    {len(docs)} on-topic link(s); inspecting the first 2:")
-        for text, href in docs[:2]:
+        print(f"    {len(docs)} on-topic link(s); inspecting the first 4:")
+        for text, href in docs[:4]:
             print(f'    * "{text}"')
             inspect_document(href, wanted)
         return
@@ -458,6 +517,30 @@ def selftest() -> int:
     several of the runners this repo uses, and "I could not check" was how the
     filter kept a hole in it. An offline check has no such excuse.
     """
+    # URL shapes taken from a real run of this probe (CI run 30252343909,
+    # 2026-07-27), so the check is against what the sites actually serve rather
+    # than what a filter's author imagined they would.
+    should_match = [
+        "https://pdmo.treasury.go.ke/sites/default/files/Publications/2024-PDMO-ANNUAL-PERFOMANCE-REPORT-.pdf",
+        "https://www.treasury.go.ke/wp-content/uploads/2023/08/Treasury-bonds-Yield-Curve.pdf",
+        "https://bajetiyetu.treasury.go.ke/document-libraries/preview?id=3162",
+        "https://example.go.ke/data/table.xlsx",
+        "https://example.go.ke/data/series.csv?year=2026",
+    ]
+    should_not = [
+        "https://pdmo.treasury.go.ke/annual-performance-reports",
+        "https://bajetiyetu.treasury.go.ke/site/about",
+        "mailto:budget@treasury.go.ke",
+    ]
+    url_fail = [u for u in should_match if not DOC_HREF_RE.search(u)]
+    url_fail += [u for u in should_not if DOC_HREF_RE.search(u)]
+    if url_fail:
+        print("FAIL: document-link detection is wrong for:")
+        for u in url_fail:
+            print(f"  - {u}")
+        return 1
+    print(f"OK: document-link detection correct on {len(should_match) + len(should_not)} real URL shapes.\n")
+
     missed = [c for c in PDMO_CATEGORIES if not PDMO_LINK_RE.search(c)]
     for c in PDMO_CATEGORIES:
         print(f"  {'ok ' if c not in missed else 'MISS'}  {c}")

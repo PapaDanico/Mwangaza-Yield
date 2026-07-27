@@ -50,6 +50,20 @@ export interface Holding {
   faceValueKES: number;
   purchaseDate: string;
   purchaseCleanPrice: number; // per 100
+  /**
+   * Whether `purchaseCleanPrice` is a reading or a placeholder.
+   *
+   * A DhowCSD export is a custody statement: it says what is held, never what
+   * was paid for it. Absent this flag the placeholder par price is
+   * indistinguishable from a real one, and every return figure derived from it
+   * would be presented to a reader as a fact about their own money.
+   *
+   * Undefined means known, so holdings typed into the template keep working
+   * unchanged.
+   */
+  costBasisKnown?: boolean;
+  /** Units pledged, banned or disputed — held, but not freely sellable. */
+  encumberedQuantity?: number;
 }
 
 export interface MacroIndicator {
@@ -92,6 +106,10 @@ export interface AuctionPrint {
   amountOfferedKESM?: number;          // per AUCTION, which may cover several bonds
   amountAcceptedKESM?: number;
   bidsReceivedKESM?: number;
+  // The row label the bids figure came from. It carries the BASIS: a tap sale
+  // may state bids at face value while acceptance is at cost, 1-2% apart, so
+  // the two are not always comparable and this is how you tell.
+  bidsLabel?: string;
   sourceUrl?: string;
 }
 

@@ -50,13 +50,58 @@ export function normaliseCode(code: string): string {
 }
 
 /**
- * The rate the auction settled at. CBK reports a weighted average of accepted
- * bids and, separately, a market weighted average across all bids; the first is
- * what buyers actually got, so it wins. The coupon is never used as a fallback —
- * it is what the bond promises, not what the auction decided, and substituting
- * one for the other would draw a flat line through a moving market.
+ * What kind of transaction the document describes.
+ *
+ * Not every result CBK publishes is a sale of bonds to investors. A BUYBACK is
+ * the Treasury on the other side: it is buying its own paper back from holders
+ * who want out, ahead of maturity. A SWITCH offers holders of one bond an
+ * exchange into another, so there is still a bond being taken up.
+ *
+ * Derived from the document name, which states it — "FEBRUARY BUYBACK AUCTION
+ * FXD1-2022-003 ... DATED 17-02-2025" — because nothing inside the parsed
+ * fields distinguishes them and the parser has no reason to.
+ */
+export type AuctionKind = 'issuance' | 'tap' | 'switch' | 'buyback';
+
+export function auctionKind(print: AuctionPrint): AuctionKind {
+  const name = (print.sourceUrl ?? '').toUpperCase();
+  if (/BUY\s*-?\s*BACK/.test(name)) return 'buyback';
+  if (name.includes('SWITCH')) return 'switch';
+  if (name.includes('TAP')) return 'tap';
+  return 'issuance';
+}
+
+/**
+ * The rate the auction settled at, or null when the document is not a sale.
+ *
+ * CBK reports a weighted average of accepted bids and, separately, a market
+ * weighted average across all bids; the first is what buyers actually got, so
+ * it wins. The coupon is never used as a fallback — it is what the bond
+ * promises, not what the auction decided, and substituting one for the other
+ * would draw a flat line through a moving market.
+ *
+ * BUYBACKS ARE REFUSED, and the reason is a sign flip.
+ * ---------------------------------------------------
+ * In a sale the Treasury accepts the LOWEST yields, because a low yield is
+ * cheap borrowing — so the accepted average sits below the all-bids average.
+ * In a buyback the Treasury is the buyer, so it accepts the HIGHEST yields,
+ * which are the lowest prices, and the accepted average sits ABOVE.
+ *
+ * That is exactly what the archive shows. Correcting the accepted-vs-market
+ * confusion moved 129 records; 125 fell and four rose, and the four that rose
+ * are precisely the four buybacks. The anomaly turned out to be the Treasury
+ * standing on the other side of the trade.
+ *
+ * A buyback rate is what the government paid to retire debt from willing
+ * sellers. It is not a rate any buyer could have obtained, and it was sitting
+ * in per-bond yield histories as though it were — on three of those four
+ * bonds it was the MOST RECENT point, which is the one a reader anchors on.
+ *
+ * Taps and switches stay: in both, an investor is taking up a bond at a price
+ * the auction set.
  */
 export function clearingRate(print: AuctionPrint): number | null {
+  if (auctionKind(print) === 'buyback') return null;
   return print.weightedAverageRate ?? print.marketWeightedAverageRate ?? null;
 }
 

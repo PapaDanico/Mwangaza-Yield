@@ -318,7 +318,17 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/*.json
+          # The CSV as well as the JSON. build-rates-feed.mjs writes both and
+          # this line staged only the JSON, so for as long as that has been
+          # true the published CSV has been frozen at whatever was last
+          # committed by hand while the JSON refreshed daily. Both are served
+          # from /data/ and documented as the same figures; on the day this was
+          # found they disagreed by 3 to 11 basis points across four bands.
+          #
+          # Nothing caught it because the refresh job does not run the unit
+          # tests, and the test that compares the two only sees a checkout. A
+          # correct check, never pointed at the artifact after it changed.
+          git add public/data/*.json public/data/*.csv
           git diff --cached --quiet && exit 0
           git commit -m "chore(data): daily refresh $(date -u +%F)"
           # This job spends up to ten minutes reading PDFs before it gets here,

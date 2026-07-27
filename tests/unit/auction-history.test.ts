@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   normaliseCode,
   clearingRate,
+  auctionKind,
   historyFor,
   summarise,
   describeHistory,
@@ -9,6 +10,9 @@ import {
   monthYear,
 } from '../../src/lib/auction-history';
 import type { AuctionPrint } from '../../src/types/bond';
+import auctionsData from '../../public/data/auction-results.json';
+
+const PRINTS = auctionsData as unknown as AuctionPrint[];
 
 function print(over: Partial<AuctionPrint> & { issueCode: string; auctionDate: string }): AuctionPrint {
   return { id: `${over.issueCode}-${over.auctionDate}`, ...over };
@@ -67,6 +71,81 @@ describe('clearingRate', () => {
   it('never substitutes the coupon — that is a promise, not an auction outcome', () => {
     const p = print({ issueCode: 'X/2020/005', auctionDate: '2026-01-05', couponRate: 12 });
     expect(clearingRate(p)).toBeNull();
+  });
+
+  /**
+   * A buyback rate is not a rate anyone could buy at.
+   *
+   * The Treasury is the buyer, so it accepts the HIGHEST yields — the lowest
+   * prices — and the accepted average sits above the all-bids average, the
+   * opposite way round from a sale. That sign flip is how these were found:
+   * correcting the accepted-vs-market confusion moved 129 records, 125 down
+   * and four up, and the four that rose were exactly the four buybacks.
+   */
+  it('refuses a buyback, where the government is the buyer', () => {
+    const p = print({
+      issueCode: 'FXD1/2022/003',
+      auctionDate: '2025-02-17',
+      weightedAverageRate: 9.0676,
+      marketWeightedAverageRate: 8.922,
+      sourceUrl:
+        'https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/' +
+        '819608628_FEBRUARY BUYBACK AUCTION FXD1-2022-003, FXD1-2020-005 AND ' +
+        'IFB1-2016-009 DATED 17-02-2025.pdf',
+    });
+    expect(auctionKind(p)).toBe('buyback');
+    expect(clearingRate(p), 'a buyback rate reached the yield history').toBeNull();
+  });
+
+  it('keeps taps and switches, where an investor is still taking up a bond', () => {
+    const tap = print({
+      issueCode: 'FXD2/2018/020',
+      auctionDate: '2020-08-10',
+      weightedAverageRate: 12.5,
+      sourceUrl: 'https://x/RESULTS TAP SALE FXD2-2018-20 DATED 10.08.2020.pdf',
+    });
+    expect(auctionKind(tap)).toBe('tap');
+    expect(clearingRate(tap)).toBe(12.5);
+
+    const sw = print({
+      issueCode: 'FXD1/2018/015',
+      auctionDate: '2026-04-15',
+      weightedAverageRate: 11.9662,
+      sourceUrl: 'https://x/SWITCH AUCTION RESULTS FXD1-2018-015 DATED 15-04-2026.pdf',
+    });
+    expect(auctionKind(sw)).toBe('switch');
+    expect(clearingRate(sw)).toBe(11.9662);
+  });
+
+  it('treats an ordinary sale as an issuance, with no URL to go on', () => {
+    expect(auctionKind(print({ issueCode: 'X/2020/005', auctionDate: '2026-01-05' }))).toBe(
+      'issuance'
+    );
+  });
+});
+
+describe('buybacks in the shipped archive', () => {
+  /**
+   * The sign flip, asserted on the real data rather than on a fixture.
+   *
+   * If a future document naming convention stops saying "BUYBACK", these rows
+   * silently rejoin the yield histories. This fails first.
+   */
+  it('finds them, and finds their accepted rate above the market rate', () => {
+    const buybacks = (PRINTS as AuctionPrint[]).filter((p) => auctionKind(p) === 'buyback');
+    expect(buybacks.length, 'no buyback was recognised — has the naming changed?').toBeGreaterThan(
+      0
+    );
+    for (const p of buybacks) {
+      expect(clearingRate(p), `${p.id} still reports a clearing rate`).toBeNull();
+      if (p.weightedAverageRate != null && p.marketWeightedAverageRate != null) {
+        expect(
+          p.weightedAverageRate,
+          `${p.id}: a buyback whose accepted rate sits BELOW the market rate — ` +
+            `either it is not a buyback or the rates are still crossed`
+        ).toBeGreaterThanOrEqual(p.marketWeightedAverageRate);
+      }
+    }
   });
 });
 

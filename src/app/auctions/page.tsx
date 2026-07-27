@@ -8,6 +8,7 @@ import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/u
 import { downloadICS } from '@/lib/ics';
 import { BidAssistant } from '@/components/auctions/BidAssistant';
 import TrackRecord from '@/components/auctions/TrackRecord';
+import DemandRecord from '@/components/auctions/DemandRecord';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -112,6 +113,8 @@ export default function AuctionsPage() {
           );
         })}
       </div>
+
+      <DemandRecord />
 
       <TrackRecord />
 

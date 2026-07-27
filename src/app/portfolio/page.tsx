@@ -10,7 +10,27 @@ import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
-import type { Holding } from '@/types/bond';
+import type { Bond, Holding } from '@/types/bond';
+import { normaliseCode } from '@/lib/auction-history';
+import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
+
+/**
+ * Find the bond a holding refers to.
+ *
+ * ISIN first, because it is unambiguous. Then the issue code, NORMALISED —
+ * DhowCSD writes IFB1/2022/018 and bonds.json carries IFB1/2022/18, so an
+ * exact string match misses a bond we hold data for and reports it to the
+ * reader as unknown. That is the same padding mismatch auction-history
+ * documents; the difference here is that it silently emptied a portfolio.
+ */
+function matchBond(bonds: Bond[], h: { isin?: string; issueCode: string }): Bond | null {
+  if (h.isin) {
+    const byIsin = bonds.find((b) => b.isin === h.isin);
+    if (byIsin) return byIsin;
+  }
+  const want = normaliseCode(h.issueCode);
+  return bonds.find((b) => normaliseCode(b.issueCode) === want) ?? null;
+}
 
 const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFXD1/2022/10,1000000,2026-07-13,100\nIFB1/2022/19,500000,2026-02-16,100\n';
 
@@ -20,14 +40,26 @@ export default function PortfolioPage() {
   const { holdings, addHoldings, removeHolding, clear } = usePortfolioStore();
   const userPrices = usePriceStore((s) => s.userPrices);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[] } | null>(null);
+  const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[]; fromCustody?: boolean } | null>(null);
 
   const enriched = useMemo(() => {
     return holdings.map((h) => {
-      const bond = bonds.find((b) => b.issueCode === h.issueCode || b.isin === h.isin);
+      const bond = matchBond(bonds, h);
       if (!bond) return { holding: h, bond: null, result: null, market: null, nextCoupon: null };
-      // Locked-in economics from the price actually paid...
-      const result = computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, new Date(h.purchaseDate));
+      // Locked-in economics from the price actually paid.
+      //
+      // When the cost basis is unknown — a custody export states what is held,
+      // never what was paid — this still runs, because the half of it that
+      // matters does not depend on price at all. Coupon amounts, the payment
+      // calendar, withholding tax and maturity proceeds are functions of face
+      // value and the coupon rate. Only the yields and the settlement cost are
+      // functions of price, and those are suppressed in the table and the
+      // summary rather than shown against a placeholder.
+      //
+      // An empty purchase date would make `new Date('')` invalid and turn
+      // accrued interest into NaN, so today stands in for settlement.
+      const settlement = h.purchaseDate ? new Date(h.purchaseDate) : new Date();
+      const result = computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, settlement);
       // ...versus what the same bond yields at today's price.
       //
       // This looked only at `secondary`, which ships empty because we publish no
@@ -50,12 +82,20 @@ export default function PortfolioPage() {
 
   const totals = useMemo(() => {
     const valid = enriched.filter((e) => e.result);
-    const cost = valid.reduce((s, e) => s + e.result!.settlementCostKES, 0);
+    // Income is exact for every holding: a coupon is face value times the
+    // coupon rate, and no part of it depends on what was paid.
     const income = valid.reduce((s, e) => s + e.result!.netAnnualIncomeKES, 0);
+    // Cost and the cost-weighted yield are not. A holding imported from a
+    // custody statement carries a placeholder price, and including it here
+    // would put an invented figure into a portfolio total — where it is least
+    // visible and most likely to be believed.
+    const priced = valid.filter((e) => e.holding.costBasisKnown !== false);
+    const cost = priced.reduce((s, e) => s + e.result!.settlementCostKES, 0);
     const weightedNet = cost > 0
-      ? valid.reduce((s, e) => s + e.result!.netYTM * e.result!.settlementCostKES, 0) / cost
+      ? priced.reduce((s, e) => s + e.result!.netYTM * e.result!.settlementCostKES, 0) / cost
       : 0;
-    return { cost, income, weightedNet };
+    const unpriced = valid.length - priced.length;
+    return { cost, income, weightedNet, unpriced };
   }, [enriched]);
 
   // 12-month coupon calendar
@@ -86,11 +126,29 @@ export default function PortfolioPage() {
       header: true,
       skipEmptyLines: true,
       complete: (res) => {
+        // A DhowCSD export is the file a reader already has. Asking them to
+        // retype four columns out of it is asking them not to bother.
+        if (looksLikeDhowCsd(res.data)) {
+          const parsed = parseDhowCsd(res.data);
+          const imported = toHoldings(parsed.positions).map((h) => ({
+            ...h,
+            isin: h.isin || matchBond(bonds, h)?.isin || '',
+          }));
+          if (imported.length) addHoldings(imported);
+          setImportNote({
+            ok: imported.length,
+            skipped: parsed.rejected.length,
+            unknown: imported.filter((h) => !matchBond(bonds, h)).map((h) => h.issueCode),
+            fromCustody: true,
+          });
+          return;
+        }
+
         const usable = res.data.filter((r) => r.issueCode && r.faceValueKES);
         const rows: Holding[] = usable
           .map((r, i) => ({
             id: `${r.issueCode}-${r.purchaseDate ?? ''}-${i}-${r.faceValueKES}`,
-            isin: bonds.find((b) => b.issueCode === r.issueCode.trim())?.isin ?? '',
+            isin: matchBond(bonds, { issueCode: r.issueCode.trim() })?.isin ?? '',
             issueCode: r.issueCode.trim(),
             faceValueKES: Number(r.faceValueKES),
             purchaseDate: r.purchaseDate?.trim() || new Date().toISOString().slice(0, 10),
@@ -101,9 +159,7 @@ export default function PortfolioPage() {
         setImportNote({
           ok: rows.length,
           skipped: res.data.length - usable.length,
-          unknown: rows
-            .filter((r) => !bonds.some((b) => b.issueCode === r.issueCode))
-            .map((r) => r.issueCode),
+          unknown: rows.filter((r) => !matchBond(bonds, r)).map((r) => r.issueCode),
         });
       },
     });
@@ -195,6 +251,15 @@ export default function PortfolioPage() {
               {importNote.ok === 1 ? '' : 's'}
               {importNote.skipped > 0 && `, skipped ${importNote.skipped} incomplete row${importNote.skipped === 1 ? '' : 's'}`}.
             </p>
+            {importNote.fromCustody && importNote.ok > 0 && (
+              <p className="mt-1 text-ink-muted">
+                Read as a DhowCSD statement. It records what you hold, not what you paid,
+                so coupon amounts, the payment calendar and maturity proceeds are exact —
+                these come from the face value. Yield and cost are left blank until you add
+                the price you bought at, because the statement does not carry one and a
+                figure invented here would look like your own.
+              </p>
+            )}
             {importNote.unknown.length > 0 && (
               <p className="mt-1 text-ink-muted">
                 Not in the current bond list (check the issue code):{' '}
@@ -253,11 +318,33 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
                       {!bond && <span className="ml-2 text-xs text-gold-700">unknown bond</span>}
                     </td>
                     <td className="num px-4 py-3 text-right text-ink">{formatKES(holding.faceValueKES)}</td>
-                    <td className="num px-4 py-3 text-right text-ink-soft">{holding.purchaseCleanPrice.toFixed(2)}</td>
-                    <td className="num px-4 py-3 text-right text-gold-700">{result ? formatPct(result.netYTM) : '—'}</td>
+                    <td className="num px-4 py-3 text-right text-ink-soft">
+                      {holding.costBasisKnown === false ? (
+                        <span className="text-ink-faint" title="Not in the custody export">
+                          not stated
+                        </span>
+                      ) : (
+                        holding.purchaseCleanPrice.toFixed(2)
+                      )}
+                    </td>
+                    <td className="num px-4 py-3 text-right text-gold-700">
+                      {holding.costBasisKnown === false ? (
+                        <span className="text-ink-faint">—</span>
+                      ) : result ? (
+                        formatPct(result.netYTM)
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td className="num px-4 py-3 text-right">
                       {market ? (
-                        <span className={market.netYTM >= (result?.netYTM ?? 0) ? 'text-mint-700' : 'text-ink-muted'}>
+                        <span className={
+                          holding.costBasisKnown === false
+                            ? 'text-ink-soft'
+                            : market.netYTM >= (result?.netYTM ?? 0)
+                              ? 'text-mint-700'
+                              : 'text-ink-muted'
+                        }>
                           {formatPct(market.netYTM)}
                         </span>
                       ) : (

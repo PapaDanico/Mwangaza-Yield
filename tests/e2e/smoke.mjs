@@ -292,6 +292,69 @@ async function main() {
   }
   if (failures.length === mtmBefore) pass('imported a holding, priced it, at-market yield appeared');
 
+  /* ------------- a DhowCSD custody export imports, and admits what it cannot say */
+  //
+  // The file a Kenyan bondholder actually has. Structurally identical to a real
+  // export, invented personal details: a real one carries the holder's name,
+  // email, address, phone, KRA PIN and account numbers.
+  //
+  // Two things must hold and neither is visible to a unit test. The issue code
+  // is padded (IFB1/2022/018) where bonds.json is not (IFB1/2022/18), so an
+  // exact match reports a bond we hold data for as unknown. And a custody
+  // statement carries no purchase price, so the yield column must stay blank
+  // rather than quietly showing one computed from a placeholder par.
+  console.log('\nDhowCSD portfolio export');
+  const dhowBefore = failures.length;
+  await go('/portfolio/');
+  const dhowInput = page.locator('input[type=file]');
+  if (!(await dhowInput.count())) {
+    fail('dhowcsd: no CSV import control');
+  } else {
+    await dhowInput.setInputFiles({
+      name: 'Portfolio2026727T15_12_16.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(
+        '\ufeffIssuer,Issue number,ISIN,Maturity date,Issue type,Account,'
+        + 'Individual Nominal Value,Avaliable Quantity,Pledge Quantity,Banned Quantity,'
+        + 'Disputed Quantity,Total Quantity,Currency,Exchange Rate,Available Value,'
+        + 'Pledge Value,Banned Value,Face Value,Disputed Value,Total Value\n'
+        + 'GOVERNMENT OF KENYA,IFB1/2022/018,KE8000002322,21 May 2040,Treasury Bonds,,'
+        + '"50,000",11,0,0,0,11,KES,,"550,000",0,0,"550,000",0,"550,000"\n'
+        + '"Export date: 27 Jul 2026, 15:12:13",,,,,,,,,,,,,,,,,,,\n'
+        + 'Full Name: A SAMPLE NAME,,,,,,,,,,,,,,,,,,,\n'
+        + 'Email: sample@example.com,,,,,,,,,,,,,,,,,,,\n'
+        + 'KRA PIN: A000000000X,,,,,,,,,,,,,,,,,,,\n'),
+    });
+    await page.waitForTimeout(1200);
+    const body = await page.innerText('body');
+
+    if (!/IFB1\/2022\/018/.test(body)) fail('dhowcsd: the holding did not import');
+    // The face value must survive its thousands separators intact.
+    if (!/550,000/.test(body)) fail('dhowcsd: face value did not import as 550,000');
+    // Nothing from the trailer may reach the screen.
+    for (const secret of ['A SAMPLE NAME', 'sample@example.com', 'A000000000X']) {
+      if (body.includes(secret)) fail(`dhowcsd: personal data from the trailer rendered: ${secret}`);
+    }
+    // And the price column must say so rather than showing a placeholder.
+    const dhowRow = page.locator('tr', { hasText: 'IFB1/2022/018' }).first();
+    const rowText = ((await dhowRow.innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+    // Scoped to THIS row on purpose. The mark-to-market test above imports
+    // NOTAREALBOND and it is still in IndexedDB, so "unknown bond" is legitimately
+    // on the page — a body-wide match here failed against a row it was not about.
+    if (/unknown bond/i.test(rowText)) {
+      fail(`dhowcsd: the padded issue code was not matched to bonds.json (row: "${rowText}")`);
+    }
+    if (!/not stated/i.test(rowText)) {
+      fail(`dhowcsd: no "not stated" price on a custody import (row: "${rowText}")`);
+    }
+    if (/100\.00/.test(rowText)) {
+      fail(`dhowcsd: the placeholder par price was shown as if read (row: "${rowText}")`);
+    }
+  }
+  if (failures.length === dhowBefore) {
+    pass('custody export imported, matched a padded code, and left the price blank');
+  }
+
   /* ------------- the calculator confirms that a price was actually stored */
   // Regression: `saved` was cleared by an effect keyed on the resolved price.
   // Saving mutates the price book, which produces a new resolved price, which

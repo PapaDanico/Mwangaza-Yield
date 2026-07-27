@@ -40,6 +40,17 @@ describe('inflation provenance', () => {
     ).toBe(true);
   });
 
+  it('does not state the fallback twice', () => {
+    // The card says "a stand-in, because KNBS could not be reached" in words.
+    // Leaving the legacy parenthetical in the source produced a sentence that
+    // said it twice: "Inflation is CBK (KNBS unavailable) — a stand-in,
+    // because KNBS could not be reached." Found by reading the page; no
+    // assertion on either half alone could see it.
+    const reading = latestInflation([cpi({ source: 'CBK (KNBS unavailable)' })])!;
+    expect(reading.source).toBe('CBK');
+    expect(reading.fallback, 'cleaning the string must not lose the fact').toBe(true);
+  });
+
   it('flags a substitute source, including in the legacy string form', () => {
     // Records written before the `fallback` field encode it in the source
     // text. Both shapes must reach the reader as the same fact.

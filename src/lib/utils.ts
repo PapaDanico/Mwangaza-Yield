@@ -36,7 +36,20 @@ export function daysUntil(iso: string): number {
  */
 const CURRENCY_PREFIX = formatKES(0).replace(/[\d.,\s]+$/, '');
 
-export function formatCompactKES(v: number): string {
+/**
+ * A compact shilling figure, or an em dash when there is no figure.
+ *
+ * The absent case is not defensive tidiness. `Math.round(null)` is 0, so an
+ * unknown amount used to render as "Ksh 0" — a confident claim that nothing
+ * was on offer, printed in the same style as a real number and invisible to
+ * the NaN sweep in the browser suite, because zero is not NaN.
+ *
+ * That mattered the moment the auction calendar started being read from
+ * prospectuses: CBK's current documents state no amount at all, so every
+ * auction would have advertised zero. An absent figure has to look absent.
+ */
+export function formatCompactKES(v: number | null | undefined): string {
+  if (v == null || !Number.isFinite(v)) return '—';
   if (v >= 1e9) return `${CURRENCY_PREFIX} ${(v / 1e9).toFixed(1)}B`;
   if (v >= 1e6) return `${CURRENCY_PREFIX} ${(v / 1e6).toFixed(1)}M`;
   return `${CURRENCY_PREFIX} ${Math.round(v).toLocaleString('en-KE')}`;

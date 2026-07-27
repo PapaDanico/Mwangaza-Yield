@@ -276,9 +276,28 @@ export default function PortfolioPage() {
       {enriched.length === 0 ? (
         <div className="card py-10 text-center">
           <p className="text-sm text-ink-soft">
-            No holdings yet. Import a CSV to see net yields, mark-to-market and your coupon calendar.
+            No holdings yet — and you probably already have the file this page needs.
           </p>
-          <div className="mx-auto mt-4 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left">
+          {/* The DhowCSD path leads. Every Kenyan bondholder holds through
+              DhowCSD, and its "Export portfolio" file imports here directly —
+              the empty state used to teach only the hand-typed template while
+              the importer for the file people actually have shipped unmentioned. */}
+          <div className="mx-auto mt-4 max-w-md rounded-xl border border-mint-600/40 bg-mint-500/10 p-4 text-left">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-mint-700">
+              Fastest: your DhowCSD export
+            </p>
+            <p className="text-sm leading-relaxed text-ink-soft">
+              In the DhowCSD app or portal, choose <strong>Export portfolio</strong> and import
+              the file here unchanged. Your holdings, face values and maturities load in one
+              step — coupon amounts and the payment calendar are computed from them. Everything
+              stays on this device.
+            </p>
+          </div>
+          <p className="mt-4 text-xs text-ink-faint">
+            Or type a CSV by hand — this also lets you record what you paid, which unlocks
+            yield-on-cost:
+          </p>
+          <div className="mx-auto mt-2 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left">
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
               Example file
             </p>

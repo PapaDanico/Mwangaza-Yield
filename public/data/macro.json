@@ -5,7 +5,8 @@
     "value": 8.75,
     "date": "2026-06-09",
     "unit": "%",
-    "source": "CBK MPC"
+    "source": "CBK MPC",
+    "lastChecked": "2026-07-27"
   },
   {
     "id": "cpi-2026-07-27",
@@ -13,7 +14,9 @@
     "value": 6.41,
     "date": "2026-07-27",
     "unit": "% y/y",
-    "source": "CBK (KNBS unavailable)"
+    "source": "CBK",
+    "fallback": true,
+    "lastChecked": "2026-07-27"
   },
   {
     "id": "fx-2026-07",

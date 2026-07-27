@@ -60,6 +60,13 @@ export default function IssuerIntent() {
         {billsTn}tn of T-bills against Ksh {bondsTn}tn of bonds — nearly the reverse of the
         strategy&apos;s direction — so treat the plan as a leaning, not a schedule. Sources:{' '}
         {intent.source}; {supply.source}; {outturn.source}.{' '}
+        {/* Rendered only when we have a URL somebody has actually opened.
+            This card linked http://www.parliament.go.ke/2026-2027-budget under
+            "Read the documents" and that path answers 404 over both http and
+            https — verified by the source probe, not assumed. A citation that
+            names its document is honest; a link that promises the document is
+            there and 404s is worse than no link. */}
+        {intent.sourceUrl ? (
         <a
           href={intent.sourceUrl}
           target="_blank"
@@ -68,6 +75,7 @@ export default function IssuerIntent() {
         >
           Read the documents <ExternalLink size={12} />
         </a>
+        ) : null}
       </Explain>
       <p className="mt-2 text-[11px] text-ink-faint">
         Hand-curated from the tabled documents, {FISCAL_CONTEXT.curatedAt}. Context for

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "curatedAt": "2026-07-27",
-  "note": "Hand-curated quarterly from statutory fiscal documents. NOT scraped: the PDMO site is unreachable from cloud runners (geo-blocked) and the MTDS is published as a scanned PDF with no text layer, so automated extraction was rejected in favour of fifteen minutes of reading per quarter. Update at each MTDS (February) and each supplementary budget. Every figure must carry its citation.",
+  "note": "Hand-curated quarterly from statutory fiscal documents. CORRECTED 2026-07-27: this note previously said the PDMO site is unreachable from cloud runners (geo-blocked). That is false \u2014 pdmo.treasury.go.ke answered HTTP 200 on three consecutive GitHub Actions runs and served a 33-page PDF with a text layer. The unreachability is specific to the container this project is usually developed in, whose egress proxy refuses the host; it was recorded as a fact about the source and was a fact about the runner. Whether the MTDS itself carries a text layer is untested and remains the open question. Update at each MTDS (February) and each supplementary budget.",
   "issuanceIntent": {
     "grossDomesticBorrowingSharePct": 82,
     "tbillShareOfDebtNowPct": 7.3,
@@ -10,23 +10,22 @@
     "domesticAtmNowYears": 6.4,
     "domesticAtmTargetYears": 7.6,
     "asOf": "2026-02-01",
-    "source": "Medium-Term Debt Management Strategy 2026/27–2028/29, National Treasury (tabled in Parliament, Feb 2026), §VIII and Table 10, chosen strategy S2",
-    "sourceUrl": "http://www.parliament.go.ke/2026-2027-budget"
+    "source": "Medium-Term Debt Management Strategy 2026/27\u20132028/29, National Treasury (tabled in Parliament, Feb 2026), \u00a7VIII and Table 10, chosen strategy S2",
+    "sourceUrl": "https://pdmo.treasury.go.ke/"
   },
   "nearTermSupply": {
     "fiscalYear": "2025/26",
     "netDomesticBorrowingKESBn": 947.8,
     "revisedFromKESBn": 624.7,
     "asOf": "2026-03-01",
-    "source": "Parliamentary Budget Office, Unpacking of the Supplementary I Estimates of FY 2025/26 (March 2026), ¶23",
-    "sourceUrl": "http://www.parliament.go.ke"
+    "source": "Parliamentary Budget Office, Unpacking of the Supplementary I Estimates of FY 2025/26 (March 2026), \u00b623"
   },
   "outturn": {
     "fiscalYear": "2024/25",
     "tbillsIssuedKESTn": 1.55,
     "bondsIssuedKESTn": 0.84,
     "asOf": "2026-03-01",
-    "source": "PDMO Public Debt Dashboard, ‘Issued last financial year (2024/2025)’, read March 2026",
+    "source": "PDMO Public Debt Dashboard, \u2018Issued last financial year (2024/2025)\u2019, read March 2026",
     "sourceUrl": "https://pdmo.treasury.go.ke"
   }
 }

@@ -21,7 +21,17 @@ describe('fiscal context', () => {
       outturn: FISCAL_CONTEXT.outturn,
     })) {
       expect(section.source.length, `${name}: citation too thin to check`).toBeGreaterThan(30);
-      expect(section.sourceUrl, `${name}: no source URL`).toMatch(/^https?:\/\//);
+      // A URL is optional now, because one of them 404'd.
+      //
+      // The card printed http://www.parliament.go.ke/2026-2027-budget under a
+      // "Read the documents" link. The source probe fetched it — 404 over both
+      // http and https. Requiring a URL is what pressures the next curator to
+      // put SOMETHING there, which is how a dead one got there; requiring that
+      // a present one be well-formed, and letting absence be legal, is the
+      // honest rule. The citation text stays mandatory either way.
+      if (section.sourceUrl !== undefined) {
+        expect(section.sourceUrl, `${name}: malformed source URL`).toMatch(/^https:\/\/[\w.-]+\.\w{2,}/);
+      }
       expect(Number.isNaN(new Date(section.asOf).getTime()), `${name}: asOf is not a date`).toBe(false);
     }
   });

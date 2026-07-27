@@ -41,7 +41,7 @@ export interface FiscalContext {
     domesticAtmTargetYears: number;
     asOf: string;
     source: string;
-    sourceUrl: string;
+    sourceUrl?: string;
   };
   nearTermSupply: {
     fiscalYear: string;
@@ -49,7 +49,7 @@ export interface FiscalContext {
     revisedFromKESBn: number;
     asOf: string;
     source: string;
-    sourceUrl: string;
+    sourceUrl?: string;
   };
   outturn: {
     fiscalYear: string;
@@ -57,7 +57,7 @@ export interface FiscalContext {
     bondsIssuedKESTn: number;
     asOf: string;
     source: string;
-    sourceUrl: string;
+    sourceUrl?: string;
   };
 }
 

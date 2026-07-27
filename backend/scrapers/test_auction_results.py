@@ -9,14 +9,21 @@ which is TWO coupons, 11.277% and 12.873%, each split by an injected space.
 Any parser that reads the text linearly finds four numbers and gets all four
 wrong. These tests exist to keep that from ever shipping.
 """
+import hashlib
 import os
 import sys
 
 from auction_results import (
-    attribute_auction_level, FIELDS, NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
+    attribute_auction_level, FIELDS, FIELD_EXCLUSIONS, PARSER_VERSION,
+    NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
     find_header, group_lines, normalise_code, results_section, _refuse_contradictions,
 )
+
+# Fingerprint of the extraction rules, and the PARSER_VERSION they belong to.
+# Both are updated together, by hand, when FIELDS or FIELD_EXCLUSIONS change.
+EXTRACTION_SHAPE = "0833edbf19105ee7"
+EXTRACTION_SHAPE_VERSION = 14
 
 failures = []
 
@@ -1118,6 +1125,34 @@ def main():
         {"issueCode": "Y", "amountAcceptedKESM": 404.0, "bidsReceivedKESM": 400.0,
          "bidsLabel": "total bids received at face value (kes million)"}, "u")
     check("different bases are left alone", bases.get("amountAcceptedKESM"), 404.0)
+
+    # ------------------------------------------------------------------
+    # A fixed parser and a stale archive.
+    #
+    # PARSER_VERSION is what makes a fix reach records already captured: a
+    # bump marks older rows for re-reading, and without one the corrected
+    # code simply never revisits them. So a change to what gets EXTRACTED
+    # and no bump leaves the parser right and the published data wrong —
+    # the most expensive shape of this bug, because every test passes.
+    #
+    # That is not hypothetical either. The accepted-bids exclusion shipped
+    # without a bump, and the 244 records holding the market rate in both
+    # fields would have kept holding it indefinitely.
+    #
+    # So the extraction rules are fingerprinted and the fingerprint is
+    # pinned beside the version. Change FIELDS or FIELD_EXCLUSIONS and this
+    # fails, which is a prompt to ask whether stored records are now stale —
+    # sometimes the answer is no, and then both constants move together in
+    # one deliberate edit rather than one being forgotten.
+    shape = hashlib.sha256(
+        "|".join(
+            [f"{name}={rx.pattern}" for name, rx in FIELDS]
+            + [f"!{name}={rx.pattern}" for name, rx in sorted(FIELD_EXCLUSIONS.items())]
+        ).encode()
+    ).hexdigest()[:16]
+    check("extraction rules unchanged since the recorded version", shape, EXTRACTION_SHAPE)
+    check("parser version matches the recorded extraction rules",
+          PARSER_VERSION, EXTRACTION_SHAPE_VERSION)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

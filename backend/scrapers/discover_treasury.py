@@ -347,7 +347,12 @@ DOC_HREF_RE = re.compile(r"\.(pdf|xlsx?|csv)(\?|$)|/preview\?|/download|/file/",
 # self-test can check them against real href shapes rather than a hope.
 PAGER_RE = re.compile(r"[?&]page=|/page/|[?&]p=\d|pagenum|start=\d|older|next\s*(page|»|>)|»", re.I)
 
-MAX_DOCS_PER_TARGET = 10
+# Raised from 10 when probe() stopped returning after the first page. Ten was
+# sized for one page per target; the PDMO entry lists six. Repeats are free —
+# the visited check returns before this counter is touched, and three PDMO
+# categories serve the identical file — so the ceiling only bites on genuinely
+# distinct documents, which is what it should be counting.
+MAX_DOCS_PER_TARGET = 16
 _docs_opened = 0
 _visited: set = set()
 
@@ -549,7 +554,19 @@ def probe(label: str, pages: list, link_re, wanted: list) -> None:
         for text, href in docs[:4]:
             print(f'    * "{text}"')
             inspect_document(href, wanted)
-        return
+        # Deliberately NOT returning here.
+        #
+        # This used to stop at the first page that yielded links, which made
+        # every URL after the first in a target list decoration: the PDMO entry
+        # names /medium-term-debt-management-strategy and /monthly-bulletins,
+        # and neither had ever been fetched — the root answered first and the
+        # probe went home. Monthly Bulletins was only ever seen because it
+        # happened to appear among the root's first four on-topic links.
+        #
+        # A list of pages should mean a list of pages. Continuing costs one
+        # request each; the real expense is opening documents, and that is
+        # already bounded by MAX_DOCS_PER_TARGET, which the visited set now
+        # stops from being wasted on the same file twice.
 
     if not reached_any:
         # Say which kind of failure it was. "Every request died in transport"

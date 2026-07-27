@@ -138,7 +138,7 @@ export default function LadderReport({
         Yields are solved from the stated price on each bond&apos;s remaining cash-flow schedule;
         withholding tax is applied to coupons only (infrastructure bonds are exempt), principal
         redemption untaxed. Accrued interest uses Actual/364 and coupon dates run in exact 182-day
-        basis Kenyan government bonds are built on. {NOT_ADVICE}
+        steps from issue, the basis Kenyan government bonds are built on. {NOT_ADVICE}
         {' '}
         {CASHFLOW_SOURCES} Bond data as of {dataAsOf()}.
       </footer>

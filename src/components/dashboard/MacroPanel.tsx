@@ -1,6 +1,7 @@
 'use client';
 
 import { useBondStore } from '@/stores/bondStore';
+import Reserve from '@/components/shared/Reserve';
 
 const LABELS: Record<string, string> = {
   CBR: 'Central Bank Rate',
@@ -26,7 +27,7 @@ const SHORT_LABELS: Record<string, string> = {
 
 export default function MacroPanel() {
   const macro = useBondStore((s) => s.macro);
-  if (!macro.length) return null;
+  if (!macro.length) return <Reserve height={84} />;
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">

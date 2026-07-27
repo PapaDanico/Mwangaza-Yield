@@ -6,6 +6,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { makePriceResolver } from '@/lib/prices';
 import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
+import Reserve from '@/components/shared/Reserve';
 import ratesFeed from '../../../public/data/rates.json';
 import type { Bond } from '@/types/bond';
 
@@ -51,7 +52,8 @@ export default function TopYields() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
-  if (!bonds.length) return null;
+  // Holds the space rather than popping in. See Reserve for the measurement.
+  if (!bonds.length) return <Reserve height={196} />;
 
   // Ranked from the price book like everywhere else. Left on the old par-only
   // fallback, the dashboard would name a "best yield" the calculator and ladder

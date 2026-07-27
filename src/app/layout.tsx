@@ -66,7 +66,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
         <Navbar />
-        <main id="main" className="mx-auto max-w-6xl px-4 pt-6">{children}</main>
+        {/* min-h keeps the footer where it lands.
+            Every short page — T-Bills, Calculator, Goals, Prices — measured
+            0.5201 CLS at 390px, and the shifting element was the FOOTER on all
+            four. Nothing was wrong with those pages: their content grows on
+            hydration, the document gets taller, and a footer that had been
+            sitting high on a short document drops half a viewport.
+            Reserving a viewport's worth of main means the footer starts below
+            the fold and stays there. */}
+        <main
+          id="main"
+          className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"
+        >
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

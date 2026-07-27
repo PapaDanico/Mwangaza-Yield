@@ -19,6 +19,7 @@ import {
 } from '@/lib/market-pulse';
 import Term from '@/components/shared/Term';
 import Explain from '@/components/shared/Explain';
+import Reserve from '@/components/shared/Reserve';
 
 export default function MarketPulse() {
   const auctionResults = useBondStore((s) => s.auctionResults);
@@ -32,7 +33,7 @@ export default function MarketPulse() {
     };
   }, [auctionResults, bonds]);
 
-  if (!buckets.some((b) => b.median !== null)) return null;
+  if (!buckets.some((b) => b.median !== null)) return <Reserve height={220} />;
 
   return (
     <div className="card">

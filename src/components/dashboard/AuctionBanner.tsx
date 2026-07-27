@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Radar, ArrowRight } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, effectiveAuctionStatus } from '@/lib/utils';
+import Reserve from '@/components/shared/Reserve';
 
 export default function AuctionBanner() {
   const auctions = useBondStore((s) => s.auctions);
@@ -12,7 +13,7 @@ export default function AuctionBanner() {
     .filter((a) => a.status === 'open' || a.status === 'upcoming')
     .sort((a, b) => a.offerCloseDate.localeCompare(b.offerCloseDate))[0];
 
-  if (!next) return null;
+  if (!next) return <Reserve height={92} />;
   const days = daysUntil(next.offerCloseDate);
 
   return (

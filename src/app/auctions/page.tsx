@@ -9,6 +9,7 @@ import { downloadICS } from '@/lib/ics';
 import { BidAssistant } from '@/components/auctions/BidAssistant';
 import TrackRecord from '@/components/auctions/TrackRecord';
 import DemandRecord from '@/components/auctions/DemandRecord';
+import Reserve from '@/components/shared/Reserve';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -94,6 +95,10 @@ export default function AuctionsPage() {
       </div>
 
       <div className="space-y-3">
+        {/* The list is the tallest thing on the page, so its arrival moved
+            everything below it — the demand card, the track record and the
+            bidding guide. Measured 0.77 CLS at 390px before this. */}
+        {!sorted.length && <Reserve height={900} />}
         {sorted.map(({ key, legs, lead }) => {
           const days = daysUntil(lead.offerCloseDate);
           const isOpen = expanded === key;

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-07-27T11:59:07.030717+00:00",
+  "generatedAt": "2026-07-27T12:11:01.886238+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -132,8 +132,8 @@
     ],
     "demand": {
       "auctions": 26,
-      "medianCoverRatio": 1.404,
-      "medianAcceptanceRate": 0.701
+      "medianCoverRatio": 1.516,
+      "medianAcceptanceRate": 0.727
     }
   }
 }

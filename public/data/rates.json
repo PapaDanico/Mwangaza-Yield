@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-07-25T20:50:04.707631+00:00",
+  "generatedAt": "2026-07-27T06:32:40.358535+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -59,7 +59,7 @@
     "inflation": {
       "value": 6.41,
       "unit": "% y/y",
-      "date": "2026-07-25",
+      "date": "2026-07-27",
       "source": "CBK (KNBS unavailable)"
     },
     "usdKes": {
@@ -100,7 +100,7 @@
         "auctions": 15,
         "medianClearingRate": 12.993,
         "lowClearingRate": 11.694,
-        "highClearingRate": 14.116,
+        "highClearingRate": 13.989,
         "latestAuctionDate": "2026-06-22"
       },
       {
@@ -110,7 +110,7 @@
         "auctions": 20,
         "medianClearingRate": 13.745,
         "lowClearingRate": 12.786,
-        "highClearingRate": 15.111,
+        "highClearingRate": 14.864,
         "latestAuctionDate": "2026-07-27"
       },
       {
@@ -126,8 +126,8 @@
     ],
     "demand": {
       "auctions": 26,
-      "medianCoverRatio": 1.404,
-      "medianAcceptanceRate": 0.701
+      "medianCoverRatio": 1.516,
+      "medianAcceptanceRate": 0.727
     }
   }
 }

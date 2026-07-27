@@ -68,6 +68,9 @@ UA = {
 TIMEOUT = (8, 45)
 MAX_PDFS = int(sys.argv[1]) if len(sys.argv) > 1 else 4
 
+# Enough to show the layout, few enough to leave the log readable.
+MAX_DATE_LINES = 14
+
 # The upload PATH is what identifies a prospectus. Naming is not identity —
 # believing it was is what made discover_prospectus.py read 506 results files
 # and report that prospectuses mention no coupon dates.
@@ -189,9 +192,27 @@ def probe(url: str) -> None:
                if f.endswith("Date") and not any(re.search(p, flat, re.I) for _, p in ps)]
     if missing:
         print(f"    date fields missing: {missing}")
+        # Capped, and the price/coupon ladder filtered out. The first version
+        # printed every date-bearing line, which on a prospectus means the
+        # thirty-row yield-to-price table and a full coupon schedule — about a
+        # hundred lines per document. That buried every probe that runs after
+        # this one in the same job, which is a real cost: a probe whose output
+        # drowns its neighbours has made the log unreadable for everyone.
+        shown = 0
         for line in text.splitlines():
-            if re.search(r"\d{1,2}[/\s.\-]\s*\w+[/\s.\-]\s*\d{2,4}", line) and len(line) < 160:
-                print(f"      | {' '.join(line.split())}")
+            flat_line = " ".join(line.split())
+            if not re.search(r"\d{1,2}[/\s.\-]\s*\w+[/\s.\-]\s*\d{2,4}", flat_line):
+                continue
+            if len(flat_line) > 160:
+                continue
+            # A row of "13.5000% 99.9108" pairs is the price ladder, not a date.
+            if re.match(r"^[\d.]+%\s", flat_line):
+                continue
+            print(f"      | {flat_line}")
+            shown += 1
+            if shown >= MAX_DATE_LINES:
+                print(f"      | ... capped at {MAX_DATE_LINES} lines")
+                break
 
 
 def main() -> None:

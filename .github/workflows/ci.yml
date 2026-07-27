@@ -193,14 +193,6 @@ jobs:
       # supply the calendar, and above all how many bonds one document sells —
       # cbk_parser.py reads only the first code, and the July 2026 prospectus
       # sells three.
-      # The IMF landing page is prose; the numbers live in a keyless JSON API,
-      # the same shape as the World Bank call this project already makes. This
-      # container's egress refuses imf.org at CONNECT, so the runner is the
-      # honest instrument — as it is for the Treasury.
-      - name: Probe IMF country data (API, not the landing page)
-        timeout-minutes: 5
-        working-directory: backend/scrapers
-        run: python probe_imf.py || echo "IMF probe failed — see output above"
       - name: Probe whether the auction calendar can be built from prospectuses
         timeout-minutes: 6
         working-directory: backend/scrapers
@@ -218,6 +210,14 @@ jobs:
       # separate fetches, each pulling more lines, never got back far enough,
       # while the probes that matter less were read every time. A diagnostic
       # nobody can retrieve is not a diagnostic.
+      # The IMF landing page is prose; the numbers live in a keyless JSON API,
+      # the same shape as the World Bank call this project already makes. This
+      # container's egress refuses imf.org at CONNECT, so the runner is the
+      # honest instrument — as it is for the Treasury.
+      - name: Probe IMF country data (API, not the landing page)
+        timeout-minutes: 5
+        working-directory: backend/scrapers
+        run: python probe_imf.py || echo "IMF probe failed — see output above"
       - name: Check data freshness
         working-directory: backend/scrapers
         run: python healthcheck.py

@@ -2,6 +2,7 @@ import { Gauge } from 'lucide-react';
 import auctionsData from '../../../public/data/auction-results.json';
 import type { AuctionPrint } from '@/types/bond';
 import { demandSummary, RECENT_AUCTIONS } from '@/lib/subscription';
+import { dispersionSummary } from '@/lib/bid-dispersion';
 import Explain from '@/components/shared/Explain';
 
 const PRINTS = auctionsData as unknown as AuctionPrint[];
@@ -21,6 +22,7 @@ const PRINTS = auctionsData as unknown as AuctionPrint[];
 export default function DemandRecord() {
   const s = demandSummary(PRINTS);
   if (!s || s.medianSubscription === null) return null;
+  const d = dispersionSummary(PRINTS);
 
   const x = (v: number) => `${v.toFixed(2)}x`;
   const rows = [...s.recent].reverse();
@@ -94,6 +96,20 @@ export default function DemandRecord() {
           : 'When bids run well above the amount offered, aggressive bids get rejected and the clearing rate settles lower. A non-competitive bid takes whatever that turns out to be.'}
       </p>
 
+      {d && (
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          Bidders also disagree about price, and the auction says by how much. Across the
+          last {d.points.length} sales the average rate asked across{' '}
+          <em>all</em> bids ran{' '}
+          <strong className="tabular-nums">{Math.round(d.recentMedianBps)} basis points</strong>{' '}
+          above the average the Treasury actually accepted, against{' '}
+          <strong className="tabular-nums">{Math.round(d.allTimeMedianBps)}</strong> over all{' '}
+          {d.sampleSize} on record. That gap is the tail of bidders who asked for more than
+          the government would pay and got nothing. A non-competitive bid sidesteps the
+          question entirely — it takes the accepted average, whatever it turns out to be.
+        </p>
+      )}
+
       <Explain label="How this is counted, and what it cannot tell you">
         One row per auction document, not per bond. The offered amount is an auction-level
         figure that CBK repeats against every bond in a multi-bond sale, so dividing one
@@ -104,6 +120,12 @@ export default function DemandRecord() {
         &ldquo;Taken&rdquo; is blank where CBK stated bids at face value and acceptance at cost.
         Those are one to two percent apart on a discount bond, and comparing across them
         would read a currency difference as a decision.
+        {' '}
+        The basis-point gap is the market weighted average rate minus the weighted average
+        of accepted bids, both published by CBK, on sales only — in a buyback the government
+        is the buyer and the gap runs the other way. It could not be measured before today:
+        the parser had been reading the market row into both fields, so every gap was exactly
+        zero in all 244 records that carried them.
         {' '}
         Median of the last {RECENT_AUCTIONS} auctions, shown beside the all-time median because
         one number alone is either too old or too thin. It is a record of demand that has

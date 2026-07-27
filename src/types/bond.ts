@@ -36,9 +36,15 @@ export interface AuctionSchedule {
   offerCloseDate: string;
   auctionDate: string;
   settlementDate: string;
-  amountOfferedKES: number;
+  // Null when the prospectus states no amount — CBK's current documents
+  // don't. Zero would be a claim that nothing is on offer, which is a
+  // different fact entirely, and formatCompactKES renders null as a dash.
+  amountOfferedKES: number | null;
   couponRate: number | null; // null = market determined
   tenorYears: number;
+  // Null when a scraped record could not read one; the code still names the
+  // bond. Present on bonds.json always, so calculations are unaffected.
+  maturityDate?: string | null;
   prospectusUrl: string;
   status: 'upcoming' | 'open' | 'closed' | 'settled';
 }

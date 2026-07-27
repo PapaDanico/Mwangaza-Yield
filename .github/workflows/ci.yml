@@ -80,6 +80,7 @@ jobs:
           python discover_treasury.py --selftest
           python test_cbr_history.py
           python test_auction_results.py
+          python test_calendar_parser.py
           python test_expand_universe.py
           python test_worldbank.py
           python test_check_archive.py

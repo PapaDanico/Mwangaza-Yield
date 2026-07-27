@@ -222,9 +222,27 @@ FIELDS = [
 # Without this the second reads as 273 million shillings of demand, and the
 # first as a fifth more money than was actually bid. Neither is a rounding
 # error; both are a different column entirely.
+#
+# The third is the one that had gone unnoticed longest, because it produced a
+# number that was plausible, in range, and wrong:
+#
+#     Market Weighted Average Rate (%)             13.839   <- across ALL bids
+#     Weighted Average Rate of Accepted Bids (%)   13.471   <- what buyers got
+#
+# "Market Weighted Average Rate" CONTAINS "Weighted Average Rate", so the
+# weightedAverageRate pattern matched the market row, and it is listed first.
+# Both fields ended up holding the market figure — identical in all 244 records
+# that carry both, which is not something a market does.
+#
+# The consequence reached the reader. clearingRate() returns weightedAverageRate
+# and the app calls it the rate buyers received; it was the average across every
+# bid including the rejected ones, which sits higher. 37 basis points apart on
+# the auction above. That figure feeds the yield histories, the bid assistant
+# and the public prediction ledger.
 FIELD_EXCLUSIONS = {
     "bidsReceivedKESM": re.compile(r"number\s*of\s*bids", re.I),
     "amountAcceptedKESM": re.compile(r"number\s*of\s*bids", re.I),
+    "weightedAverageRate": re.compile(r"market\s*weighted", re.I),
 }
 
 # Rows to reach for FIRST when a document offers more than one that fits.

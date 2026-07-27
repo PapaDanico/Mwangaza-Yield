@@ -548,6 +548,33 @@ def main():
     check("the weighted average still reads", pr.get("weightedAverageRate"), 13.471)
     check("price per 100 still reads, bracket or no bracket", pr.get("pricePer100"), 97.583)
 
+    print("the market rate and the accepted rate are different numbers")
+    # The fixture above omits a row the real document carries, which is why it
+    # passed while the parser was wrong:
+    #
+    #     Market Weighted Average Rate (%)             13.839
+    #     Weighted Average Rate of Accepted Bids (%)   13.471
+    #
+    # "Market Weighted Average Rate" CONTAINS "Weighted Average Rate", and
+    # weightedAverageRate is listed first in FIELDS, so it captured the market
+    # row. Both fields held 13.839 — identical in all 244 archived records that
+    # carry both, which is not something a market does. clearingRate() returns
+    # weightedAverageRate and the app calls it the rate buyers received; it was
+    # the average across every bid including the rejected ones, 37bp higher here.
+    #
+    # A fixture that leaves out the confusing row cannot catch a confusion.
+    both = group_lines([
+        w("TENOR", 40, 100), w("FXD1/2022/03", 280, 100),
+        *row(["Market", "Weighted", "Average", "Rate", "(%)"], "13.839", 220),
+        *row(["Weighted", "Average", "Rate", "of", "Accepted", "Bids", "(%)"], "13.471", 250),
+    ])
+    b_codes, b_centres = find_header(both, ["FXD1/2022/003"])
+    br = _rf(both, b_codes, b_centres, "2023-04-24", "u").get("FXD1/2022/003", {})
+    check("accepted rate is the accepted row", br.get("weightedAverageRate"), 13.471)
+    check("market rate is the market row", br.get("marketWeightedAverageRate"), 13.839)
+    if br.get("weightedAverageRate") == br.get("marketWeightedAverageRate"):
+        raise AssertionError("the two rates collapsed onto one value again")
+
     print("a file with no date in its name takes it from the document")
     from auction_results import auction_date_from_lines
     # The real heading from FXD_1_2009_15.pdf, whose filename carries no date at

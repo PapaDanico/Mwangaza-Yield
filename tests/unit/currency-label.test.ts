@@ -65,13 +65,24 @@ describe('currency labels', () => {
         // about the bug quotes "KES 9.2M", which the first version of this
         // test dutifully reported as a defect.
         if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
-        if (/currency:\s*'KES'|FX_USD_KES|USD\/KES|'en-KE'/.test(line)) return;
+        // Legitimate uses are REMOVED, not used to excuse the whole line.
+        //
+        // Skipping the line was the original form, and in the sister product
+        // it kept five labels invisible for weeks: every offender there read
+        // `KES {x.toLocaleString("en-KE")}`, so the locale on the right pardoned
+        // the label on the left. An exemption that clears a line cannot see a
+        // violation standing beside a legal use — which is where violations
+        // live, because nobody writes a currency label on an empty line.
+        const stripped = line
+          .replace(/\/\/.*$/, '')
+          .replace(/\b\w*currency:\s*'KES'/gi, '')
+          .replace(/FX_USD_KES|USD\/KES|'en-KE'/g, '');
         // `KES ${x}` and `KES {x}` as well as `KES 1,234`. The first pass of
         // this test only looked for a literal digit and therefore missed every
         // interesting case: formatCompactKES, EvidenceStrip's own `kes()`
         // helper, and four interpolated strings. A currency label followed by
         // a computed amount is exactly where the drift lives.
-        if (/\bKES (\d|\$?\{)/.test(line) || /\(KES\)/.test(line)) {
+        if (/\bKES (\d|\$?\{)/.test(stripped) || /\(KES\)/.test(stripped)) {
           offenders.push(`${file.replace(SRC, 'src')}:${i + 1}  ${line.trim().slice(0, 90)}`);
         }
       });

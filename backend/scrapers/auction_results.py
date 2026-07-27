@@ -108,7 +108,11 @@ TIME_BUDGET_SECONDS = int(os.environ.get("AUCTION_TIME_BUDGET", "600"))
 # them. Bump it whenever a change alters what gets EXTRACTED — a new field, a
 # different column rule, a changed guard — and leave it alone for changes that
 # only affect which files are fetched or how fast.
-PARSER_VERSION = 13
+# v14: the accepted-bids exclusion. Until this bump the fix in the code could
+# not reach the 244 stored records that hold the market rate in both fields —
+# the parser was correct and the archive was still wrong, which is the exact
+# failure this constant exists to prevent and which I nearly walked past.
+PARSER_VERSION = 14
 
 RESULT_HREF_RE = re.compile(r"historical_treasury_bond_results|RESULTS", re.I)
 # These PDFs carry TWO sections: "A." the auction just held, and "B. FORTHCOMING

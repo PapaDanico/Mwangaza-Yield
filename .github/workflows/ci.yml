@@ -186,6 +186,16 @@ jobs:
       - name: Probe prospectuses for coupon dates and day-count convention
         working-directory: backend/scrapers
         run: python discover_prospectus.py
+      # auctions.json is hand-maintained and nothing here writes it, which is
+      # why Auction Radar has one placeholder entry and the prediction ledger
+      # has never recorded a forecast. This asks whether the prospectuses can
+      # supply the calendar, and above all how many bonds one document sells —
+      # cbk_parser.py reads only the first code, and the July 2026 prospectus
+      # sells three.
+      - name: Probe whether the auction calendar can be built from prospectuses
+        timeout-minutes: 6
+        working-directory: backend/scrapers
+        run: python probe_calendar.py || echo "calendar probe failed — see output above"
       # About one file in ten from 2020-2023 parses to nothing. Three very
       # different causes are possible — a scan with no text layer (which the
       # no-OCR policy would settle), a header the parser looks for along the

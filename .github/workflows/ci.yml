@@ -65,9 +65,19 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r backend/requirements.txt
+      # The source probe's own offline self-test belongs HERE, in the job that
+      # runs on every push and pull request — not in validate-sources, which is
+      # workflow_dispatch only and therefore fires when someone remembers.
+      #
+      # It was written to exit non-zero precisely so a build could fail on it,
+      # and then nothing ran it. A check that cannot fail a build is the defect
+      # this repository spent the day removing from its data; it was sitting in
+      # its own tooling. The self-test needs no network, which is what makes it
+      # safe to run everywhere and pointless to gate behind a dispatch.
       - name: Test the scraper parsers
         working-directory: backend/scrapers
         run: |
+          python discover_treasury.py --selftest
           python test_cbr_history.py
           python test_auction_results.py
           python test_expand_universe.py

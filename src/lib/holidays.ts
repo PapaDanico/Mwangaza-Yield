@@ -39,6 +39,8 @@
  * environment cannot reach Kenya Law directly.
  */
 
+import { GAZETTED_HOLIDAYS, GAZETTE_CHECKED_THROUGH } from '../data/gazetted-holidays';
+
 export interface Holiday {
   /** ISO date, YYYY-MM-DD. */
   date: string;
@@ -67,6 +69,28 @@ const FIXED: readonly { month: number; day: number; name: string }[] = [
  * which is the point.
  */
 export const EID_IS_GAZETTED = ['Eid al-Fitr', 'Eid al-Adha'] as const;
+
+/**
+ * Whether the calendar can be trusted to be COMPLETE for a year.
+ *
+ * The computed holidays are always right. The gazetted ones are only present
+ * if somebody read the notices, so a year past the reading is a year missing
+ * up to two holidays with nothing to say so. This lets a surface admit that
+ * rather than implying completeness it does not have — the same instinct as
+ * refusing to compute Eid in the first place.
+ */
+export function gazetteCoverage(year: number): {
+  complete: boolean;
+  note: string | null;
+} {
+  if (year <= GAZETTE_CHECKED_THROUGH) return { complete: true, note: null };
+  return {
+    complete: false,
+    note:
+      `Eid dates for ${year} are set by gazette notice and are not yet recorded here, ` +
+      `so a coupon falling on one would show its scheduled date.`,
+  };
+}
 
 const iso = (d: Date): string => d.toISOString().slice(0, 10);
 
@@ -113,6 +137,16 @@ export function holidaysInYear(year: number): Holiday[] {
   const easter = easterSunday(year);
   out.push({ date: iso(addDays(easter, -2)), name: 'Good Friday' });
   out.push({ date: iso(addDays(easter, 1)), name: 'Easter Monday' });
+
+  /* The gazetted days, read from notices rather than computed.
+   *
+   * Eid and any one-off proclamation live in src/data/gazetted-holidays.ts,
+   * each with the notice reference attached. Merged here so every caller —
+   * isBusinessDay, paymentDay, both calendar exports — picks them up without
+   * knowing they came from a different place. */
+  for (const g of GAZETTED_HOLIDAYS) {
+    if (g.date.startsWith(String(year))) out.push({ date: g.date, name: g.name });
+  }
 
   return out.sort((a, b) => a.date.localeCompare(b.date));
 }

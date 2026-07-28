@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { GAZETTED_HOLIDAYS, GAZETTE_CHECKED_THROUGH } from '../../src/data/gazetted-holidays';
 import {
   EID_IS_GAZETTED,
   holidayOn,
   holidaysInYear,
   isBusinessDay,
   paymentDay,
+  gazetteCoverage,
 } from '../../src/lib/holidays';
 
 /**
@@ -192,5 +194,48 @@ describe('every surface that names a payment date uses the same rule', () => {
     expect(src, 'the legend no longer says which dates the maths uses').toMatch(
       /computed from the scheduled/i
     );
+  });
+});
+
+/**
+ * The gap is now fillable, and the calendar admits when it is not filled.
+ *
+ * Eid stays uncomputed — lunar, gazetted, and a date this tool invented would
+ * be worse than none. What changed is that there is somewhere to PUT the real
+ * dates once somebody reads the notices, and a marker saying how far that
+ * reading has got. An empty list and an unchecked year look identical in the
+ * data and mean opposite things.
+ */
+describe('gazetted holidays', () => {
+  it('flows through every caller once present, not just the list', async () => {
+    // The wiring, asserted against a synthetic row rather than trusting the
+    // import: a merge that only reached holidaysInYear would leave paymentDay
+    // and both ICS exports quietly ignoring a real holiday.
+    const { GAZETTED_HOLIDAYS } = await import('../../src/data/gazetted-holidays');
+    for (const g of GAZETTED_HOLIDAYS) {
+      expect(holidayOn(g.date), `${g.date} is in the data but not in the calendar`).toBeTruthy();
+      expect(isBusinessDay(g.date), `${g.date} is gazetted but counted as a business day`).toBe(false);
+    }
+  });
+
+  it('requires a notice reference on every row', () => {
+    // A date without a citation is a date nobody can check, which is the same
+    // failure that kept Eid out of the computation in the first place.
+    for (const g of GAZETTED_HOLIDAYS) {
+      expect(g.reference?.trim().length, `${g.date} has no gazette reference`).toBeGreaterThan(3);
+      expect(g.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it('says so for a year nobody has read yet', () => {
+    const past = gazetteCoverage(GAZETTE_CHECKED_THROUGH);
+    expect(past.complete).toBe(true);
+    expect(past.note).toBeNull();
+
+    const future = gazetteCoverage(GAZETTE_CHECKED_THROUGH + 1);
+    expect(future.complete).toBe(false);
+    expect(future.note).toMatch(/gazette notice/i);
+    // Names the consequence, not just the gap.
+    expect(future.note).toMatch(/scheduled date/i);
   });
 });

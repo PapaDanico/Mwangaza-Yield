@@ -67,8 +67,18 @@ export function ladderEmptyReason(params: {
   built: number;
 }): string | null {
   if (params.built > 0) return null;
-  if (!(params.amountKES > 0)) return null;
   const needed = Math.max(1, Math.round(params.rungs)) * STEP;
+  /* Zero is a reason, not an absence of one.
+   *
+   * This returned null when the amount was empty, so /ladder rendered
+   * "Nothing to allocate." and then stopped — a sentence with its explanation
+   * missing, on the one screen where the reader has done nothing wrong and
+   * simply has not typed yet. The school-fees planner hid its notice entirely
+   * and showed a table of zeroes instead, which is how this whole function
+   * came to exist. */
+  if (!(params.amountKES > 0)) {
+    return `Enter the amount you want to invest — at least Ksh ${needed.toLocaleString('en-KE')} for ${params.rungs} rungs.`;
+  }
   if (params.amountKES < needed) {
     return (
       `Ksh ${params.amountKES.toLocaleString('en-KE')} split ${params.rungs} ways is ` +

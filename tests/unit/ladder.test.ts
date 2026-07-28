@@ -112,9 +112,25 @@ describe('why a ladder came back empty', () => {
     expect(ladderEmptyReason({ amountKES: 3_000_000, rungs: 4, horizonYears: 10, built: 4 })).toBeNull();
   });
 
-  it('says nothing when there was no money to allocate', () => {
-    // Zero capital is the reader not having started, not a failure to explain.
-    expect(ladderEmptyReason({ amountKES: 0, rungs: 4, horizonYears: 10, built: 0 })).toBeNull();
+  /* Reversing an earlier call of mine, on the evidence of what it rendered.
+   *
+   * This used to assert null, reasoning that zero capital is the reader not
+   * having started rather than a failure to explain. That reasoning produced
+   * "Nothing to allocate." on /ladder followed by nothing at all — a sentence
+   * with its explanation missing, on the one screen where the reader has done
+   * nothing wrong.
+   *
+   * The answer is not to stay silent but to stop treating it as an error:
+   * zero gets guidance ("enter an amount, here is the minimum"), and the
+   * shortfall wording stays for amounts that were actually attempted. */
+  it('tells a reader who has typed nothing what to type', () => {
+    const msg = ladderEmptyReason({ amountKES: 0, rungs: 4, horizonYears: 10, built: 0 });
+    expect(msg).toBeTruthy();
+    expect(msg).toMatch(/enter the amount/i);
+    // The buildable minimum, so the guidance is actionable rather than vague.
+    expect(msg).toContain('200,000');
+    // Not phrased as a mistake — nothing has been attempted yet.
+    expect(msg).not.toMatch(/below the|too little|cannot/i);
   });
 
   it('names the shortfall, the per-rung figure and the amount that would work', () => {

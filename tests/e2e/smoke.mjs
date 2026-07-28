@@ -830,14 +830,19 @@ async function main() {
   console.log('\nthe printout says what the screen says');
   const agreeBefore = failures.length;
 
-  /* Columns the sheet carries and the screen does not.
+  /* Columns the sheet carries and the screen does not — now none.
    *
-   * Deliberately narrow and named. "Covered" is principal plus coupons for the
-   * year — both of which the screen already shows in their own columns, so the
-   * figure is present in substance and absent only as a total. Widening this
-   * list is how the guard would be defeated quietly, so anything added here
-   * should have to justify itself in this comment. */
-  const SHEET_ONLY_COLUMNS = ['Covered'];
+   * This held "Covered", the sheet's per-year total of principal plus coupons.
+   * The exception was honest but it was pointing at a gap: the screen showed
+   * the two parts and left the reader summing them to answer the only question
+   * the row exists for, while the printout answered it outright. Putting the
+   * column on the page fixed the product AND removed the exception, which is
+   * the better outcome — every exception here is a place the guard cannot see.
+   *
+   * Anything added back should have to justify itself in this comment, and
+   * should first be checked for being a missing feature rather than a
+   * legitimate difference. */
+  const SHEET_ONLY_COLUMNS = [];
 
   for (const objective of ['Financial independence', 'School fees', 'Passive income', 'Capital preservation']) {
     await go('/goals/');

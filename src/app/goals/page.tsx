@@ -577,6 +577,15 @@ export default function GoalsPage() {
                     <th className="px-4 py-3 text-right">Fees due</th>
                     <th className="px-4 py-3 text-right">Principal lands</th>
                     <th className="px-4 py-3 text-right">Coupons</th>
+                    {/* The column the reader is actually looking for.
+                      *
+                      * The printed sheet has carried "Covered" since it shipped
+                      * and the screen never did — so the page showed the two
+                      * parts (principal and coupons) and left the reader adding
+                      * them up to answer the only question the row is for: is
+                      * this year funded? The shortfall column answers it only
+                      * when the answer is no. */}
+                    <th className="px-4 py-3 text-right">Covered</th>
                     <th className="px-4 py-3 text-right">Shortfall</th>
                   </tr>
                 </thead>
@@ -589,6 +598,9 @@ export default function GoalsPage() {
                         {y.principalMaturingKES > 0 ? formatKES(y.principalMaturingKES) : '—'}
                       </td>
                       <td className="num px-4 py-3 text-right text-gold-700">{formatKES(y.couponsKES)}</td>
+                      <td className={cn('num px-4 py-3 text-right font-medium', y.shortfallKES > 0 ? 'text-ink' : 'text-mint-700')}>
+                        {formatKES(y.coveredKES)}
+                      </td>
                       <td className={cn('num px-4 py-3 text-right', y.shortfallKES > 0 ? 'text-red-600' : 'text-ink-faint')}>
                         {y.shortfallKES > 0 ? formatKES(y.shortfallKES) : '—'}
                       </td>

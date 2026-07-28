@@ -1,7 +1,7 @@
 /* Mwangaza Yield service worker — offline-first app shell + stale-while-revalidate data.
    Bump VERSION whenever this file changes: activation drops the old cache, which is the
    only mechanism reclaiming stale hashed assets from previous deploys. */
-const VERSION = 'mwangaza-v10';
+const VERSION = 'mwangaza-v11';
 const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/alerts/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -33,6 +33,18 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
+
+  /* Downloads are not part of the offline promise.
+   *
+   * The catch-all below is cache-first, so anything fetched once lives in the
+   * cache until the next VERSION bump. That is right for hashed chunks and
+   * wrong for a document somebody downloads once and opens in PowerPoint: the
+   * offline guarantee this app makes is about the tools working on a matatu,
+   * not about a partnership deck being available without signal.
+   *
+   * Small today — the deck is 132 KB — but the rule should not depend on that,
+   * because the next thing put in /partners/ might not be. */
+  if (url.pathname.startsWith('/partners/')) return;
 
   // Navigations: network-first so deploys reach users; cache is the offline fallback.
   if (e.request.mode === 'navigate') {

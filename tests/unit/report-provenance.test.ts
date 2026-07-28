@@ -176,3 +176,38 @@ describe('the exporter geometry the e2e fit check assumes', () => {
     expect(src).toMatch(/imgH = pageH \* contentAspect|imgW = pageH \* contentAspect/);
   });
 });
+
+/**
+ * One page means every list on the sheet is bounded.
+ *
+ * The header of GoalReport claims it renders "no unbounded lists", and that
+ * was true when the income planner picked a fixed three. It is not true of a
+ * reader's own selection: naming bonds by hand added a row each, and at
+ * twenty-one holdings the sheet measured 1123x1110 — no longer cropped, since
+ * the fit contains it, but placed at 212mm on a 297mm page with every figure
+ * shrunk to match. A few more and it crosses onto the portrait branch.
+ */
+describe('the printed sheet stays bounded', () => {
+  const src = read('src/components/report/GoalReport.tsx');
+
+  it('caps the holdings table', () => {
+    const cap = src.match(/const INCOME_ROWS = (\d+)/);
+    expect(cap, 'the income row cap was removed').toBeTruthy();
+    expect(src, 'the holdings table iterates the full list again').toMatch(
+      /income\.holdings\.slice\(0, INCOME_ROWS\)/
+    );
+    // Generous enough that the default six, and a doubling of it, print whole.
+    expect(Number(cap![1])).toBeGreaterThanOrEqual(12);
+    expect(Number(cap![1])).toBeLessThanOrEqual(20);
+  });
+
+  it('declares what it left out rather than truncating quietly', () => {
+    // A sheet that looks complete and is not is worse than either a long sheet
+    // or a short one — it is handed over as a record of what was bought.
+    expect(src).toMatch(/income\.holdings\.length > INCOME_ROWS/);
+    expect(src).toMatch(/not listed here/);
+    expect(src, 'the sheet does not say the totals still count them').toMatch(
+      /counts all of them/
+    );
+  });
+});

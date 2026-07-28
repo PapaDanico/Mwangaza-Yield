@@ -66,6 +66,11 @@ export default function GoalReport({
    * nothing to hover or click to find out. The single-letter row was saving
    * horizontal space on a landscape page that has it to spare. */
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  /* The bound that keeps the income sheet to one page. Twelve rows is twice
+   * the six the planner picks by default, and leaves the sheet comfortably
+   * inside landscape; anything beyond is counted in the totals and declared
+   * below the table rather than dropped. */
+  const INCOME_ROWS = 12;
   const hasContent = Boolean(fire || fees || income || preservation);
   if (!hasContent) return null;
 
@@ -258,7 +263,7 @@ export default function GoalReport({
               </tr>
             </thead>
             <tbody>
-              {income.holdings.map((h) => (
+              {income.holdings.slice(0, INCOME_ROWS).map((h) => (
                 <tr key={h.bond.isin} className="border-b border-sand-200 last:border-0">
                   <td className="py-1.5 font-medium">
                     {h.bond.issueCode}
@@ -275,6 +280,24 @@ export default function GoalReport({
               ))}
             </tbody>
           </table>
+          {/* The remainder, said out loud.
+            *
+            * The planner picks six by default, but a reader may name as many
+            * bonds as they like — and every one added another row to a sheet
+            * that has to stay one page. At twenty-one holdings it grew to
+            * 1123x1110, which no longer crops (the fit contains it) but shrinks
+            * to 212mm on a 297mm page and takes every figure down with it.
+            *
+            * Truncating silently would be worse than either: a sheet that
+            * looks complete and is not, handed to somebody as a record of what
+            * was bought. The totals above still count all of them. */}
+          {income.holdings.length > INCOME_ROWS && (
+            <p className="mt-1.5 text-[10px] text-ink-muted">
+              {income.holdings.length - INCOME_ROWS} further holding
+              {income.holdings.length - INCOME_ROWS === 1 ? '' : 's'} not listed here, of{' '}
+              {income.holdings.length}. Every figure above counts all of them.
+            </p>
+          )}
 
           </div>
 

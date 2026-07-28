@@ -5,7 +5,7 @@ import { CalendarPlus, Layers, Share2, X, RotateCcw } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance';
-import { buildLadder } from '@/lib/ladder';
+import { buildLadder , ladderEmptyReason } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
@@ -196,9 +196,16 @@ export default function LadderPage() {
           {plan.rungs.length === 0 ? (
             <div className="card py-12 text-center text-sm text-ink-muted">
               <Layers size={22} className="mx-auto mb-3 text-ink-faint" />
-              Nothing to allocate: either no listed bonds mature within {horizon} years, or{' '}
-              {formatKES(amount)} split {rungCount} ways falls below the bonds&apos; minimums.
-              Extend the horizon, raise the amount, or use fewer rungs.
+              {/* One wording, shared with the school-fees planner. This page
+                  explained itself well and that page did not; restating the
+                  sentence in two components is how they drift apart. */}
+              Nothing to allocate.{' '}
+              {ladderEmptyReason({
+                amountKES: amount,
+                rungs: rungCount,
+                horizonYears: horizon,
+                built: plan.rungs.length,
+              })}
             </div>
           ) : (
             <>

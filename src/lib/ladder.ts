@@ -39,6 +39,51 @@ export interface LadderPlan {
 
 const STEP = 50_000; // CBK face values move in Ksh 50k increments
 
+/** The step face values move in. Exported so the UI can explain itself. */
+export const LADDER_STEP_KES = STEP;
+
+/**
+ * Why a ladder came back empty, in words a reader can act on.
+ *
+ * A ladder splits the capital equally and floors each share to a Ksh 50,000
+ * face value, so anything below `rungs x 50,000` buys nothing at all. At the
+ * default four rungs that is Ksh 200,000 — and the amount field on /ladder
+ * offers a minimum of Ksh 100,000, which cannot build one.
+ *
+ * The Ladder Builder already said this. The school-fees planner did not, and
+ * its silence was the worse kind: it showed "Covered by plan: Ksh 0", a status
+ * of "Gap", and every fee year carrying a full shortfall. That reads as "bonds
+ * cannot fund your fees" when the truth is "no bonds were ever bought". A
+ * reader could reasonably conclude the strategy fails when what failed was the
+ * amount.
+ *
+ * Returns null when there is a real ladder or nothing to explain, so a caller
+ * can render it or not on the strength of the return value alone.
+ */
+export function ladderEmptyReason(params: {
+  amountKES: number;
+  rungs: number;
+  horizonYears: number;
+  built: number;
+}): string | null {
+  if (params.built > 0) return null;
+  if (!(params.amountKES > 0)) return null;
+  const needed = Math.max(1, Math.round(params.rungs)) * STEP;
+  if (params.amountKES < needed) {
+    return (
+      `Ksh ${params.amountKES.toLocaleString('en-KE')} split ${params.rungs} ways is ` +
+      `Ksh ${Math.floor(params.amountKES / params.rungs).toLocaleString('en-KE')} a rung, ` +
+      `below the Ksh ${STEP.toLocaleString('en-KE')} step bonds are issued in. ` +
+      `Use fewer rungs, or invest at least Ksh ${needed.toLocaleString('en-KE')}.`
+    );
+  }
+  return (
+    `No listed bond matures inside the next ${params.horizonYears} ` +
+    `year${params.horizonYears === 1 ? '' : 's'}, so there is nothing to build a rung from. ` +
+    `Extend the horizon.`
+  );
+}
+
 /** A bond with its resolved price and net yield — what both selection paths produce. */
 interface PricedBond {
   bond: Bond;

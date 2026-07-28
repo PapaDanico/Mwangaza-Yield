@@ -10,6 +10,7 @@ import {
   GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
+import { ladderEmptyReason } from '@/lib/ladder';
 import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
@@ -171,6 +172,19 @@ export default function GoalsPage() {
     () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins, feeEscalation / 100),
     [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins, feeEscalation]
   );
+  /* Why the fee ladder is empty, if it is. Same helper the Ladder Builder
+     uses, so the two pages cannot drift into different explanations. */
+  const feeLadderProblem = useMemo(
+    () =>
+      ladderEmptyReason({
+        amountKES: feeCapital,
+        rungs: Math.min(6, yearsOfFees),
+        horizonYears: Math.max(1, firstFeeYear + yearsOfFees - 1 - new Date().getFullYear() + 1),
+        built: fees.ladder.rungs.length,
+      }),
+    [feeCapital, yearsOfFees, firstFeeYear, fees.ladder.rungs.length]
+  );
+
   const income = useMemo(
     () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
     [bonds, secondary, userPrices, incomeCapital, incomeIsins]
@@ -507,6 +521,21 @@ export default function GoalsPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Said before the figures, not after.
+                Below the buildable minimum this planner used to report
+                "Covered by plan: Ksh 0", a status of "Gap", and every fee year
+                carrying its full shortfall — which reads as "bonds cannot fund
+                your fees" when the truth is that no bond was ever bought. The
+                numbers were all correct and the conclusion they invited was
+                not. The Ladder Builder has always explained this; the wording
+                is now shared rather than restated. */}
+            {feeLadderProblem && (
+              <p className="card border-gold-500 bg-gold-50 text-sm text-ink-muted">
+                <strong className="text-ink">No ladder could be built.</strong>{' '}
+                {feeLadderProblem} The fees below are what you would owe; the shortfall
+                is the whole of it because nothing has been bought yet.
+              </p>
+            )}
             <div className="grid grid-cols-3 gap-3">
               <Stat label="Total fees" value={formatCompactKES(fees.totalFeesKES)} />
               <Stat label="Covered by plan" value={formatCompactKES(fees.totalCoveredKES)} accent="text-mint-700" />

@@ -67,6 +67,11 @@ const KNOWN_GOOD = new Set([
   'budget@treasury.go.ke',
   'dataservices@nse.co.ke',
   'info@mwangazadigital.org',
+  // The sister product's public contact. The partnership deck this repository
+  // ships names it, and tests/unit/partnership-deck.test.ts checks the deck
+  // against it — so the address has to be nameable here. Organisational, not
+  // a person, same as the others above.
+  'hello@jipangefinance.org',
   'sample@example.com',
   // Invented placeholders in the DhowCSD parser fixtures. Structurally valid
   // so the parser is genuinely exercised; deliberately all-zero so no real

@@ -29,6 +29,7 @@ const COLUMNS = [
       { href: '/sources/', label: 'Data sources' },
       { href: '/faq/', label: 'FAQs' },
       { href: '/support/', label: 'Support' },
+      { href: '/licensing/', label: 'How this is funded' },
     ],
   },
   {

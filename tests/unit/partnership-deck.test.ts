@@ -9,11 +9,13 @@ import { unzipSync, strFromU8 } from 'fflate';
  * cannot use, because Mwangaza has no idea how many calculators JiPange
  * ships. So the copy here sat unchecked and kept the identical two defects:
  * slides 10 and 19 saying "18 calculators" while four other slides said 25,
- * and a closing slide reading
+ * and a closing slide whose contact line still carried a bracketed
+ * "[placeholder — confirm address]" beside an address nobody had confirmed
+ * existed — on a file offered for download from the licensing page.
  *
- *     partners@jipangefinance.org [placeholder — confirm address]
- *
- * on a file offered for download from the licensing page.
+ * That address is deliberately not quoted here. It does not exist, and
+ * no-personal-data.test.ts allowlists benign addresses one value at a time
+ * precisely so a made-up one cannot be waved through by being written down.
  *
  * WHY THIS ASSERTS INTERNAL CONSISTENCY RATHER THAN A NUMBER
  * ---------------------------------------------------------

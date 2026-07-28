@@ -26,7 +26,7 @@
     "auctionDate": "2026-07-22",
     "settlementDate": "2026-07-27",
     "amountOfferedKES": null,
-    "status": "closed",
+    "status": "settled",
     "bondName": "20-Year Fixed Coupon Bond (re-open)",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1604163180_JULY 2026 FXD1-2019-020 AND FXD1-2022-025 DATED  27-07-2026.pdf"
   },
@@ -42,7 +42,7 @@
     "auctionDate": "2026-07-22",
     "settlementDate": "2026-07-27",
     "amountOfferedKES": null,
-    "status": "closed",
+    "status": "settled",
     "bondName": "25-Year Fixed Coupon Bond (re-open)",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1604163180_JULY 2026 FXD1-2019-020 AND FXD1-2022-025 DATED  27-07-2026.pdf"
   },

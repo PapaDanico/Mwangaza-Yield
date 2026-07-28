@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, couponMonths,
+  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, couponMonths,
 } from '../../src/lib/goals';
 import type { Bond, TBill } from '../../src/types/bond';
 
@@ -285,5 +285,132 @@ describe('school fees, escalated', () => {
       const plan = planSchoolFees(universe, [], 1_000_000, 2030, 2, 100_000, ASOF, [], [], bad);
       expect(plan.years.every((y) => y.feeKES === 100_000)).toBe(true);
     }
+  });
+});
+
+/**
+ * Every month, or an honest count of the months it misses.
+ *
+ * Kenyan government bonds pay semi-annually, so one bond covers exactly two
+ * months of the year, six apart. The passive-income planner was capped at
+ * three holdings and therefore at six months — while the page promised "a
+ * payout most months of the year" and "income arrives evenly".
+ *
+ * All six month-pairs (Jan/Jul through Jun/Dec) exist in the live universe, so
+ * twelve-month coverage was always reachable. Only the cap stood in the way.
+ */
+describe('smoothing income across the year', () => {
+  const many = [
+    mk('A/JAN', '2022-01-10', '2032-01-10', 13),
+    mk('B/FEB', '2022-02-10', '2033-02-10', 13),
+    mk('C/MAR', '2022-03-10', '2034-03-10', 13),
+    mk('D/APR', '2022-04-10', '2035-04-10', 13),
+    mk('E/MAY', '2022-05-10', '2036-05-10', 13),
+    mk('F/JUN', '2022-06-10', '2037-06-10', 13),
+  ];
+
+  it('covers two months per bond, six apart', () => {
+    // The structural fact everything below follows from.
+    for (const b of many) {
+      const m = couponMonths(b);
+      expect(m).toHaveLength(2);
+      expect(Math.abs(m[1] - m[0])).toBe(6);
+    }
+  });
+
+  it('reaches every month once six bonds are allowed', () => {
+    const plan = planPassiveIncome(many, [], 3_000_000, 6, []);
+    expect(plan.monthsPaid).toBe(12);
+    expect(plan.monthlyIncomeKES.filter((v) => v === 0)).toHaveLength(0);
+  });
+
+  it('cannot reach more than six months with three, however good the bonds', () => {
+    // The cap was the whole constraint — not the market, not the yields.
+    const plan = planPassiveIncome(many, [], 3_000_000, 3, []);
+    expect(plan.monthsPaid).toBeLessThanOrEqual(6);
+  });
+
+  it('buys coverage with yield, which is the trade the reader is making', () => {
+    // Filling a gap month means taking the best bond that pays IN it rather
+    // than the best bond outright. If this ever inverts, the greedy pick has
+    // stopped prioritising months and the page's promise is no longer true.
+    const three = planPassiveIncome(many, [], 3_000_000, 3, []);
+    const six = planPassiveIncome(many, [], 3_000_000, 6, []);
+    expect(six.monthsPaid).toBeGreaterThan(three.monthsPaid);
+    expect(six.totalNetAnnualKES).toBeLessThanOrEqual(three.totalNetAnnualKES);
+  });
+
+  it('gains nothing from a seventh holding', () => {
+    // Six pairs exist and no more, so a seventh bond can only duplicate a
+    // month it already has. The control stops at six for this reason.
+    const six = planPassiveIncome(many, [], 3_000_000, 6, []);
+    const seven = planPassiveIncome(many, [], 3_000_000, 7, []);
+    expect(seven.monthsPaid).toBe(six.monthsPaid);
+  });
+
+  /**
+   * The price of being paid every month, shown before it is paid.
+   *
+   * The options are the reader's whole decision, and `givesUpKES` is the only
+   * number on the card they cannot work out for themselves. If it is wrong,
+   * the page is quietly misstating the cost of a choice it is recommending —
+   * which is worse than not offering the choice at all.
+   */
+  describe('the options put in front of the reader', () => {
+    it('offers two through six, and no more', () => {
+      const opts = priceIncomeSpreads(many, [], 3_000_000, []);
+      expect(opts.map((o) => o.holdings)).toEqual([2, 3, 4, 5, 6]);
+    });
+
+    it('gives up nothing on exactly the option that earns the most', () => {
+      const opts = priceIncomeSpreads(many, [], 3_000_000, []);
+      const best = Math.max(...opts.map((o) => o.plan.totalNetAnnualKES));
+      const free = opts.filter((o) => o.givesUpKES === 0);
+      expect(free.length).toBeGreaterThan(0);
+      for (const o of free) expect(o.plan.totalNetAnnualKES).toBe(best);
+    });
+
+    it('reports no cost when the bonds yield alike', () => {
+      // `many` is six identical 13% bonds, so every spread earns the same and
+      // smoothing really is free. The page should say so rather than invent a
+      // sacrifice to make the recommendation feel considered.
+      for (const o of priceIncomeSpreads(many, [], 3_000_000, [])) {
+        expect(o.givesUpKES).toBe(0);
+      }
+    });
+
+    it('states the shortfall against the best, to the shilling', () => {
+      // The mutation check, and it needs a universe where the yields differ:
+      // a givesUpKES hard-coded to 0 passes every other assertion here and
+      // tells every reader that smoothing is free.
+      const varied = [
+        mk('A/JAN', '2022-01-10', '2032-01-10', 18),
+        ...many.slice(1).map((b) => ({ ...b, couponRate: 10, ytmGross: 10 })),
+      ];
+      const opts = priceIncomeSpreads(varied, [], 3_000_000, []);
+      const best = Math.max(...opts.map((o) => o.plan.totalNetAnnualKES));
+      for (const o of opts) {
+        expect(o.givesUpKES).toBe(best - o.plan.totalNetAnnualKES);
+      }
+      const widest = opts.find((o) => o.holdings === 6)!;
+      expect(widest.plan.monthsPaid).toBe(12);
+      expect(widest.givesUpKES, 'twelve months came at no cost').toBeGreaterThan(0);
+    });
+
+    it('prices each option as the plan the reader would actually get', () => {
+      // The card shows one plan's figures and clicking it selects another
+      // unless these agree.
+      for (const o of priceIncomeSpreads(many, [], 3_000_000, [])) {
+        const actual = planPassiveIncome(many, [], 3_000_000, o.holdings, [], []);
+        expect(o.plan.monthsPaid).toBe(actual.monthsPaid);
+        expect(o.plan.totalNetAnnualKES).toBe(actual.totalNetAnnualKES);
+      }
+    });
+
+    it('offers nothing once the reader has named their own bonds', () => {
+      // Their selection is used as given; alternatives from a greedy pick
+      // would be an invitation to discard it.
+      expect(priceIncomeSpreads(many, [], 3_000_000, [], ['A/JAN', 'B/FEB'])).toEqual([]);
+    });
   });
 });

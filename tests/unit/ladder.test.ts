@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildLadder } from '../../src/lib/ladder';
+import { buildLadder, ladderEmptyReason, LADDER_STEP_KES } from '../../src/lib/ladder';
 import { buildICS } from '../../src/lib/ics';
 import type { Bond } from '../../src/types/bond';
 
@@ -91,5 +91,73 @@ describe('buildICS', () => {
     expect(ics).toContain('SUMMARY:FXD1/2022/10 coupon');
     expect(ics).toContain('TRIGGER:-P1D');
     expect(ics).toContain('END:VCALENDAR');
+  });
+});
+
+/**
+ * An empty ladder has to say why.
+ *
+ * A ladder floors each rung to a Ksh 50,000 face value, so anything below
+ * `rungs x 50,000` buys nothing — at the default four rungs that is Ksh
+ * 200,000, while /ladder's amount field offers a minimum of Ksh 100,000.
+ *
+ * The Ladder Builder always explained this. The school-fees planner did not,
+ * and its silence was the more damaging kind: it reported "Covered by plan:
+ * Ksh 0", a status of "Gap", and every fee year carrying a full shortfall.
+ * Every figure was correct and the conclusion they invited — that bonds cannot
+ * fund school fees — was false. Nothing had been bought.
+ */
+describe('why a ladder came back empty', () => {
+  it('says nothing when a ladder was actually built', () => {
+    expect(ladderEmptyReason({ amountKES: 3_000_000, rungs: 4, horizonYears: 10, built: 4 })).toBeNull();
+  });
+
+  it('says nothing when there was no money to allocate', () => {
+    // Zero capital is the reader not having started, not a failure to explain.
+    expect(ladderEmptyReason({ amountKES: 0, rungs: 4, horizonYears: 10, built: 0 })).toBeNull();
+  });
+
+  it('names the shortfall, the per-rung figure and the amount that would work', () => {
+    const why = ladderEmptyReason({ amountKES: 100_000, rungs: 4, horizonYears: 10, built: 0 })!;
+    expect(why).toContain('100,000');
+    expect(why).toContain('25,000');   // what each rung would get
+    expect(why).toContain('50,000');   // the step it falls below
+    expect(why).toContain('200,000');  // what would actually build
+    expect(why).toMatch(/fewer rungs/);
+  });
+
+  it('scales the advice with the rung count', () => {
+    /* Two rungs need 100,000; six need 300,000. The advice must track that
+     * rather than quoting one fixed minimum.
+     *
+     * The first line of this originally read `.toBeNull ;` — a property
+     * reference with no call, so it asserted nothing at all. It would also
+     * have been wrong if called: at 150,000 across two rungs the money IS
+     * sufficient, so the helper falls through to the horizon explanation
+     * rather than returning null. A check that cannot fail, guarding a claim
+     * that was false. */
+    const two = ladderEmptyReason({ amountKES: 150_000, rungs: 2, horizonYears: 10, built: 0 })!;
+    expect(two, 'two rungs at 150,000 is affordable — the money is not the problem').toMatch(
+      /Extend the horizon/
+    );
+
+    const six = ladderEmptyReason({ amountKES: 150_000, rungs: 6, horizonYears: 10, built: 0 })!;
+    expect(six).toContain('300,000');
+    expect(six).toMatch(/fewer rungs/);
+  });
+
+  it('blames the horizon when the money is sufficient but no paper matures', () => {
+    const why = ladderEmptyReason({ amountKES: 5_000_000, rungs: 4, horizonYears: 1, built: 0 })!;
+    expect(why).toMatch(/matures inside the next 1 year\b/);
+    expect(why).toMatch(/Extend the horizon/);
+    expect(why).not.toMatch(/fewer rungs/);
+  });
+
+  it('agrees with the step the engine actually uses', () => {
+    // If STEP ever changes, the sentence must change with it rather than
+    // quoting a number the splitter no longer honours.
+    expect(LADDER_STEP_KES).toBe(50_000);
+    const why = ladderEmptyReason({ amountKES: 10_000, rungs: 1, horizonYears: 10, built: 0 })!;
+    expect(why).toContain(LADDER_STEP_KES.toLocaleString('en-KE'));
   });
 });

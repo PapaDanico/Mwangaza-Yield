@@ -7,9 +7,10 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice } from '@/components/shared/PriceProvenance';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
+  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
+import { ladderEmptyReason } from '@/lib/ladder';
 import { cn, formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import { usePlanStore } from '@/stores/planStore';
 import { makePlan, suggestPlanName, type PlanInputs } from '@/lib/plans';
@@ -80,6 +81,20 @@ export default function GoalsPage() {
   const [feeEscalation, setFeeEscalation] = useState(8);
   // Income / preservation
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
+  /* Six, not three.
+   *
+   * Kenyan government bonds pay semi-annually, so each one covers exactly two
+   * months of the year, six apart. Three holdings can therefore cover six
+   * months and no more — which is what this planner delivered while promising
+   * "a payout most months of the year" and "income arrives evenly".
+   *
+   * Every one of the six possible month-pairs (Jan/Jul through Jun/Dec) exists
+   * in the live universe, with seven to thirteen bonds in each, so twelve-month
+   * coverage was always reachable. Only the cap stood in the way.
+   *
+   * Six is also the ceiling worth having: a seventh holding adds no month and
+   * dilutes the yield further. The control stops there deliberately. */
+  const [incomeHoldings, setIncomeHoldings] = useState(6);
   const [parkCapital, setParkCapital] = useState(500_000);
   /**
    * Bonds the reader has chosen, per objective.
@@ -171,8 +186,29 @@ export default function GoalsPage() {
     () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins, feeEscalation / 100),
     [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins, feeEscalation]
   );
+  /* Why the fee ladder is empty, if it is. Same helper the Ladder Builder
+     uses, so the two pages cannot drift into different explanations. */
+  const feeLadderProblem = useMemo(
+    () =>
+      ladderEmptyReason({
+        amountKES: feeCapital,
+        rungs: Math.min(6, yearsOfFees),
+        horizonYears: Math.max(1, firstFeeYear + yearsOfFees - 1 - new Date().getFullYear() + 1),
+        built: fees.ladder.rungs.length,
+      }),
+    [feeCapital, yearsOfFees, firstFeeYear, fees.ladder.rungs.length]
+  );
+
   const income = useMemo(
-    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
+    () => planPassiveIncome(bonds, secondary, incomeCapital, incomeHoldings, userPrices, incomeIsins),
+    [bonds, secondary, userPrices, incomeCapital, incomeHoldings, incomeIsins]
+  );
+
+  // The spread options and their cost. Lives in lib/goals so the trade-off
+  // figure — the whole point of the control below — is under test rather than
+  // computed inside a component nothing can reach.
+  const incomeOptions = useMemo(
+    () => priceIncomeSpreads(bonds, secondary, incomeCapital, userPrices, incomeIsins),
     [bonds, secondary, userPrices, incomeCapital, incomeIsins]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
@@ -208,6 +244,7 @@ export default function GoalsPage() {
         fire={goal === 'fire' ? fire : null}
         fees={goal === 'school-fees' ? fees : null}
         income={goal === 'passive-income' ? income : null}
+        incomeOptions={goal === 'passive-income' ? incomeOptions : undefined}
         preservation={goal === 'capital-preservation' ? park : null}
       />
 
@@ -507,6 +544,21 @@ export default function GoalsPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Said before the figures, not after.
+                Below the buildable minimum this planner used to report
+                "Covered by plan: Ksh 0", a status of "Gap", and every fee year
+                carrying its full shortfall — which reads as "bonds cannot fund
+                your fees" when the truth is that no bond was ever bought. The
+                numbers were all correct and the conclusion they invited was
+                not. The Ladder Builder has always explained this; the wording
+                is now shared rather than restated. */}
+            {feeLadderProblem && (
+              <p className="card border-gold-500 bg-gold-50 text-sm text-ink-muted">
+                <strong className="text-ink">No ladder could be built.</strong>{' '}
+                {feeLadderProblem} The fees below are what you would owe; the shortfall
+                is the whole of it because nothing has been bought yet.
+              </p>
+            )}
             <div className="grid grid-cols-3 gap-3">
               <Stat label="Total fees" value={formatCompactKES(fees.totalFeesKES)} />
               <Stat label="Covered by plan" value={formatCompactKES(fees.totalCoveredKES)} accent="text-mint-700" />
@@ -595,14 +647,104 @@ export default function GoalsPage() {
         <div className="no-print space-y-4">
           <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
             <div className="card h-fit space-y-4">
-              <Field label="Capital to invest" hint="Split across up to three bonds with complementary coupon months.">
+              <Field label="Capital to invest" hint="Split across bonds with complementary coupon months.">
                 <input type="number" step={100_000} value={incomeCapital}
                   onChange={(e) => setIncomeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
               </Field>
+              {incomeOptions.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-ink">How evenly do you want it?</p>
+                  <p className="mt-0.5 text-xs text-ink-faint">
+                    Each bond pays twice a year, six months apart, so it takes six of them to
+                    reach every month. Filling a gap month means taking the best bond that pays
+                    in it rather than the best bond outright — which is what the income column
+                    costs.
+                  </p>
+                  <div className="mt-3 space-y-1.5" role="radiogroup" aria-label="Spread across bonds">
+                    {incomeOptions.map((o) => {
+                      const active = o.holdings === incomeHoldings;
+                      return (
+                        <button
+                          key={o.holdings}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => setIncomeHoldings(o.holdings)}
+                          className={cn(
+                            'flex w-full items-baseline justify-between gap-3 rounded-lg border px-3 py-2 text-left transition',
+                            active
+                              ? 'border-gold-500 bg-gold-50'
+                              : 'border-sand-300 hover:border-gold-400'
+                          )}
+                        >
+                          <span className="text-sm text-ink">
+                            <span className="num font-semibold">{o.plan.monthsPaid} of 12</span>{' '}
+                            <span className="text-ink-muted">
+                              month{o.plan.monthsPaid === 1 ? '' : 's'} · {o.holdings} bonds
+                            </span>
+                          </span>
+                          <span className="num shrink-0 text-right text-xs">
+                            <span className="block font-semibold text-ink">
+                              {formatCompactKES(o.plan.totalNetAnnualKES)}/yr
+                            </span>
+                            <span
+                              className={cn(
+                                'block',
+                                o.givesUpKES > 0 ? 'text-gold-700' : 'text-mint-700'
+                              )}
+                            >
+                              {o.givesUpKES > 0
+                                ? `−${formatCompactKES(o.givesUpKES)}`
+                                : 'most income'}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="Average monthly" value={formatCompactKES(income.averageMonthlyKES)} accent="text-mint-700" />
+                {/*
+                  "In the months it pays", not a flat annual average.
+                  This read "Average monthly" and showed the annual figure
+                  divided by twelve — while six of those twelve months paid
+                  nothing at all. Somebody budgeting on it would have been
+                  wrong half the year, in the direction that hurts.
+                */}
+                <Stat
+                  label={income.monthsPaid === 12 ? 'Every month' : 'In the months it pays'}
+                  value={formatCompactKES(
+                    income.monthsPaid > 0 ? income.totalNetAnnualKES / income.monthsPaid : 0
+                  )}
+                  accent="text-mint-700"
+                />
                 <Stat label="Months paid" value={`${income.monthsPaid} of 12`} accent="text-gold-700" />
               </div>
+              {/* The gap, and what closing it would cost — in shillings, since the
+                * options above have already computed it. "It costs some yield" was
+                * true and useless: a reader cannot weigh a vague cost against four
+                * empty months. Falls back to the general explanation only when the
+                * reader has named their own bonds and there are no options to price. */}
+              {income.monthsPaid < 12 && (
+                <p className="text-xs text-ink-muted">
+                  {12 - income.monthsPaid} month{12 - income.monthsPaid === 1 ? '' : 's'} of the year
+                  bring nothing.{' '}
+                  {(() => {
+                    const full = incomeOptions.find((o) => o.plan.monthsPaid === 12);
+                    if (!full) {
+                      return 'Spreading across six bonds covers all twelve, at the cost of some yield — filling a gap month means taking the best bond that pays in it rather than the best bond outright.';
+                    }
+                    const extra = full.givesUpKES - (incomeOptions.find((o) => o.holdings === incomeHoldings)?.givesUpKES ?? 0);
+                    /* The reason is stated once, above the options, where the
+                     * choice is actually made. Repeating it here made the same
+                     * clause appear three times in one section. */
+                    return extra > 0
+                      ? `Covering all twelve costs ${formatKES(extra)} a year from here.`
+                      : 'Covering all twelve costs nothing from here.';
+                  })()}
+                </p>
+              )}
             </div>
 
             <div className="card">
@@ -622,37 +764,46 @@ export default function GoalsPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
 
-          <div className="card overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
-                  <th className="px-4 py-3">Bond</th>
-                  <th className="px-4 py-3 text-right">Face value</th>
-                  <th className="px-4 py-3 text-right">Net coupon</th>
-                  <th className="px-4 py-3 text-right">Pays in</th>
-                </tr>
-              </thead>
-              <tbody>
-                {income.holdings.map((h) => (
-                  <tr key={h.bond.isin} className="border-b border-sand-300/60 last:border-0">
-                    <td className="px-4 py-3 font-medium text-ink">
-                      {h.bond.issueCode}
-                      {h.bond.taxExempt && (
-                        <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
-                      )}
-                    </td>
-                    <td className="num px-4 py-3 text-right text-ink">{formatKES(h.faceValueKES)}</td>
-                    <td className="num px-4 py-3 text-right text-mint-700">{formatKES(h.netCouponKES)}</td>
-                    <td className="num px-4 py-3 text-right text-ink-soft">
-                      {h.months.map((m) => MONTHS[m]).join(' · ')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              {/* The bars and the bonds that cause them, in one card.
+                *
+                * These were two cards with the whole height of the input column
+                * between them: the chart is 96px tall in a cell that stretched to
+                * match five option rows, so roughly half the section was empty
+                * space, and the reader had to scroll past it to learn WHICH bond
+                * put income in August. Same column, directly beneath — the chart
+                * answers "when", the table answers "from what", and the eye moves
+                * between them without leaving the card. */}
+              <div className="-mx-5 mt-5 overflow-x-auto border-t border-sand-300 px-0 pt-1">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-ink-muted">
+                      <th className="px-5 py-2 font-medium">Bond</th>
+                      <th className="px-3 py-2 text-right font-medium">Face value</th>
+                      <th className="px-3 py-2 text-right font-medium">Net coupon</th>
+                      <th className="px-5 py-2 text-right font-medium">Pays in</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {income.holdings.map((h) => (
+                      <tr key={h.bond.isin} className="border-t border-sand-300/60">
+                        <td className="px-5 py-2.5 font-medium text-ink">
+                          {h.bond.issueCode}
+                          {h.bond.taxExempt && (
+                            <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
+                          )}
+                        </td>
+                        <td className="num px-3 py-2.5 text-right text-ink">{formatKES(h.faceValueKES)}</td>
+                        <td className="num px-3 py-2.5 text-right text-mint-700">{formatKES(h.netCouponKES)}</td>
+                        <td className="num px-5 py-2.5 text-right text-ink-soft">
+                          {h.months.map((m) => MONTHS[m]).join(' · ')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <div className="card">
@@ -674,10 +825,9 @@ export default function GoalsPage() {
           </div>
 
           <p className="text-[11px] leading-relaxed text-ink-faint">
-            Bonds are chosen to add new payout months first and yield second — six paying months
-            beats a marginally higher coupon arriving twice a year when the money is meant to live
-            on. Kenyan coupons are semi-annual, so twelve paying months needs six complementary
-            issues.
+            Bonds are chosen to add new payout months first and yield second, which is why the
+            options above cost income as they widen. Figures are net of the 10% or 15%
+            withholding rate for each issue; infrastructure bonds are exempt.
           </p>
         </div>
       )}

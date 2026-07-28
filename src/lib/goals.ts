@@ -399,6 +399,57 @@ export function planPassiveIncome(
   };
 }
 
+/* ------------------------------------------------ The smoothing trade-off */
+
+export interface IncomeSpreadOption {
+  /** How many bonds the capital is divided between. */
+  holdings: number;
+  plan: IncomePlan;
+  /** Annual income forgone against the best available at any spread. */
+  givesUpKES: number;
+}
+
+/**
+ * Every spread priced, so the trade is a choice rather than a discovery.
+ *
+ * Smoothing income is not free: spreading the same capital over more bonds
+ * means buying the bond that pays in a missing month rather than the bond that
+ * pays the most, and the reader is entitled to see what that costs before they
+ * choose it. A slider hides the cost — you drag, and the number moves. Pricing
+ * every spread up front puts the question where it belongs: not "how many
+ * bonds" but "how much income am I giving up to be paid every month".
+ *
+ * Two is the floor because one bond pays twice a year and there is no
+ * spreading to reason about. Six is the ceiling because Kenyan bonds pay
+ * semi-annually, so a bond covers a pair of months six apart and only six such
+ * pairs exist — a seventh holding can do nothing but duplicate a month it
+ * already has and thin the yield to do it.
+ *
+ * Returns [] when the reader has named their own bonds. The plan then uses
+ * their selection as given, and offering alternatives computed from a greedy
+ * pick would be inviting them to discard it.
+ */
+export function priceIncomeSpreads(
+  bonds: Bond[],
+  secondary: SecondaryTrade[],
+  capitalKES: number,
+  userPrices: UserPrice[] = [],
+  selectedIsins: string[] = []
+): IncomeSpreadOption[] {
+  if (selectedIsins.length) return [];
+  const priced = [2, 3, 4, 5, 6].map((holdings) => ({
+    holdings,
+    plan: planPassiveIncome(bonds, secondary, capitalKES, holdings, userPrices, []),
+  }));
+  // Measured from the best income available at ANY spread, not from the
+  // neighbouring option: what the reader gives up is what they could have had.
+  const best = Math.max(...priced.map((o) => o.plan.totalNetAnnualKES), 0);
+  return priced.map((o) => ({
+    ...o,
+    givesUpKES: Math.max(0, best - o.plan.totalNetAnnualKES),
+  }));
+}
+
 /* --------------------------------------------------- Capital preservation */
 
 export interface PreservationPlan {

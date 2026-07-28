@@ -94,3 +94,120 @@ describe('a printed report states its own provenance truthfully', () => {
     }
   });
 });
+
+/**
+ * The printed sheet has to say the same thing the screen said.
+ *
+ * These two defects are the same defect twice: a figure fixed on the page and
+ * left standing in the report. The report is the copy that outlives the
+ * session — nobody re-opens the browser to check a number they already have on
+ * paper — so a stale figure here is worse than a stale figure on screen, not
+ * better.
+ */
+describe('the passive-income sheet', () => {
+  const src = read('src/components/report/GoalReport.tsx');
+
+  it('never prints a flat monthly average', () => {
+    // The annual figure over twelve, when half those months can pay nothing.
+    // Fixed on the page — the label reads "In the months it pays" — and left
+    // in the report for a while afterwards, where it understates every month
+    // that pays and overstates every month that does not.
+    expect(src, 'the report divides the year by twelve again').not.toMatch(/averageMonthlyKES/);
+    expect(src).toMatch(/In the months it pays/);
+  });
+
+  it('writes months in three letters, not one', () => {
+    // "Pays in: J · D" is January, June or July, and a printed sheet has
+    // nothing to hover. Asserted on the array itself so a revert is visible.
+    const months = src.match(/const MONTHS = \[([^\]]*)\]/);
+    expect(months, 'the month labels moved or were renamed').toBeTruthy();
+    const labels = months![1].match(/'([A-Za-z]+)'/g)!.map((s) => s.replace(/'/g, ''));
+    expect(labels).toHaveLength(12);
+    expect(new Set(labels).size, 'two months share a label').toBe(12);
+    for (const l of labels) expect(l.length, `${l} is ambiguous`).toBeGreaterThan(1);
+  });
+
+  it('shows the alternatives that were not chosen', () => {
+    // The rationale. Without it the sheet states a decision and cannot answer
+    // the first question anybody asks of it: why not take more income?
+    expect(src).toMatch(/Why this spread/);
+    expect(src).toMatch(/incomeOptions/);
+    expect(src, 'the forgone income is not on the sheet').toMatch(/givesUpKES/);
+  });
+});
+
+/**
+ * The e2e fit check measures the sheet under geometry it writes itself.
+ *
+ * `tests/e2e/smoke.mjs` forces the sheet to 1123px with 34px/40px padding and
+ * then asserts nothing overflows and no ink lands within 6mm of the paper
+ * edge. Those numbers are a COPY of what ReportActions applies at export time,
+ * and a copy is a thing that drifts: change the padding in the exporter and
+ * the e2e keeps measuring the old geometry, passing while real downloads come
+ * back from the printer shaved.
+ *
+ * The clearance is not incidental either. The placed image runs to the paper
+ * edge by design — what keeps text off a printer's unprintable margin is this
+ * padding alone, about 10mm once 1123px is placed across 297mm.
+ */
+describe('the exporter geometry the e2e fit check assumes', () => {
+  const src = read('src/components/report/ReportActions.tsx');
+
+  it('still captures at A4 landscape width', () => {
+    expect(src, 'the capture width moved; tests/e2e/smoke.mjs measures 1123px').toMatch(
+      /el\.style\.width = '1123px'/
+    );
+  });
+
+  it('still pads enough to clear a printer margin', () => {
+    const pad = src.match(/el\.style\.padding = '(\d+)px (\d+)px'/);
+    expect(pad, 'the export padding moved or was removed').toBeTruthy();
+    const sideMm = (Number(pad![2]) / 1123) * 297;
+    expect(sideMm, `side padding is only ${sideMm.toFixed(1)}mm of paper`).toBeGreaterThanOrEqual(6);
+    // Matching the literal the e2e uses, so a change to either fails here.
+    expect(`${pad![1]}px ${pad![2]}px`).toBe('34px 40px');
+  });
+
+  it('still fits the image rather than cropping it', () => {
+    // Fit-to-whichever-edge-binds is what makes "no spill" true at all. A
+    // revert to fitting width unconditionally crops any sheet taller than the
+    // page, and produces a valid one-page PDF while doing it.
+    expect(src).toMatch(/contentAspect > pageAspect/);
+    expect(src).toMatch(/imgH = pageH \* contentAspect|imgW = pageH \* contentAspect/);
+  });
+});
+
+/**
+ * One page means every list on the sheet is bounded.
+ *
+ * The header of GoalReport claims it renders "no unbounded lists", and that
+ * was true when the income planner picked a fixed three. It is not true of a
+ * reader's own selection: naming bonds by hand added a row each, and at
+ * twenty-one holdings the sheet measured 1123x1110 — no longer cropped, since
+ * the fit contains it, but placed at 212mm on a 297mm page with every figure
+ * shrunk to match. A few more and it crosses onto the portrait branch.
+ */
+describe('the printed sheet stays bounded', () => {
+  const src = read('src/components/report/GoalReport.tsx');
+
+  it('caps the holdings table', () => {
+    const cap = src.match(/const INCOME_ROWS = (\d+)/);
+    expect(cap, 'the income row cap was removed').toBeTruthy();
+    expect(src, 'the holdings table iterates the full list again').toMatch(
+      /income\.holdings\.slice\(0, INCOME_ROWS\)/
+    );
+    // Generous enough that the default six, and a doubling of it, print whole.
+    expect(Number(cap![1])).toBeGreaterThanOrEqual(12);
+    expect(Number(cap![1])).toBeLessThanOrEqual(20);
+  });
+
+  it('declares what it left out rather than truncating quietly', () => {
+    // A sheet that looks complete and is not is worse than either a long sheet
+    // or a short one — it is handed over as a record of what was bought.
+    expect(src).toMatch(/income\.holdings\.length > INCOME_ROWS/);
+    expect(src).toMatch(/not listed here/);
+    expect(src, 'the sheet does not say the totals still count them').toMatch(
+      /counts all of them/
+    );
+  });
+});

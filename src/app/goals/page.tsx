@@ -74,6 +74,10 @@ export default function GoalsPage() {
   const [firstFeeYear, setFirstFeeYear] = useState(new Date().getFullYear() + 6);
   const [yearsOfFees, setYearsOfFees] = useState(4);
   const [annualFee, setAnnualFee] = useState(400_000);
+  /* Fees rise. Defaulted to a rate inside the range Kenyan schools are
+   * reported to use, so the plan is built against the invoice that will
+   * actually arrive rather than the one the reader is looking at today. */
+  const [feeEscalation, setFeeEscalation] = useState(8);
   // Income / preservation
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
   const [parkCapital, setParkCapital] = useState(500_000);
@@ -164,8 +168,8 @@ export default function GoalsPage() {
     [bonds, secondary, userPrices, targetIncome, capital, monthly, cbrHistory]
   );
   const fees = useMemo(
-    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins),
-    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins]
+    () => planSchoolFees(bonds, secondary, feeCapital, firstFeeYear, yearsOfFees, annualFee, new Date(), userPrices, feeIsins, feeEscalation / 100),
+    [bonds, secondary, userPrices, feeCapital, firstFeeYear, yearsOfFees, annualFee, feeIsins, feeEscalation]
   );
   const income = useMemo(
     () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
@@ -488,10 +492,18 @@ export default function GoalsPage() {
               <input type="number" min={1} max={8} value={yearsOfFees}
                 onChange={(e) => setYearsOfFees(Number(e.target.value) || 1)} className={`num ${inputCls}`} />
             </Field>
-            <Field label="Fees per year">
+            <Field label="Fees per year, at today's prices">
               <input type="number" step={50_000} value={annualFee}
                 onChange={(e) => setAnnualFee(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
+            <Field label="Annual fee increase (%)">
+              <input type="number" min={0} max={20} step={1} value={feeEscalation}
+                onChange={(e) => setFeeEscalation(Math.min(20, nonNegativeNumber(e.target.value)))} className={`num ${inputCls}`} />
+            </Field>
+            <p className="text-xs text-ink-muted">
+              Fees are escalated from today to each year they fall due. Set this to zero to plan
+              against a flat fee instead.
+            </p>
           </div>
 
           <div className="space-y-4">

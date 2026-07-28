@@ -222,7 +222,27 @@ export function planSchoolFees(
    * inside each maturity window rather than aiming at the invoice. A parent
    * who knows the first term is January 2032 can say so.
    */
-  selectedIsins: string[] = []
+  selectedIsins: string[] = [],
+  /**
+   * Annual fee escalation, as a decimal. `annualFeeKES` is then read as a fee
+   * at TODAY's prices and inflated to each fee year.
+   *
+   * Defaults to zero, which is the behaviour every existing caller and test
+   * relies on — a flat fee repeated for each year. That default is preserved
+   * deliberately rather than quietly improved, because changing what a stored
+   * number means without the reader seeing it is worse than the flat model.
+   *
+   * WHY IT MATTERS MOST HERE, of all the planners
+   * ---------------------------------------------
+   * This is the objective with the longest gap between entering a figure and
+   * paying it. A parent planning for a child now in Grade 3 enters a fee they
+   * saw on an invoice this January and a first fee year in the 2030s. The
+   * ladder is then built to deliver exactly that figure — and arrives a
+   * decade later carrying a third of what the invoice asks for. The bonds
+   * mature on time and the plan still fails, which is the worst way for it to
+   * fail, because everything looks correct until the money is counted.
+   */
+  feeEscalation: number = 0
 ): SchoolFeesPlan {
   // Clamped HERE, not only in the form. `min` and `max` on a number input are
   // form-validation hints; typing or pasting past them sets the value anyway.
@@ -244,6 +264,8 @@ export function planSchoolFees(
     Math.min(6, yearsOfFees), asOf, userPrices, selectedIsins
   );
 
+  const escalation = Number.isFinite(feeEscalation) ? Math.max(0, feeEscalation) : 0;
+
   const years: FeeYear[] = [];
   for (let i = 0; i < yearsOfFees; i++) {
     const year = firstFeeYear + i;
@@ -251,17 +273,21 @@ export function planSchoolFees(
     const principalMaturingKES = payout?.principalKES ?? 0;
     const couponsKES = payout?.couponsKES ?? 0;
     const coveredKES = principalMaturingKES + couponsKES;
+    /* Escalated from TODAY, not from the first fee year: the figure the reader
+     * typed is one they have seen on an invoice, and the years between now and
+     * the first fee year are exactly the ones doing the damage. */
+    const feeKES = Math.round(annualFeeKES * Math.pow(1 + escalation, year - thisYear));
     years.push({
       year,
-      feeKES: annualFeeKES,
+      feeKES,
       principalMaturingKES,
       couponsKES,
       coveredKES,
-      shortfallKES: Math.max(0, annualFeeKES - coveredKES),
+      shortfallKES: Math.max(0, feeKES - coveredKES),
     });
   }
 
-  const totalFeesKES = annualFeeKES * yearsOfFees;
+  const totalFeesKES = years.reduce((s, y) => s + y.feeKES, 0);
   const totalCoveredKES = years.reduce((s, y) => s + Math.min(y.coveredKES, y.feeKES), 0);
 
   return {

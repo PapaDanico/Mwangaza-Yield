@@ -208,3 +208,82 @@ describe('planFire plans conservatively, not on the best bond', () => {
     expect(p.bestNetYield).toBeGreaterThan(0);
   });
 });
+
+/**
+ * School fees rise between the day you plan and the day you pay.
+ *
+ * The planner was built around a single `annualFeeKES` repeated for every fee
+ * year, which is defensible for a bill due next January and indefensible for
+ * one due in 2035. This objective has the longest gap of any planner here
+ * between entering a figure and paying it — a parent of a Grade 3 child types
+ * a fee from this January's invoice and a first fee year a decade out.
+ *
+ * The failure mode is the quiet kind: the ladder matures exactly on schedule,
+ * every bond does what it promised, and the money still is not enough.
+ */
+describe('school fees, escalated', () => {
+  const ASOF = new Date('2026-07-28');
+
+  it('leaves the flat behaviour untouched when no rate is given', () => {
+    // Every existing caller relies on this. A default that silently changed
+    // what a stored plan means would be worse than the flat model.
+    const flat = planSchoolFees(universe, [], 3_000_000, 2030, 3, 400_000, ASOF, []);
+    expect(flat.years.map((y) => y.feeKES)).toEqual([400_000, 400_000, 400_000]);
+    expect(flat.totalFeesKES).toBe(1_200_000);
+  });
+
+  it('escalates from today, not from the first fee year', () => {
+    // 2030 is four years after the 2026 as-of date, so the first bill has
+    // already had four years of increases before it is ever invoiced. Charging
+    // escalation only across the fee years themselves would miss exactly the
+    // stretch that does the damage.
+    const plan = planSchoolFees(universe, [], 3_000_000, 2030, 3, 100_000, ASOF, [], [], 0.1);
+    expect(plan.years[0].feeKES).toBe(Math.round(100_000 * 1.1 ** 4));
+    expect(plan.years[1].feeKES).toBe(Math.round(100_000 * 1.1 ** 5));
+    expect(plan.years[2].feeKES).toBe(Math.round(100_000 * 1.1 ** 6));
+  });
+
+  it('carries the escalated fees into the total and the shortfall', () => {
+    // The half-applied version of this change computed escalated fees for
+    // display while still totalling and comparing against the flat figure —
+    // a plan that looks corrected and funds the wrong number.
+    const plan = planSchoolFees(universe, [], 0, 2030, 3, 100_000, ASOF, [], [], 0.1);
+    expect(plan.totalFeesKES).toBe(plan.years.reduce((s, y) => s + y.feeKES, 0));
+    expect(plan.totalFeesKES).toBeGreaterThan(300_000);
+    for (const y of plan.years) {
+      // No capital, so every shilling of the escalated fee is a shortfall.
+      expect(y.shortfallKES).toBe(y.feeKES);
+    }
+  });
+
+  it('makes a plan that was fully funded flat fall short once fees rise', () => {
+    // The finding, as a behaviour. Rather than hand-pick a capital figure and
+    // hope it straddles the boundary, this searches for one: if no amount of
+    // capital is fully funded flat and short once fees rise, the escalation is
+    // not reaching the funding comparison and the test says so.
+    const at = (capital: number, esc: number) =>
+      planSchoolFees(universe, [], capital, 2032, 3, 400_000, ASOF, [], [], esc);
+
+    const straddles = [1, 2, 3, 4, 5, 6].map((m) => m * 500_000)
+      .filter((capital) => at(capital, 0).fullyFunded && !at(capital, 0.1).fullyFunded);
+
+    expect(
+      straddles.length,
+      'no capital was fully funded on flat fees and short once they rise'
+    ).toBeGreaterThan(0);
+
+    for (const capital of straddles) {
+      const flat = at(capital, 0);
+      const risen = at(capital, 0.1);
+      expect(risen.totalFeesKES).toBeGreaterThan(flat.totalFeesKES);
+      expect(risen.totalCoveredKES / risen.totalFeesKES).toBeLessThan(1);
+    }
+  });
+
+  it('treats a negative or broken rate as no escalation rather than shrinking fees', () => {
+    for (const bad of [-0.5, NaN, Infinity]) {
+      const plan = planSchoolFees(universe, [], 1_000_000, 2030, 2, 100_000, ASOF, [], [], bad);
+      expect(plan.years.every((y) => y.feeKES === 100_000)).toBe(true);
+    }
+  });
+});

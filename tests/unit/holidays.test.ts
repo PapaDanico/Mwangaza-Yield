@@ -158,3 +158,39 @@ describe('the holiday calendar stays out of the maths', () => {
     }
   });
 });
+
+/**
+ * Both calendar exports must agree.
+ *
+ * The ladder and the portfolio each build their own ICS from the same coupon
+ * schedule. I fixed the ladder first and left the portfolio quoting scheduled
+ * dates — so for a while the same coupon appeared on two different days
+ * depending on which button the reader pressed. Two exports of the same thing
+ * that disagree are worse than either alone.
+ */
+describe('every surface that names a payment date uses the same rule', () => {
+  const read = async (p: string) => {
+    const { readFileSync } = await import('node:fs');
+    return readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8');
+  };
+
+  it('routes both ICS exports through paymentDay', async () => {
+    for (const f of ['src/app/ladder/page.tsx', 'src/app/portfolio/page.tsx']) {
+      const src = await read(f);
+      expect(src, `${f} does not import the holiday calendar`).toMatch(/paymentDay/);
+      expect(src, `${f} still puts the event on the raw scheduled date`).not.toMatch(
+        /events\.push\(\{\s*\n\s*date: iso,/
+      );
+    }
+  });
+
+  it('explains the marker it prints', async () => {
+    // A bare asterisk in a date column is noise. If the marker survives but
+    // the legend is deleted, this fails.
+    const src = await read('src/app/portfolio/page.tsx');
+    expect(src).toMatch(/public holiday/i);
+    expect(src, 'the legend no longer says which dates the maths uses').toMatch(
+      /computed from the scheduled/i
+    );
+  });
+});

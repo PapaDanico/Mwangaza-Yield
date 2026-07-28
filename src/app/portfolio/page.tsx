@@ -10,6 +10,7 @@ import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
+import { paymentDay } from '@/lib/holidays';
 import type { Bond, Holding } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
@@ -185,12 +186,17 @@ export default function PortfolioPage() {
       for (const d of dates) {
         const iso = d.toISOString().slice(0, 10);
         const isMaturity = iso === e.bond.maturityDate;
+        // Same treatment as the ladder export: the diary entry belongs on the
+        // day the cash moves, not the day the schedule names. Two exports of
+        // the same thing that disagree is worse than either one alone.
+        const pay = paymentDay(iso);
+        const amount = isMaturity
+          ? `Principal ${formatKES(e.holding.faceValueKES)} + final coupon ${formatKES(e.result.netCouponPerPeriodKES)} (net)`
+          : `Net coupon ${formatKES(e.result.netCouponPerPeriodKES)}`;
         events.push({
-          date: iso,
+          date: pay.paid,
           title: `${e.bond.issueCode} ${isMaturity ? 'matures' : 'coupon'}`,
-          description: isMaturity
-            ? `Principal ${formatKES(e.holding.faceValueKES)} + final coupon ${formatKES(e.result.netCouponPerPeriodKES)} (net)`
-            : `Net coupon ${formatKES(e.result.netCouponPerPeriodKES)}`,
+          description: pay.reason ? `${amount}. Scheduled ${iso} — ${pay.reason}.` : amount,
         });
       }
     }
@@ -370,7 +376,26 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
                         <span className="text-ink-faint">—</span>
                       )}
                     </td>
-                    <td className="num px-4 py-3 text-right text-ink-soft">{nextCoupon ? nextCoupon.toISOString().slice(0, 10) : '—'}</td>
+                    {/* The date the money lands. A coupon falling on Mashujaa
+                        Day pays on the 21st, and this column is what somebody
+                        times a school fee against. The scheduled date is kept
+                        in the tooltip so it can be reconciled against the
+                        prospectus, which is what every yield here is computed
+                        from. */}
+                    <td className="num px-4 py-3 text-right text-ink-soft">
+                      {nextCoupon ? (() => {
+                        const pay = paymentDay(nextCoupon.toISOString().slice(0, 10));
+                        return pay.reason ? (
+                          <span title={`Scheduled ${pay.scheduled} — ${pay.reason}`}>
+                            {pay.paid}
+                            <span className="ml-1 text-gold-700" aria-hidden="true">*</span>
+                            <span className="sr-only"> (moved from {pay.scheduled}: {pay.reason})</span>
+                          </span>
+                        ) : (
+                          <>{pay.paid}</>
+                        );
+                      })() : '—'}
+                    </td>
                     <td className="px-2 py-3">
                       <button onClick={() => removeHolding(holding.id)} className="p-1 text-ink-faint hover:text-red-400">
                         <Trash2 size={15} />
@@ -380,6 +405,17 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
                 ))}
               </tbody>
             </table>
+            {/* The asterisk needs a sentence, or it is just a mark. Rendered
+                unconditionally rather than only when a date has moved: the
+                column is a mix, and a legend that appears and disappears is
+                harder to trust than one that is always there. */}
+            <p className="border-t border-sand-300 px-4 py-3 text-xs text-ink-faint">
+              Next coupon is the day the money can move.{' '}
+              <span className="text-gold-700">*</span> marks a date shifted because the
+              scheduled day is a weekend or a Kenyan public holiday — hover for the
+              scheduled date. Yields and accrued interest are computed from the scheduled
+              dates, as the prospectus does.
+            </p>
           </div>
 
           <div className="card">

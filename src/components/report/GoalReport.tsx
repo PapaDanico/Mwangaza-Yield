@@ -239,7 +239,13 @@ export default function GoalReport({
             * the width sat empty — a portrait layout on a landscape page. The
             * holdings and the alternatives are also the natural pair to read
             * against each other: what was bought, and what was not. */}
-          <div className="grid grid-cols-2 gap-8">
+          {/* One column when there is nothing to sit beside it.
+            *
+            * A reader who names their own bonds gets no alternatives — offering
+            * them would invite discarding an explicit choice — and a fixed
+            * two-column grid then left the right half of the sheet blank, which
+            * is the waste this layout existed to remove. */}
+          <div className={incomeOptions && incomeOptions.length > 0 ? 'grid grid-cols-2 gap-8' : ''}>
           <div>
           <Section title="The bonds behind it" />
           <table className="w-full text-[11px]">

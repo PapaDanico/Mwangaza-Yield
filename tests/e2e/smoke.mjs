@@ -647,6 +647,82 @@ async function main() {
   if (dialogs > 0) fail(`${dialogs} blocking browser dialog(s) were raised — these are refused on mobile`);
   if (failures.length === btnBefore) pass('a real PDF downloaded (%PDF- magic bytes); plan saved without a platform dialog');
 
+  /* ------------------------------------------- the goal sheet fits its page */
+  /*
+   * The ladder export is checked above; the goal planner's was not checked at
+   * all, and it is four different sheets rather than one.
+   *
+   * What can go wrong here is invisible to a byte count and to a page count
+   * alike. The sheet is forced to 1123px for capture — A4 landscape at 96dpi —
+   * but forcing a width does not stop content inside it being wider. When that
+   * happened on the ladder, html2canvas painted exactly 1123px and everything
+   * past the edge was cut: a table lost its right-hand column and the file was
+   * still a perfectly valid one-page PDF. So overflow is measured directly.
+   *
+   * The ink clearance is the other half. The placed image runs to the paper
+   * edge by design, and what keeps text off a printer's unprintable margin is
+   * the sheet's own 40px padding — about 10mm once placed. If a future layout
+   * drops that padding nothing looks wrong on screen, and the outermost column
+   * comes back from the printer shaved.
+   */
+  console.log('\nevery goal sheet fits an A4 page');
+  const fitBefore = failures.length;
+  for (const objective of ['Financial independence', 'School fees', 'Passive income', 'Capital preservation']) {
+    await go('/goals/');
+    await page.waitForTimeout(1200);
+    const chosen = await page.evaluate((name) => {
+      const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes(name));
+      if (!b) return false;
+      b.click();
+      return true;
+    }, objective);
+    if (!chosen) { fail(`goals: no control for the ${objective} objective`); continue; }
+    await page.waitForTimeout(900);
+
+    // Measured under the exact geometry the exporter imposes, then restored.
+    const m = await page.evaluate(() => {
+      const el = document.getElementById('goal-report-sheet');
+      if (!el) return null;
+      const prev = el.getAttribute('style') || '';
+      el.style.display = 'block';
+      el.style.width = '1123px';
+      el.style.boxSizing = 'border-box';
+      el.style.padding = '34px 40px';
+      const r = el.getBoundingClientRect();
+      const H = Math.ceil(Math.max(r.height, el.scrollHeight)) + 8;
+      let left = Infinity, right = -Infinity;
+      for (const n of el.querySelectorAll('*')) {
+        const s = getComputedStyle(n);
+        if (s.visibility === 'hidden' || s.display === 'none') continue;
+        const q = n.getBoundingClientRect();
+        if (q.width <= 0 || q.height <= 0) continue;
+        left = Math.min(left, q.left - r.left);
+        right = Math.max(right, q.right - r.left);
+      }
+      el.setAttribute('style', prev);
+      return { overflow: Math.ceil(el.scrollWidth) - 1123, H, left, right };
+    });
+    if (!m) { fail(`goals: ${objective} renders no printable sheet`); continue; }
+
+    if (m.overflow > 1) {
+      fail(`goals: the ${objective} sheet is ${m.overflow}px wider than the capture — that much is cut off the right edge`);
+    }
+    // The sheet is placed at exactly the page width, so px map to mm directly.
+    const mm = (px) => (px / 1123) * 297;
+    const SAFE_MM = 6; // typical consumer-printer unprintable margin is ~5mm
+    if (mm(m.left) < SAFE_MM || mm(1123 - m.right) < SAFE_MM) {
+      fail(
+        `goals: ${objective} puts ink ${Math.min(mm(m.left), mm(1123 - m.right)).toFixed(1)}mm from the paper edge — inside what most printers cannot print`
+      );
+    }
+    // Landscape is what keeps these to one page; a sheet taller than it is
+    // wide takes the portrait branch and starts spilling.
+    if (m.H >= 1123) {
+      fail(`goals: the ${objective} sheet is ${m.H}px tall against 1123px wide — it will not fit one landscape page`);
+    }
+  }
+  if (failures.length === fitBefore) pass('all four goal sheets fit A4 landscape with no overflow and >6mm ink clearance');
+
   /* ------------------------------------ a tailored ladder survives a reload */
   /*
    * Hand-picking six rungs and losing them on reload is not a tool. On a phone

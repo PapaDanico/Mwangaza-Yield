@@ -135,3 +135,44 @@ describe('the passive-income sheet', () => {
     expect(src, 'the forgone income is not on the sheet').toMatch(/givesUpKES/);
   });
 });
+
+/**
+ * The e2e fit check measures the sheet under geometry it writes itself.
+ *
+ * `tests/e2e/smoke.mjs` forces the sheet to 1123px with 34px/40px padding and
+ * then asserts nothing overflows and no ink lands within 6mm of the paper
+ * edge. Those numbers are a COPY of what ReportActions applies at export time,
+ * and a copy is a thing that drifts: change the padding in the exporter and
+ * the e2e keeps measuring the old geometry, passing while real downloads come
+ * back from the printer shaved.
+ *
+ * The clearance is not incidental either. The placed image runs to the paper
+ * edge by design — what keeps text off a printer's unprintable margin is this
+ * padding alone, about 10mm once 1123px is placed across 297mm.
+ */
+describe('the exporter geometry the e2e fit check assumes', () => {
+  const src = read('src/components/report/ReportActions.tsx');
+
+  it('still captures at A4 landscape width', () => {
+    expect(src, 'the capture width moved; tests/e2e/smoke.mjs measures 1123px').toMatch(
+      /el\.style\.width = '1123px'/
+    );
+  });
+
+  it('still pads enough to clear a printer margin', () => {
+    const pad = src.match(/el\.style\.padding = '(\d+)px (\d+)px'/);
+    expect(pad, 'the export padding moved or was removed').toBeTruthy();
+    const sideMm = (Number(pad![2]) / 1123) * 297;
+    expect(sideMm, `side padding is only ${sideMm.toFixed(1)}mm of paper`).toBeGreaterThanOrEqual(6);
+    // Matching the literal the e2e uses, so a change to either fails here.
+    expect(`${pad![1]}px ${pad![2]}px`).toBe('34px 40px');
+  });
+
+  it('still fits the image rather than cropping it', () => {
+    // Fit-to-whichever-edge-binds is what makes "no spill" true at all. A
+    // revert to fitting width unconditionally crops any sheet taller than the
+    // page, and produces a valid one-page PDF while doing it.
+    expect(src).toMatch(/contentAspect > pageAspect/);
+    expect(src).toMatch(/imgH = pageH \* contentAspect|imgW = pageH \* contentAspect/);
+  });
+});

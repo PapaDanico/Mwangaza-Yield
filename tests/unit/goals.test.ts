@@ -287,3 +287,64 @@ describe('school fees, escalated', () => {
     }
   });
 });
+
+/**
+ * Every month, or an honest count of the months it misses.
+ *
+ * Kenyan government bonds pay semi-annually, so one bond covers exactly two
+ * months of the year, six apart. The passive-income planner was capped at
+ * three holdings and therefore at six months — while the page promised "a
+ * payout most months of the year" and "income arrives evenly".
+ *
+ * All six month-pairs (Jan/Jul through Jun/Dec) exist in the live universe, so
+ * twelve-month coverage was always reachable. Only the cap stood in the way.
+ */
+describe('smoothing income across the year', () => {
+  const many = [
+    mk('A/JAN', '2022-01-10', '2032-01-10', 13),
+    mk('B/FEB', '2022-02-10', '2033-02-10', 13),
+    mk('C/MAR', '2022-03-10', '2034-03-10', 13),
+    mk('D/APR', '2022-04-10', '2035-04-10', 13),
+    mk('E/MAY', '2022-05-10', '2036-05-10', 13),
+    mk('F/JUN', '2022-06-10', '2037-06-10', 13),
+  ];
+
+  it('covers two months per bond, six apart', () => {
+    // The structural fact everything below follows from.
+    for (const b of many) {
+      const m = couponMonths(b);
+      expect(m).toHaveLength(2);
+      expect(Math.abs(m[1] - m[0])).toBe(6);
+    }
+  });
+
+  it('reaches every month once six bonds are allowed', () => {
+    const plan = planPassiveIncome(many, [], 3_000_000, 6, []);
+    expect(plan.monthsPaid).toBe(12);
+    expect(plan.monthlyIncomeKES.filter((v) => v === 0)).toHaveLength(0);
+  });
+
+  it('cannot reach more than six months with three, however good the bonds', () => {
+    // The cap was the whole constraint — not the market, not the yields.
+    const plan = planPassiveIncome(many, [], 3_000_000, 3, []);
+    expect(plan.monthsPaid).toBeLessThanOrEqual(6);
+  });
+
+  it('buys coverage with yield, which is the trade the reader is making', () => {
+    // Filling a gap month means taking the best bond that pays IN it rather
+    // than the best bond outright. If this ever inverts, the greedy pick has
+    // stopped prioritising months and the page's promise is no longer true.
+    const three = planPassiveIncome(many, [], 3_000_000, 3, []);
+    const six = planPassiveIncome(many, [], 3_000_000, 6, []);
+    expect(six.monthsPaid).toBeGreaterThan(three.monthsPaid);
+    expect(six.totalNetAnnualKES).toBeLessThanOrEqual(three.totalNetAnnualKES);
+  });
+
+  it('gains nothing from a seventh holding', () => {
+    // Six pairs exist and no more, so a seventh bond can only duplicate a
+    // month it already has. The control stops at six for this reason.
+    const six = planPassiveIncome(many, [], 3_000_000, 6, []);
+    const seven = planPassiveIncome(many, [], 3_000_000, 7, []);
+    expect(seven.monthsPaid).toBe(six.monthsPaid);
+  });
+});

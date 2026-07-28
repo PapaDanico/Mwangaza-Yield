@@ -81,6 +81,20 @@ export default function GoalsPage() {
   const [feeEscalation, setFeeEscalation] = useState(8);
   // Income / preservation
   const [incomeCapital, setIncomeCapital] = useState(3_000_000);
+  /* Six, not three.
+   *
+   * Kenyan government bonds pay semi-annually, so each one covers exactly two
+   * months of the year, six apart. Three holdings can therefore cover six
+   * months and no more — which is what this planner delivered while promising
+   * "a payout most months of the year" and "income arrives evenly".
+   *
+   * Every one of the six possible month-pairs (Jan/Jul through Jun/Dec) exists
+   * in the live universe, with seven to thirteen bonds in each, so twelve-month
+   * coverage was always reachable. Only the cap stood in the way.
+   *
+   * Six is also the ceiling worth having: a seventh holding adds no month and
+   * dilutes the yield further. The control stops there deliberately. */
+  const [incomeHoldings, setIncomeHoldings] = useState(6);
   const [parkCapital, setParkCapital] = useState(500_000);
   /**
    * Bonds the reader has chosen, per objective.
@@ -186,8 +200,8 @@ export default function GoalsPage() {
   );
 
   const income = useMemo(
-    () => planPassiveIncome(bonds, secondary, incomeCapital, 3, userPrices, incomeIsins),
-    [bonds, secondary, userPrices, incomeCapital, incomeIsins]
+    () => planPassiveIncome(bonds, secondary, incomeCapital, incomeHoldings, userPrices, incomeIsins),
+    [bonds, secondary, userPrices, incomeCapital, incomeHoldings, incomeIsins]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
@@ -624,14 +638,52 @@ export default function GoalsPage() {
         <div className="no-print space-y-4">
           <div className="grid gap-5 lg:grid-cols-[1fr,1.3fr]">
             <div className="card h-fit space-y-4">
-              <Field label="Capital to invest" hint="Split across up to three bonds with complementary coupon months.">
+              <Field label="Capital to invest" hint="Split across bonds with complementary coupon months.">
                 <input type="number" step={100_000} value={incomeCapital}
                   onChange={(e) => setIncomeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
               </Field>
+              <Field
+                label="Bonds to spread across"
+                hint="Each bond pays twice a year, six months apart, so it takes six to reach every month. A seventh adds no month and only thins the yield."
+              >
+                <input
+                  type="range"
+                  min={2}
+                  max={6}
+                  step={1}
+                  value={incomeHoldings}
+                  onChange={(e) => setIncomeHoldings(Number(e.target.value))}
+                  className="w-full accent-gold-500"
+                />
+                <p className="num mt-1 text-sm font-semibold text-ink">
+                  {incomeHoldings} bond{incomeHoldings === 1 ? '' : 's'}
+                </p>
+              </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="Average monthly" value={formatCompactKES(income.averageMonthlyKES)} accent="text-mint-700" />
+                {/*
+                  "In the months it pays", not a flat annual average.
+                  This read "Average monthly" and showed the annual figure
+                  divided by twelve — while six of those twelve months paid
+                  nothing at all. Somebody budgeting on it would have been
+                  wrong half the year, in the direction that hurts.
+                */}
+                <Stat
+                  label={income.monthsPaid === 12 ? 'Every month' : 'In the months it pays'}
+                  value={formatCompactKES(
+                    income.monthsPaid > 0 ? income.totalNetAnnualKES / income.monthsPaid : 0
+                  )}
+                  accent="text-mint-700"
+                />
                 <Stat label="Months paid" value={`${income.monthsPaid} of 12`} accent="text-gold-700" />
               </div>
+              {income.monthsPaid < 12 && (
+                <p className="text-xs text-ink-muted">
+                  {12 - income.monthsPaid} month{12 - income.monthsPaid === 1 ? '' : 's'} of the year
+                  bring nothing. Raise the spread to six bonds to cover all twelve — it costs
+                  some yield, because filling a gap month means taking the best bond that pays
+                  in it rather than the best bond outright.
+                </p>
+              )}
             </div>
 
             <div className="card">

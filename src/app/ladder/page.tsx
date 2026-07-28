@@ -8,6 +8,7 @@ import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance'
 import { buildLadder , ladderEmptyReason } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
+import { paymentDay } from '@/lib/holidays';
 import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
 import { nonNegativeNumber } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
@@ -89,12 +90,28 @@ export default function LadderPage() {
       for (const d of dates) {
         const iso = d.toISOString().slice(0, 10);
         const isMaturity = iso === r.bond.maturityDate;
+        /* The diary entry goes on the day the money lands, not the day the
+         * schedule names.
+         *
+         * Coupons run in exact 182-day steps from issue, so roughly two in
+         * seven fall on a weekend and a few each year on a public holiday —
+         * and the cash moves on the next business day. A reminder on Mashujaa
+         * Day for money that arrives on the 21st is a reminder on the wrong
+         * day, which is the one thing a calendar export must not be.
+         *
+         * The scheduled date is still stated in the description: it is the
+         * date on the prospectus and the date every yield in this app is
+         * computed from, so the reader can reconcile the two. */
+        const pay = paymentDay(iso);
+        const amount = isMaturity
+          ? `Principal ${formatKES(r.faceValueKES)} + final coupon ${formatKES(r.result.netCouponPerPeriodKES)} (net)`
+          : `Net coupon ${formatKES(r.result.netCouponPerPeriodKES)}`;
         events.push({
-          date: iso,
+          date: pay.paid,
           title: `${r.bond.issueCode} ${isMaturity ? 'matures' : 'coupon'}`,
-          description: isMaturity
-            ? `Principal ${formatKES(r.faceValueKES)} + final coupon ${formatKES(r.result.netCouponPerPeriodKES)} (net)`
-            : `Net coupon ${formatKES(r.result.netCouponPerPeriodKES)}`,
+          description: pay.reason
+            ? `${amount}. Scheduled ${iso} — ${pay.reason}.`
+            : amount,
         });
       }
     }

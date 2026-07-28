@@ -122,3 +122,56 @@ describe('no part of the app gates on it', () => {
     expect(offenders, `these gate on the tier module:\n${offenders.join('\n')}`).toEqual([]);
   });
 });
+
+/**
+ * The statutory element, asserted so nobody has to remember it.
+ *
+ * Capital Markets Act, Cap 485A, s.2 defines an investment adviser as a person
+ * who, FOR REMUNERATION, carries on the business of advising others concerning
+ * securities, or as part of a regular business issues or promulgates analyses
+ * or reports concerning securities.
+ *
+ * Limb (b) describes this application almost word for word. The only element
+ * it does not meet is remuneration — so remuneration is not one consideration
+ * among several here, it is the single thing standing between this project and
+ * a licence obligation.
+ *
+ * That includes VOLUNTARY contributions. A donate button beside a bond ladder
+ * report invites the argument that the reports are issued for remuneration,
+ * and it is not a weak argument. The sister product does exactly that beside
+ * its documents and is safe doing so, because a household budget is not a
+ * security — which is precisely why the same pattern must not be copied here
+ * on the grounds that it worked over there.
+ */
+describe('no path by which a reader could pay anything', () => {
+  it('has no till, paybill, contribution or donation surface', () => {
+    const SRC = new URL('../../src', import.meta.url).pathname;
+    const walk = (dir: string): string[] =>
+      readdirSync(dir).flatMap((n) => {
+        const p = join(dir, n);
+        return statSync(p).isDirectory() ? walk(p) : /\.tsx?$/.test(n) ? [p] : [];
+      });
+
+    const offenders = walk(SRC).filter((f) => {
+      if (f.endsWith('lib/tiers.ts')) return false; // the file explaining why not
+      const src = readFileSync(f, 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, ' ')
+        .replace(/^\s*\/\/.*$/gm, ' ');
+      /* Specific artefacts of taking money, not the words. "Contribution" is
+       * ordinary vocabulary in a savings context and matching it would report
+       * the pension and SACCO copy — the same false positive the sister
+       * product's guard had to be corrected for. */
+      return /\bTill\s*(No|Number|:)|\bPay\s?bill\b|buy\s?goods|\bM-?PESA\s+(till|paybill)\b|donate|\bdonation button\b/i.test(
+        src
+      );
+    });
+
+    expect(
+      offenders,
+      'a payment surface has appeared on a securities-analytics product. Read the ' +
+        'header of src/lib/tiers.ts: remuneration is the one element of the s.2 ' +
+        'investment-adviser definition this product does not currently meet.\n' +
+        offenders.join('\n')
+    ).toEqual([]);
+  });
+});

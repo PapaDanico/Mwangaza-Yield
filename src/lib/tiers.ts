@@ -9,32 +9,54 @@
  * generosity; it is the safest reading of Kenyan law as it now stands, and it
  * happens to agree with what this product is for.
  *
- * WHY, PLAINLY
- * ------------
- * The Capital Markets (Licensing Requirements)(General) Regulations 2025
- * widened the definition of an investment adviser to take in digital platforms
- * offering automated, algorithm-driven investment advice, and created a
- * licence category for web and mobile providers. This application is, on any
- * honest description, an algorithm applied to government securities.
+ * WHY, IN THE WORDS OF THE STATUTE
+ * -------------------------------
+ * The Capital Markets Act, Cap 485A, s.2 defines the term:
  *
- * What keeps it outside that definition today is that it charges nobody, holds
- * nothing on anyone's behalf, recommends no purchase, and says so on every
- * page. Remuneration is a limb of the test in most jurisdictions that have
- * one. Putting a price on the output would remove the clearest thing standing
- * between this project and a licence obligation carrying a six-figure annual
- * fee and a professional-experience requirement.
+ *   "Investment adviser" means any person (other than a bona fide officer,
+ *   director, trustee, member of an advisory board or employee of a company as
+ *   such) who, FOR REMUNERATION —
+ *     (a) carries on the business of advising others concerning securities; or
+ *     (b) as part of a regular business, issues or promulgates analyses or
+ *         reports concerning securities.
  *
- * The sister product can sell documents because a household budget is not a
- * security. This one cannot, and pretending otherwise would be the single
- * most expensive mistake available.
+ * Two things follow, and they decide this file.
  *
- * THIS IS NOT LEGAL ADVICE
- * ------------------------
- * It is a reading taken from secondary legal commentary, because the primary
- * text could not be retrieved when this was written. Before any of it is
- * relied upon, a Kenyan capital markets advocate should confirm it. If they
- * say the position is safe, this file should change deliberately, with their
- * opinion referenced — not because somebody found the constant inconvenient.
+ * FIRST: "for remuneration" is an element of the definition, not a factor
+ * weighed against others. A service that charges nothing is outside the
+ * definition on its face. That is the whole reason this product can exist
+ * without a licence.
+ *
+ * SECOND, and less comfortable: limb (b) describes what this application does
+ * almost word for word. It issues analyses and reports concerning securities,
+ * as a regular business. The ONLY element missing is remuneration. There is no
+ * argument left in reserve — no "but it is educational", no "but it is
+ * generic". Charge, and the definition is met in full.
+ *
+ * The 2025 Licensing Regulations then add a licence category for digital and
+ * robo-advisory providers, so the obligation has an obvious home to land in.
+ *
+ * VOLUNTARY CONTRIBUTIONS COUNT AS REMUNERATION FOR THIS PURPOSE
+ * -------------------------------------------------------------
+ * Which is why there is no contribution path here, and none may be added.
+ * The sister product asks for a voluntary payment beside a document it has
+ * already given away free; that is safe THERE because a household budget is
+ * not a security. Doing the same thing beside a bond ladder report would
+ * invite an argument that the reports are issued for remuneration, and the
+ * argument would not be a weak one. A donate button is cheap to add and would
+ * put the whole position in play.
+ *
+ * WHAT REMAINS FOR AN ADVOCATE
+ * ----------------------------
+ * The institutional line below IS remunerated. The distinction relied on is
+ * that the payer is a licensed firm buying computation for its own advice
+ * process, not a member of the public buying advice. That reading is sound but
+ * it is a reading, and it is the one question worth paying a Kenyan capital
+ * markets advocate to answer properly.
+ *
+ * The statutory text above was read from a search index rather than from Kenya
+ * Law directly, which this environment cannot reach. Verify the current
+ * consolidated wording before relying on it.
  */
 
 /**

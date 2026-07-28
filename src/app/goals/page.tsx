@@ -7,7 +7,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice } from '@/components/shared/PriceProvenance';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, type GoalKey,
+  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { ladderEmptyReason } from '@/lib/ladder';
@@ -202,6 +202,14 @@ export default function GoalsPage() {
   const income = useMemo(
     () => planPassiveIncome(bonds, secondary, incomeCapital, incomeHoldings, userPrices, incomeIsins),
     [bonds, secondary, userPrices, incomeCapital, incomeHoldings, incomeIsins]
+  );
+
+  // The spread options and their cost. Lives in lib/goals so the trade-off
+  // figure — the whole point of the control below — is under test rather than
+  // computed inside a component nothing can reach.
+  const incomeOptions = useMemo(
+    () => priceIncomeSpreads(bonds, secondary, incomeCapital, userPrices, incomeIsins),
+    [bonds, secondary, userPrices, incomeCapital, incomeIsins]
   );
   const park = useMemo(() => planPreservation(tbills, parkCapital), [tbills, parkCapital]);
 
@@ -642,23 +650,59 @@ export default function GoalsPage() {
                 <input type="number" step={100_000} value={incomeCapital}
                   onChange={(e) => setIncomeCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
               </Field>
-              <Field
-                label="Bonds to spread across"
-                hint="Each bond pays twice a year, six months apart, so it takes six to reach every month. A seventh adds no month and only thins the yield."
-              >
-                <input
-                  type="range"
-                  min={2}
-                  max={6}
-                  step={1}
-                  value={incomeHoldings}
-                  onChange={(e) => setIncomeHoldings(Number(e.target.value))}
-                  className="w-full accent-gold-500"
-                />
-                <p className="num mt-1 text-sm font-semibold text-ink">
-                  {incomeHoldings} bond{incomeHoldings === 1 ? '' : 's'}
-                </p>
-              </Field>
+              {incomeOptions.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-ink">How evenly do you want it?</p>
+                  <p className="mt-0.5 text-xs text-ink-faint">
+                    Each bond pays twice a year, six months apart, so it takes six of them to
+                    reach every month. Filling a gap month means taking the best bond that pays
+                    in it rather than the best bond outright — which is what the income column
+                    costs.
+                  </p>
+                  <div className="mt-3 space-y-1.5" role="radiogroup" aria-label="Spread across bonds">
+                    {incomeOptions.map((o) => {
+                      const active = o.holdings === incomeHoldings;
+                      return (
+                        <button
+                          key={o.holdings}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => setIncomeHoldings(o.holdings)}
+                          className={cn(
+                            'flex w-full items-baseline justify-between gap-3 rounded-lg border px-3 py-2 text-left transition',
+                            active
+                              ? 'border-gold-500 bg-gold-50'
+                              : 'border-sand-300 hover:border-gold-400'
+                          )}
+                        >
+                          <span className="text-sm text-ink">
+                            <span className="num font-semibold">{o.plan.monthsPaid} of 12</span>{' '}
+                            <span className="text-ink-muted">
+                              month{o.plan.monthsPaid === 1 ? '' : 's'} · {o.holdings} bonds
+                            </span>
+                          </span>
+                          <span className="num shrink-0 text-right text-xs">
+                            <span className="block font-semibold text-ink">
+                              {formatCompactKES(o.plan.totalNetAnnualKES)}/yr
+                            </span>
+                            <span
+                              className={cn(
+                                'block',
+                                o.givesUpKES > 0 ? 'text-gold-700' : 'text-mint-700'
+                              )}
+                            >
+                              {o.givesUpKES > 0
+                                ? `−${formatCompactKES(o.givesUpKES)}`
+                                : 'most income'}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 {/*
                   "In the months it pays", not a flat annual average.
@@ -676,12 +720,25 @@ export default function GoalsPage() {
                 />
                 <Stat label="Months paid" value={`${income.monthsPaid} of 12`} accent="text-gold-700" />
               </div>
+              {/* The gap, and what closing it would cost — in shillings, since the
+                * options above have already computed it. "It costs some yield" was
+                * true and useless: a reader cannot weigh a vague cost against four
+                * empty months. Falls back to the general explanation only when the
+                * reader has named their own bonds and there are no options to price. */}
               {income.monthsPaid < 12 && (
                 <p className="text-xs text-ink-muted">
                   {12 - income.monthsPaid} month{12 - income.monthsPaid === 1 ? '' : 's'} of the year
-                  bring nothing. Raise the spread to six bonds to cover all twelve — it costs
-                  some yield, because filling a gap month means taking the best bond that pays
-                  in it rather than the best bond outright.
+                  bring nothing.{' '}
+                  {(() => {
+                    const full = incomeOptions.find((o) => o.plan.monthsPaid === 12);
+                    if (!full) {
+                      return 'Spreading across six bonds covers all twelve, at the cost of some yield — filling a gap month means taking the best bond that pays in it rather than the best bond outright.';
+                    }
+                    const extra = full.givesUpKES - (incomeOptions.find((o) => o.holdings === incomeHoldings)?.givesUpKES ?? 0);
+                    return extra > 0
+                      ? `Covering all twelve costs ${formatKES(extra)} a year from here — filling a gap month means taking the best bond that pays in it rather than the best bond outright.`
+                      : 'Covering all twelve costs nothing from here.';
+                  })()}
                 </p>
               )}
             </div>

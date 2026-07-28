@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, planPreservation, couponMonths,
+  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, couponMonths,
 } from '../../src/lib/goals';
 import type { Bond, TBill } from '../../src/types/bond';
 
@@ -346,5 +346,71 @@ describe('smoothing income across the year', () => {
     const six = planPassiveIncome(many, [], 3_000_000, 6, []);
     const seven = planPassiveIncome(many, [], 3_000_000, 7, []);
     expect(seven.monthsPaid).toBe(six.monthsPaid);
+  });
+
+  /**
+   * The price of being paid every month, shown before it is paid.
+   *
+   * The options are the reader's whole decision, and `givesUpKES` is the only
+   * number on the card they cannot work out for themselves. If it is wrong,
+   * the page is quietly misstating the cost of a choice it is recommending —
+   * which is worse than not offering the choice at all.
+   */
+  describe('the options put in front of the reader', () => {
+    it('offers two through six, and no more', () => {
+      const opts = priceIncomeSpreads(many, [], 3_000_000, []);
+      expect(opts.map((o) => o.holdings)).toEqual([2, 3, 4, 5, 6]);
+    });
+
+    it('gives up nothing on exactly the option that earns the most', () => {
+      const opts = priceIncomeSpreads(many, [], 3_000_000, []);
+      const best = Math.max(...opts.map((o) => o.plan.totalNetAnnualKES));
+      const free = opts.filter((o) => o.givesUpKES === 0);
+      expect(free.length).toBeGreaterThan(0);
+      for (const o of free) expect(o.plan.totalNetAnnualKES).toBe(best);
+    });
+
+    it('reports no cost when the bonds yield alike', () => {
+      // `many` is six identical 13% bonds, so every spread earns the same and
+      // smoothing really is free. The page should say so rather than invent a
+      // sacrifice to make the recommendation feel considered.
+      for (const o of priceIncomeSpreads(many, [], 3_000_000, [])) {
+        expect(o.givesUpKES).toBe(0);
+      }
+    });
+
+    it('states the shortfall against the best, to the shilling', () => {
+      // The mutation check, and it needs a universe where the yields differ:
+      // a givesUpKES hard-coded to 0 passes every other assertion here and
+      // tells every reader that smoothing is free.
+      const varied = [
+        mk('A/JAN', '2022-01-10', '2032-01-10', 18),
+        ...many.slice(1).map((b) => ({ ...b, couponRate: 10, ytmGross: 10 })),
+      ];
+      const opts = priceIncomeSpreads(varied, [], 3_000_000, []);
+      const best = Math.max(...opts.map((o) => o.plan.totalNetAnnualKES));
+      for (const o of opts) {
+        expect(o.givesUpKES).toBe(best - o.plan.totalNetAnnualKES);
+      }
+      const widest = opts.find((o) => o.holdings === 6)!;
+      expect(widest.plan.monthsPaid).toBe(12);
+      expect(widest.givesUpKES, 'twelve months came at no cost').toBeGreaterThan(0);
+    });
+
+    it('prices each option as the plan the reader would actually get', () => {
+      // The card shows one plan's figures and clicking it selects another
+      // unless these agree.
+      for (const o of priceIncomeSpreads(many, [], 3_000_000, [])) {
+        const actual = planPassiveIncome(many, [], 3_000_000, o.holdings, [], []);
+        expect(o.plan.monthsPaid).toBe(actual.monthsPaid);
+        expect(o.plan.totalNetAnnualKES).toBe(actual.totalNetAnnualKES);
+      }
+    });
+
+    it('offers nothing once the reader has named their own bonds', () => {
+      // Their selection is used as given; alternatives from a greedy pick
+      // would be an invitation to discard it.
+      expect(priceIncomeSpreads(many, [], 3_000_000, [], ['A/JAN', 'B/FEB'])).toEqual([]);
+    });
   });
 });

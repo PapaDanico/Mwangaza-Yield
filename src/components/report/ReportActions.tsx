@@ -192,11 +192,40 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * portrait. */
     el.style.width = '1123px'; // A4 landscape at 96dpi
     el.style.background = '#ffffff';
+    /* Margins. On screen the sheet is print-only and takes its gutters from
+     * the @page rule, which never runs when the page is RASTERISED instead of
+     * printed — so the capture came out edge to edge, and the rightmost glyph
+     * of the document title, the maturity column and the last chart bar were
+     * each shaved by a pixel or two. Not cropped enough to look broken; just
+     * enough to look cheap on a document going to a broker.
+     *
+     * box-sizing matters as much as the padding: without it the padding is
+     * added OUTSIDE the forced 1123px and the sheet stops being A4-shaped. */
+    el.style.boxSizing = 'border-box';
+    el.style.padding = '34px 40px';
 
     try {
       const { default: html2canvas } = await import('html2canvas-pro');
       const bounds = el.getBoundingClientRect();
       lastTextRuns = collectTextRuns(el, bounds);
+      /* Capture the SCROLL width, not the box width.
+       *
+       * The sheet is forced to 1123px, but forcing a width does not stop the
+       * content inside it being wider — a table with a right-aligned MATURES
+       * column and a ten-bar cash chart both overrun it. html2canvas was told
+       * to paint exactly 1123px, so everything past that edge was simply cut:
+       * the document title lost its last word, the maturity dates lost their
+       * column, and the final year of the chart disappeared.
+       *
+       * It never showed up on a phone, because at a narrow viewport the report
+       * lays out taller than it is wide, takes the portrait branch, and fits.
+       * Every desktop download was clipped.
+       *
+       * scrollWidth is the width the content actually needs; the placement
+       * below already fits whichever edge binds, so a wider capture is scaled
+       * rather than cropped. */
+      const captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
+      const captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
       return await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -204,9 +233,10 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
         backgroundColor: '#ffffff',
         // Ceil and add slack: the measured height comes up fractionally short
         // and clips the last line of the disclaimer.
-        width: Math.ceil(bounds.width),
-        height: Math.ceil(bounds.height) + 8,
-        windowHeight: Math.ceil(bounds.height) + 8,
+        width: captureW,
+        height: captureH,
+        windowWidth: captureW,
+        windowHeight: captureH,
       });
     } finally {
       el.style.display = prev.display;

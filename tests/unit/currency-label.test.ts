@@ -47,12 +47,51 @@ describe('currency labels', () => {
     expect(formatCompactKES(9_200_000)).toContain('Ksh');
   });
 
-  it('formatKES renders Ksh, which is what prose must match', () => {
-    // Not hard-coded to "Ksh": whatever Intl gives for en-KE/KES is the house
-    // style, and if a future runtime changes it this test says so rather than
-    // letting the two drift apart again.
+  /**
+   * This assertion was already here, already passing — and the reader was
+   * still being shown "KES".
+   *
+   * formatKES used `style: 'currency'` with `currency: 'KES'` and trusted Intl
+   * to render the label. Under Node's ICU, en-KE/KES gives "Ksh", so this test
+   * went green on every CI run this repository has ever done. On the Android
+   * browser the exported PDFs were generated in, the SAME code rendered "KES
+   * 3,136,262".
+   *
+   * The output was locale-DATA dependent, which is the one thing a test
+   * running on one runtime cannot see. The comment that used to sit here said
+   * "whatever Intl gives for en-KE/KES is the house style" and treated that as
+   * a safety feature — it was the defect. A house style delegated to ICU is a
+   * house style that changes per device.
+   *
+   * formatKES now writes the prefix itself, so there is exactly one answer on
+   * every platform, and this assertion means what it always claimed to.
+   */
+  it('formatKES renders Ksh on every runtime, not whatever ICU decides', () => {
     expect(formatKES(1_200_000)).toContain('Ksh');
     expect(formatKES(1_200_000)).not.toContain('KES');
+    // Exact, not a substring: a prefix assembled by hand has to be pinned.
+    expect(formatKES(3_136_262)).toBe('Ksh 3,136,262');
+    expect(formatKES(1234.567, 2)).toBe('Ksh 1,234.57');
+    expect(formatKES(0)).toBe('Ksh 0');
+    expect(formatCompactKES(2.5e9)).toBe('Ksh 2.5B');
+    expect(formatCompactKES(1.2e6)).toBe('Ksh 1.2M');
+  });
+
+  /**
+   * The sign goes outside the unit.
+   *
+   * "Ksh -500" reads as a quantity of some negative currency. Intl's currency
+   * mode placed the minus correctly for free; hand-rolling the prefix is
+   * exactly where that gets dropped, so it is pinned rather than assumed.
+   */
+  it('puts the minus before the unit', () => {
+    expect(formatKES(-500)).toBe('-Ksh 500');
+    expect(formatKES(-1_234_567)).toBe('-Ksh 1,234,567');
+  });
+
+  it('does not print NaN or Infinity at a reader', () => {
+    expect(formatKES(NaN)).toBe('Ksh 0');
+    expect(formatKES(Infinity)).toBe('Ksh 0');
   });
 
   it('no user-facing prose writes an amount as "KES 1,234"', () => {

@@ -660,7 +660,40 @@ export default function GoalsPage() {
                     in it rather than the best bond outright — which is what the income column
                     costs.
                   </p>
-                  <div className="mt-3 space-y-1.5" role="radiogroup" aria-label="Spread across bonds">
+                  {/* A radiogroup has to behave like one.
+                    *
+                    * These carried role="radiogroup" and role="radio" from the
+                    * day they shipped, which tells a screen reader "radio
+                    * button, one of five" — and then every arrow key did
+                    * nothing and Tab stopped on all five in turn. The roles
+                    * were making a promise the markup did not keep, which is
+                    * worse than plain buttons: it tells somebody the arrows
+                    * will work and then strands them.
+                    *
+                    * Arrow keys move and select, Home and End jump to the
+                    * ends, and a roving tabindex makes the group one stop —
+                    * the behaviour the role implies. */}
+                  <div
+                    className="mt-3 space-y-1.5"
+                    role="radiogroup"
+                    aria-label="Spread across bonds"
+                    onKeyDown={(e) => {
+                      const order = incomeOptions.map((x) => x.holdings);
+                      const at = order.indexOf(incomeHoldings);
+                      let next: number | null = null;
+                      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = order[(at + 1) % order.length];
+                      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = order[(at - 1 + order.length) % order.length];
+                      else if (e.key === 'Home') next = order[0];
+                      else if (e.key === 'End') next = order[order.length - 1];
+                      if (next === null) return;
+                      e.preventDefault();
+                      setIncomeHoldings(next);
+                      // Focus follows selection, or the ring is left behind on
+                      // the option the reader just moved away from.
+                      const el = e.currentTarget.querySelector<HTMLElement>(`[data-holdings="${next}"]`);
+                      el?.focus();
+                    }}
+                  >
                     {incomeOptions.map((o) => {
                       const active = o.holdings === incomeHoldings;
                       return (
@@ -669,6 +702,10 @@ export default function GoalsPage() {
                           type="button"
                           role="radio"
                           aria-checked={active}
+                          data-holdings={o.holdings}
+                          /* Roving tabindex: one stop for the whole group,
+                           * landing on the current choice. */
+                          tabIndex={active ? 0 : -1}
                           onClick={() => setIncomeHoldings(o.holdings)}
                           className={cn(
                             'flex w-full items-baseline justify-between gap-3 rounded-lg border px-3 py-2 text-left transition',

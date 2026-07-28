@@ -723,6 +723,161 @@ async function main() {
   }
   if (failures.length === fitBefore) pass('all four goal sheets fit A4 landscape with no overflow and >6mm ink clearance');
 
+  /* ------------------------- the printout agrees with the screen it came from */
+  /*
+   * THE DEFECT THIS EXISTS TO CATCH, WHICH HAS NOW HAPPENED FOUR TIMES.
+   *
+   * A figure is corrected on the page and the copy of it in the report is left
+   * behind. The passive-income sheet printed "Average / month" — the annual
+   * figure over twelve — for some time after the screen had stopped, so the
+   * page said Ksh 87,051 and the PDF said Ksh 43,525 for the same plan. The
+   * same shape produced the currency labels, the MMF rate and the retired
+   * statistics: a convention established in one place and retyped in another,
+   * with nothing holding the two in step.
+   *
+   * Nothing already here could see it. Unit tests check each surface against
+   * its own expectations. The fit checks measure geometry. Provenance greps
+   * the source. Every one of them passes while the two renderings disagree,
+   * because none of them ever puts the two side by side.
+   *
+   * So: every money figure the SHEET prints must also appear on the SCREEN.
+   * That direction is the meaningful one — the sheet is the derived artefact
+   * and must not invent a number. The reverse would fail honestly, since the
+   * screen shows working the sheet condenses away.
+   *
+   * This is a CLASS guard, not a test of any one figure. It does not care what
+   * the numbers mean. Anything the printout states that the page does not is a
+   * failure, whatever caused it.
+   */
+  console.log('\nthe printout says what the screen says');
+  const agreeBefore = failures.length;
+
+  /* Columns the sheet carries and the screen does not.
+   *
+   * Deliberately narrow and named. "Covered" is principal plus coupons for the
+   * year — both of which the screen already shows in their own columns, so the
+   * figure is present in substance and absent only as a total. Widening this
+   * list is how the guard would be defeated quietly, so anything added here
+   * should have to justify itself in this comment. */
+  const SHEET_ONLY_COLUMNS = ['Covered'];
+
+  for (const objective of ['Financial independence', 'School fees', 'Passive income', 'Capital preservation']) {
+    await go('/goals/');
+    await page.waitForTimeout(1200);
+    const ok = await page.evaluate((name) => {
+      const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes(name));
+      if (!b) return false;
+      b.click();
+      return true;
+    }, objective);
+    if (!ok) { fail(`agreement: no control for the ${objective} objective`); continue; }
+    await page.waitForTimeout(1000);
+
+    /* Move OFF the default before comparing, or the guard is blind.
+     *
+     * Found by mutation: reintroducing the exact "Average / month" defect this
+     * check exists to catch did not fail it. The default income plan spreads
+     * across six bonds and therefore pays in all twelve months — and at twelve
+     * of twelve, annual/12 and annual/monthsPaid are the same number. The two
+     * formulas agree precisely where the test was looking, and disagree
+     * everywhere else.
+     *
+     * A defect that only exists away from the defaults is the normal case, not
+     * an exotic one: defaults are what everybody looks at, so they are what
+     * gets fixed first. Selecting a narrower spread puts the sheet in the state
+     * the original bug actually shipped in — six paying months, where the flat
+     * average is wrong by a factor of two. */
+    if (objective === 'Passive income') {
+      const moved = await page.evaluate(() => {
+        const radios = [...document.querySelectorAll('[role="radiogroup"] [role="radio"]')];
+        const narrower = radios.find((r) => /^\s*6 of 12/.test(r.textContent));
+        if (!narrower) return false;
+        narrower.click();
+        return true;
+      });
+      if (!moved) fail('agreement: could not select a narrower spread — the check would only ever see 12 of 12');
+      await page.waitForTimeout(900);
+    }
+
+    const result = await page.evaluate((skipCols) => {
+      const sheet = document.getElementById('goal-report-sheet');
+      if (!sheet) return { error: 'no printable sheet' };
+      const RE = /-?Ksh\s?([\d.,]+)([KkMm])?/g;
+
+      /* Tolerance comes from the string's own precision, not a percentage.
+       * "Ksh 2.9M" states its value only to the nearest 100,000, so it can
+       * legitimately stand for 2,860,254 — a 1.4% difference that no sane
+       * fixed percentage would admit without also admitting real errors. */
+      const tolOf = (digits, suffix) => {
+        const dp = (digits.split('.')[1] || '').length;
+        const unit = suffix ? (/[Mm]/.test(suffix) ? 1e6 : 1e3) : 1;
+        return unit / Math.pow(10, dp) / 2;
+      };
+      const parse = (digits, suffix) => {
+        const n = parseFloat(digits.replace(/,/g, ''));
+        if (!isFinite(n)) return null;
+        return suffix ? n * (/[Mm]/.test(suffix) ? 1e6 : 1e3) : n;
+      };
+
+      // Which table column a cell sits in, so sheet-only columns can be skipped.
+      const columnOf = (node) => {
+        const td = node.closest?.('td');
+        if (!td) return null;
+        const table = td.closest('table');
+        const head = table?.querySelectorAll('thead th');
+        if (!head || !head.length) return null;
+        return head[td.cellIndex]?.textContent.trim() ?? null;
+      };
+
+      const grab = (root, exclude) => {
+        const out = [];
+        const walk = (node) => {
+          if (exclude && node === exclude) return;
+          if (node.nodeType === 3) {
+            const col = columnOf(node.parentElement);
+            if (col && skipCols.includes(col)) return;
+            for (const m of (node.textContent || '').matchAll(RE)) {
+              const v = parse(m[1], m[2]);
+              if (v !== null) out.push({ v, tol: tolOf(m[1], m[2]), text: m[0], col });
+            }
+            return;
+          }
+          if (node.nodeType !== 1) return;
+          // Inputs count as on-screen: a figure the reader typed is a figure
+          // the page is showing them, even though it is not text.
+          if (node.tagName === 'INPUT' && node.value) {
+            const n = parseFloat(String(node.value).replace(/,/g, ''));
+            if (isFinite(n)) out.push({ v: n, tol: 0.5, text: `input ${node.value}`, col: null });
+          }
+          for (const c of node.childNodes) walk(c);
+        };
+        walk(root);
+        return out;
+      };
+
+      const screen = grab(document.body, sheet);
+      const printed = grab(sheet, null);
+      const explained = (f) => screen.some((s) => Math.abs(s.v - f.v) <= Math.max(s.tol, f.tol));
+      const orphans = [...new Map(printed.filter((f) => !explained(f)).map((f) => [f.v, f])).values()];
+      return { screenCount: screen.length, printedCount: printed.length, orphans };
+    }, SHEET_ONLY_COLUMNS);
+
+    if (result.error) { fail(`agreement: ${objective} — ${result.error}`); continue; }
+    // A vacuous pass is the failure mode here: if nothing was collected from
+    // either surface, every figure is trivially "explained".
+    if (result.printedCount < 3 || result.screenCount < 3) {
+      fail(`agreement: ${objective} collected only ${result.printedCount} printed / ${result.screenCount} screen figures — the scan is not seeing the page`);
+      continue;
+    }
+    if (result.orphans.length) {
+      fail(
+        `agreement: the ${objective} printout states ${result.orphans.length} figure(s) that appear nowhere on screen — ` +
+          result.orphans.map((o) => `${o.text}${o.col ? ` (${o.col})` : ''}`).join(', ')
+      );
+    }
+  }
+  if (failures.length === agreeBefore) pass('every printed figure on all four sheets also appears on the page');
+
   /* ------------------------------------ a tailored ladder survives a reload */
   /*
    * Hand-picking six rungs and losing them on reload is not a tool. On a phone

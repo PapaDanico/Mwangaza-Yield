@@ -665,6 +665,84 @@ async function main() {
    * drops that padding nothing looks wrong on screen, and the outermost column
    * comes back from the printer shaved.
    */
+  /* ------------------------------- the spread options work from the keyboard */
+  /*
+   * These carry role="radiogroup" and role="radio", which tells a screen
+   * reader "radio button, one of five" — and for a while every arrow key did
+   * nothing and Tab stopped on all five in turn. An ARIA role is a promise
+   * about behaviour, and one that is not kept is worse than plain buttons: it
+   * tells somebody the arrows will work and then strands them.
+   *
+   * Nothing automated could see it. The roles were present, the labels were
+   * right, Lighthouse was happy at 97 — the markup was correct and the
+   * behaviour was missing, and only pressing the keys tells you that.
+   */
+  console.log('\nthe spread options answer the keyboard');
+  const kbdBefore = failures.length;
+  await go('/goals/');
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => x.textContent.includes('Passive income'));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(900);
+
+  const readState = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('[role="radiogroup"] [role="radio"]')].map((r) => r.getAttribute('aria-checked'))
+    );
+  const initial = await readState();
+  if (initial.length < 3) {
+    fail(`goals: found ${initial.length} spread options — the keyboard check would be vacuous`);
+  } else {
+    await page.evaluate(() => {
+      const sel = document.querySelector('[role="radiogroup"] [role="radio"][aria-checked="true"]');
+      if (sel) sel.focus();
+    });
+    // Every key the role promises, checked individually: a handler wired to
+    // ArrowDown alone would pass a test that only pressed ArrowDown.
+    for (const key of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End']) {
+      const before = (await readState()).join(',');
+      await page.keyboard.press(key);
+      await page.waitForTimeout(300);
+      const after = (await readState()).join(',');
+      if (before === after) fail(`goals: the spread options ignore ${key}`);
+    }
+    // Home and End must land somewhere definite, not merely move.
+    await page.keyboard.press('Home');
+    await page.waitForTimeout(300);
+    if ((await readState())[0] !== 'true') fail('goals: Home does not select the first spread');
+    await page.keyboard.press('End');
+    await page.waitForTimeout(300);
+    const end = await readState();
+    if (end[end.length - 1] !== 'true') fail('goals: End does not select the last spread');
+
+    /* One tab stop, entered the way a reader actually arrives.
+     *
+     * Measured from outside the group. Focusing a member directly overstates
+     * it by one, because the unselected options carry tabindex -1 and are
+     * reachable programmatically but not by Tab — which is the whole point of
+     * a roving tabindex. */
+    await page.evaluate(() => {
+      const el = document.querySelector('input[type=number]');
+      if (el) el.focus();
+    });
+    let stops = 0;
+    let entered = false;
+    for (let i = 0; i < 14; i++) {
+      await page.keyboard.press('Tab');
+      await page.waitForTimeout(90);
+      const inGroup = await page.evaluate(() => {
+        const a = document.activeElement;
+        return !!(a && a.closest && a.closest('[role="radiogroup"]'));
+      });
+      if (inGroup) { stops++; entered = true; } else if (entered) break;
+    }
+    if (!entered) fail('goals: Tab never reaches the spread options at all');
+    else if (stops !== 1) fail(`goals: the spread options take ${stops} tab stops; a radiogroup takes one`);
+  }
+  if (failures.length === kbdBefore) pass('arrows, Home and End all move the spread; the group is a single tab stop');
+
   console.log('\nevery goal sheet fits an A4 page');
   const fitBefore = failures.length;
   for (const objective of ['Financial independence', 'School fees', 'Passive income', 'Capital preservation']) {

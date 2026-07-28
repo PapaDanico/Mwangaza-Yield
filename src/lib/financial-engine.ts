@@ -265,13 +265,30 @@ export function couponsByMonth(
   return buckets;
 }
 
+/**
+ * Money, written the way Kenyans write it.
+ *
+ * `style: 'currency'` with `currency: 'KES'` renders the ISO 4217 code —
+ * "KES 3,136,262" — which is what every report, every stat card and every
+ * exported PDF has been showing. The sister product writes "Ksh", and a reader
+ * holding a JiPange fee plan next to a Mwangaza ladder plan was being shown
+ * two different names for one currency.
+ *
+ * Ksh is what a Kenyan reader writes and reads. The ISO code is for wire
+ * instructions, and nothing here is a wire instruction.
+ *
+ * The sign goes OUTSIDE the unit — "-Ksh 500", not "Ksh -500" — because the
+ * latter reads as a quantity of some negative currency. Intl's currency mode
+ * handled that; a hand-rolled prefix is precisely where it gets dropped, so it
+ * is explicit here and covered by a test.
+ */
 export function formatKES(value: number, decimals = 0): string {
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KES',
+  const n = Number.isFinite(value) ? value : 0;
+  const digits = new Intl.NumberFormat('en-KE', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
-  }).format(value);
+  }).format(Math.abs(n));
+  return `${n < 0 ? '-' : ''}Ksh ${digits}`;
 }
 
 export function formatPct(value: number, decimals = 2): string {

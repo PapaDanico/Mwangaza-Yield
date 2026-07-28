@@ -244,6 +244,7 @@ export default function GoalsPage() {
         fire={goal === 'fire' ? fire : null}
         fees={goal === 'school-fees' ? fees : null}
         income={goal === 'passive-income' ? income : null}
+        incomeOptions={goal === 'passive-income' ? incomeOptions : undefined}
         preservation={goal === 'capital-preservation' ? park : null}
       />
 
@@ -735,8 +736,11 @@ export default function GoalsPage() {
                       return 'Spreading across six bonds covers all twelve, at the cost of some yield — filling a gap month means taking the best bond that pays in it rather than the best bond outright.';
                     }
                     const extra = full.givesUpKES - (incomeOptions.find((o) => o.holdings === incomeHoldings)?.givesUpKES ?? 0);
+                    /* The reason is stated once, above the options, where the
+                     * choice is actually made. Repeating it here made the same
+                     * clause appear three times in one section. */
                     return extra > 0
-                      ? `Covering all twelve costs ${formatKES(extra)} a year from here — filling a gap month means taking the best bond that pays in it rather than the best bond outright.`
+                      ? `Covering all twelve costs ${formatKES(extra)} a year from here.`
                       : 'Covering all twelve costs nothing from here.';
                   })()}
                 </p>
@@ -760,37 +764,46 @@ export default function GoalsPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
 
-          <div className="card overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
-                  <th className="px-4 py-3">Bond</th>
-                  <th className="px-4 py-3 text-right">Face value</th>
-                  <th className="px-4 py-3 text-right">Net coupon</th>
-                  <th className="px-4 py-3 text-right">Pays in</th>
-                </tr>
-              </thead>
-              <tbody>
-                {income.holdings.map((h) => (
-                  <tr key={h.bond.isin} className="border-b border-sand-300/60 last:border-0">
-                    <td className="px-4 py-3 font-medium text-ink">
-                      {h.bond.issueCode}
-                      {h.bond.taxExempt && (
-                        <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
-                      )}
-                    </td>
-                    <td className="num px-4 py-3 text-right text-ink">{formatKES(h.faceValueKES)}</td>
-                    <td className="num px-4 py-3 text-right text-mint-700">{formatKES(h.netCouponKES)}</td>
-                    <td className="num px-4 py-3 text-right text-ink-soft">
-                      {h.months.map((m) => MONTHS[m]).join(' · ')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              {/* The bars and the bonds that cause them, in one card.
+                *
+                * These were two cards with the whole height of the input column
+                * between them: the chart is 96px tall in a cell that stretched to
+                * match five option rows, so roughly half the section was empty
+                * space, and the reader had to scroll past it to learn WHICH bond
+                * put income in August. Same column, directly beneath — the chart
+                * answers "when", the table answers "from what", and the eye moves
+                * between them without leaving the card. */}
+              <div className="-mx-5 mt-5 overflow-x-auto border-t border-sand-300 px-0 pt-1">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-ink-muted">
+                      <th className="px-5 py-2 font-medium">Bond</th>
+                      <th className="px-3 py-2 text-right font-medium">Face value</th>
+                      <th className="px-3 py-2 text-right font-medium">Net coupon</th>
+                      <th className="px-5 py-2 text-right font-medium">Pays in</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {income.holdings.map((h) => (
+                      <tr key={h.bond.isin} className="border-t border-sand-300/60">
+                        <td className="px-5 py-2.5 font-medium text-ink">
+                          {h.bond.issueCode}
+                          {h.bond.taxExempt && (
+                            <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
+                          )}
+                        </td>
+                        <td className="num px-3 py-2.5 text-right text-ink">{formatKES(h.faceValueKES)}</td>
+                        <td className="num px-3 py-2.5 text-right text-mint-700">{formatKES(h.netCouponKES)}</td>
+                        <td className="num px-5 py-2.5 text-right text-ink-soft">
+                          {h.months.map((m) => MONTHS[m]).join(' · ')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <div className="card">
@@ -812,10 +825,9 @@ export default function GoalsPage() {
           </div>
 
           <p className="text-[11px] leading-relaxed text-ink-faint">
-            Bonds are chosen to add new payout months first and yield second — six paying months
-            beats a marginally higher coupon arriving twice a year when the money is meant to live
-            on. Kenyan coupons are semi-annual, so twelve paying months needs six complementary
-            issues.
+            Bonds are chosen to add new payout months first and yield second, which is why the
+            options above cost income as they widen. Figures are net of the 10% or 15%
+            withholding rate for each issue; infrastructure bonds are exempt.
           </p>
         </div>
       )}

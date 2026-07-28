@@ -94,3 +94,44 @@ describe('a printed report states its own provenance truthfully', () => {
     }
   });
 });
+
+/**
+ * The printed sheet has to say the same thing the screen said.
+ *
+ * These two defects are the same defect twice: a figure fixed on the page and
+ * left standing in the report. The report is the copy that outlives the
+ * session — nobody re-opens the browser to check a number they already have on
+ * paper — so a stale figure here is worse than a stale figure on screen, not
+ * better.
+ */
+describe('the passive-income sheet', () => {
+  const src = read('src/components/report/GoalReport.tsx');
+
+  it('never prints a flat monthly average', () => {
+    // The annual figure over twelve, when half those months can pay nothing.
+    // Fixed on the page — the label reads "In the months it pays" — and left
+    // in the report for a while afterwards, where it understates every month
+    // that pays and overstates every month that does not.
+    expect(src, 'the report divides the year by twelve again').not.toMatch(/averageMonthlyKES/);
+    expect(src).toMatch(/In the months it pays/);
+  });
+
+  it('writes months in three letters, not one', () => {
+    // "Pays in: J · D" is January, June or July, and a printed sheet has
+    // nothing to hover. Asserted on the array itself so a revert is visible.
+    const months = src.match(/const MONTHS = \[([^\]]*)\]/);
+    expect(months, 'the month labels moved or were renamed').toBeTruthy();
+    const labels = months![1].match(/'([A-Za-z]+)'/g)!.map((s) => s.replace(/'/g, ''));
+    expect(labels).toHaveLength(12);
+    expect(new Set(labels).size, 'two months share a label').toBe(12);
+    for (const l of labels) expect(l.length, `${l} is ambiguous`).toBeGreaterThan(1);
+  });
+
+  it('shows the alternatives that were not chosen', () => {
+    // The rationale. Without it the sheet states a decision and cannot answer
+    // the first question anybody asks of it: why not take more income?
+    expect(src).toMatch(/Why this spread/);
+    expect(src).toMatch(/incomeOptions/);
+    expect(src, 'the forgone income is not on the sheet').toMatch(/givesUpKES/);
+  });
+});

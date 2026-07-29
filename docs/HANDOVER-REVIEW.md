@@ -40,14 +40,27 @@ several paragraphs on why Kenya runs a 364-day year and a 182-day coupon
 period — "this is not an ordinary convention". The document lists it as open
 and guesses two wrong answers.
 
-### Unverified, and load-bearing
+### The 364-day claim: right in substance, wrong in tense
 
-§3.4 states the 2026 MTDS "explicitly targets eliminating 364-day bills".
-`public/data/fiscal-context.json` records the MTDS as targeting a reduction in
-the **T-bill share of total debt**, 7.3% → 5.3% by 2029. Reducing a share is
-not eliminating a tenor, and the document builds a "removes a key liquidity
-instrument for retail investors" conclusion on top of it. Treat as unverified
-until someone reads the MTDS.
+**Corrected after this review was first written.** My initial reading was that
+§3.4 had confused two different MTDS statements — because
+`public/data/fiscal-context.json` records the strategy as reducing the T-bill
+**share of total debt**, 7.3% → 5.3% by 2029, which is not the same as
+retiring a tenor. That scepticism was misplaced. The National Treasury did
+announce halting 364-day issuance, reported in January 2025, and the 2026 MTDS
+does set out gradually reducing the stock of Treasury bills in favour of
+longer-dated paper. Both statements exist; the document did not invent one.
+
+What the document gets wrong is the tense, and our own data is the disproof.
+The 364-day bill was **still being auctioned on 16 July 2026** — Ksh 9.83bn
+accepted against Ksh 14bn offered — with the next auction dated 30 July 2026,
+eighteen months after the announcement. See `public/data/tbills.json`.
+
+So §3.4's conclusion — that this "removes a key liquidity instrument for
+retail investors" — describes an announced intention as an accomplished fact.
+The instrument is live and clearing fortnightly. A reader planning around its
+disappearance would be planning around something that has not happened, and
+the honest statement is that the tenor is under notice, not gone.
 
 ---
 

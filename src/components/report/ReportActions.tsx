@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FileDown, ImageDown, Printer } from 'lucide-react';
 import { printReport } from '@/lib/share';
+import { bodyLooksUnstyled, MASTHEAD_SHARE } from '@/lib/report-styling';
 
 /**
  * Getting the one-page report off the device — as an actual PDF.
@@ -94,12 +95,115 @@ interface TextRun {
  */
 function asciiPunctuation(text: string): string {
   return text
-    .replace(/[\u2014\u2013]/g, '-')
+    /* U+2212 MINUS SIGN, and it is not the same character as a hyphen.
+     *
+     * The spread table renders income forgone as `\u2212Ksh 48,033` with a true
+     * minus, which is typographically right and outside WinAnsi. jsPDF could
+     * not encode it, so that cell extracted as
+     *
+     *     " K s h   4 8 , 0 3 3
+     *
+     * \u2014 the sign replaced by a quote and the rest letter-spaced. A garbled
+     * negative in the one column whose entire job is to say what a choice
+     * COSTS is the worst place on the sheet for this to happen, and it was
+     * invisible because the picture is fine; only the text layer is affected. */
+    .replace(/[\u2014\u2013\u2212]/g, '-')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
     .replace(/\u2026/g, '...')
     .replace(/\u00A0/g, ' ')
     .replace(/[\u00D7]/g, 'x');
+}
+
+/**
+ * Give the clone the page's stylesheets, rather than trusting it to inherit them.
+ *
+ * html2canvas paints a COPY of the sheet in a detached iframe, not the element
+ * you can see. The copy is expected to pick up the page's CSS on its own, and
+ * usually does. A report downloaded from production came back with none of it:
+ * browser-default serif, no cards, no colour, no chart — the same document, in
+ * the same build that renders correctly here.
+ *
+ * The geometry is what identifies the failure. That capture was 1123 x 721 CSS
+ * pixels, which is the STYLED height; an unstyled sheet lays out roughly three
+ * times taller. So the element was styled when it was measured and unstyled
+ * when it was painted, which places the loss squarely inside the clone. It is
+ * environment-specific — it does not reproduce here in headless Chromium at
+ * any viewport, with or without the service worker — and chasing it further
+ * through somebody else's browser is worth less than removing the dependency.
+ *
+ * So the styles are handed over explicitly. Same-origin rules are serialised
+ * and inlined; anything whose `cssRules` cannot be read (which is exactly the
+ * case that fails silently) has its <link> copied so the clone re-fetches it.
+ */
+function adoptStylesIntoClone(clonedDoc: Document): void {
+  const head = clonedDoc.head ?? clonedDoc.getElementsByTagName('head')[0];
+  if (!head) return;
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList | null = null;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      // Cross-origin, or blocked. Fall through to re-linking it below.
+      rules = null;
+    }
+
+    if (rules && rules.length) {
+      const style = clonedDoc.createElement('style');
+      style.textContent = Array.from(rules)
+        .map((r) => r.cssText)
+        .join('\n');
+      head.appendChild(style);
+      continue;
+    }
+
+    const href = sheet.href;
+    if (href) {
+      const link = clonedDoc.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      head.appendChild(link);
+    }
+  }
+}
+
+/**
+ * Would this canvas embarrass us in front of a broker?
+ *
+ * The production failure produced a PDF that was structurally perfect — right
+ * page size, right orientation, working text layer — and visually worthless.
+ * Every check in this file passed, because none of them looked at the picture.
+ *
+ * THE FIRST VERSION OF THIS CHECK DID NOT WORK
+ * --------------------------------------------
+ * It sampled the masthead, on the reasoning that the logo tile and gold rule
+ * are the most obviously branded thing on the sheet. Run against the actual
+ * broken image it scored 0.021 — comfortably "styled" — because the logo is an
+ * <img>, and an image needs no CSS to render. The check would have passed the
+ * exact document it was written for.
+ *
+ * So it samples everything BELOW the masthead instead. Every bit of colour
+ * down there — the green figures, the gold accents, the mint chart band, the
+ * tax-free badges — comes from CSS and nothing else, which is why the broken
+ * capture scores exactly zero there.
+ */
+function looksUnstyled(canvas: HTMLCanvasElement): boolean {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return false; // Cannot tell; never block a download on a guess.
+
+  const top = Math.floor(canvas.height * MASTHEAD_SHARE);
+  const h = canvas.height - top;
+  if (h <= 0) return false;
+
+  let data: Uint8ClampedArray;
+  try {
+    data = ctx.getImageData(0, top, canvas.width, h).data;
+  } catch {
+    return false; // Tainted canvas — not this check's business.
+  }
+
+  return bodyLooksUnstyled(data);
 }
 
 function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
@@ -126,7 +230,15 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
 
     if (rects.length === 1) {
       runs.push({
-        text: asciiPunctuation(raw.replace(/\s+/g, ' ').trim()),
+        /* Trailing space, because adjacent runs otherwise fuse on extraction.
+         *
+         * Each run is placed at its own coordinate, and an extractor decides
+         * word breaks from geometry. Where two runs abut with no gap — a table
+         * cell holding "2" beside one holding "bonds", or a stacked title —
+         * the copied text came out as "2bonds", "4of 12", "Passive incomeplan".
+         * Harmless to look at and fatal to search: nobody finds "4 of 12" in
+         * that document. The layer is invisible, so a space costs nothing. */
+        text: `${asciiPunctuation(raw.replace(/\s+/g, ' ').trim())} `,
         x: rects[0].left - bounds.left,
         y: rects[0].bottom - bounds.top,
         size,
@@ -148,7 +260,9 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
       const slice = words.slice(cursor, cursor + share).join(' ');
       cursor += share;
       if (slice) {
-        runs.push({ text: slice, x: r.left - bounds.left, y: r.bottom - bounds.top, size });
+        // Same trailing space as the single-rect branch above: a wrapped line
+        // abuts the next one just as readily as two table cells do.
+        runs.push({ text: `${slice} `, x: r.left - bounds.left, y: r.bottom - bounds.top, size });
       }
     });
   }
@@ -226,7 +340,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
        * rather than cropped. */
       const captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
       const captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
-      return await html2canvas(el, {
+      const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         logging: false,
@@ -237,7 +351,18 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
         height: captureH,
         windowWidth: captureW,
         windowHeight: captureH,
+        onclone: adoptStylesIntoClone,
       });
+
+      /* Checked here rather than in downloadPdf, so the image export is
+       * covered by the same rule. A styleless PNG is no better to send on. */
+      if (looksUnstyled(canvas)) {
+        throw new Error(
+          'The report rendered without its styling, so the download was stopped rather than ' +
+            'save an unformatted document. Reload the page and try again.'
+        );
+      }
+      return canvas;
     } finally {
       el.style.display = prev.display;
       el.style.position = prev.position;

@@ -973,6 +973,40 @@ def auction_date_from_lines(lines: list):
     which stops at the FORTHCOMING heading — a rule written for a different
     purpose that happens to guard this one. Stated explicitly because a change
     to that rule would silently re-admit the decoy.
+
+    WHY THE SIGNATURE LINE IS NOT A THIRD FALLBACK
+
+    Thirteen records still carry no date, and docs/ARCHIVE-GAPS.md observed
+    that every one of those documents states a date under the signatory block:
+
+        John K. Birech
+        Ag. Director, Financial Markets
+        27 April 2017
+
+    It called this "a parser gap, not a data gap". The date is certainly there.
+    It is a DIFFERENT date, and reading it into this field would be worse than
+    leaving the field empty.
+
+    `auctionDate` holds the VALUE date — the Monday the bond is dated from —
+    which is why 297 of 303 dated records fall on a Monday. The signature line
+    holds the day the release was signed. Three 2026 documents, filename date
+    against signature:
+
+        results dated 03/08/2026 (Mon)   signed July 30, 2026 (Thu)   -4 days
+        results dated 27/07/2026 (Mon)   signed 22 July 2026  (Wed)   -5 days
+        switch  dated 15/07/2026 (Wed)   signed 13 July 2026  (Mon)   -2 days
+
+    The gap is real, it varies, and it is not recoverable from the document.
+    Filling this field from the signature would put thirteen publication dates
+    into a column of value dates, on no announced basis, and every consumer
+    that groups by date — the year tables, the auction grouping in
+    subscription.ts, the Monday check in archive-quality.ts — would silently
+    read them as though they meant the same thing. A visibly missing date is a
+    known unknown; a plausible wrong one is not.
+
+    So the thirteen stay undated unless someone adds a separate field with its
+    own name and meaning. Recorded here rather than in the write-up because
+    this is where the next person will come to add it.
     """
     for line in lines:
         m = HEADING_DATE_RE.search(" ".join(w["text"] for w in line))

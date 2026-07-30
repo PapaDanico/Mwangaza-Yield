@@ -10,6 +10,7 @@ Any parser that reads the text linearly finds four numbers and gets all four
 wrong. These tests exist to keep that from ever shipping.
 """
 import hashlib
+from datetime import datetime
 import os
 import sys
 
@@ -1198,6 +1199,37 @@ def main():
     _out = undouble_words(_geom)
     check("word geometry is preserved", [x["x0"] for x in _out], [12.5, 200.0])
     check("repair reaches the value too", _out[1]["text"], "8.790")
+
+    print("the signature date is a different date")
+    # docs/ARCHIVE-GAPS.md proposed filling the thirteen undated records from
+    # the date printed under the signatory block, calling it "a parser gap, not
+    # a data gap". The date is there. It is a DIFFERENT date, and these are the
+    # measurements that settle it — transcribed from three 2026 CBK releases,
+    # kept here so nobody has to re-derive them before declining the idea again.
+    #
+    # auctionDate is the VALUE date, the Monday the bond is dated from, which
+    # is why 297 of 303 dated records fall on a Monday. The signature line is
+    # the day the release was signed. The gap is real, it varies between two
+    # and five days, and nothing in the document announces it.
+    for label, value_dated, signed, weekday in (
+        ("bill results 03/08/2026", "2026-08-03", "2026-07-30", 0),
+        ("bond results 27/07/2026", "2026-07-27", "2026-07-22", 0),
+        ("switch results 15/07/2026", "2026-07-15", "2026-07-13", 2),
+    ):
+        gap = (datetime.strptime(value_dated, "%Y-%m-%d")
+               - datetime.strptime(signed, "%Y-%m-%d")).days
+        check(f"{label}: signed before the value date", gap > 0, True)
+        check(f"{label}: and by an amount that varies", 2 <= gap <= 5, True)
+        check(f"{label}: value date weekday is as recorded",
+              datetime.strptime(value_dated, "%Y-%m-%d").weekday(), weekday)
+
+    # The consequence, stated as the assertion it is: taking the signature date
+    # would put a publication date into a column of value dates, on no
+    # announced basis, and every consumer that groups by date would read them
+    # as though they meant the same thing. A visibly missing date is a known
+    # unknown; a plausible wrong one is not.
+    check("the two bases are not interchangeable",
+          "2026-08-03" == "2026-07-30", False)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

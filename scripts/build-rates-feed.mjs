@@ -5,12 +5,19 @@
  * ---------------
  * The engine's whole value is that it turns published CBK figures into the
  * number a person keeps — and CBK's own quotes are systematically misread.
- * A Treasury bill quoted at 8.7986% is neither an 8.80% return nor close to
- * one: the discount is earned on a smaller outlay, so the true gross yield is
- * 9.30%, and 15% withholding tax then pulls the net to 7.87%. A consumer of
- * "the 91-day rate" who multiplies capital by 0.088 is wrong twice over, in
- * opposite directions, and lands about three quarters of a percentage point
- * too high.
+ * A Treasury bill quoted at 8.7882% is not an 8.79% return: rolled four times
+ * a year the true gross yield is 9.29%, and 15% withholding tax then pulls the
+ * net to 7.86%. A consumer of "the 91-day rate" who multiplies capital by
+ * 0.0879 is wrong twice over, in opposite directions, and lands roughly nine
+ * tenths of a percentage point too high.
+ *
+ * The figures above were themselves wrong until 30 July 2026, on the pricing
+ * convention rather than the arithmetic — see the header of src/lib/tbills.ts.
+ * A quote that is already a yield was being treated as a discount on face,
+ * which understated the price and so overstated the return, by 22bps at 91
+ * days and 84bps at 364. That this file's own explanation of why others get
+ * bills wrong contained a wrong figure is the argument for publishing one
+ * answer rather than several, made against itself.
  *
  * Our sister product JiPange was making exactly that error in its DhowCSD
  * ladder, which is what prompted this file. The fix is not to teach JiPange
@@ -144,8 +151,10 @@ const feed = {
       'quotedDiscountRate is CBK\'s published quote and is NOT a return. Project income '
       + 'from netEAY; compare against other net-of-tax yields only.',
     conventions:
-      'T-bills: discount = face x rate x days / 365, price = face - discount, '
-      + 'EAY compounds that discount over a year. Bonds: 364-day year, 182-day coupon '
+      'T-bills: price = 100 / (1 + rate x days / 365) per 100 face — CBK\'s quote is a '
+      + 'simple annual yield on the price paid, not a discount on face, and reproduces '
+      + 'CBK\'s own published price line exactly. EAY compounds that over a year. '
+      + 'Bonds: 364-day year, 182-day coupon '
       + 'periods, WHT 0% on infrastructure bonds, 10% at ten years or longer, else 15%.',
     benchmarks:
       'Bond bands are bucketed by REMAINING term at the auction date, not the tenor in '

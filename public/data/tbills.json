@@ -1,5 +1,35 @@
 [
-  { "id": "tb-91-2026-07-16", "tenorDays": 91, "discountRate": 8.7986, "auctionDate": "2026-07-16", "nextAuctionDate": "2026-07-30", "amountOfferedKES": 4000000000, "amountAcceptedKES": 7560000000, "minInvestmentKES": 100000, "source": "CBK auction, 16 Jul 2026" },
-  { "id": "tb-182-2026-07-16", "tenorDays": 182, "discountRate": 8.9695, "auctionDate": "2026-07-16", "nextAuctionDate": "2026-07-30", "amountOfferedKES": 10000000000, "amountAcceptedKES": 13230000000, "minInvestmentKES": 100000, "source": "CBK auction, 16 Jul 2026" },
-  { "id": "tb-364-2026-07-16", "tenorDays": 364, "discountRate": 9.0415, "auctionDate": "2026-07-16", "nextAuctionDate": "2026-07-30", "amountOfferedKES": 14000000000, "amountAcceptedKES": 9830000000, "minInvestmentKES": 100000, "source": "CBK auction, 16 Jul 2026" }
+  {
+    "id": "tb-91-2026-07-30",
+    "tenorDays": 91,
+    "discountRate": 8.7882,
+    "auctionDate": "2026-07-30",
+    "nextAuctionDate": "2026-08-06",
+    "amountOfferedKES": 8000000000,
+    "amountAcceptedKES": 14330170000,
+    "minInvestmentKES": 100000,
+    "source": "CBK auction, 30 Jul 2026"
+  },
+  {
+    "id": "tb-182-2026-07-30",
+    "tenorDays": 182,
+    "discountRate": 8.9545,
+    "auctionDate": "2026-07-30",
+    "nextAuctionDate": "2026-08-06",
+    "amountOfferedKES": 10000000000,
+    "amountAcceptedKES": 8171640000,
+    "minInvestmentKES": 100000,
+    "source": "CBK auction, 30 Jul 2026"
+  },
+  {
+    "id": "tb-364-2026-07-30",
+    "tenorDays": 364,
+    "discountRate": 9.0169,
+    "auctionDate": "2026-07-30",
+    "nextAuctionDate": "2026-08-06",
+    "amountOfferedKES": 10000000000,
+    "amountAcceptedKES": 4784060000,
+    "minInvestmentKES": 100000,
+    "source": "CBK auction, 30 Jul 2026"
+  }
 ]

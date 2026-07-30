@@ -1,14 +1,47 @@
 // Treasury bill mathematics — Kenyan (CBK) convention.
 //
 // T-bills are DISCOUNT instruments: you pay less than face value and receive
-// face value at maturity. CBK quotes a *discount rate*, which is NOT what you
-// earn — the effective annual yield is higher (you earn the discount on a
-// smaller outlay), and 15% withholding tax then pulls the net back down.
-// Surfacing that three-way gap is the whole point of this module.
+// face value at maturity. CBK's quoted rate is NOT the effective annual yield —
+// the discount is earned on a smaller outlay, so the EAY is higher, and 15%
+// withholding tax then pulls the net back down. Surfacing that three-way gap is
+// the whole point of this module.
+//
+// WHICH DISCOUNT CONVENTION, AND HOW WE LEARNED WE HAD THE WRONG ONE
+// ------------------------------------------------------------------
+// There are two, and they are not close at Kenyan tenors:
+//
+//   bank discount   Price = 100 - rate x days / 365      (quote is a discount ON FACE)
+//   true discount   Price = 100 / (1 + rate x days / 365) (quote is a YIELD ON PRICE)
+//
+// This module used the first. CBK uses the second, and says so in every results
+// release, on a line we had been reading past: "Price per Kshs 100 at average
+// interest rate". Checked against the 03/08/2026 auction (issues 2693/091,
+// 2667/182, 2622/364), using the weighted average rate of ACCEPTED bids:
+//
+//   tenor   CBK rate   CBK price    true discount   bank discount
+//   91d     8.7882     97.8559      97.8559 ✓       97.8090  (-0.047)
+//   182d    8.9545     95.7259      95.7259 ✓       95.5350  (-0.191)
+//   364d    9.0169     91.7497      91.7497 ✓       91.0078  (-0.742)
+//
+// Three tenors spanning 91 to 364 days, exact to four decimals on one formula
+// and wrong by up to three quarters of a shilling on the other. That is not a
+// rounding question about which convention CBK means.
+//
+// The error ran the wrong way for us, which is why nothing looked odd. Treating
+// a yield quote as a bank discount understates the price, and understating what
+// you pay overstates what you earn: the 364-day bill was reporting roughly
+// 9.87% gross EAY against a true 9.03%, about 84 basis points, and Ksh 742 too
+// much interest on every Ksh 100,000 of face. At 91 days it was 22bps.
+//
+// The irony is exact and worth recording. This module exists because a quoted
+// rate is not a return, and docs/HANDOVER-REVIEW.md faults an outside document
+// for reprinting our discount rates as though they were yields. We had the
+// mirror-image defect: we treated a quote that is already a yield as though it
+// were a discount, and then "corrected" it a second time.
 //
 // Convention (see docs/DATA-SOURCES.md):
-//   Discount = Face x rate x days / 365
-//   Price    = Face - Discount
+//   Price    = 100 / (1 + rate x days / 365)
+//   Discount = Face - Price x Face / 100
 //   EAY      = (Face / Price) ^ (365 / days) - 1
 
 import type { TBill } from '../types/bond';
@@ -35,9 +68,16 @@ export interface TBillResult {
   quoteGapBps: number;
 }
 
-/** Purchase price per 100 face for a quoted discount rate. */
+/**
+ * Purchase price per 100 face for CBK's quoted rate.
+ *
+ * True discount, not bank discount — CBK's quote is a simple annualised yield
+ * on the price paid, so the price is the present value of 100 at that rate.
+ * Reproduces CBK's own "Price per Kshs 100 at average interest rate" line
+ * exactly; see the header for the three-tenor check that established it.
+ */
 export function tbillPricePer100(discountRate: number, tenorDays: number): number {
-  return 100 - (discountRate * tenorDays) / YEAR_DAYS;
+  return 100 / (1 + (discountRate / 100) * (tenorDays / YEAR_DAYS));
 }
 
 /** Full economics of buying `faceValueKES` of a bill at the quoted discount rate. */

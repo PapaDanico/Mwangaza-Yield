@@ -134,7 +134,7 @@ export const GLOSSARY: Term[] = [
     term: 'Discount rate',
     plain:
       'How Treasury bills are quoted. You buy below Ksh 100 and are repaid Ksh 100 — the gap is your interest. A "9% discount rate" is not a 9% return.',
-    why: 'Your true annual return is always higher than the quoted discount rate, and the gap widens the longer the bill runs. Our T-bills page does the conversion.',
+    why: 'Your true annual return is a little higher than the quote, because you can roll a short bill several times a year and compound it. The gap therefore SHRINKS as the tenor lengthens — about 29 basis points on a 91-day bill, almost nothing on a 364-day one, which you only hold once. Our T-bills page does the conversion.',
   },
   {
     slug: 'treasury-bill',
@@ -168,11 +168,29 @@ export const GLOSSARY: Term[] = [
   },
   {
     slug: 'bid-to-cover',
-    term: 'Bid-to-cover',
-    also: 'subscription rate',
+    term: 'Performance rate',
+    also: 'subscription rate, cover',
     plain:
-      'Bids received divided by the amount offered, for a whole auction. 2.0x means investors offered twice the money the government asked for.',
+      'Bids received divided by the amount offered, for a whole auction. 2.0x means investors offered twice the money the government asked for. CBK calls this the performance rate and prints it as a percentage; we show it as a multiple.',
     why: 'Heavy demand lets CBK reject expensive bids, so bidding a low rate is riskier when cover is high.',
+    /* Careful: CBK also prints a line called "Bid-to-Cover Ratio", and it is a
+     * DIFFERENT number — bids received divided by the amount ACCEPTED, not the
+     * amount offered. Checked against seven figures across three of its own
+     * releases (the 03/08/2026 bill auction, the 27/07/2026 bond auction and
+     * the 15/07/2026 switch), it matches bids/accepted every time and
+     * bids/offered none.
+     *
+     * The two diverge sharply. On 3 August the 182-day bill drew Ksh 8.17bn
+     * against Ksh 10bn offered — a performance rate of 0.82, an auction that
+     * fell short — while CBK's bid-to-cover line reads 1.00, because it
+     * accepted everything bid. Their ratio is near 1.0 by construction and
+     * says little about demand; ours is the one that answers whether the
+     * auction was fought over.
+     *
+     * So the entry is named for the ratio it describes, using CBK's own word
+     * for it, rather than borrowing a term CBK uses for something else. A
+     * reader holding the PDF next to this page has to be able to reconcile
+     * them, and could not while both were called bid-to-cover. */
   },
   {
     slug: 're-opening',

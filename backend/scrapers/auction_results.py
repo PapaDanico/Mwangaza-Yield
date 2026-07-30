@@ -973,6 +973,40 @@ def auction_date_from_lines(lines: list):
     which stops at the FORTHCOMING heading — a rule written for a different
     purpose that happens to guard this one. Stated explicitly because a change
     to that rule would silently re-admit the decoy.
+
+    WHY THE SIGNATURE LINE IS NOT A THIRD FALLBACK
+
+    Thirteen records still carry no date, and docs/ARCHIVE-GAPS.md observed
+    that every one of those documents states a date under the signatory block:
+
+        John K. Birech
+        Ag. Director, Financial Markets
+        27 April 2017
+
+    It called this "a parser gap, not a data gap". The date is certainly there.
+    It is a DIFFERENT date, and reading it into this field would be worse than
+    leaving the field empty.
+
+    `auctionDate` holds the VALUE date — the Monday the bond is dated from —
+    which is why 297 of 303 dated records fall on a Monday. The signature line
+    holds the day the release was signed. Three 2026 documents, filename date
+    against signature:
+
+        results dated 03/08/2026 (Mon)   signed July 30, 2026 (Thu)   -4 days
+        results dated 27/07/2026 (Mon)   signed 22 July 2026  (Wed)   -5 days
+        switch  dated 15/07/2026 (Wed)   signed 13 July 2026  (Mon)   -2 days
+
+    The gap is real, it varies, and it is not recoverable from the document.
+    Filling this field from the signature would put thirteen publication dates
+    into a column of value dates, on no announced basis, and every consumer
+    that groups by date — the year tables, the auction grouping in
+    subscription.ts, the Monday check in archive-quality.ts — would silently
+    read them as though they meant the same thing. A visibly missing date is a
+    known unknown; a plausible wrong one is not.
+
+    So the thirteen stay undated unless someone adds a separate field with its
+    own name and meaning. Recorded here rather than in the write-up because
+    this is where the next person will come to add it.
     """
     for line in lines:
         m = HEADING_DATE_RE.search(" ".join(w["text"] for w in line))
@@ -1112,13 +1146,62 @@ def merge_page(records: dict, page: dict) -> dict:
     return records
 
 
+DOUBLED_RUN = re.compile(r"^(?:(.)\1)+$")
+
+
+def undouble(text: str) -> str:
+    """Collapse a word whose every character has been emitted twice.
+
+    Some CBK PDFs embed a font that pdfplumber reads with every glyph
+    duplicated, so a coupon line arrives as::
+
+        CCoouuppoonn  RRaattee  ((%%))  88..779900
+
+    Three records in the archive carry no coupon rate purely because of this:
+    the label never matches, so the value beside it is never claimed.
+
+    Only exact doubles are collapsed, and only when the whole word is one. A
+    looser rule would eat real text — "2022" is not a doubled "22", and
+    "FXD1/2011/020" contains a legitimate double zero. Requiring that EVERY
+    character be part of an adjacent identical pair makes "88..779900" match
+    and "2022" not, because 2-0-2-2 has no pair at positions one and two.
+
+    Returns the input unchanged when it is not a doubled run, so this is safe
+    to apply to every word.
+    """
+    if len(text) < 2 or len(text) % 2:
+        return text
+    if not DOUBLED_RUN.match(text):
+        return text
+    return text[::2]
+
+
+def undouble_words(words: list) -> list:
+    """Apply `undouble` across an extracted page.
+
+    A doubled font affects the whole page, not one word, so this refuses to
+    act unless most of the page looks doubled. Otherwise a legitimate word
+    that happens to be a doubled run — "aa", "1111" — would be rewritten on an
+    ordinary page, which is a corruption rather than a repair.
+    """
+    if not words:
+        return words
+    candidates = [w for w in words if len(w.get("text", "")) >= 4]
+    if not candidates:
+        return words
+    doubled = sum(1 for w in candidates if DOUBLED_RUN.match(w["text"]))
+    if doubled * 2 < len(candidates):
+        return words
+    return [{**w, "text": undouble(w.get("text", ""))} for w in words]
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
     import pdfplumber
 
     with pdfplumber.open(BytesIO(content)) as pdf:
-        pages = [p.extract_words() or [] for p in pdf.pages]
+        pages = [undouble_words(p.extract_words() or []) for p in pdf.pages]
 
     expected = codes_in_name(source_url)
     per_page = [results_section(group_lines(words)) for words in pages if words]

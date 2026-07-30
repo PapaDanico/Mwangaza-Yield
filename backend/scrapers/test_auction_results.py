@@ -10,6 +10,7 @@ Any parser that reads the text linearly finds four numbers and gets all four
 wrong. These tests exist to keep that from ever shipping.
 """
 import hashlib
+from datetime import datetime
 import os
 import sys
 
@@ -17,6 +18,7 @@ from auction_results import (
     attribute_auction_level, FIELDS, FIELD_EXCLUSIONS, PARSER_VERSION,
     NUMERIC_RE, header_candidates, _field_count, merge_page, label_word_positions,
     assign_to_columns, auction_date_from_name, cell_value, codes_in_name,
+    undouble, undouble_words,
     find_header, group_lines, normalise_code, results_section, _refuse_contradictions,
 )
 
@@ -1153,6 +1155,81 @@ def main():
     check("extraction rules unchanged since the recorded version", shape, EXTRACTION_SHAPE)
     check("parser version matches the recorded extraction rules",
           PARSER_VERSION, EXTRACTION_SHAPE_VERSION)
+
+    print("doubled-glyph extraction")
+    # Some CBK PDFs embed a font pdfplumber reads with every glyph duplicated,
+    # so the coupon row arrives as "CCoouuppoonn RRaattee ((%%)) 88..779900".
+    # Three archive records carry no coupon rate purely because of it: the
+    # label never matches, so the value beside it is never claimed.
+    check("a doubled label is repaired", undouble("CCoouuppoonn"), "Coupon")
+    check("a doubled number is repaired", undouble("88..779900"), "8.790")
+    check("doubled punctuation is repaired", undouble("((%%))"), "(%)")
+
+    # The cases that make a naive rule dangerous, and most of why this is
+    # tested at all. "2022" is not a doubled "22" — 2-0-2-2 has no identical
+    # pair at positions one and two — and an issue code carries legitimate
+    # repeated digits. Requiring EVERY character to belong to an adjacent
+    # identical pair is what separates these from the three above.
+    check("a year is not a doubled run", undouble("2022"), "2022")
+    check("an issue code survives", undouble("FXD1/2011/020"), "FXD1/2011/020")
+    check("ordinary text survives", undouble("Coupon"), "Coupon")
+    check("an odd-length word survives", undouble("8.790"), "8.790")
+    check("the empty string survives", undouble(""), "")
+
+    # A doubled font affects the whole page, so the decision is the page's.
+    # Single words can be doubled runs by coincidence — "aa", "1111" — and
+    # rewriting one on an otherwise normal page is corruption, not repair.
+    _normal = [{"text": t} for t in ("Coupon", "Rate", "8.790", "aabb")]
+    check("a normal page is left alone",
+          [x["text"] for x in undouble_words(_normal)],
+          ["Coupon", "Rate", "8.790", "aabb"])
+    _doubled = [{"text": t} for t in ("CCoouuppoonn", "RRaattee", "88..779900")]
+    check("a doubled page is repaired",
+          [x["text"] for x in undouble_words(_doubled)],
+          ["Coupon", "Rate", "8.790"])
+    check("an empty page is handled", undouble_words([]), [])
+
+    # Only the text changes. Column reconstruction runs off x-positions, so
+    # dropping or reordering the other keys would trade one coupon rate for
+    # every field on the page.
+    _geom = [
+        {"text": "CCoouuppoonn", "x0": 12.5, "x1": 60.0, "top": 100.0},
+        {"text": "88..779900", "x0": 200.0, "x1": 240.0, "top": 100.0},
+    ]
+    _out = undouble_words(_geom)
+    check("word geometry is preserved", [x["x0"] for x in _out], [12.5, 200.0])
+    check("repair reaches the value too", _out[1]["text"], "8.790")
+
+    print("the signature date is a different date")
+    # docs/ARCHIVE-GAPS.md proposed filling the thirteen undated records from
+    # the date printed under the signatory block, calling it "a parser gap, not
+    # a data gap". The date is there. It is a DIFFERENT date, and these are the
+    # measurements that settle it — transcribed from three 2026 CBK releases,
+    # kept here so nobody has to re-derive them before declining the idea again.
+    #
+    # auctionDate is the VALUE date, the Monday the bond is dated from, which
+    # is why 297 of 303 dated records fall on a Monday. The signature line is
+    # the day the release was signed. The gap is real, it varies between two
+    # and five days, and nothing in the document announces it.
+    for label, value_dated, signed, weekday in (
+        ("bill results 03/08/2026", "2026-08-03", "2026-07-30", 0),
+        ("bond results 27/07/2026", "2026-07-27", "2026-07-22", 0),
+        ("switch results 15/07/2026", "2026-07-15", "2026-07-13", 2),
+    ):
+        gap = (datetime.strptime(value_dated, "%Y-%m-%d")
+               - datetime.strptime(signed, "%Y-%m-%d")).days
+        check(f"{label}: signed before the value date", gap > 0, True)
+        check(f"{label}: and by an amount that varies", 2 <= gap <= 5, True)
+        check(f"{label}: value date weekday is as recorded",
+              datetime.strptime(value_dated, "%Y-%m-%d").weekday(), weekday)
+
+    # The consequence, stated as the assertion it is: taking the signature date
+    # would put a publication date into a column of value dates, on no
+    # announced basis, and every consumer that groups by date would read them
+    # as though they meant the same thing. A visibly missing date is a known
+    # unknown; a plausible wrong one is not.
+    check("the two bases are not interchangeable",
+          "2026-08-03" == "2026-07-30", False)
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

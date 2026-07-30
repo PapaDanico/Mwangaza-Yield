@@ -48,13 +48,26 @@ Scrapers still send a browser User-Agent, which is harmless and polite.
 
 - Tenors **91, 182, 364 days**; auctioned **weekly**, bids close **Thursday 2:00pm** via DhowCSD.
 - Minimum **KES 100,000**, thereafter multiples of KES 50,000.
-- **Discount convention (verified):** `Discount = Face × rate × days / 365`, `Price = Face − Discount`.
-  Effective annual yield `= (Face / Price) ^ (365 / days) − 1`. The quoted discount rate is
-  therefore always *below* the true gross yield.
+- **Discount convention (verified against CBK's published prices):**
+  `Price per 100 = 100 / (1 + rate × days / 365)`, and the effective annual yield
+  `= (100 / Price) ^ (365 / days) − 1`. CBK's quote is a **true discount** — a simple annual
+  yield on the price paid — not a bank discount on face value. The quoted rate is therefore
+  below the true gross yield, but only by the value of rolling over: about 29bps at 91 days,
+  and under 1bp at 364, where there is nothing left to reinvest.
+
+  This entry previously read `Price = Face − Discount` and was also marked "verified". It was
+  not: every CBK results release prints `Price per Kshs 100 at average interest rate`, and on
+  the 03/08/2026 auction the true-discount formula reproduces all three tenors to four decimals
+  (97.8559 / 95.7259 / 91.7497) while bank discount misses by up to Ksh 0.74. The old formula
+  understated the price and so overstated the return — 84bps too high on the 364-day bill.
+  Cross-check any convention against a figure the source itself publishes, not against its prose.
 - **WHT 15%** on bill interest, with no exemption equivalent to infrastructure bonds.
 - ⚠️ The National Treasury announced from 2025 that the **364-day bill would be phased out** to
-  shorten the debt profile, but it was still being auctioned as of July 2026. Treat its
-  continued availability as needing re-checking each cycle rather than assumed.
+  shorten the debt profile. It is still being auctioned: the 30 July 2026 auction (dated
+  03/08/2026) offered Ksh 10bn and took Ksh 4.78bn, and the tenor was on offer again for the
+  6 August close. Note that it is now the weakest of the three — a 47.93% performance rate
+  against 180.04% at 91 days — so the tenor is under notice and thinly bid, but not gone.
+  Re-check each cycle rather than assuming either its survival or its removal.
 
 Rates captured 16 Jul 2026 auction: 91d **8.7986%**, 182d **8.9695%**, 364d **9.0415%**
 (KES 30.62B accepted on KES 44.02B bids, 157% performance).

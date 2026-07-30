@@ -21,6 +21,7 @@
  * parsing job someone can do, and the number moving is how we know it was done.
  */
 import type { AuctionPrint } from '@/types/bond';
+import { auctionKind } from './auction-history';
 
 /** The fields that make a record worth something to a reader or a licensee.
  *  Ordered as they would appear in a row, not by how well they score. */
@@ -136,8 +137,39 @@ function present(record: AuctionPrint, field: CoreField): boolean {
   return true;
 }
 
+/**
+ * The fields a tap sale can actually carry.
+ *
+ * A tap sale is first-come-first-served against a quantum, not a competitive
+ * auction against an offer. Its results document reports bids accepted at face
+ * and at cost, the number of accepted bids, the allocated average rate, the
+ * adjusted average price and the coupon — and that is the whole document.
+ * There is no amount offered and no market weighted average, because neither
+ * exists for that instrument.
+ *
+ * Scoring tap sales against the competitive schema therefore measured them
+ * against fields their source can never contain. "No tap sale has ever parsed
+ * completely" was true and meant nothing: the archive was reporting a
+ * permanent deficit it had no way to close, and anyone tuning the parser
+ * against that number would have been chasing documents that are already
+ * complete. See docs/ARCHIVE-GAPS.md, which measured this and predicted that
+ * fixing what is COUNTED would move the figure further than fixing what is
+ * parsed.
+ */
+export const TAP_SALE_FIELDS: readonly CoreField[] = [
+  'auctionDate',
+  'couponRate',
+  'pricePer100',
+  'amountAcceptedKESM',
+];
+
+/** The fields this record's document type is capable of carrying. */
+export function applicableFields(record: AuctionPrint): readonly CoreField[] {
+  return auctionKind(record) === 'tap' ? TAP_SALE_FIELDS : CORE_FIELDS;
+}
+
 export function isComplete(record: AuctionPrint): boolean {
-  return CORE_FIELDS.every((f) => present(record, f));
+  return applicableFields(record).every((f) => present(record, f));
 }
 
 export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
@@ -195,19 +227,34 @@ export function assessArchive(records: AuctionPrint[]): ArchiveQuality {
     issueCodes: new Set(records.map((r) => r.issueCode)).size,
     complete,
     completePct: total ? Math.round((complete / total) * 100) : 0,
+    /* Tap sales excluded explicitly rather than incidentally.
+     *
+     * They already fell out of this count because they carry neither field,
+     * so the number was right by accident. Stating the reason matters because
+     * the exclusion is structural, not a data gap: a tap sale has no offer to
+     * be covered, so no quantity of parser work will ever produce a ratio for
+     * one. subscription.ts drops them for the same reason. */
     bidToCover: records.filter(
-      (r) => present(r, 'bidsReceivedKESM') && present(r, 'amountOfferedKESM')
+      (r) =>
+        auctionKind(r) !== 'tap' &&
+        present(r, 'bidsReceivedKESM') &&
+        present(r, 'amountOfferedKESM')
     ).length,
     earliest: dated.length ? dated.reduce((a, b) => (a < b ? a : b)) : null,
     latest: dated.length ? dated.reduce((a, b) => (a > b ? a : b)) : null,
+    /* Each field is scored against the records that could carry it, not
+     * against every record. Counting a tap sale as missing "amount offered"
+     * drags a field's percentage down with documents that were never going to
+     * state it, and the reader cannot tell that from a parser failure. */
     fields: CORE_FIELDS.map((field) => {
-      const n = records.filter((r) => present(r, field)).length;
+      const eligible = records.filter((r) => applicableFields(r).includes(field));
+      const n = eligible.filter((r) => present(r, field)).length;
       return {
         field,
         label: FIELD_LABELS[field],
         present: n,
-        total,
-        pct: total ? Math.round((n / total) * 100) : 0,
+        total: eligible.length,
+        pct: eligible.length ? Math.round((n / eligible.length) * 100) : 0,
       };
     }),
     byYear: Array.from(byYearMap.entries())

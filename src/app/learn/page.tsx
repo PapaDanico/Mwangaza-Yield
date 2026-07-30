@@ -65,15 +65,18 @@ const LESSONS = [
       <>
         <p>
           T-bill rates are quoted as a <strong>discount rate</strong>, and it misleads in both
-          directions at once. A 91-day bill quoted at 8.80% prices at about 97.81 per 100. You earn
-          2.19 on 97.81 spent over 91 days, which annualises to roughly <strong>9.30%</strong> —
-          higher than the quote. Then 15% withholding tax takes it down to about{' '}
-          <strong>7.87%</strong> — lower than the quote.
+          directions at once. A 91-day bill quoted at 8.79% prices at about 97.86 per 100. You earn
+          2.14 on 97.86 spent over 91 days, and rolling that four times a year annualises to roughly{' '}
+          <strong>9.08%</strong> — higher than the quote. Then 15% withholding tax takes it down to
+          about <strong>7.68%</strong> — lower than the quote.
         </p>
         <p>
-          The gap widens with tenor, because a 364-day bill prices near 91 rather than 98, so the
-          same discount is earned on a much smaller outlay. Only the net figure is comparable to a
-          bond&apos;s net yield.
+          The gap <strong>narrows</strong> with tenor, and this page said the opposite until 30 July
+          2026. CBK&apos;s quote is already a simple annual yield on the price you pay, so the only
+          thing the effective rate adds is compounding — and you can only compound what you can
+          reinvest. A 91-day bill rolls four times a year and picks up about 29 basis points doing
+          it; a 364-day bill is held once and lands within a hundredth of a point of its quote.
+          Only the net figure is comparable to a bond&apos;s net yield.
         </p>
       </>
     ),

@@ -6,7 +6,7 @@
   "notes": {
     "sourcing": "Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied.",
     "tbills": "quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.",
-    "conventions": "T-bills: discount = face x rate x days / 365, price = face - discount, EAY compounds that discount over a year. Bonds: 364-day year, 182-day coupon periods, WHT 0% on infrastructure bonds, 10% at ten years or longer, else 15%.",
+    "conventions": "T-bills: price = 100 / (1 + rate x days / 365) per 100 face — CBK's quote is a simple annual yield on the price paid, not a discount on face, and reproduces CBK's own published price line exactly. EAY compounds that over a year. Bonds: 364-day year, 182-day coupon periods, WHT 0% on infrastructure bonds, 10% at ten years or longer, else 15%.",
     "benchmarks": "Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote.",
     "warranty": "Public information provided as-is for education, not investment advice and not a warranty of accuracy. Verify against the official prospectus before committing funds.",
     "attribution": "Attribution requested: \"Rates via Mwangaza Yield (mwangazayield.org)\"."
@@ -14,39 +14,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.7986,
-      "grossEAY": 9.3043,
-      "netEAY": 7.8688,
+      "quotedDiscountRate": 8.7882,
+      "grossEAY": 9.0824,
+      "netEAY": 7.682,
       "whtRate": 0.15,
-      "pricePer100": 97.8064,
-      "auctionDate": "2026-07-16",
-      "nextAuctionDate": "2026-07-30",
+      "pricePer100": 97.8559,
+      "auctionDate": "2026-07-30",
+      "nextAuctionDate": "2026-08-06",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 16 Jul 2026"
+      "source": "CBK auction, 30 Jul 2026"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.9695,
-      "grossEAY": 9.6105,
-      "netEAY": 8.1407,
+      "quotedDiscountRate": 8.9545,
+      "grossEAY": 9.1555,
+      "netEAY": 7.7566,
       "whtRate": 0.15,
-      "pricePer100": 95.5275,
-      "auctionDate": "2026-07-16",
-      "nextAuctionDate": "2026-07-30",
+      "pricePer100": 95.7259,
+      "auctionDate": "2026-07-30",
+      "nextAuctionDate": "2026-08-06",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 16 Jul 2026"
+      "source": "CBK auction, 30 Jul 2026"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0415,
-      "grossEAY": 9.9389,
-      "netEAY": 8.4479,
+      "quotedDiscountRate": 9.0169,
+      "grossEAY": 9.018,
+      "netEAY": 7.6651,
       "whtRate": 0.15,
-      "pricePer100": 90.9833,
-      "auctionDate": "2026-07-16",
-      "nextAuctionDate": "2026-07-30",
+      "pricePer100": 91.7497,
+      "auctionDate": "2026-07-30",
+      "nextAuctionDate": "2026-08-06",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 16 Jul 2026"
+      "source": "CBK auction, 30 Jul 2026"
     }
   ],
   "macro": {

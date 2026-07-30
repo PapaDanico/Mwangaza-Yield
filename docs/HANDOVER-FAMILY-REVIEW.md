@@ -89,9 +89,16 @@ this right; later documents drift back toward it.
 The P0 legal items — company registration number, registered office address,
 data protection officer contact — are facts, not code. Nothing here can
 generate them and nothing should invent them. Note that `hello@jipangefinance.org`
-is allowlisted in the privacy guard and `partners@jipangefinance.org` is
-deliberately **not**, because that mailbox does not exist; a document
-proposing it as a contact address is proposing an address that bounces.
+is allowlisted in the privacy guard and the `partners@` address these documents
+propose is deliberately **not**, because that mailbox does not exist; a document
+offering it as a contact is offering an address that bounces.
+
+This paragraph originally named that address in full, and `no-personal-data`
+failed the build over it — correctly. The guard does not read intent, and a
+warning not to publish an address is still a published address once the file
+is tracked. Third time a guard here has flagged the note explaining the rule
+it enforces, and the third time the right answer was to reword the note rather
+than to widen the guard.
 
 ---
 

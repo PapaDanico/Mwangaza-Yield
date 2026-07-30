@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { computeTBill, tbillPricePer100, projectRollover, bestTBill, TBILL_WHT_RATE } from '../../src/lib/tbills';
 import type { TBill } from '../../src/types/bond';
 
@@ -164,5 +165,43 @@ describe('a yield is a rate, not an amount', () => {
     const r = computeTBill(1_000_000, 9.5, 364);
     expect(r.netEAY).toBeLessThan(r.grossEAY);
     expect(r.grossEAY).toBeGreaterThan(r.discountRate);
+  });
+});
+
+/**
+ * The same false claim was in the shipped copy, not only in a test.
+ *
+ * The bank-discount formula produced a genuinely odd consequence — that the
+ * quote-to-yield gap grows with tenor — and it was written down three times:
+ * in a unit test, in the glossary's discount-rate entry, and in a paragraph on
+ * /learn that walked a reader through it with worked numbers. Fixing the
+ * arithmetic silently would have left two of the three still telling readers
+ * the opposite of what the tool computes.
+ *
+ * Found by sweeping for the sentence after the formula was corrected, which is
+ * the general lesson: a wrong model does not live only in the code that
+ * implements it.
+ */
+describe('the pages agree with the engine about which way the gap runs', () => {
+  const read = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8');
+
+  it('does not tell readers the gap widens with tenor', () => {
+    for (const f of ['src/lib/glossary.ts', 'src/app/learn/page.tsx']) {
+      const src = read(f).replace(/\/\*[\s\S]*?\*\//g, ' ');
+      expect(src, `${f} still says the quote-to-yield gap grows with tenor`).not.toMatch(
+        /gap\s+(?:<strong>)?widens/i
+      );
+    }
+  });
+
+  it('quotes figures the engine actually produces', () => {
+    /* The learn page walks through a worked example, and a worked example with
+     * stale numbers is worse than none — a reader can check it, which is the
+     * entire point of putting it there. */
+    const page = read('src/app/learn/page.tsx');
+    const r = computeTBill(100_000, 8.7882, 91);
+    expect(page).toContain(r.pricePer100.toFixed(2));
+    expect(page).toContain(r.grossEAY.toFixed(2));
+    expect(page).toContain(r.netEAY.toFixed(2));
   });
 });

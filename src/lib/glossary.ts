@@ -134,7 +134,7 @@ export const GLOSSARY: Term[] = [
     term: 'Discount rate',
     plain:
       'How Treasury bills are quoted. You buy below Ksh 100 and are repaid Ksh 100 — the gap is your interest. A "9% discount rate" is not a 9% return.',
-    why: 'Your true annual return is always higher than the quoted discount rate, and the gap widens the longer the bill runs. Our T-bills page does the conversion.',
+    why: 'Your true annual return is a little higher than the quote, because you can roll a short bill several times a year and compound it. The gap therefore SHRINKS as the tenor lengthens — about 29 basis points on a 91-day bill, almost nothing on a 364-day one, which you only hold once. Our T-bills page does the conversion.',
   },
   {
     slug: 'treasury-bill',

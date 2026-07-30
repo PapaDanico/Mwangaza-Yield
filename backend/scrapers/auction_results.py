@@ -1112,13 +1112,62 @@ def merge_page(records: dict, page: dict) -> dict:
     return records
 
 
+DOUBLED_RUN = re.compile(r"^(?:(.)\1)+$")
+
+
+def undouble(text: str) -> str:
+    """Collapse a word whose every character has been emitted twice.
+
+    Some CBK PDFs embed a font that pdfplumber reads with every glyph
+    duplicated, so a coupon line arrives as::
+
+        CCoouuppoonn  RRaattee  ((%%))  88..779900
+
+    Three records in the archive carry no coupon rate purely because of this:
+    the label never matches, so the value beside it is never claimed.
+
+    Only exact doubles are collapsed, and only when the whole word is one. A
+    looser rule would eat real text — "2022" is not a doubled "22", and
+    "FXD1/2011/020" contains a legitimate double zero. Requiring that EVERY
+    character be part of an adjacent identical pair makes "88..779900" match
+    and "2022" not, because 2-0-2-2 has no pair at positions one and two.
+
+    Returns the input unchanged when it is not a doubled run, so this is safe
+    to apply to every word.
+    """
+    if len(text) < 2 or len(text) % 2:
+        return text
+    if not DOUBLED_RUN.match(text):
+        return text
+    return text[::2]
+
+
+def undouble_words(words: list) -> list:
+    """Apply `undouble` across an extracted page.
+
+    A doubled font affects the whole page, not one word, so this refuses to
+    act unless most of the page looks doubled. Otherwise a legitimate word
+    that happens to be a doubled run — "aa", "1111" — would be rewritten on an
+    ordinary page, which is a corruption rather than a repair.
+    """
+    if not words:
+        return words
+    candidates = [w for w in words if len(w.get("text", "")) >= 4]
+    if not candidates:
+        return words
+    doubled = sum(1 for w in candidates if DOUBLED_RUN.match(w["text"]))
+    if doubled * 2 < len(candidates):
+        return words
+    return [{**w, "text": undouble(w.get("text", ""))} for w in words]
+
+
 def parse_pdf(content: bytes, source_url: str) -> list:
     # Imported here, not at module scope, so the column-reconstruction logic
     # above stays importable and testable without a PDF stack present.
     import pdfplumber
 
     with pdfplumber.open(BytesIO(content)) as pdf:
-        pages = [p.extract_words() or [] for p in pdf.pages]
+        pages = [undouble_words(p.extract_words() or []) for p in pdf.pages]
 
     expected = codes_in_name(source_url)
     per_page = [results_section(group_lines(words)) for words in pages if words]

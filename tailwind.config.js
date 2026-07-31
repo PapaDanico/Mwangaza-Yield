@@ -27,7 +27,29 @@ module.exports = {
         // Brand palette: Treasury Navy, Sun Gold, Emerald Mint, Slate Gray
         treasury: { navy: '#0A192F', dark: '#020C1B' },
         slate: { 500: '#64748B' },
-        gold: { 300: '#FCD34D', 500: '#F59E0B', 600: '#D97706', 700: '#B45309' },
+        // A COMPLETE ramp, on purpose. It used to hold 300/500/600/700 only,
+        // and twelve places across the app had reached for 50, 100, 400 and
+        // 800 anyway — Tailwind emits nothing for a step that does not exist,
+        // so each of those rendered with no colour at all and no error
+        // anywhere. The footer's Pesa Smart link was dark text on navy; the
+        // stale-price badge in PriceProvenance lost both its amber background
+        // and its dark amber text and read as ordinary body copy, which is the
+        // opposite of what a caution badge is for.
+        //
+        // Values are the Tailwind amber ramp, which is what 300/500/600/700
+        // already were — so this fills the gaps in the scale that was being
+        // used rather than inventing a second one. tests/unit/palette.test.ts
+        // now fails on any utility naming a step that is not defined here.
+        gold: {
+          50: '#FFFBEB',
+          100: '#FEF3C7',
+          300: '#FCD34D',
+          400: '#FBBF24',
+          500: '#F59E0B',
+          600: '#D97706',
+          700: '#B45309',
+          800: '#92400E',
+        },
         mint: { 500: '#10B981', 600: '#059669', 700: '#047857' },
       },
       fontFamily: {

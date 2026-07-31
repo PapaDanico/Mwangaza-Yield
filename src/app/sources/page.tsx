@@ -47,6 +47,13 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     why: 'This entry used to claim we took public debt figures from here. We did not, and the debt data we show comes from the World Bank. We probed the site directly: its Public Debt Management pages are reachable, but the debt documents they link — the yield curve and the outstanding-bonds schedule — both return 404 while the site is mid-migration. There is nothing machine-readable to read yet, so we read nothing and say so.',
   },
   {
+    name: 'Capital Markets Authority',
+    url: 'https://www.cma.or.ke/',
+    status: 'reference',
+    used: 'Linked, not read. Its Collective Investment Schemes reports are the right primary source for money-market fund data, which this app does not currently publish.',
+    why: 'CMA regulates the funds most Kenyans actually hold, and its quarterly CIS report is the only authoritative count of what those funds manage — Ksh 851.7bn across 43 schemes at the end of Q1 2026, of which money market funds held Ksh 442.2bn. That figure is reported to CMA by fund managers, so it carries none of the exchange-licensing problem below. It is listed as reference rather than live because nothing here reads it yet, and because we could not fetch it: cma.or.ke and cmarcp.or.ke are both unreachable from our build environment, so every figure we could find came from third parties quoting the report rather than from the report. Two of those third parties, searched minutes apart, put the average money-market yield at 9.1% and at 14-18%. Neither is checkable without the source document, and a financial app that picks whichever number it saw first is the thing this page exists to argue against. THE SECONDARY BOND MARKET IS A SEPARATE QUESTION, and an open one. CMA also publishes bond-market turnover in its Quarterly Statistical Bulletin, and those figures are worth having — they describe how easily a bond can actually be sold, which is the risk a buy-and-hold reader most often overlooks. But turnover is measured from trading on the Exchange, and the entry below commits us to publishing nothing derived from it. A regulator republishing an aggregate is not the same act as copying a price feed, and a turnover total cannot be used to value a bond; equally, "derived from" is the word we chose, and we do not get to reinterpret it when it becomes inconvenient. So the position stands unchanged until it is decided deliberately rather than by drift.',
+  },
+  {
     name: 'Nairobi Securities Exchange',
     // No link, deliberately. Sending readers to the Exchange to fetch figures
     // for this app is the behaviour the terms exist to prevent, and a link that

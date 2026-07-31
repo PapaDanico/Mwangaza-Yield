@@ -54,6 +54,27 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     why: 'CMA regulates the funds most Kenyans actually hold. Its Quarterly Statistical Bulletin — issues 64/2025 through 67/2026, the last covering the quarter ended June 2026 — puts collective-investment assets at Ksh 851.7bn as at March 2026, up 13% from Ksh 756.3bn in December, with 44.0% of that (Ksh 374.6bn) held in government securities. Note the lag: the June bulletin reports March CIS data, so this is a quarter behind by construction rather than by neglect. WHAT CMA DOES NOT PUBLISH is a per-fund yield. Both the bulletins and the Q4 FY2025/26 Soundness Report were read end to end; they carry assets, asset-class splits and regulatory commentary, and no table of fund returns anywhere. That matters because two widely-quoted third parties, searched minutes apart, attributed average money-market yields of 9.1% and of 14-18% to this report. Neither figure is in it. A fund yield comes from that fund\u2019s own fact sheet, and anyone citing CMA for one is citing a document they have not opened. THE BOND TURNOVER QUESTION IS SETTLED, AND CMA SETTLED IT. Its secondary-market tables — Ksh 1.703tn traded in the first half of 2026, Ksh 621.83bn in the June quarter — are printed under the attribution \u201cSource: NSE/CMA\u201d. Across that bulletin 31 tables carry the Exchange in their source line and five are CMA alone. So the turnover figures are exchange-derived by the regulator\u2019s own account, and the entry below commits us to publishing nothing derived from the Exchange. We take the CIS figures, which are reported to CMA by fund managers and attributed to CMA alone, and we leave the turnover where it is. The distinction is not ours to argue: it is written in the source lines of the document.',
   },
   {
+    name: 'SASRA — SACCO Societies Regulatory Authority',
+    url: 'https://www.sasra.go.ke/',
+    status: 'reference',
+    used: 'The sector context behind every SACCO figure the sister product shows — dividend and deposit-interest ranges, and the status of the deposit guarantee',
+    why: 'SACCOs hold more Kenyan savings than the funds and the bond market between them, and they are the one place a reader is most likely to be comparing against a Treasury bill. SASRA\u2019s supervision reports give the sector ranges we quote as ranges — interest on member deposits commonly 8-12%, dividends on share capital commonly 10-15% among stronger societies — rather than a single invented average. The most consequential thing we take from SASRA is not a number at all: the Deposit Guarantee Fund provided for under the Sacco Societies Act is legislated but NOT yet operational, so a SACCO deposit carries no live statutory guarantee. A reader weighing one against a government bill needs that, and cannot get it from a yield.',
+  },
+  {
+    name: 'Kenya Revenue Authority',
+    url: 'https://www.kra.go.ke/',
+    status: 'reference',
+    used: 'The tax treatment applied to every figure either product reports as net — PAYE bands, and withholding tax on interest',
+    why: 'Tax is where a gross yield becomes a number somebody actually keeps, and it is the step most comparisons skip. Withholding tax on Treasury bills is 15%, on bonds 10% at ten years or longer and 15% below, and infrastructure bonds are exempt entirely — three different treatments that decide which instrument wins, and none of them visible in a quoted rate. We read the rates from the Income Tax Act rather than scraping the site: tax rules change by Finance Act on a published date, not continuously, so a hardcoded rate with a citation is more honest here than a scraper pretending to track something that does not move.',
+  },
+  {
+    name: 'Retirement Benefits Authority',
+    url: 'https://www.rba.go.ke/',
+    status: 'reference',
+    used: 'Linked, not read. Names the regulator for the pension and provident products the sister product lists.',
+    why: 'A reader comparing a personal pension against a bond ladder is comparing two things under different regulators with different protections, and the product directory says which is which. We publish no RBA figures — scheme returns are not centrally published in a form we could read, and we would rather name the regulator and stop than estimate one.',
+  },
+  {
     name: 'Nairobi Securities Exchange',
     // No link, deliberately. Sending readers to the Exchange to fetch figures
     // for this app is the behaviour the terms exist to prevent, and a link that

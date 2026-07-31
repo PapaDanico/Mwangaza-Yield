@@ -47,6 +47,31 @@ const ALL_FILES = [
 ];
 
 describe('no Nairobi Securities Exchange dependency', () => {
+  /**
+   * Every other assertion here filters a file list, so an EMPTY list passes all
+   * of them. `walk()` reads the filesystem: rename src/, move this file, change
+   * the build layout, and this suite goes green while saying nothing at all.
+   *
+   * That matters more here than anywhere else in the repo. This is not a
+   * quality guard, it is the licensing one — the Exchange does not permit free
+   * redistribution of its data, which is why every NSE source was removed and
+   * the product relies on CBK, Treasury and KNBS releases instead. A guard that
+   * silently stops looking is how that comes back: nothing errors, nothing goes
+   * red, and the only signal would be a letter.
+   *
+   * Same defect as the service-worker VERSION, the unwired OG builder and the
+   * gold steps the palette never had — a check that cannot fire in the case it
+   * exists to detect. It goes first so the rest of the file means something.
+   */
+  it('is actually looking at files, so nothing below passes vacuously', () => {
+    expect(SOURCE_FILES.length, 'walk(src) found nothing — every check below is vacuous').toBeGreaterThan(50);
+    expect(ALL_FILES.length, 'the full file list is suspiciously short').toBeGreaterThan(
+      SOURCE_FILES.length
+    );
+    // And the files must be readable, since every assertion below reads them.
+    expect(() => ALL_FILES.forEach((f) => readFileSync(f, 'utf8'))).not.toThrow();
+  });
+
   it('nothing anywhere references an nse.co.ke endpoint', () => {
     const offenders = ALL_FILES.filter((f) => /nse\.co\.ke/i.test(readFileSync(f, 'utf8')))
       .map((f) => f.replace(ROOT, ''));

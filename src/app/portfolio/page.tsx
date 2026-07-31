@@ -33,7 +33,7 @@ function matchBond(bonds: Bond[], h: { isin?: string; issueCode: string }): Bond
   return bonds.find((b) => normaliseCode(b.issueCode) === want) ?? null;
 }
 
-const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFXD1/2022/10,1000000,2026-07-13,100\nIFB1/2022/19,500000,2026-02-16,100\n';
+const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFXD1/2022/010,1000000,2026-07-13,100\nIFB1/2022/019,500000,2026-02-16,100\n';
 
 export default function PortfolioPage() {
   const bonds = useBondStore((s) => s.bonds);
@@ -146,11 +146,29 @@ export default function PortfolioPage() {
         }
 
         const usable = res.data.filter((r) => r.issueCode && r.faceValueKES);
+        /* Stored canonical, not as typed.
+         *
+         * matchBond already normalises, so a holding imported as
+         * "FXD1/2022/10" found its bond. It was then SAVED as typed, leaving
+         * the portfolio holding an issue code in a format nothing else in the
+         * app uses — and every comparison that does not happen to route
+         * through matchBond silently missed it. alerts.ts builds a Map
+         * straight off issueCode to pair a holding with its bond; a coupon
+         * reminder for that holding simply never fired, and a reminder that
+         * does not arrive looks identical to one that was not due.
+         *
+         * This survived only because the catalogue was unpadded too, so the
+         * two wrong halves matched. Canonicalising the data files exposed it,
+         * which is the argument for one format rather than two that agree.
+         *
+         * The parser stays tolerant on the way in: "FXD1/2022/10" is what a
+         * person types, and rejecting it would be pedantry. Accept anything,
+         * store one thing. */
         const rows: Holding[] = usable
           .map((r, i) => ({
-            id: `${r.issueCode}-${r.purchaseDate ?? ''}-${i}-${r.faceValueKES}`,
+            id: `${normaliseCode(r.issueCode)}-${r.purchaseDate ?? ''}-${i}-${r.faceValueKES}`,
             isin: matchBond(bonds, { issueCode: r.issueCode.trim() })?.isin ?? '',
-            issueCode: r.issueCode.trim(),
+            issueCode: normaliseCode(r.issueCode),
             faceValueKES: Number(r.faceValueKES),
             purchaseDate: r.purchaseDate?.trim() || new Date().toISOString().slice(0, 10),
             purchaseCleanPrice: Number(r.purchaseCleanPrice) || 100,

@@ -1,7 +1,7 @@
 [
   {
     "isin": "KE5000006329",
-    "issueCode": "FXD1/2016/10",
+    "issueCode": "FXD1/2016/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2016-08-29",
@@ -17,7 +17,7 @@
   },
   {
     "isin": "KE4000001109",
-    "issueCode": "IFB1/2014/12",
+    "issueCode": "IFB1/2014/012",
     "name": "12-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2014-10-27",
@@ -33,7 +33,7 @@
   },
   {
     "isin": "KE7000006655",
-    "issueCode": "FXD1/2021/5",
+    "issueCode": "FXD1/2021/005",
     "name": "5-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2021-11-15",
@@ -49,7 +49,7 @@
   },
   {
     "isin": "KE8000006323",
-    "issueCode": "FXD1/2024/3",
+    "issueCode": "FXD1/2024/003",
     "name": "3-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2024-01-15",
@@ -65,7 +65,7 @@
   },
   {
     "isin": "KE5000007327",
-    "issueCode": "FXD1/2017/10",
+    "issueCode": "FXD1/2017/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2017-07-31",
@@ -81,7 +81,7 @@
   },
   {
     "isin": "KE4000003675",
-    "issueCode": "FXD1/2012/15",
+    "issueCode": "FXD1/2012/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2012-09-24",
@@ -97,7 +97,7 @@
   },
   {
     "isin": "KE4000003790",
-    "issueCode": "FXD1/2013/15",
+    "issueCode": "FXD1/2013/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2013-02-25",
@@ -113,7 +113,7 @@
   },
   {
     "isin": "KE4000003808",
-    "issueCode": "FXD2/2013/15",
+    "issueCode": "FXD2/2013/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2013-04-29",
@@ -129,7 +129,7 @@
   },
   {
     "isin": "KE1000001493",
-    "issueCode": "FXD1/2008/20",
+    "issueCode": "FXD1/2008/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2008-06-30",
@@ -145,7 +145,7 @@
   },
   {
     "isin": "KE8000005986",
-    "issueCode": "FXD1/2023/5",
+    "issueCode": "FXD1/2023/005",
     "name": "5-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2023-07-17",
@@ -161,7 +161,7 @@
   },
   {
     "isin": "KE5000008762",
-    "issueCode": "FXD1/2018/10",
+    "issueCode": "FXD1/2018/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-08-27",
@@ -177,7 +177,7 @@
   },
   {
     "isin": "KE8000005325",
-    "issueCode": "IFB1/2022/6",
+    "issueCode": "IFB1/2022/006",
     "name": "6-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2022-12-05",
@@ -193,7 +193,7 @@
   },
   {
     "isin": "KE5000009216",
-    "issueCode": "FXD2/2018/10",
+    "issueCode": "FXD2/2018/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-12-17",
@@ -209,7 +209,7 @@
   },
   {
     "isin": "KE5000009653",
-    "issueCode": "FXD1/2019/10",
+    "issueCode": "FXD1/2019/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-02-25",
@@ -225,7 +225,7 @@
   },
   {
     "isin": "KE5000006980",
-    "issueCode": "IFB1/2017/12",
+    "issueCode": "IFB1/2017/012",
     "name": "12-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2017-02-27",
@@ -241,7 +241,7 @@
   },
   {
     "isin": "KE5000009877",
-    "issueCode": "FXD2/2019/10",
+    "issueCode": "FXD2/2019/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-04-15",
@@ -257,7 +257,7 @@
   },
   {
     "isin": "KE6000008430",
-    "issueCode": "IFB1/2020/9",
+    "issueCode": "IFB1/2020/009",
     "name": "9-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2020-04-13",
@@ -273,7 +273,7 @@
   },
   {
     "isin": "KE6000004876",
-    "issueCode": "FXD3/2019/10",
+    "issueCode": "FXD3/2019/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-08-19",
@@ -289,7 +289,7 @@
   },
   {
     "isin": "KE6000005659",
-    "issueCode": "FXD4/2019/10",
+    "issueCode": "FXD4/2019/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-11-25",
@@ -305,7 +305,7 @@
   },
   {
     "isin": "KE8000006216",
-    "issueCode": "IFB1/2023/6.5",
+    "issueCode": "IFB1/2023/006.5",
     "name": "6.5-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2023-11-13",
@@ -321,7 +321,7 @@
   },
   {
     "isin": "KE8000005879",
-    "issueCode": "IFB1/2023/7",
+    "issueCode": "IFB1/2023/007",
     "name": "7-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2023-06-19",
@@ -337,7 +337,7 @@
   },
   {
     "isin": "KE2000002176",
-    "issueCode": "FXD1/2011/20",
+    "issueCode": "FXD1/2011/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2011-05-30",
@@ -353,7 +353,7 @@
   },
   {
     "isin": "KE6000009545",
-    "issueCode": "IFB1/2020/11",
+    "issueCode": "IFB1/2020/011",
     "name": "11-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2020-08-24",
@@ -369,7 +369,7 @@
   },
   {
     "isin": "KE5000006659",
-    "issueCode": "IFB1/2016/15",
+    "issueCode": "IFB1/2016/015",
     "name": "15-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2016-10-24",
@@ -385,7 +385,7 @@
   },
   {
     "isin": "KE7000009436",
-    "issueCode": "FXD1/2022/10",
+    "issueCode": "FXD1/2022/010",
     "name": "10-Year Fixed Coupon Bond (2022)",
     "category": "FXD",
     "issueDate": "2022-05-16",
@@ -399,7 +399,7 @@
   },
   {
     "isin": "KE8000006430",
-    "issueCode": "IFB1/2024/8.5",
+    "issueCode": "IFB1/2024/008.5",
     "name": "8.5-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2024-02-19",
@@ -415,7 +415,7 @@
   },
   {
     "isin": "KE4000003949",
-    "issueCode": "FXD1/2012/20",
+    "issueCode": "FXD1/2012/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2012-11-26",
@@ -431,7 +431,7 @@
   },
   {
     "isin": "KE5000008093",
-    "issueCode": "IFB1/2018/15",
+    "issueCode": "IFB1/2018/015",
     "name": "15-Year Infrastructure Bond (Tax-Free)",
     "category": "IFB",
     "issueDate": "2018-01-29",
@@ -445,7 +445,7 @@
   },
   {
     "isin": "KE8000005432",
-    "issueCode": "FXD1/2023/10",
+    "issueCode": "FXD1/2023/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2023-02-13",
@@ -461,7 +461,7 @@
   },
   {
     "isin": "KE5000008432",
-    "issueCode": "FXD1/2018/15",
+    "issueCode": "FXD1/2018/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-05-28",
@@ -477,7 +477,7 @@
   },
   {
     "isin": "KE5000008879",
-    "issueCode": "FXD2/2018/15",
+    "issueCode": "FXD2/2018/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-10-22",
@@ -493,7 +493,7 @@
   },
   {
     "isin": "KE5000009430",
-    "issueCode": "FXD1/2019/15",
+    "issueCode": "FXD1/2019/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-01-28",
@@ -509,7 +509,7 @@
   },
   {
     "isin": "KE8000006547",
-    "issueCode": "FXD1/2024/10",
+    "issueCode": "FXD1/2024/010",
     "name": "10-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2024-03-25",
@@ -525,7 +525,7 @@
   },
   {
     "isin": "KE6000001104",
-    "issueCode": "FXD2/2019/15",
+    "issueCode": "FXD2/2019/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2019-05-13",
@@ -541,7 +541,7 @@
   },
   {
     "isin": "KE6000001328",
-    "issueCode": "FXD3/2019/15",
+    "issueCode": "FXD3/2019/015",
     "name": "15-Year Fixed Coupon Bond (2019)",
     "category": "FXD",
     "issueDate": "2019-07-29",
@@ -555,7 +555,7 @@
   },
   {
     "isin": "KE6000007218",
-    "issueCode": "FXD1/2020/15",
+    "issueCode": "FXD1/2020/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2020-02-24",
@@ -571,7 +571,7 @@
   },
   {
     "isin": "KE4000003089",
-    "issueCode": "FXD1/2010/25",
+    "issueCode": "FXD1/2010/025",
     "name": "25-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2010-06-28",
@@ -587,7 +587,7 @@
   },
   {
     "isin": "KE6000005543",
-    "issueCode": "IFB1/2019/16",
+    "issueCode": "IFB1/2019/016",
     "name": "16-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2019-10-28",
@@ -603,7 +603,7 @@
   },
   {
     "isin": "KE5000006543",
-    "issueCode": "FXD1/2016/20",
+    "issueCode": "FXD1/2016/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2016-09-26",
@@ -619,7 +619,7 @@
   },
   {
     "isin": "KE8000005218",
-    "issueCode": "IFB1/2022/14",
+    "issueCode": "IFB1/2022/014",
     "name": "14-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2022-11-14",
@@ -635,7 +635,7 @@
   },
   {
     "isin": "KE7000002324",
-    "issueCode": "IFB1/2021/16",
+    "issueCode": "IFB1/2021/016",
     "name": "16-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2021-01-25",
@@ -651,7 +651,7 @@
   },
   {
     "isin": "KE7000009329",
-    "issueCode": "FXD1/2022/15",
+    "issueCode": "FXD1/2022/015",
     "name": "15-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2022-04-25",
@@ -667,7 +667,7 @@
   },
   {
     "isin": "KE5000008325",
-    "issueCode": "FXD1/2018/20",
+    "issueCode": "FXD1/2018/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-03-26",
@@ -683,7 +683,7 @@
   },
   {
     "isin": "KE5000008655",
-    "issueCode": "FXD2/2018/20",
+    "issueCode": "FXD2/2018/020",
     "name": "20-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2018-07-30",
@@ -699,7 +699,7 @@
   },
   {
     "isin": "KE5000009109",
-    "issueCode": "IFB1/2018/20",
+    "issueCode": "IFB1/2018/020",
     "name": "20-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2018-11-19",
@@ -715,7 +715,7 @@
   },
   {
     "isin": "KE5000009984",
-    "issueCode": "FXD1/2019/20",
+    "issueCode": "FXD1/2019/020",
     "name": "20-Year Fixed Coupon Bond (2019)",
     "category": "FXD",
     "issueDate": "2019-04-15",
@@ -729,7 +729,7 @@
   },
   {
     "isin": "KE7000003546",
-    "issueCode": "IFB1/2021/18",
+    "issueCode": "IFB1/2021/018",
     "name": "18-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2021-04-12",
@@ -745,7 +745,7 @@
   },
   {
     "isin": "KE8000005549",
-    "issueCode": "IFB1/2023/17",
+    "issueCode": "IFB1/2023/017",
     "name": "17-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2023-03-13",
@@ -761,7 +761,7 @@
   },
   {
     "isin": "KE8000002322",
-    "issueCode": "IFB1/2022/18",
+    "issueCode": "IFB1/2022/018",
     "name": "18-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2022-06-13",
@@ -777,7 +777,7 @@
   },
   {
     "isin": "KE2000002135",
-    "issueCode": "SDB1/2011/30",
+    "issueCode": "SDB1/2011/030",
     "name": "30-Year Fixed Coupon Bond",
     "category": "SDB",
     "issueDate": "2011-02-28",
@@ -793,7 +793,7 @@
   },
   {
     "isin": "KE7000007877",
-    "issueCode": "IFB1/2022/19",
+    "issueCode": "IFB1/2022/019",
     "name": "19-Year Infrastructure Bond (Tax-Free)",
     "category": "IFB",
     "issueDate": "2022-02-21",
@@ -807,7 +807,7 @@
   },
   {
     "isin": "KE7000005210",
-    "issueCode": "FXD1/2021/20",
+    "issueCode": "FXD1/2021/020",
     "name": "20-Year Fixed Coupon Bond (2021)",
     "category": "FXD",
     "issueDate": "2021-08-16",
@@ -821,7 +821,7 @@
   },
   {
     "isin": "KE7000005327",
-    "issueCode": "IFB1/2021/21",
+    "issueCode": "IFB1/2021/021",
     "name": "21-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2021-09-13",
@@ -837,7 +837,7 @@
   },
   {
     "isin": "KE5000008549",
-    "issueCode": "FXD1/2018/25",
+    "issueCode": "FXD1/2018/025",
     "name": "25-Year Fixed Coupon Bond (2018)",
     "category": "FXD",
     "issueDate": "2018-06-25",
@@ -851,7 +851,7 @@
   },
   {
     "isin": "KE5000009760",
-    "issueCode": "IFB1/2019/25",
+    "issueCode": "IFB1/2019/025",
     "name": "25-Year Infrastructure Bond",
     "category": "IFB",
     "issueDate": "2019-03-25",
@@ -867,7 +867,7 @@
   },
   {
     "isin": "KE7000003652",
-    "issueCode": "FXD1/2021/25",
+    "issueCode": "FXD1/2021/025",
     "name": "25-Year Fixed Coupon Bond",
     "category": "FXD",
     "issueDate": "2021-05-10",
@@ -883,7 +883,7 @@
   },
   {
     "isin": "KE8000005093",
-    "issueCode": "FXD1/2022/25",
+    "issueCode": "FXD1/2022/025",
     "name": "25-Year Fixed Coupon Bond (2022)",
     "category": "FXD",
     "issueDate": "2022-10-24",
@@ -897,7 +897,7 @@
   },
   {
     "isin": "KE8000006760",
-    "issueCode": "FXD1/2026/30",
+    "issueCode": "FXD1/2026/030",
     "name": "30-Year Fixed Coupon Bond (2026)",
     "category": "FXD",
     "issueDate": "2026-04-20",

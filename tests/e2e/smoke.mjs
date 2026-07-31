@@ -264,14 +264,20 @@ async function main() {
     });
     await page.waitForTimeout(1200);
     const body = await page.innerText('body');
-    if (!/FXD1\/2022\/10/.test(body)) fail('portfolio: a valid CSV row did not import');
+    // Typed unpadded on purpose, and asserted padded. "FXD1/2022/10" is what
+    // a person writes; the app must accept it and then store the one canonical
+    // form, because a holding saved as typed does not join the bond catalogue
+    // and its coupon reminders never fire.
+    if (!/FXD1\/2022\/010/.test(body)) {
+      fail('portfolio: an unpadded issue code was not canonicalised on import');
+    }
     if (!/NOTAREALBOND/.test(body)) fail('portfolio: an unknown issue code was silently dropped');
 
     // Record a price for the held bond, then require a mark-to-market figure.
     await go('/prices/');
-    await page.locator('input[type=search]').fill('FXD1/2022/10');
+    await page.locator('input[type=search]').fill('FXD1/2022/010');
     await page.waitForTimeout(400);
-    const held = page.locator('.card').filter({ hasText: 'FXD1/2022/10' }).first();
+    const held = page.locator('.card').filter({ hasText: 'FXD1/2022/010' }).first();
     if (await held.count()) {
       await held.getByRole('button', { name: /Record a price|Update price/ }).click();
       await page.waitForTimeout(200);
@@ -280,7 +286,7 @@ async function main() {
       await page.waitForTimeout(600);
 
       await go('/portfolio/');
-      const row = page.locator('tr', { hasText: 'FXD1/2022/10' }).first();
+      const row = page.locator('tr', { hasText: 'FXD1/2022/010' }).first();
       const text = (await row.innerText().catch(() => '')) || '';
       // Two percentages on the row: the locked-in yield and the at-market one.
       const pcts = text.match(/\d+\.\d+%/g) || [];
@@ -288,7 +294,7 @@ async function main() {
         fail(`portfolio: no at-market yield after recording a price (row: "${text.replace(/\s+/g, ' ').trim()}")`);
       }
     } else {
-      fail('portfolio: could not find FXD1/2022/10 in the price book to price it');
+      fail('portfolio: could not find FXD1/2022/010 in the price book to price it');
     }
   }
   if (failures.length === mtmBefore) pass('imported a holding, priced it, at-market yield appeared');

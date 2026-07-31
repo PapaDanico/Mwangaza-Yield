@@ -161,7 +161,7 @@ export default function SourcesPage() {
     <Prose
       title="Where our numbers come from"
       lead="Every source we use, what it feeds, and — just as important — what we deliberately do not use."
-      updated="25 July 2026"
+      updated="31 July 2026"
     >
       <p>
         A tool that tells you what to do with your money owes you a straight answer about where

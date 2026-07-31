@@ -61,6 +61,8 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 export default function GoalsPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const loaded = useBondStore((s) => s.loaded);
+  const offline = useBondStore((s) => s.offline);
   const tbills = useBondStore((s) => s.tbills);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
   const userPrices = usePriceStore((s) => s.userPrices);
@@ -195,8 +197,10 @@ export default function GoalsPage() {
         rungs: Math.min(6, yearsOfFees),
         horizonYears: Math.max(1, firstFeeYear + yearsOfFees - 1 - new Date().getFullYear() + 1),
         built: fees.ladder.rungs.length,
+        catalogueSize: bonds.length,
+        dataLoaded: loaded || offline,
       }),
-    [feeCapital, yearsOfFees, firstFeeYear, fees.ladder.rungs.length]
+    [feeCapital, yearsOfFees, firstFeeYear, fees.ladder.rungs.length, bonds.length, loaded, offline]
   );
 
   const income = useMemo(

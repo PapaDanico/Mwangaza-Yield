@@ -65,8 +65,44 @@ export function ladderEmptyReason(params: {
   rungs: number;
   horizonYears: number;
   built: number;
+  /**
+   * How many bonds the catalogue actually holds.
+   *
+   * Optional so existing callers keep working, but every caller should pass
+   * it — see the note below on why its absence was the whole problem.
+   */
+  catalogueSize?: number;
+  /** True once the store has finished loading, successfully or not. */
+  dataLoaded?: boolean;
 }): string | null {
   if (params.built > 0) return null;
+
+  /* AN EMPTY CATALOGUE IS NOT A FACT ABOUT THE MARKET.
+   *
+   * Every branch below explains why no rung could be built from the bonds we
+   * hold. None of them was true when we held no bonds at all — and that is a
+   * state this app reaches routinely, because the store fetches on mount and
+   * AppInit swallows the failure. On a flaky connection, or with the JSON
+   * unreachable, the reader was told:
+   *
+   *     "No listed bond matures inside the next 10 years, so there is nothing
+   *      to build a rung from. Extend the horizon."
+   *
+   * That is a confident, specific, false claim about Kenyan government debt,
+   * offered as a finding, with an instruction attached. Thirty-eight listed
+   * bonds mature inside ten years. Extending the horizon would not have helped
+   * because the horizon was never the problem, so the one action suggested was
+   * also the one action guaranteed to fail.
+   *
+   * A tool that cannot tell "I found nothing" from "I looked at nothing" will
+   * eventually say the second while meaning the first, and this is the shape
+   * that takes. Checked first, before any reasoning about maturities. */
+  if (params.catalogueSize === 0) {
+    return params.dataLoaded
+      ? 'The bond list could not be loaded, so there is nothing to search. This is a problem at our end, not with your inputs — check your connection and reload.'
+      : 'Still loading the bond list.';
+  }
+
   const needed = Math.max(1, Math.round(params.rungs)) * STEP;
   /* Zero is a reason, not an absence of one.
    *

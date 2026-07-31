@@ -21,6 +21,8 @@ import LiveResult from '@/components/shared/LiveResult';
 
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
+  const loaded = useBondStore((s) => s.loaded);
+  const offline = useBondStore((s) => s.offline);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
   // Persisted, not useState. A reader who hand-builds a six-rung ladder and
@@ -222,6 +224,8 @@ export default function LadderPage() {
                 rungs: rungCount,
                 horizonYears: horizon,
                 built: plan.rungs.length,
+                catalogueSize: bonds.length,
+                dataLoaded: loaded || offline,
               })}
             </div>
           ) : (

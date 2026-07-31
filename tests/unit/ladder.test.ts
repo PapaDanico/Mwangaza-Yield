@@ -177,3 +177,57 @@ describe('why a ladder came back empty', () => {
     expect(why).toContain(LADDER_STEP_KES.toLocaleString('en-KE'));
   });
 });
+
+/**
+ * "I found nothing" and "I looked at nothing" are different sentences.
+ *
+ * Every branch of ladderEmptyReason explained why no rung could be built from
+ * the bonds we hold. None was true when we held none — a state this app
+ * reaches routinely, because the store fetches on mount and AppInit swallows
+ * the failure with .catch(() => {}). On a flaky connection the reader was told
+ * "No listed bond matures inside the next 10 years, so there is nothing to
+ * build a rung from. Extend the horizon."
+ *
+ * Thirty-eight listed bonds mature inside ten years. It is a confident,
+ * specific, false claim about Kenyan government debt, delivered as a finding,
+ * with the one instruction attached that could not possibly help — because the
+ * horizon was never the problem.
+ *
+ * Found by loading the page rather than by reading the code: the ladder engine
+ * builds four correct rungs from the same data, so nothing in the tests or the
+ * types was ever going to surface it.
+ */
+describe('an empty catalogue is not a fact about the market', () => {
+  const base = { amountKES: 3_000_000, rungs: 4, horizonYears: 10, built: 0 };
+
+  it('does not blame the horizon when no bonds were loaded', () => {
+    const msg = ladderEmptyReason({ ...base, catalogueSize: 0, dataLoaded: true })!;
+    expect(msg).toBeTruthy();
+    expect(msg, 'claims something about maturities when nothing was searched').not.toMatch(
+      /matures|horizon/i
+    );
+    expect(msg, 'does not tell the reader the failure is ours').toMatch(/could not be loaded/i);
+  });
+
+  it('says it is still loading rather than reporting a result', () => {
+    const msg = ladderEmptyReason({ ...base, catalogueSize: 0, dataLoaded: false })!;
+    expect(msg).toMatch(/loading/i);
+    expect(msg).not.toMatch(/matures|horizon/i);
+  });
+
+  it('still explains a genuinely empty result when the catalogue is populated', () => {
+    // The fix must not swallow the real reasons. With bonds present and a
+    // horizon nothing falls inside, the horizon explanation is correct.
+    const msg = ladderEmptyReason({ ...base, catalogueSize: 58, dataLoaded: true })!;
+    expect(msg).toMatch(/matures/i);
+  });
+
+  it('still puts the amount first, which is the commonest real cause', () => {
+    const msg = ladderEmptyReason({ ...base, amountKES: 0, catalogueSize: 58, dataLoaded: true })!;
+    expect(msg).toMatch(/Enter the amount/i);
+  });
+
+  it('returns null when a ladder actually built, whatever the catalogue says', () => {
+    expect(ladderEmptyReason({ ...base, built: 4, catalogueSize: 0, dataLoaded: true })).toBeNull();
+  });
+});

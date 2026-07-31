@@ -59,6 +59,12 @@ export interface BidGuidance {
   targetYears: number;
   /** How wide a band of remaining term was accepted as comparable. */
   toleranceYears: number;
+  /**
+   * How far back comparables were drawn, in days; null when the whole archive
+   * since GUIDANCE_FROM was needed. Reported because a range built from the
+   * last six months and one built from four years are different claims.
+   */
+  windowDays: number | null;
   comparables: ComparableAuction[];
   /** Sorted clearing rates, for the distribution below. */
   count: number;
@@ -132,25 +138,106 @@ export function findComparables(
 }
 
 /**
+ * How far back to look for comparables, tried nearest-first.
+ *
+ * RECENT PAPER IS BETTER EVIDENCE, MEASURED
+ *
+ * Kenyan rates moved 16.7% to 7.4% and back to 8.3% inside two years, so a
+ * four-year comparable set is partly evidence from a market that no longer
+ * exists. Replayed like-for-like over the archive, preferring recent
+ * comparables cut the midpoint's median absolute error from 0.644pp to
+ * 0.616pp.
+ *
+ * THE GAIN IS MODEST, AND A FIRST MEASUREMENT SAID OTHERWISE
+ *
+ * A cruder experiment suggested a third better (0.978pp to 0.651pp). It was
+ * comparing against a differently-constructed baseline, not against this code
+ * with the window removed, and the improvement did not survive a like-for-like
+ * replay. Four per cent is the honest number.
+ *
+ * The sample bar for accepting a window is MIN_SAMPLE, deliberately not a
+ * tuned one. Sweeping it gave 0.616 at 5, 0.580 at 8, 0.620 at 12 and 0.644 at
+ * 15 — non-monotonic on 162 observations, which is the shape of noise rather
+ * than of a real optimum. Picking the argmin would be fitting this constant to
+ * this archive.
+ *
+ * IT IS A LADDER, NOT A CUT-OFF
+ *
+ * A hard 180-day filter would stop answering for tenors that are simply not
+ * auctioned often — the two-year's most recent print in this archive is from
+ * 2024. Falling back through wider windows keeps those quotable, and it costs
+ * nothing measurably: 162 quotable auctions with 24 thin, identical to no
+ * window at all.
+ *
+ * What this does NOT fix is the width of the interval. That was tested
+ * separately and recency barely moved it — see lib/calibration.ts, which is
+ * where the range itself comes from now.
+ */
+const RECENCY_LADDER: (number | null)[] = [180, 365, 730, null];
+
+const withinWindow = (
+  prints: AuctionPrint[],
+  asOf: Date,
+  windowDays: number | null
+): AuctionPrint[] => {
+  if (windowDays === null) return prints;
+  const cut = new Date(asOf.getTime() - windowDays * 86_400_000).toISOString().slice(0, 10);
+  return prints.filter((p) => p.auctionDate >= cut);
+};
+
+/**
  * Build the distribution a bidder should be looking at.
  *
- * The tolerance widens automatically when a tight band is too thin to say
- * anything with: better to compare against slightly different paper and say so
- * than to quote a range built on two auctions.
+ * Two things widen automatically when the sample is too thin to say anything
+ * with: how far back we look, and how different the paper may be. Recency is
+ * relaxed FIRST because it costs less — comparing against six-month-old paper
+ * of the right term beats comparing against four-year-old paper of the wrong
+ * one. Both are reported so the reader knows how loose the comparison got.
  */
 export function bidGuidance(
   prints: AuctionPrint[],
   bonds: Bond[],
   targetYears: number,
-  opts: { taxExempt?: boolean; tolerance?: number } = {}
+  opts: { taxExempt?: boolean; tolerance?: number; asOf?: Date } = {}
 ): BidGuidance {
+  /* Point-in-time by construction: the window is measured back from the newest
+   * print supplied, never from the clock. The backtest hands us only prints
+   * from before the auction being replayed, and reading the real date here
+   * would silently let a replay of 2023 use a 2026 window. */
+  const newest = prints.reduce<string>(
+    (max, p) => (p.auctionDate && p.auctionDate > max ? p.auctionDate : max),
+    '0000-00-00'
+  );
+  const asOf = opts.asOf ?? (newest > '0000-00-00' ? new Date(newest) : new Date(0));
+
   let tolerance = opts.tolerance ?? 1.5;
-  let found = findComparables(prints, bonds, targetYears, tolerance, opts.taxExempt);
-  // Widen once, then twice, before giving up — stated in the result so the
-  // reader knows how loose the comparison had to get.
+  let windowDays: number | null = RECENCY_LADDER[0];
+  let found = findComparables(
+    withinWindow(prints, asOf, windowDays),
+    bonds,
+    targetYears,
+    tolerance,
+    opts.taxExempt
+  );
+
+  // Look further back before accepting less similar paper.
+  for (const wider of RECENCY_LADDER.slice(1)) {
+    if (found.comparables.length >= MIN_SAMPLE) break;
+    windowDays = wider;
+    found = findComparables(
+      withinWindow(prints, asOf, windowDays),
+      bonds,
+      targetYears,
+      tolerance,
+      opts.taxExempt
+    );
+  }
+
+  // Only then widen what counts as comparable, across the full archive.
   for (const wider of [3, 5]) {
     if (found.comparables.length >= MIN_SAMPLE) break;
     tolerance = wider;
+    windowDays = null;
     found = findComparables(prints, bonds, targetYears, tolerance, opts.taxExempt);
   }
 
@@ -158,6 +245,7 @@ export function bidGuidance(
   return {
     targetYears,
     toleranceYears: tolerance,
+    windowDays,
     comparables: found.comparables,
     count: rates.length,
     low: rates[0] ?? 0,

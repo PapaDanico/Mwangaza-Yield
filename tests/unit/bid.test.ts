@@ -199,7 +199,12 @@ describe('TRAP 2: bid-to-cover cannot be computed per record', () => {
 describe('bidGuidance', () => {
   const spread = (rates: number[], maturity = '2034-06-12') =>
     rates.map((r, i) =>
-      p({ issueCode: `FXD${i}/2024/010`, auctionDate: `2024-0${(i % 9) + 1}-17`, weightedAverageRate: r })
+      /* All inside one quarter on purpose. Guidance now prefers recent
+       * comparables, so auctions spread across seven months would have the
+       * oldest trimmed by the recency ladder — which is correct behaviour but
+       * would make these quantile assertions test the window instead of the
+       * quantiles. Recency gets its own test below. */
+      p({ issueCode: `FXD${i}/2024/010`, auctionDate: `2024-07-0${(i % 9) + 1}`, weightedAverageRate: r })
     );
   const bondsFor = (n: number, maturity = '2034-06-12') =>
     Array.from({ length: n }, (_, i) => b({ issueCode: `FXD${i}/2024/010`, isin: `x${i}`, maturityDate: maturity }));
@@ -212,6 +217,59 @@ describe('bidGuidance', () => {
     expect(g.median).toBe(15);
     expect(g.high).toBe(18);
     expect(g.thin).toBe(false);
+  });
+
+  it('prefers recent comparables, and says how far back it looked', () => {
+    /* Kenyan rates ran 16.7% in 2024 to 7.4% in early 2026, so four-year-old
+     * auctions are partly evidence from a market that no longer exists.
+     * Measured over the archive, preferring recent paper cut the midpoint's
+     * median absolute error from 0.644pp to 0.616pp.
+     *
+     * The gain is modest and honestly so: a first, cruder experiment suggested
+     * a third, and a like-for-like replay did not support it. */
+    const old = Array.from({ length: 6 }, (_, i) =>
+      p({ issueCode: `FXD${i}/2022/010`, auctionDate: `2022-0${i + 1}-10`, weightedAverageRate: 17 })
+    );
+    const recent = Array.from({ length: 6 }, (_, i) =>
+      p({ issueCode: `FXD${i + 6}/2024/010`, auctionDate: `2024-07-0${i + 1}`, weightedAverageRate: 11 })
+    );
+    const allBonds = [
+      ...Array.from({ length: 6 }, (_, i) =>
+        b({ issueCode: `FXD${i}/2022/010`, isin: `o${i}`, maturityDate: '2034-06-12' })
+      ),
+      ...Array.from({ length: 6 }, (_, i) =>
+        b({ issueCode: `FXD${i + 6}/2024/010`, isin: `r${i}`, maturityDate: '2034-06-12' })
+      ),
+    ];
+    const g = bidGuidance([...old, ...recent], allBonds, 10);
+    expect(g.median, 'the stale 17% auctions dragged the midpoint').toBe(11);
+    expect(g.windowDays, 'the window used was not reported').toBe(180);
+    expect(g.count).toBe(6);
+  });
+
+  it('looks further back rather than leaving a thin tenor unquotable', () => {
+    /* A hard recency cut-off would silently stop answering for tenors that are
+     * simply not auctioned often — the archive's most recent two-year print is
+     * from 2024. Measured, the ladder cost nothing: 162 quotable auctions and
+     * 24 thin ones, identical to no window at all. */
+    const old = Array.from({ length: 6 }, (_, i) =>
+      p({ issueCode: `FXD${i}/2022/010`, auctionDate: `2022-0${i + 1}-10`, weightedAverageRate: 17 })
+    );
+    const oneRecent = p({
+      issueCode: 'FXD9/2024/010',
+      auctionDate: '2024-07-01',
+      weightedAverageRate: 11,
+    });
+    const allBonds = [
+      ...Array.from({ length: 6 }, (_, i) =>
+        b({ issueCode: `FXD${i}/2022/010`, isin: `o${i}`, maturityDate: '2034-06-12' })
+      ),
+      b({ issueCode: 'FXD9/2024/010', isin: 'r9', maturityDate: '2034-06-12' }),
+    ];
+    const g = bidGuidance([...old, oneRecent], allBonds, 10);
+    expect(g.count, 'gave up instead of widening the window').toBeGreaterThanOrEqual(MIN_SAMPLE);
+    expect(g.thin).toBe(false);
+    expect(g.windowDays, 'a wider window was needed and should be reported').not.toBe(180);
   });
 
   it('widens the tolerance rather than quoting a range built on two auctions', () => {
@@ -254,7 +312,12 @@ describe('bidGuidance', () => {
   it('produces a usable ten-year distribution from the shipped archive', () => {
     const g = bidGuidance(prints as AuctionPrint[], bonds, 10, { taxExempt: false });
     expect(g.thin).toBe(false);
-    expect(g.count).toBeGreaterThanOrEqual(10);
+    /* Was >= 10 when guidance drew on the whole archive at once. It now
+     * prefers recent paper, so a healthy answer is a SMALLER, fresher sample —
+     * above MIN_SAMPLE and drawn from a stated window rather than from four
+     * years of a market that has since moved. */
+    expect(g.count).toBeGreaterThanOrEqual(MIN_SAMPLE);
+    expect(g.windowDays, 'the whole archive was needed for a ten-year bond').not.toBeNull();
     // Kenyan government paper: sanity band, not a forecast.
     expect(g.median).toBeGreaterThan(8);
     expect(g.median).toBeLessThan(20);

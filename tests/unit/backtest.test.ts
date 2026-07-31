@@ -39,7 +39,14 @@ describe('the backtest cannot see the future', () => {
   it('actually changes the answer — the filter is not decorative', () => {
     /* The mutation check, written as a test. If the guidance came out the same
      * with and without the future, the point-in-time filter would be doing
-     * nothing and every claim resting on it would be hollow. */
+     * nothing and every claim resting on it would be hollow.
+     *
+     * This compares the RESULTING MIDPOINT rather than the number of
+     * comparables. Counts stopped being a valid signal once guidance gained a
+     * recency ladder: it measures its window back from the newest print it is
+     * given, so a truncated archive can legitimately yield a similar or even
+     * larger comparable set from a nearer window. The midpoint moving is the
+     * property that actually matters. */
     const dated = PRINTS.filter((p) => p.auctionDate).sort((a, b) =>
       a.auctionDate.localeCompare(b.auctionDate)
     );
@@ -50,9 +57,11 @@ describe('the backtest cannot see the future', () => {
     });
     expect(pointInTime.count, 'no comparables before the cutoff').toBeGreaterThan(0);
     expect(
-      pointInTime.count,
-      'the point-in-time set is not smaller than the full set — the filter did nothing'
-    ).toBeLessThan(withFuture.count);
+      pointInTime.median,
+      'the same midpoint with and without three years of future rates — the filter did nothing'
+    ).not.toBe(withFuture.median);
+    // And the comparables themselves must all predate the cutoff.
+    expect(pointInTime.comparables.every((c) => c.auctionDate < target)).toBe(true);
   });
 
   it('never scores an auction against a forecast built from it', () => {

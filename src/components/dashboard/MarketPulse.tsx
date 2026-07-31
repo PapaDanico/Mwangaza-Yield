@@ -16,6 +16,7 @@ import {
   demandPulse,
   recentClearingByTerm,
   MIN_BUCKET_SAMPLE,
+  PULSE_WINDOW_DAYS,
 } from '@/lib/market-pulse';
 import Term from '@/components/shared/Term';
 import Explain from '@/components/shared/Explain';
@@ -111,7 +112,12 @@ export default function MarketPulse() {
 
       <Explain>
         <p>
-          Each row takes every CBK auction result from the last 365 days, works out how many years
+          {/* PULSE_WINDOW_DAYS, not "365". MIN_BUCKET_SAMPLE two sentences down
+            * was already imported; the window was the one number in this
+            * paragraph still typed by hand, so narrowing the window in
+            * market-pulse.ts would have left this telling readers it covers a
+            * year of auctions when it no longer did. */}
+          Each row takes every CBK auction result from the last {PULSE_WINDOW_DAYS} days, works out how many years
           the bond had left to run <em>on the auction day</em> — not the tenor printed in its issue
           code, which stays fixed for life even when a &ldquo;15-year&rdquo; bond is re-opened with
           five years left — and reports the median <Term slug="clearing-rate">clearing rate</Term>{' '}

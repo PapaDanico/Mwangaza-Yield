@@ -43,7 +43,7 @@
     Cache-Control = "public, max-age=300"
 
 # The rates feed is published FOR other people to read — see
-# scripts/build-rates-feed.mjs and docs/RATES-FEED.md. Cross-origin reads are
+# scripts/build-rates-feed.mjs and public/data/RATES-FEED.md. Cross-origin reads are
 # therefore the point, not an oversight. This is a deliberate trade: the
 # underlying figures are public CBK releases and the product being sold is the
 # verified engine and its support, not gatekeeping a JSON file. An open feed
@@ -71,3 +71,15 @@
     Cache-Control = "public, max-age=900"
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, OPTIONS"
+
+# The contract document, served from the same directory as the feed it
+# describes. It lived in docs/ and was linked from JiPange's public repo into
+# this private one, so every third party the feed exists for hit a 404 at the
+# moment they were deciding whether to trust it. Same CORS treatment as the
+# data, because a contract nobody outside can read is not published.
+[[headers]]
+  for = "/data/RATES-FEED.md"
+  [headers.values]
+    Content-Type = "text/markdown; charset=utf-8"
+    Cache-Control = "public, max-age=900"
+    Access-Control-Allow-Origin = "*"

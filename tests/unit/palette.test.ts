@@ -54,7 +54,11 @@ function sources(dir: string, acc: string[] = []): string[] {
 }
 
 describe('the colour palette covers every utility that uses it', () => {
-  const theme = resolveConfig(tailwindConfig as never).theme as {
+  /* Through `unknown` deliberately. resolveConfig's return type is generic over
+   * the config it is given, and tailwind.config.js is a plain CommonJS module
+   * with no `satisfies Config`, so TS infers `never` for the theme and a direct
+   * cast is an error. The runtime shape is what this test actually asserts. */
+  const theme = resolveConfig(tailwindConfig as never).theme as unknown as {
     colors: Record<string, Record<string, string>>;
   };
   const files = sources(`${ROOT}src`);

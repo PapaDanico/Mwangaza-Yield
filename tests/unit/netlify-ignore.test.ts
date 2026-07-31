@@ -33,14 +33,6 @@ function decide(env: Record<string, string>): number {
 const SKIP = 0;
 const BUILD = 1;
 
-/** Two real commits from this repo's history, resolved at test time. */
-function head(n: number): string {
-  return execFileSync('git', ['rev-parse', `HEAD~${n}`], {
-    cwd: new URL('../../', import.meta.url).pathname,
-    encoding: 'utf8',
-  }).trim();
-}
-
 describe('netlify build-skip decision', () => {
   it('builds when there is no baseline to diff against', () => {
     // A first build, or one after a cleared cache. Nothing is known, so the
@@ -66,14 +58,13 @@ describe('netlify build-skip decision', () => {
     ).toBe(BUILD);
   });
 
-  it('builds when a real source change is in the diff', () => {
-    // Against the working tree's own recent history. Whatever these two
-    // commits touched, this repo does not merge docs-only work often enough
-    // for HEAD~3..HEAD to be skippable — and if it ever is, the assertion
-    // below on a synthetic docs-only diff still pins the behaviour.
-    const decision = decide({ CACHED_COMMIT_REF: head(3), COMMIT_REF: head(0) });
-    expect([SKIP, BUILD]).toContain(decision);
-  });
+  /* There was a sixth test here that diffed HEAD~3..HEAD in this very repo.
+   * It asserted the result was one of {SKIP, BUILD} — every possible value —
+   * so it could not fail on behaviour, and then it failed in CI anyway,
+   * because actions/checkout clones to depth 1 and HEAD~3 does not exist.
+   * A test that cannot detect a defect but can break the build is worth less
+   * than nothing. The scratch-repo case below covers the same ground with
+   * real commits it constructs itself, and can fail for the right reasons. */
 
   it('does not treat public/data as skippable, which is the whole product', () => {
     // The daily refresh commits nothing but public/data/*.json. If that were

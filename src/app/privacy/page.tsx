@@ -15,12 +15,31 @@ export default function PrivacyPage() {
           Sending somebody to complain about an entity the notice will not
           identify is not a complaint route — and s.29 of the Data Protection
           Act makes naming the controller part of the duty this page exists to
-          discharge. The registration number and registered office are still
-          being settled and are deliberately not invented here. */}
+          discharge.
+
+          Company number and incorporation date are taken from the certificate
+          of incorporation, a public record at the BRS.
+
+          The address is the BUSINESS address and is deliberately not the
+          registered office. The certificate gives a registered office on the
+          Ongata Rongai-Kitengela Bypass; that stays on the BRS record, where
+          anyone can pull it by company number, and off this page. Calling JKIA
+          Cargo Centre the registered office would be false — the fix for a
+          personal address on a public page is never to relabel a different
+          one. If someone later "corrects" this back believing it a mistake: it
+          was not.
+          Deliberately NOT taken from it: the director's name, the shareholding,
+          and the registry's "P.O. Box" field, which on this certificate holds a
+          MOBILE NUMBER rather than a box number. A government form labelling a
+          phone number as an address does not make publishing it our business —
+          least of all on the page about how carefully we handle personal
+          data. */}
       <h2>Who we are</h2>
       <p>
-        Mwangaza Yield is operated by <strong>Danico Ventures</strong>, which also runs JiPange and
-        is the data controller for anything described on this page. Write to us at{' '}
+        Mwangaza Yield is operated by <strong>Danico Ventures Ltd</strong> (company no.{' '}
+        <strong>PVT-EYUM572</strong>, incorporated 10 March 2019 under the Companies Act, 2015),
+        which also runs JiPange and is the data controller for anything described on this page.
+        Business address: JKIA Cargo Centre, Nairobi. Write to us at{' '}
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> — including to exercise any of the
         rights set out below.
       </p>

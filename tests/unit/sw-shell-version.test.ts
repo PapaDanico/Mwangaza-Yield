@@ -24,7 +24,7 @@ import { createHash } from 'node:crypto';
 const SW = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
 
 /* Recorded pair. Update BOTH, in the same commit, or not at all. */
-const SHIPPED_VERSION = 'mwangaza-v12';
+const SHIPPED_VERSION = 'mwangaza-v13';
 const SHIPPED_DIGEST = 'c17458f40a57c912';
 
 /** The version string the service worker opens its cache under. */

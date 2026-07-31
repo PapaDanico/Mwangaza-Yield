@@ -40,7 +40,6 @@ const TRACKED_EVENTS = new Set([
   'act:bid-tested',
   'act:price-saved',
   'act:ladder-built',
-  'act:alerts-enabled',
   'act:channel-followed',
 ]);
 

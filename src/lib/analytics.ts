@@ -44,7 +44,6 @@ export const TRACKED_EVENTS = [
   'act:bid-tested',
   'act:price-saved',
   'act:ladder-built',
-  'act:alerts-enabled',
   /* Following the WhatsApp channel. An `act:` rather than a `view:` because it
      is a reader choosing to keep hearing from us, which is the retention
      signal this list exists to capture — and the only measurement we will ever

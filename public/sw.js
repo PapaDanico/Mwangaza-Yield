@@ -15,7 +15,7 @@
 
    tests/unit/sw-shell-version.test.ts now fails when a precached asset's bytes change
    without this version moving, so the rule is enforced rather than remembered. */
-const VERSION = 'mwangaza-v12';
+const VERSION = 'mwangaza-v13';
 const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/alerts/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
@@ -111,31 +111,24 @@ self.addEventListener('fetch', (e) => {
 /* ---------------------------------------------------------------------------
    Notifications.
 
-   `notificationclick` matters today: the app raises banners itself through this
-   registration (Android refuses `new Notification()` from a page), and without
-   this handler tapping one does nothing at all.
+   `notificationclick` is the whole of it. The app raises its own banners
+   through this registration — Android refuses `new Notification()` from a page
+   — and without this handler tapping one does nothing at all.
 
-   `push` is here for the day a sender exists. It is deliberately defensive —
-   an empty or non-JSON payload still produces a banner rather than an
-   unhandled rejection in the service worker, which some browsers punish by
-   showing their own "site updated in the background" notice. Nothing subscribes
-   to push yet, so this never fires in production as shipped.
+   THE `push` HANDLER WAS REMOVED, July 2026, along with the server that would
+   have fed it. Web push requires a server to hold each device's endpoint, and
+   an endpoint is an identifier for a specific person's device: it is personal
+   data, and holding it is what makes us a data controller. The Registration
+   Regulations 2021 disapply the small-operator exemption for Third Schedule
+   purposes including "provision of financial services", so the cheapest way
+   out of an arguable classification is to hold nothing at all.
+
+   Nothing is lost that was working. The comment this replaces said so:
+   "Nothing subscribes to push yet, so this never fires in production as
+   shipped." The alert engine has always run on the device — see
+   src/lib/alerts.ts — and the private rules (coupon due, maturity) were
+   already device-only by design. The market rules now join them.
 --------------------------------------------------------------------------- */
-self.addEventListener('push', (e) => {
-  let payload = {};
-  try { payload = e.data ? e.data.json() : {}; } catch (_) { payload = {}; }
-  const title = payload.title || 'Mwangaza Yield';
-  e.waitUntil(
-    self.registration.showNotification(title, {
-      body: payload.body || 'Open the app for details.',
-      tag: payload.tag || 'mwangaza-push',
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      data: { href: payload.href || '/alerts/' },
-    })
-  );
-});
-
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const href = (e.notification.data && e.notification.data.href) || '/alerts/';

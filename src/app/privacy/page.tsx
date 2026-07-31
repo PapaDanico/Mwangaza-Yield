@@ -92,27 +92,27 @@ export default function PrivacyPage() {
         is built, not a promise about how we behave.
       </p>
 
-      <h2>Price alerts — the one thing we store</h2>
+      <h2>Price alerts — we now store nothing at all</h2>
       <p>
-        If you turn on alerts, your browser issues a <strong>push endpoint</strong>: a long URL that
-        the browser vendor&apos;s push service can deliver a message to, plus two keys that let us
-        encrypt it. We store that endpoint, those keys, and the market-wide rules you chose — an
-        auction date, a rate threshold. Nothing else. There is no name, no email, no device
-        identifier we could resolve to a person, and no way to work backwards from what we hold to
-        who you are.
+        Until July 2026 turning on alerts issued a <strong>push endpoint</strong>: a long URL the
+        browser vendor&apos;s push service could deliver to, plus two keys. We held that endpoint,
+        those keys and the market-wide rules you chose. It never carried anything about your money
+        — but an endpoint identifies a specific person&apos;s device, and that makes it personal
+        data whatever else it does not contain.
       </p>
       <p>
-        <strong>It never contains anything about your money.</strong> An alert can say &ldquo;the
-        91-day bill cleared above 9%&rdquo;, because that is a fact about the market. It cannot say
-        anything about your holdings, because the sender does not have them — the rules you can
-        subscribe to are checked against a whitelist on the server, so a modified client cannot
-        smuggle a holding into the store even deliberately.
+        <strong>It is gone.</strong> The endpoint, the keys, the stored rules, the server that
+        would have sent them and the Netlify Blobs store that held them were all removed. Alerts
+        are now worked out entirely on your device from the published calendar and rate feed, and
+        raised when you open Mwangaza Yield — which is how coupon and maturity alerts have always
+        worked, because those need your holdings and we would not hold those either.
       </p>
       <p>
-        The record is keyed by a SHA-256 hash of the endpoint, which lets us find your subscription
-        to update or delete it and lets us enumerate nothing else. Turning alerts off deletes it.
-        The subscription lives in Netlify Blobs, which sits outside Kenya — a transfer the Act asks
-        us to name, so we are naming it.
+        The trade is deliberate and worth stating plainly: alerts no longer reach you while the app
+        is closed. In exchange there is nothing here to lose, sell, or be compelled to hand over,
+        and no question about whether we are a data controller — because we hold no personal data
+        at all. Auction bid windows carry five days&apos; notice and T-bill results are weekly, so
+        an alert you see next time you open the app is still an alert in time.
       </p>
 
       <h2>Your rights</h2>

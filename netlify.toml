@@ -23,11 +23,17 @@
 [context.branch-deploy]
   ignore = "exit 0"
 
-# The site is a static export; these two are the only server code that exists.
-# `subscribe` accepts a push endpoint and the market-wide rules chosen for it;
-# `send-alerts` runs on a schedule and pushes what is due. Neither ever receives
-# a holding — see src/lib/push-rules.ts for why that boundary is drawn where it
-# is, and enforced by a whitelist rather than by good intentions.
+# The site is a static export, and `track` is now the ONLY server code that
+# exists — an anonymous tool counter holding no identifier of any kind.
+#
+# `subscribe` and `send-alerts` were removed in July 2026. Web push requires a
+# server to hold each device's endpoint, and an endpoint identifies a specific
+# person's phone: it is personal data regardless of how little else travels
+# with it. Alerts are now evaluated on the device from the published calendar
+# and rate feed, which is how coupon and maturity alerts always worked.
+#
+# Keeping this directory to one anonymous function is the point, not an
+# accident. See src/app/privacy/page.tsx for what the reader is told.
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

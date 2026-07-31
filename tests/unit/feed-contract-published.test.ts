@@ -42,6 +42,51 @@ describe('the rates-feed contract is actually published', () => {
     expect(doc).toMatch(/schema/i);
   });
 
+  it('documents the schema version actually being published', () => {
+    /* This file's own header says two copies of a contract is how the
+     * published one quietly stops matching the real one — and then checked
+     * only that the word "schema" appeared SOMEWHERE in the document, which is
+     * a guard that cannot fail for the reason it exists.
+     *
+     * The document is the second copy. It states `"schema": 1` in its example,
+     * and nothing tied that to the generator. Bump the feed and the contract
+     * keeps advertising the old version to precisely the outside consumers who
+     * have no other way to know — and who were told, in this same document, to
+     * refuse a schema they do not recognise. They would refuse the real feed
+     * on the strength of our own stale documentation. */
+    const feed = JSON.parse(read('public/data/rates.json'));
+    const doc = read('public/data/RATES-FEED.md');
+    const documented = doc.match(/"schema"\s*:\s*(\d+)/);
+    expect(documented, 'the contract shows no schema value in its example').toBeTruthy();
+    expect(
+      Number(documented![1]),
+      `the contract documents schema ${documented?.[1]} but the feed publishes ${feed.schema}`
+    ).toBe(feed.schema);
+  });
+
+  it('documents the fields the feed actually carries', () => {
+    /* Same failure, one level down. A consumer builds against the field names
+     * in this document; a rename that misses it leaves them parsing a key that
+     * no longer exists. Top-level keys and the T-bill record are checked
+     * because those are what a reader indexes into on their first attempt. */
+    const feed = JSON.parse(read('public/data/rates.json'));
+    const doc = read('public/data/RATES-FEED.md');
+
+    for (const key of Object.keys(feed)) {
+      expect(doc, `the feed publishes "${key}" but the contract never mentions it`).toContain(
+        key
+      );
+    }
+    const tbill = feed.tbills?.[0];
+    expect(tbill, 'the feed carries no T-bill records to check the contract against').toBeTruthy();
+    for (const key of Object.keys(tbill)) {
+      expect(
+        doc,
+        `T-bill records carry "${key}" but the contract does not document it`
+      ).toContain(key);
+    }
+  });
+
   it('exists once, with docs/ pointing at it rather than copying it', () => {
     /* A second copy would drift, and the copy people can read is the one that
      * would end up wrong — the same failure as the OG card rendered from a

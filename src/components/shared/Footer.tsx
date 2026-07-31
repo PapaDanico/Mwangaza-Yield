@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { MessageCircle, Mail } from 'lucide-react';
-import { CBK_WHATSAPP_CHANNEL, SUPPORT_EMAIL } from '@/lib/share';
+import {
+  CBK_WHATSAPP_CHANNEL,
+  PESA_SMART_CHANNEL,
+  PESA_SMART_NAME,
+  SUPPORT_EMAIL,
+} from '@/lib/share';
 
 const COLUMNS = [
   {
@@ -70,6 +75,16 @@ export default function Footer() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3 py-1.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
               >
                 <MessageCircle size={13} /> CBK on WhatsApp
+              </a>
+              {/* Gold rather than mint, so the two WhatsApp links in this row
+                  are not read as one thing. CBK's is the source; this is ours. */}
+              <a
+                href={PESA_SMART_CHANNEL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/50 px-3 py-1.5 text-xs font-medium text-gold-400 transition hover:bg-gold-500/10"
+              >
+                <MessageCircle size={13} /> {PESA_SMART_NAME}
               </a>
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}

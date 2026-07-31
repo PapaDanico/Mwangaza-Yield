@@ -104,10 +104,18 @@ export default function PrivacyPage() {
 
       <h2>Links away from the app</h2>
       <p>
-        We link to the Central Bank of Kenya, the National Treasury, KNBS and CBK&apos;s WhatsApp
-        channel. Once
+        We link to the Central Bank of Kenya, the National Treasury, KNBS, CBK&apos;s WhatsApp
+        channel, and our own WhatsApp channel, Pesa Smart KE, which we run jointly with JiPange.
+        Once
         you follow a link you are on their service, under their privacy policy, not ours. Sharing a
         summary to WhatsApp hands that text to WhatsApp — we neither see nor keep a copy.
+      </p>
+      <p>
+        Following our channel does not identify you to us. WhatsApp does not show channel admins who
+        their followers are, so we never see your number and are never given a list — following is
+        the one way to hear from us that costs you nothing in privacy. It is a broadcast: we post,
+        you read. It carries market news only, never anything about your own holdings, because
+        working those out needs data this app deliberately never receives.
       </p>
 
       <h2>Children</h2>

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { ExternalLink, ChevronDown, CalendarPlus, MessageCircle } from 'lucide-react';
-import { CBK_WHATSAPP_CHANNEL } from '@/lib/share';
+import { CBK_WHATSAPP_CHANNEL, PESA_SMART_CHANNEL, PESA_SMART_NAME } from '@/lib/share';
+import { track } from '@/lib/analytics';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
@@ -210,6 +211,34 @@ export default function AuctionsPage() {
           <p className="font-display font-semibold text-ink">Follow CBK on WhatsApp</p>
           <p className="text-sm text-ink-muted">
             Auction announcements and results straight from the Central Bank, the moment they publish.
+            This is the source — if we ever disagree with it, believe them.
+          </p>
+        </div>
+        <ExternalLink size={16} className="shrink-0 text-ink-faint" />
+      </a>
+
+      {/* Ours, immediately below CBK's and deliberately different in colour and
+          wording. Two WhatsApp links on one page is the situation where a
+          reader mistakes commentary for an official announcement, so the
+          ordering puts the primary source first and this one says outright
+          what it is. */}
+      <a
+        href={PESA_SMART_CHANNEL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track('act:channel-followed')}
+        className="card mt-3 flex items-center gap-3 border-l-4 border-l-gold-500 transition hover:border-gold-500"
+      >
+        <div className="rounded-xl bg-gold-500 p-2.5 text-white">
+          <MessageCircle size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display font-semibold text-ink">
+            Follow {PESA_SMART_NAME} on WhatsApp
+          </p>
+          <p className="text-sm text-ink-muted">
+            Ours, not the Central Bank&apos;s: the same auctions worked through in plain language,
+            with what the rate means after tax. Run with JiPange.
           </p>
         </div>
         <ExternalLink size={16} className="shrink-0 text-ink-faint" />

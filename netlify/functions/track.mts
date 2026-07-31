@@ -41,6 +41,7 @@ const TRACKED_EVENTS = new Set([
   'act:price-saved',
   'act:ladder-built',
   'act:alerts-enabled',
+  'act:channel-followed',
 ]);
 
 const ALLOWED = [

@@ -45,6 +45,13 @@ export const TRACKED_EVENTS = [
   'act:price-saved',
   'act:ladder-built',
   'act:alerts-enabled',
+  /* Following the WhatsApp channel. An `act:` rather than a `view:` because it
+     is a reader choosing to keep hearing from us, which is the retention
+     signal this list exists to capture — and the only measurement we will ever
+     have of the channel, since WhatsApp tells admins nothing about who
+     follows. It counts the click, not the follow: whether they completed it on
+     WhatsApp's side is not ours to know. */
+  'act:channel-followed',
 ] as const;
 
 export type TrackedEvent = (typeof TRACKED_EVENTS)[number];

@@ -1,35 +1,35 @@
-<!-- width/height are load-bearing, not decoration. Without an intrinsic
-     size an SVG falls back to its container when CSS has not applied —
-     which is what html2canvas does in its clone. The report export then
-     rendered this logo at the full 794px sheet width, and the reader got
-     a PNG of one giant navy corner instead of their bond ladder. -->
+<!-- Traced from the brand sheet supplied 31 Jul 2026, which arrived as PNG
+     only — no vector exists. Geometry was measured off the source rather than
+     eyeballed: the navy disc was located by pixel extent, every landmark
+     (apex, tack, boom tip, arc nadir, dot) transformed into this 512 viewBox,
+     and the sail's width sampled at four heights to set the luff curvature.
+     Fidelity is close but not exact. If the original vector ever surfaces,
+     replace this file rather than editing it.
+
+     Flat fills only, deliberately. The previous mark used two gradients, and
+     gradients are the first thing to drop when an SVG is cloned or rasterised
+     — which is exactly what the PDF export does through html2canvas, a path
+     that has already lost styling twice in this codebase.
+
+     width/height are load-bearing, not decoration. Without an intrinsic size
+     an SVG falls back to its container when CSS has not applied, which is what
+     html2canvas does in its clone: the report export then rendered this logo
+     at the full 794px sheet width and the reader got a PNG of one giant navy
+     corner instead of their bond ladder. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="30%" r="90%">
-      <stop offset="0%" stop-color="#122A4C"/>
-      <stop offset="60%" stop-color="#0A192F"/>
-      <stop offset="100%" stop-color="#050F1F"/>
-    </radialGradient>
-    <linearGradient id="sail" x1="0" y1="1" x2="0.6" y2="0">
-      <stop offset="0%" stop-color="#D97706"/>
-      <stop offset="100%" stop-color="#FCD34D"/>
-    </linearGradient>
-  </defs>
-
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-
-  <!-- lateen sail -->
-  <path d="M 176 342 C 164 236, 208 128, 322 78 C 278 160, 264 252, 272 342 Z" fill="url(#sail)"/>
-
-  <!-- rising yield line emerging from the sail's trailing edge -->
-  <path d="M 288 254 L 330 216 L 358 230 L 400 174" fill="none" stroke="#F59E0B" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="330" cy="216" r="11" fill="#F59E0B"/>
-  <circle cx="358" cy="230" r="11" fill="#F59E0B"/>
-  <path d="M 418 138 L 416 184 L 378 160 Z" fill="#F59E0B"/>
-
-  <!-- hull carrying the sail -->
-  <path d="M 118 362 Q 256 406 394 362 L 366 402 Q 256 430 146 402 Z" fill="#F59E0B"/>
-
-  <!-- water line -->
-  <path d="M 150 444 Q 202 430 256 444 T 362 444" fill="none" stroke="#10B981" stroke-width="12" stroke-linecap="round"/>
+  <rect width="512" height="512" rx="112" fill="#05172C"/>
+  <g fill="#F8AA1C">
+    <!-- Lateen sail: convex leech on the right, deeply concave luff on the
+         left tapering to a fine point at the tack. That taper is what gives
+         the crescent read; flattening it turns the sail into a wedge. -->
+    <path d="M 317 111 C 329 164, 327 236, 299 319
+             C 266 303, 218 295, 182 313
+             C 248 288, 296 196, 317 111 Z"/>
+    <!-- Boom, tapering away from the tack. -->
+    <path d="M 112 333 L 192 310 L 194 322 Z"/>
+  </g>
+  <!-- One arc doing two jobs: the hull the sail sits in, and a yield curve
+       rising to the right. The terminating dot is the point being marked. -->
+  <path d="M 152 340 Q 258 414, 358 336" fill="none" stroke="#F8AA1C" stroke-width="21" stroke-linecap="round"/>
+  <circle cx="362" cy="332" r="23" fill="#F8AA1C"/>
 </svg>

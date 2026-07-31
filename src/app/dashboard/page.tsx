@@ -14,6 +14,7 @@ import MacroPanel from '@/components/dashboard/MacroPanel';
 import SovereignContext from '@/components/dashboard/SovereignContext';
 import RateCycle from '@/components/dashboard/RateCycle';
 import MarketPulse from '@/components/dashboard/MarketPulse';
+import YieldInHistory from '@/components/dashboard/YieldInHistory';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -50,6 +51,7 @@ export default function DashboardPage() {
           that read perfectly well at half width. */}
       <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
         <MarketPulse />
+        <YieldInHistory />
         <SovereignContext />
       </div>
 

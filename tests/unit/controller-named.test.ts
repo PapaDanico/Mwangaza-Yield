@@ -59,4 +59,15 @@ describe('the privacy notice identifies its data controller', () => {
   it('still routes complaints to the ODPC, which is the point of naming anyone', () => {
     expect(shipped).toContain('odpc.go.ke');
   });
+
+  it('publishes company facts a reader can check, and none of the rest', () => {
+    /* A registration number is verifiable at the BRS; a name alone is not. The
+     * certificate also carries a director's name, a shareholding, and a
+     * "P.O. Box" field holding a mobile number — the last is the trap, because
+     * a government form labelled it as an address. */
+    expect(shipped).toContain('PVT-EYUM572');
+    expect(shipped, 'a Kenyan mobile number is present').not.toMatch(/\b07\d{8}\b/);
+    expect(shipped, 'the director is named').not.toMatch(/NGONGA|Ng&apos;ong&apos;a/i);
+    expect(shipped, 'shareholding detail is present').not.toMatch(/ORDINARY|share capital/i);
+  });
 });

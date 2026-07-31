@@ -15,12 +15,23 @@ export default function PrivacyPage() {
           Sending somebody to complain about an entity the notice will not
           identify is not a complaint route — and s.29 of the Data Protection
           Act makes naming the controller part of the duty this page exists to
-          discharge. The registration number and registered office are still
-          being settled and are deliberately not invented here. */}
+          discharge.
+
+          Company number, incorporation date and registered office are taken
+          from the certificate of incorporation, a public record at the BRS.
+          Deliberately NOT taken from it: the director's name, the shareholding,
+          and the registry's "P.O. Box" field, which on this certificate holds a
+          MOBILE NUMBER rather than a box number. A government form labelling a
+          phone number as an address does not make publishing it our business —
+          least of all on the page about how carefully we handle personal
+          data. */}
       <h2>Who we are</h2>
       <p>
-        Mwangaza Yield is operated by <strong>Danico Ventures</strong>, which also runs JiPange and
-        is the data controller for anything described on this page. Write to us at{' '}
+        Mwangaza Yield is operated by <strong>Danico Ventures Ltd</strong> (company no.{' '}
+        <strong>PVT-EYUM572</strong>, incorporated 10 March 2019 under the Companies Act, 2015),
+        which also runs JiPange and is the data controller for anything described on this page.
+        Registered office: Plot No. 1, Ongata Rongai&ndash;Kitengela Bypass, Athi River. Write to
+        us at{' '}
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> — including to exercise any of the
         rights set out below.
       </p>

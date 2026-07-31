@@ -29,7 +29,21 @@ const FORBIDDEN: { pattern: RegExp; because: string }[] = [
       'every figure is a dated snapshot of a published auction, refreshed daily; nothing here streams',
   },
   {
-    pattern: /\blive\s+(?:market|rates?|prices?|yields?|curves?)\b/i,
+    /* Intervening words allowed, because one word defeated the old pattern.
+     *
+     * This read `live\s+(market|rates|yields|…)` — adjacent only. The channel
+     * description written for Pesa Smart KE says "Live, after-tax yields on
+     * Treasury Bills & Bonds", and that sailed through: "after-tax" sits
+     * between "Live" and "yields" and the guard never fired. It is the same
+     * claim the brand pack was rejected for ("Real-time Kenya sovereign yield
+     * curves"), reworded just enough to slip past.
+     *
+     * The lookahead keeps ordinary uses of the verb out — "people who live in
+     * Kenya pay rates", "live from Nairobi, the rates are" — which is why the
+     * intervening span is bounded and prepositions are excluded rather than
+     * matching anything within N characters. */
+    pattern:
+      /\blive\b[,\s]+(?!in\b|on\b|at\b|with\b|for\b|near\b|from\b|and\b)(?:[a-z-]+[,\s]+){0,2}(?:market|rates?|prices?|yields?|curves?)\b/i,
     because:
       'implies a tradeable price, and the sourcing policy publishes no market prices at all',
   },
@@ -107,5 +121,43 @@ describe('the product does not make claims it cannot support', () => {
     const src = 'const x = 1; /* ytmGross is not a live market yield */';
     expect(FORBIDDEN.some((f) => f.pattern.test(shipped(src)))).toBe(false);
     expect(FORBIDDEN.some((f) => f.pattern.test(src))).toBe(true);
+  });
+
+  /* The exact string that got past the old pattern, pinned as a case.
+   *
+   * "Live, after-tax yields on Treasury Bills & Bonds" was written for the
+   * WhatsApp channel description while both repositories carried a guard
+   * against precisely this claim. One word — "after-tax" — sat between "Live"
+   * and "yields" and the adjacency requirement did the rest.
+   *
+   * Worth keeping as a literal rather than trusting the regex to stay right:
+   * the next person to simplify this pattern will not know which phrasing it
+   * was widened for. */
+  it('catches the wording that actually evaded it', () => {
+    const evasions = [
+      'Live, after-tax yields on Treasury Bills & Bonds',
+      'Live after-tax yields',
+      'live daily rates',
+    ];
+    for (const text of evasions) {
+      expect(
+        FORBIDDEN.some(({ pattern }) => pattern.test(text)),
+        `"${text}" should be caught — it is the real-time claim in different clothes`
+      ).toBe(true);
+    }
+  });
+
+  /* Ordinary uses of the verb, which must stay legal. A guard that fires on
+   * "people who live in Kenya" gets switched off. */
+  it('leaves the ordinary verb alone', () => {
+    const innocent = [
+      'people who live in Kenya pay rates on their savings',
+      'live from Nairobi, the rates are published each Thursday',
+      'we live and breathe rates',
+    ];
+    for (const text of innocent) {
+      const hit = FORBIDDEN.find(({ pattern }) => pattern.test(text));
+      expect(hit?.because, `"${text}" is not a claim about market data`).toBeUndefined();
+    }
   });
 });

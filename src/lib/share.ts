@@ -29,6 +29,32 @@ export const SUPPORT_EMAIL = 'info@mwangazadigital.org';
 /** CBK publishes auction announcements here — the most reliable primary feed. */
 export const CBK_WHATSAPP_CHANNEL = 'https://whatsapp.com/channel/0029Va5HrcD4dTnNnTguwc24';
 
+/**
+ * Our own channel, shared with JiPange. Two things about it are load-bearing
+ * and easy to erode later.
+ *
+ * It is NOT CBK's. The two links sit near each other in this app, one of them
+ * belongs to the central bank, and a reader who confuses them is worse off
+ * than one who never found either — they would treat our commentary as an
+ * official announcement. Every surface that shows this one names it, and
+ * CBK_WHATSAPP_CHANNEL keeps its own separate label.
+ *
+ * It carries MARKET news only. Coupon and maturity reminders depend on
+ * holdings, this app does not hold those, and the alerts page promises in so
+ * many words that they never leave the device. Offering personal reminders
+ * over WhatsApp would require collecting the very thing we refuse to collect —
+ * so the copy must never imply it, and pesa-smart-channel.test.ts fails if it
+ * starts to.
+ *
+ * WhatsApp does not show channel admins who follows. We cannot see a
+ * follower's number and receive no list, which is why this is the one
+ * distribution route that costs the reader no privacy to use.
+ */
+export const PESA_SMART_CHANNEL = 'https://whatsapp.com/channel/0029VbDLPKzHAdNY8yiiEM2n';
+
+/** How the channel is named wherever it appears. Never abbreviated to "our WhatsApp". */
+export const PESA_SMART_NAME = 'Pesa Smart KE';
+
 const FOOTER = 'via Mwangaza Yield — government bonds, made plain';
 
 /**

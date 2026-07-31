@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Bell, BellOff, BellRing, CalendarClock, Check, Info } from 'lucide-react';
+import {
+  Bell,
+  BellOff,
+  BellRing,
+  CalendarClock,
+  Check,
+  ExternalLink,
+  Info,
+  MessageCircle,
+} from 'lucide-react';
+import { PESA_SMART_CHANNEL, PESA_SMART_NAME } from '@/lib/share';
 import { useAlertStore } from '@/stores/alertStore';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
@@ -218,6 +228,37 @@ export default function AlertsPage() {
         )}
       </div>
       )}
+
+      {/* The route that survives everything above failing.
+          Push needs a permission, a supported browser and a configured sender;
+          on iOS it additionally needs the app added to the Home Screen. Each of
+          those is a place a reader silently gets nothing. A channel they follow
+          on an app they already have open all day needs none of them.
+          Deliberately placed after the push controls rather than before: push
+          is better where it works, because it carries the reader's own chosen
+          rules. This is the fallback, and it is described as one. */}
+      <a
+        href={PESA_SMART_CHANNEL}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track('act:channel-followed')}
+        className="card mt-4 flex items-center gap-3 border-l-4 border-l-emerald-600 transition hover:border-emerald-600"
+      >
+        <div className="rounded-xl bg-emerald-600 p-2.5 text-white">
+          <MessageCircle size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-display font-semibold text-ink">
+            Follow {PESA_SMART_NAME} on WhatsApp
+          </p>
+          <p className="text-sm text-ink-muted">
+            Auction dates and rate moves, in plain language, from us and JiPange. Market news only —
+            your coupons and maturities stay on this device, so no channel can carry them. Following
+            tells us nothing about you: WhatsApp does not show us who follows.
+          </p>
+        </div>
+        <ExternalLink size={16} className="shrink-0 text-ink-faint" />
+      </a>
 
       {/* What's due */}
       <h2 className="mt-8 font-display text-xl font-bold text-ink">What&apos;s coming</h2>

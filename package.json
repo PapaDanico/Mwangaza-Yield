@@ -13,7 +13,8 @@
     "build:engine": "node scripts/build-engine.mjs",
     "build:rates": "node scripts/build-rates-feed.mjs",
     "test:engine": "node scripts/engine-smoke.mjs",
-    "build:og": "node scripts/build-og.mjs"
+    "build:og": "node scripts/build-og.mjs",
+    "build:icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.10",

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { SUPPORT_EMAIL } from '@/lib/share';
 
 export const metadata: Metadata = { title: 'Privacy policy — Mwangaza Yield' };
 
@@ -8,8 +9,22 @@ export default function PrivacyPage() {
     <Prose
       title="Privacy policy"
       lead="Everything you enter stays on your device. The one exception is price alerts, which you have to switch on — and this page says exactly what that stores."
-      updated="25 July 2026"
+      updated="31 July 2026"
     >
+      {/* Named, because this page ends by pointing readers at the ODPC.
+          Sending somebody to complain about an entity the notice will not
+          identify is not a complaint route — and s.29 of the Data Protection
+          Act makes naming the controller part of the duty this page exists to
+          discharge. The registration number and registered office are still
+          being settled and are deliberately not invented here. */}
+      <h2>Who we are</h2>
+      <p>
+        Mwangaza Yield is operated by <strong>Danico Ventures</strong>, which also runs JiPange and
+        is the data controller for anything described on this page. Write to us at{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> — including to exercise any of the
+        rights set out below.
+      </p>
+
       <h2>The short version</h2>
       <p>
         Mwangaza Yield has no user accounts and no login. Everything you enter — amounts, holdings,

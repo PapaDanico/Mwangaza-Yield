@@ -51,6 +51,7 @@ corrected when the convention turns out to be subtle.
   "schema": 1,                     // refuse a version you don't know
   "generatedAt": "2026-07-25T…",   // when the EVIDENCE was refreshed, not the build
   "publisher": "Mwangaza Yield",
+  "homepage": "https://mwangazayield.org",
   "notes": { … },                  // caveats travel inside the file
 
   "tbills": [

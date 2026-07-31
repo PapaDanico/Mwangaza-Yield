@@ -1,7 +1,21 @@
 /* Mwangaza Yield service worker — offline-first app shell + stale-while-revalidate data.
-   Bump VERSION whenever this file changes: activation drops the old cache, which is the
-   only mechanism reclaiming stale hashed assets from previous deploys. */
-const VERSION = 'mwangaza-v11';
+
+   Bump VERSION whenever this file changes OR whenever the CONTENT of anything in
+   APP_SHELL changes. Activation drops the old cache, and that is the only mechanism
+   reclaiming stale assets from previous deploys.
+
+   The second half of that rule used to be missing, and it cost a whole release. The
+   comment read "bump VERSION whenever this file changes", so when logo.svg and
+   favicon.svg were replaced with a new brand mark, sw.js itself was untouched and the
+   version stayed at v11. The new mark deployed correctly and no returning visitor ever
+   saw it: their service worker kept answering /logo.svg from the v11 cache. A first-time
+   visitor saw the new brand, everyone who already had the app saw the old one, and
+   nothing anywhere reported a problem — it was found only because a human looked at the
+   site and said the logo had not changed.
+
+   tests/unit/sw-shell-version.test.ts now fails when a precached asset's bytes change
+   without this version moving, so the rule is enforced rather than remembered. */
+const VERSION = 'mwangaza-v12';
 const APP_SHELL = ['/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/learn/', '/sources/', '/calculator/', '/auctions/', '/portfolio/', '/alerts/', '/manifest.json', '/logo.svg', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {

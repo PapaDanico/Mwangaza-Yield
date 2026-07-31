@@ -1,1 +1,72 @@
-[]
+[
+  {
+    "issueCode": "FXD1/2012/015",
+    "auctionDate": "2026-08-24",
+    "recordedOn": "2026-07-31",
+    "targetYears": 1.04,
+    "toleranceYears": 3,
+    "sampleSize": 10,
+    "low": 16.328,
+    "p25": 17.134325,
+    "median": 17.7564,
+    "p75": 18.199450000000002,
+    "high": 18.4222,
+    "thin": false
+  },
+  {
+    "issueCode": "FXD4/2019/010",
+    "auctionDate": "2026-08-24",
+    "recordedOn": "2026-07-31",
+    "targetYears": 3.23,
+    "toleranceYears": 1.5,
+    "sampleSize": 19,
+    "low": 11.997,
+    "p25": 16.328,
+    "median": 17.9266,
+    "p75": 18.3379,
+    "high": 18.7697,
+    "thin": false
+  },
+  {
+    "issueCode": "IFB1/2019/016",
+    "auctionDate": "2026-08-12",
+    "recordedOn": "2026-07-31",
+    "targetYears": 9.19,
+    "toleranceYears": 3,
+    "sampleSize": 7,
+    "low": 12.9934,
+    "p25": 13.4859,
+    "median": 15.837,
+    "p75": 17.9327,
+    "high": 18.4607,
+    "thin": false
+  },
+  {
+    "issueCode": "IFB1/2021/018",
+    "auctionDate": "2026-08-12",
+    "recordedOn": "2026-07-31",
+    "targetYears": 12.65,
+    "toleranceYears": 3,
+    "sampleSize": 8,
+    "low": 13.938,
+    "p25": 13.968300000000001,
+    "median": 13.9991,
+    "p75": 15.142425,
+    "high": 17.7279,
+    "thin": false
+  },
+  {
+    "issueCode": "IFB1/2021/021",
+    "auctionDate": "2026-08-12",
+    "recordedOn": "2026-07-31",
+    "targetYears": 16.07,
+    "toleranceYears": 1.5,
+    "sampleSize": 8,
+    "low": 13.9991,
+    "p25": 14.210225,
+    "median": 14.399,
+    "p75": 15.231225,
+    "high": 17.7279,
+    "thin": false
+  }
+]

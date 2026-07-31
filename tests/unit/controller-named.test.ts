@@ -69,5 +69,11 @@ describe('the privacy notice identifies its data controller', () => {
     expect(shipped, 'a Kenyan mobile number is present').not.toMatch(/\b07\d{8}\b/);
     expect(shipped, 'the director is named').not.toMatch(/NGONGA|Ng&apos;ong&apos;a/i);
     expect(shipped, 'shareholding detail is present').not.toMatch(/ORDINARY|share capital/i);
+    /* The registered office is a home-adjacent address the operator asked not
+     * to publish. It stays on the BRS record, reachable by company number,
+     * which is the right place for it. */
+    expect(shipped, "the certificate's registered office is published").not.toMatch(
+      /Ongata Rongai|Kitengela Bypass|Athi River/i
+    );
   });
 });

@@ -17,8 +17,17 @@ export default function PrivacyPage() {
           Act makes naming the controller part of the duty this page exists to
           discharge.
 
-          Company number, incorporation date and registered office are taken
-          from the certificate of incorporation, a public record at the BRS.
+          Company number and incorporation date are taken from the certificate
+          of incorporation, a public record at the BRS.
+
+          The address is the BUSINESS address and is deliberately not the
+          registered office. The certificate gives a registered office on the
+          Ongata Rongai-Kitengela Bypass; that stays on the BRS record, where
+          anyone can pull it by company number, and off this page. Calling JKIA
+          Cargo Centre the registered office would be false — the fix for a
+          personal address on a public page is never to relabel a different
+          one. If someone later "corrects" this back believing it a mistake: it
+          was not.
           Deliberately NOT taken from it: the director's name, the shareholding,
           and the registry's "P.O. Box" field, which on this certificate holds a
           MOBILE NUMBER rather than a box number. A government form labelling a
@@ -30,8 +39,7 @@ export default function PrivacyPage() {
         Mwangaza Yield is operated by <strong>Danico Ventures Ltd</strong> (company no.{' '}
         <strong>PVT-EYUM572</strong>, incorporated 10 March 2019 under the Companies Act, 2015),
         which also runs JiPange and is the data controller for anything described on this page.
-        Registered office: Plot No. 1, Ongata Rongai&ndash;Kitengela Bypass, Athi River. Write to
-        us at{' '}
+        Business address: JKIA Cargo Centre, Nairobi. Write to us at{' '}
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> — including to exercise any of the
         rights set out below.
       </p>

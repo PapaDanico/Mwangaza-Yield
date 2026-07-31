@@ -1,6 +1,9 @@
 [build]
   command = "npm run build"
   publish = "out"
+  # Exit 0 skips the build, non-zero runs it. See the script for why the list
+  # of skippable paths is short and why every uncertain case builds.
+  ignore = "bash scripts/netlify-should-build.sh"
 
 # The site is a static export; these two are the only server code that exists.
 # `subscribe` accepts a push endpoint and the market-wide rules chosen for it;

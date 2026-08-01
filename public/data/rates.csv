@@ -15,5 +15,5 @@ bondAuctionBand,7–12y,,7,12,,12.971,,,15,11.589,13.989,2026-06-22,CBK auction 
 bondAuctionBand,12–20y,,12,20,,13.639,,,20,12.748,14.864,2026-07-27,CBK auction results
 bondAuctionBand,20y+,,20,40,,13.756,,,8,12.949,14.617,2026-07-27,CBK auction results
 macro,centralBankRate,,,,,8.75,,,,,,2026-06-09,CBK MPC
-macro,inflation,,,,,6.41,,,,,,2026-07-27,CBK
+macro,inflation,,,,,6.5,,,,,,2026-07-31,"KNBS Consumer Price Indices and Inflation Rates, July 2026"
 macro,usdKes,,,,,129.5,,,,,,2026-07-20,CBK indicative

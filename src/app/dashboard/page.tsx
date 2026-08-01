@@ -15,6 +15,7 @@ import SovereignContext from '@/components/dashboard/SovereignContext';
 import RateCycle from '@/components/dashboard/RateCycle';
 import MarketPulse from '@/components/dashboard/MarketPulse';
 import YieldInHistory from '@/components/dashboard/YieldInHistory';
+import InflationSplitCard from '@/components/dashboard/InflationSplit';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -37,6 +38,7 @@ export default function DashboardPage() {
       <TopYields />
       <AuctionBanner />
       <MacroPanel />
+      <InflationSplitCard />
       <RateCycle />
       <YieldCurveChart />
 

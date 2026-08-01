@@ -25,8 +25,20 @@ const SHORT_LABELS: Record<string, string> = {
   GDP: 'GDP',
 };
 
+/**
+ * The three headline indicators, and only those.
+ *
+ * The core and non-core CPI splits live in macro.json beside the headline, but
+ * they do not belong here: this is a three-across grid on a 390px screen, and
+ * a fourth and fifth card would either overflow or shrink every label past
+ * legibility. They are a comparison rather than a reading anyway — the point
+ * is the GAP between them — so InflationSplit tells that story instead.
+ */
+const HEADLINE: string[] = ['CBR', 'CPI', 'FX_USD_KES', 'GDP'];
+
 export default function MacroPanel() {
-  const macro = useBondStore((s) => s.macro);
+  const all = useBondStore((s) => s.macro);
+  const macro = all.filter((m) => HEADLINE.includes(m.indicator));
   if (!macro.length) return <Reserve height={84} />;
 
   return (

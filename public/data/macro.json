@@ -9,13 +9,13 @@
     "lastChecked": "2026-07-31"
   },
   {
-    "id": "cpi-2026-07-27",
+    "id": "cpi-2026-07",
     "indicator": "CPI",
-    "value": 6.41,
-    "date": "2026-07-27",
+    "value": 6.5,
+    "date": "2026-07-31",
     "unit": "% y/y",
-    "source": "CBK",
-    "fallback": true,
+    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+    "fallback": false,
     "lastChecked": "2026-07-31"
   },
   {
@@ -25,5 +25,25 @@
     "date": "2026-07-20",
     "unit": "KES/USD",
     "source": "CBK indicative"
+  },
+  {
+    "id": "cpi-core-2026-07",
+    "indicator": "CPI_CORE",
+    "value": 3.2,
+    "date": "2026-07-31",
+    "unit": "% y/y",
+    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+    "fallback": false,
+    "lastChecked": "2026-07-31"
+  },
+  {
+    "id": "cpi-noncore-2026-07",
+    "indicator": "CPI_NONCORE",
+    "value": 15.0,
+    "date": "2026-07-31",
+    "unit": "% y/y",
+    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+    "fallback": false,
+    "lastChecked": "2026-07-31"
   }
 ]

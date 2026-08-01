@@ -3,9 +3,15 @@
  *
  * Every figure this app has ever shown is nominal. A reader sees 13.6% gross,
  * 11.56% net of withholding tax, and reasonably concludes they are getting
- * meaningfully richer. At the CPI print this app already carries — 6.41% y/y —
- * they are getting richer by about half that, and the principal they get back
- * at maturity buys a good deal less than the principal they put in.
+ * meaningfully richer. At a Kenyan CPI print in the mid-sixes they are getting
+ * richer by about half that, and the principal they get back at maturity buys
+ * a good deal less than the principal they put in.
+ *
+ * The worked examples below use 6.41% because that is what the app carried
+ * when this was written. They are illustrations of the ARITHMETIC and are
+ * deliberately not restated every time KNBS publishes — the live figure comes
+ * from macro.json via currentInflation(), and quoting the current print in a
+ * comment is how a file starts lying about itself. July 2026 was 6.5%.
  *
  * Nothing in the product said so. The macro panel shows CPI as a standalone
  * curiosity beside the CBR and the shilling; no bond number is adjusted by it.
@@ -30,7 +36,8 @@
  * 3. THE PRINCIPAL IS NOT PROTECTED. A coupon-bearing bond returns a fixed
  *    nominal face at maturity. Over a long bond that is where most of the real
  *    loss happens, and it is invisible in a yield figure. On a 15-year bond at
- *    6.41%, Ksh 100 of face comes back worth Ksh 39.5 in today's money.
+ *    6.41% inflation, Ksh 100 of face comes back worth Ksh 39.5 in today's
+ *    money.
  *
  * WHAT IT WILL NOT DO
  * -------------------

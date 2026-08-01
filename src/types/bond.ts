@@ -74,7 +74,7 @@ export interface Holding {
 
 export interface MacroIndicator {
   id: string;
-  indicator: 'CBR' | 'CPI' | 'GDP' | 'FX_USD_KES';
+  indicator: 'CBR' | 'CPI' | 'CPI_CORE' | 'CPI_NONCORE' | 'GDP' | 'FX_USD_KES';
   value: number;
   date: string;
   unit: string;

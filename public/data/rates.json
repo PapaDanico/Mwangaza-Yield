@@ -59,12 +59,12 @@
       "fallback": false
     },
     "inflation": {
-      "value": 6.41,
+      "value": 6.5,
       "unit": "% y/y",
-      "date": "2026-07-27",
+      "date": "2026-07-31",
       "lastChecked": "2026-07-31",
-      "source": "CBK",
-      "fallback": true
+      "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+      "fallback": false
     },
     "usdKes": {
       "value": 129.5,

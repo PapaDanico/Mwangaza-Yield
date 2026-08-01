@@ -2,6 +2,7 @@
 
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { CASHFLOW_SOURCES, NOT_ADVICE, dataAsOf } from '@/lib/provenance';
+import RealTermsNote from './RealTermsNote';
 import type {
   FirePlan,
   GoalDefinition,
@@ -147,6 +148,9 @@ export default function GoalReport({
             {fire.bestBond ? ` (${fire.bestBond.issueCode})` : ''}, reported for context and
             deliberately not planned on: one bond is not a plan.
           </p>
+          {/* The longest-horizon plan in the product, and the one where fixed
+            * coupons erode most. */}
+          <RealTermsNote />
         </>
       )}
 
@@ -191,6 +195,10 @@ export default function GoalReport({
           </table>
           <Section title="The bonds behind it" />
           <BondTable rungs={fees.ladder.rungs} />
+          {/* School fees are the one plan whose TARGET inflates too — fees rise
+            * faster than the general basket in most years — so a nominal-only
+            * sheet flatters this objective more than any other. */}
+          <RealTermsNote />
         </>
       )}
 
@@ -258,7 +266,16 @@ export default function GoalReport({
               <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Bond</th>
                 <th className="py-1.5 text-right">Face value</th>
-                <th className="py-1.5 text-right">Net coupon</th>
+                {/* "each", because this is the PER-PAYMENT coupon, not the
+                  * annual one — netCouponPerPeriodKES straight from the plan.
+                  *
+                  * Unlabelled it reads as a year's income beside a face value,
+                  * and a reader doing the obvious division got half the real
+                  * yield: Ksh 392,290 on Ksh 4,250,000 looks like 9.2% when the
+                  * bond actually pays 18.5% a year. The month grid above
+                  * disambiguates it, but this table is the one somebody reads a
+                  * single row out of. */}
+                <th className="py-1.5 text-right">Net coupon (each)</th>
                 <th className="py-1.5 text-right">Pays in</th>
               </tr>
             </thead>
@@ -353,6 +370,7 @@ export default function GoalReport({
             </div>
           )}
           </div>
+          <RealTermsNote />
         </>
       )}
 

@@ -3,6 +3,7 @@
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { CASHFLOW_SOURCES, NOT_ADVICE, dataAsOf } from '@/lib/provenance';
 import type { LadderPlan } from '@/lib/ladder';
+import RealTermsNote from './RealTermsNote';
 
 /**
  * Print-only one-page report sheet. Hidden on screen; `window.print()` reveals
@@ -133,6 +134,8 @@ export default function LadderReport({
       <p className="mt-1.5 text-[9px] text-ink-faint">
         Gold: net coupons received. Emerald: principal returned at maturity.
       </p>
+
+      <RealTermsNote />
 
       <footer className="mt-6 border-t border-sand-300 pt-3 text-[9px] leading-relaxed text-ink-faint">
         Yields are solved from the stated price on each bond&apos;s remaining cash-flow schedule;

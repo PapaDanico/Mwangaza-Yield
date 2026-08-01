@@ -169,6 +169,22 @@ const feed = {
   macro: {
     centralBankRate: pickMacro('CBR'),
     inflation: pickMacro('CPI'),
+    /* ADDITIVE, so the schema does not move — consumers that do not know these
+     * fields ignore them and keep working.
+     *
+     * Published because the headline alone misleads the households it matters
+     * most to. KNBS splits the basket into core (81.1% of it) and non-core,
+     * which is mostly food and energy. In July 2026 that was 3.2% against
+     * 15.0%: a small, violently moving fifth doing nearly all the work.
+     *
+     * JiPange deflates a THIRTY-YEAR retirement plan by the headline, which is
+     * where this error compounds worst. A reader whose spending is food and
+     * transport heavy is not experiencing 6.5%, and their real return is
+     * correspondingly worse than either product shows. Publishing the split is
+     * what lets the sister product say so without hardcoding two numbers that
+     * would drift the moment KNBS publishes again. */
+    inflationCore: pickMacro('CPI_CORE'),
+    inflationNonCore: pickMacro('CPI_NONCORE'),
     usdKes: pickMacro('FX_USD_KES'),
   },
   bondAuctionBenchmarks: {

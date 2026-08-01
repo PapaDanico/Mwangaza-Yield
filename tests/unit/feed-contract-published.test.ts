@@ -77,6 +77,21 @@ describe('the rates-feed contract is actually published', () => {
         key
       );
     }
+    /* Nested one level too, because the first version of this check covered
+     * only top-level and T-bill keys — and then `macro.inflationCore` and
+     * `macro.inflationNonCore` were added and it stayed green. A coverage
+     * guard with a blind spot is the defect it exists to catch, wearing the
+     * uniform of the guard. */
+    for (const [group, value] of Object.entries(feed)) {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+      for (const key of Object.keys(value as Record<string, unknown>)) {
+        expect(
+          doc,
+          `the feed publishes "${group}.${key}" but the contract never mentions it`
+        ).toContain(key);
+      }
+    }
+
     const tbill = feed.tbills?.[0];
     expect(tbill, 'the feed carries no T-bill records to check the contract against').toBeTruthy();
     for (const key of Object.keys(tbill)) {

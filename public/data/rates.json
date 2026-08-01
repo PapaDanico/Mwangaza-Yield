@@ -66,6 +66,22 @@
       "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
       "fallback": false
     },
+    "inflationCore": {
+      "value": 3.2,
+      "unit": "% y/y",
+      "date": "2026-07-31",
+      "lastChecked": "2026-07-31",
+      "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+      "fallback": false
+    },
+    "inflationNonCore": {
+      "value": 15,
+      "unit": "% y/y",
+      "date": "2026-07-31",
+      "lastChecked": "2026-07-31",
+      "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+      "fallback": false
+    },
     "usdKes": {
       "value": 129.5,
       "unit": "KES/USD",

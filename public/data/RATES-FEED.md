@@ -52,7 +52,12 @@ corrected when the convention turns out to be subtle.
   "generatedAt": "2026-07-25T…",   // when the EVIDENCE was refreshed, not the build
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
-  "notes": { … },                  // caveats travel inside the file
+  "notes": {                       // caveats travel inside the file
+    "sourcing":    "…",            // where the numbers come from
+    "conventions": "…",            // how a CBK quote becomes a yield
+    "benchmarks":  "…",            // what the auction bands do and don't mean
+    "attribution": "…"             // how to credit the feed
+  },
 
   "tbills": [
     {
@@ -70,10 +75,32 @@ corrected when the convention turns out to be subtle.
   ],
 
   "macro": {
-    "centralBankRate": { "value": 8.75, "unit": "%", "date": "…", "source": "CBK MPC" },
-    "inflation":       { "value": 6.41, "unit": "% y/y", … },
-    "usdKes":          { "value": 129.5, … }
+    "centralBankRate":   { "value": 8.75, "unit": "%", "date": "…", "source": "CBK MPC" },
+    "inflation":         { "value": 6.5,  "unit": "% y/y", … },   // headline, KNBS
+    "inflationCore":     { "value": 3.2,  "unit": "% y/y", … },   // ex food & energy
+    "inflationNonCore":  { "value": 15.0, "unit": "% y/y", … },   // mostly food & energy
+    "usdKes":            { "value": 129.5, … }
   },
+
+  // Every macro reading carries `fallback: true` when a substitute source stood
+  // in for the authoritative one. Treat a fallback reading as indicative and
+  // say so to your own users, as we do.
+  //
+  // WHY THE INFLATION SPLIT IS PUBLISHED
+  //
+  // The headline is a weighted average of the two, and core is about 81% of the
+  // basket — so a small, fast-moving fifth drives most of the movement. In July
+  // 2026 the headline was 6.5% with core at 3.2% and non-core at 15.0%.
+  //
+  // This matters if you deflate anything by the headline. A household whose
+  // spending is mostly food and transport is not experiencing the headline
+  // rate, and any real return you show them is correspondingly overstated. The
+  // split is here so you can say that without hardcoding two numbers that go
+  // stale the next time KNBS publishes.
+  //
+  // These fields were added after schema 1 shipped. They are ADDITIVE: a
+  // consumer that does not know them ignores them and keeps working, which is
+  // why the schema version does not move.
 
   "bondAuctionBenchmarks": {
     "windowDays": 365,

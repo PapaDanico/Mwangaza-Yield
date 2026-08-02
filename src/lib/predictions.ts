@@ -28,6 +28,49 @@ export interface Prediction {
   recordedOn: string;
   targetYears: number;
   toleranceYears: number;
+  /**
+   * How far back the comparable pool reached, in days — `null` meaning the
+   * whole archive since GUIDANCE_FROM.
+   *
+   * This was not recorded, and it is the single variable that decides whether
+   * a forecast is anchored to today's market or to a vanished one. Four of the
+   * five predictions standing when this was added ran at `null`: the full
+   * archive back to 2022, which spans Kenya's 425bp easing cycle. That is how
+   * a bond with a year left to run carries a 17.76% median while nothing has
+   * cleared above 14.86% in the last twelve months.
+   *
+   * It is NOT derivable from `toleranceYears`, which was the obvious guess and
+   * is wrong: RECENCY_LADDER ends in `null`, so the recency loop alone can
+   * reach the full archive without tolerance ever widening. FXD4/2019/010 is
+   * exactly that case — tolerance still at its 1.5 default, window already
+   * null, median 17.93%. Reading the record you would have concluded it used a
+   * tight, recent pool.
+   *
+   * Recording it does not fix the calibration. It makes the calibration
+   * legible: a reader can now see which forecasts rest on the current regime
+   * and which do not, and the scorer can eventually report hit rates split by
+   * window instead of pooling two different methods under one number.
+   *
+   * OPTIONAL, AND ONLY FOR THE ROWS THAT PREDATE IT
+   * ------------------------------------------------
+   * `null` is not "unknown" — it means the whole archive, which is a real and
+   * common answer. So a row whose window cannot be established leaves the
+   * field ABSENT rather than claiming a null it cannot prove.
+   *
+   * Four of the five standing rows were backfilled, and only because they
+   * reproduce EXACTLY: re-running the recorder at their own recordedOn returns
+   * the same sample size and the same five percentiles to the last decimal,
+   * which is what proves the pool is the same one and the window with it. The
+   * fifth, IFB1/2021/021, does not reproduce — same count, median 14.281
+   * against a recorded 14.399, because the archive has since gained older
+   * prints that fall inside its window. Its window is therefore unknowable and
+   * is left unset. Guessing it would have been indistinguishable, in the file,
+   * from the four that were verified.
+   *
+   * `recordPredictions` always sets it; `predictionsCarryWindow` in the test
+   * suite is what enforces that, since an optional field cannot.
+   */
+  windowDays?: number | null;
   sampleSize: number;
   /** The stated range: full span and middle half. */
   low: number;
@@ -100,6 +143,7 @@ export function recordPredictions(
         recordedOn: today,
         targetYears: Math.round(target * 100) / 100,
         toleranceYears: g.toleranceYears,
+        windowDays: g.windowDays,
         sampleSize: g.count,
         low: g.low,
         p25: g.p25,
@@ -184,7 +228,7 @@ export function assertLedgerIntegrity(before: Prediction[], after: Prediction[])
   const afterBy = new Map(after.map((p) => [key(p), p]));
   const FORECAST_FIELDS: (keyof Prediction)[] = [
     'issueCode', 'auctionDate', 'recordedOn', 'targetYears', 'toleranceYears',
-    'sampleSize', 'low', 'p25', 'median', 'p75', 'high', 'thin',
+    'windowDays', 'sampleSize', 'low', 'p25', 'median', 'p75', 'high', 'thin',
   ];
   for (const b of before) {
     const a = afterBy.get(key(b));

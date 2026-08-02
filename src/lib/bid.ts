@@ -180,10 +180,59 @@ const withinWindow = (
   asOf: Date,
   windowDays: number | null
 ): AuctionPrint[] => {
-  if (windowDays === null) return prints;
+  /* Both edges, not just the older one.
+   *
+   * This applied only `>= cut`, so a "180-day window" was not a window at all
+   * — it was a floor. Called with an asOf in the past it returned everything
+   * from 180 days before that date all the way to the newest print in the
+   * archive: replaying January 2023 handed back four years of prints that had
+   * not happened yet, under a variable named `windowDays`.
+   *
+   * The header above says this is point-in-time by construction. It was point-
+   * in-time by CALLER: backtest.ts pre-filters through `pointInTimePrints`
+   * (strictly before the auction) and is the only path that replays history,
+   * so the published calibration is unaffected and its figures are unchanged
+   * by this commit. Every other caller passes no asOf at all and defaults to
+   * the newest print, where there is no future to leak.
+   *
+   * So nothing was wrong today, and the next caller to pass a historical asOf
+   * — reproducing a recorded prediction, say — would have been silently wrong
+   * with no symptom. A window that ignores half its own definition is a bug
+   * whether or not something currently steps on it.
+   *
+   * The upper bound is inclusive: an auction printed ON the asOf date is
+   * evidence available as of that date. The strictly-before rule belongs to
+   * replaying a specific auction, which is `pointInTimePrints`' job and not
+   * this one — several bonds settle the same day and one of them may be the
+   * auction being predicted. */
+  const upper = asOf.toISOString().slice(0, 10);
+  const notFuture = prints.filter((p) => !p.auctionDate || p.auctionDate <= upper);
+  if (windowDays === null) return notFuture;
   const cut = new Date(asOf.getTime() - windowDays * 86_400_000).toISOString().slice(0, 10);
-  return prints.filter((p) => p.auctionDate >= cut);
+  return notFuture.filter((p) => p.auctionDate >= cut);
 };
+
+/**
+ * How far back the pool actually reached, in the reader's words.
+ *
+ * The copy said "since 2022" unconditionally, and that is only true when the
+ * recency ladder ran all the way out to the full archive. When it settled at
+ * 180 days the reader was told the evidence spanned four years while it spanned
+ * six months — an overstatement of the evidence base on the one screen whose
+ * entire job is to say what the evidence is.
+ *
+ * bid.ts's own comment claims "both are reported so the reader knows how loose
+ * the comparison got". Only the tolerance ever was. This is the other half.
+ */
+export function windowPhrase(windowDays: number | null): string {
+  if (windowDays === null) return `since ${GUIDANCE_FROM}`;
+  if (windowDays % 365 === 0) {
+    const y = windowDays / 365;
+    return `in the last ${y === 1 ? 'year' : `${y} years`}`;
+  }
+  if (windowDays % 30 === 0) return `in the last ${windowDays / 30} months`;
+  return `in the last ${windowDays} days`;
+}
 
 /**
  * Build the distribution a bidder should be looking at.

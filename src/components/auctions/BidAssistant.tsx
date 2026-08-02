@@ -15,13 +15,13 @@ import { Target } from 'lucide-react';
 import type { AuctionPrint, AuctionSchedule, Bond } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import {
-  GUIDANCE_FROM,
   bidGuidance,
   demandByAuction,
   describeDemand,
   readBid,
   yearsToMaturityAt,
   type BidVerdict,
+  windowPhrase,
 } from '@/lib/bid';
 import { backtest } from '@/lib/backtest';
 import { calibratedBand, empiricalCoverage } from '@/lib/calibration';
@@ -134,8 +134,9 @@ export function BidAssistant({
 
       {guidance.thin ? (
         <p className="mt-3 rounded-xl bg-sand-100 p-3 text-xs text-ink-soft">
-          Only {guidance.count} comparable auction{guidance.count === 1 ? '' : 's'} since{' '}
-          {GUIDANCE_FROM}, even after widening the net to ±{guidance.toleranceYears} years. That is
+          Only {guidance.count} comparable auction{guidance.count === 1 ? '' : 's'}{' '}
+          {windowPhrase(guidance.windowDays)}, even after widening the net to ±
+          {guidance.toleranceYears} years. That is
           too few to quote a range honestly — check the prospectus and recent CBK results directly.
         </p>
       ) : (
@@ -161,8 +162,8 @@ export function BidAssistant({
               />
             </div>
             <p className="mt-1.5 text-[11px] text-ink-faint">
-              {guidance.count} auctions of paper within ±{guidance.toleranceYears}y of this term since{' '}
-              {GUIDANCE_FROM}. That middle band is where PEERS cleared — not how close this
+              {guidance.count} auctions of paper within ±{guidance.toleranceYears}y of this term{' '}
+              {windowPhrase(guidance.windowDays)}. That middle band is where PEERS cleared — not how close this
               estimate usually lands, which is the band below.
               {guidance.latest && (
                 <>

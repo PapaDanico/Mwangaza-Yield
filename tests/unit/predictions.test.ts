@@ -177,3 +177,44 @@ describe('the shipped ledger', () => {
     expect(assertLedgerIntegrity(shipped, shipped)).toEqual([]);
   });
 });
+
+/**
+ * Every NEW prediction must say how far back it looked.
+ *
+ * `windowDays` is the variable that decides whether a forecast is anchored to
+ * today's market or to a vanished one, and it was not recorded at all. Four of
+ * the five rows standing when it was added had run at `null` — the whole
+ * archive back to 2022, spanning a 425bp easing cycle — which is how a bond
+ * with a year to run carries a 17.76% median in a market that has not printed
+ * above 14.86% in a year. Nothing in the file said so.
+ *
+ * The field is OPTIONAL on the interface, because one historical row cannot be
+ * reconstructed and `null` already means something specific (the whole
+ * archive) rather than "unknown". An optional field cannot make the recorder
+ * fill it in, so this does.
+ */
+describe('a recorded prediction states its own recency window', () => {
+  it('recordPredictions always sets windowDays', () => {
+    const out = recordPredictions([], [sched({})], HISTORY, HISTORY_BONDS, '2026-02-01');
+    expect(out.length, 'nothing was recorded, so this proves nothing').toBeGreaterThan(0);
+    for (const p of out) {
+      expect(
+        'windowDays' in p,
+        `${p.issueCode} was recorded without a windowDays`
+      ).toBe(true);
+      expect(p.windowDays === null || typeof p.windowDays === 'number').toBe(true);
+    }
+  });
+
+  it('windowDays is a forecast field, so it can never be rewritten later', () => {
+    /* It describes how the forecast was made. Letting scoring or a later run
+     * edit it would make the ledger's method revisable after the outcome is
+     * known, which is the one thing this whole module exists to prevent. */
+    const before = recordPredictions([], [sched({})], HISTORY, HISTORY_BONDS, '2026-02-01');
+    const tampered = before.map((p) => ({ ...p, windowDays: 999 }));
+    expect(
+      assertLedgerIntegrity(before, tampered),
+      'the window a prediction used could be rewritten after the fact'
+    ).not.toEqual([]);
+  });
+});

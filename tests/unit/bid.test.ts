@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import archive from '../../public/data/auction-results.json';
 import bondsData from '../../public/data/bonds.json';
 import {
@@ -10,6 +11,7 @@ import {
   findComparables,
   readBid,
   yearsToMaturityAt,
+  windowPhrase,
 } from '../../src/lib/bid';
 import { normaliseCode } from '../../src/lib/auction-history';
 import type { AuctionPrint, Bond } from '../../src/types/bond';
@@ -374,5 +376,110 @@ describe('yearsToMaturityAt', () => {
 
   it('goes negative once the bond has matured', () => {
     expect(yearsToMaturityAt(b({ maturityDate: '2020-01-01' }), new Date('2026-01-01'))).toBeLessThan(0);
+  });
+});
+
+/* ------------------------------------------------------------------ trap 4 */
+/**
+ * `asOf` must exclude the future, not merely set a floor.
+ *
+ * `withinWindow` filtered on `p.auctionDate >= cut` and nothing else, so the
+ * "180-day window" was a floor rather than a window: asked for guidance as of
+ * January 2023 it returned every print from mid-2022 through the newest row in
+ * the archive — years of auctions that had not happened yet, under a variable
+ * called `windowDays`.
+ *
+ * Nothing stepped on it. backtest.ts is the only caller that replays history
+ * and it pre-filters through `pointInTimePrints`, so the published calibration
+ * never saw a future print; every other caller omits `asOf` entirely and
+ * defaults to the newest print, where there is no future to leak. That is
+ * precisely why this needs a test: the defect was invisible to all 815 of them,
+ * and the next caller to pass a historical asOf would have been silently wrong.
+ */
+describe('guidance as of a past date cannot see past it', () => {
+  const asOf = new Date('2024-01-15');
+  const cutoff = '2024-01-15';
+
+  it('draws on no auction that had not happened yet', () => {
+    const g = bidGuidance(prints, bonds, 10, { asOf });
+    expect(g.count, 'no comparables at all, so this proves nothing').toBeGreaterThan(0);
+    const future = g.comparables.filter((c) => c.auctionDate && c.auctionDate > cutoff);
+    expect(
+      future.map((c) => `${c.issueCode}@${c.auctionDate}`),
+      'guidance dated Jan 2024 was built from auctions after Jan 2024'
+    ).toEqual([]);
+  });
+
+  it('actually changes the answer, or the filter is decorative', () => {
+    /* The same mutation check backtest.ts applies to its own filter. If the
+     * unfiltered and point-in-time answers were identical there would be
+     * nothing to defend and the test above would pass on broken code. */
+    const past = bidGuidance(prints, bonds, 10, { asOf });
+    const now = bidGuidance(prints, bonds, 10);
+    expect(
+      past.median === now.median && past.count === now.count,
+      'as-of guidance matches present-day guidance exactly, so the date is being ignored'
+    ).toBe(false);
+  });
+
+  it('keeps an auction printed ON the as-of date', () => {
+    /* Inclusive upper bound: an auction that printed today is evidence you
+     * have today. The strictly-before rule belongs to replaying one specific
+     * auction — pointInTimePrints' job — because several bonds settle the same
+     * day and one of them may be the auction being predicted. */
+    const sameDay = p({ auctionDate: '2024-01-15', issueCode: 'FXD1/2024/010', weightedAverageRate: 99 });
+    const bond = b({ issueCode: 'FXD1/2024/010', maturityDate: '2034-01-15' });
+    const g = bidGuidance([sameDay], [bond], 10, { asOf, tolerance: 5 });
+    expect(g.count, 'the auction printed on the as-of date was dropped').toBe(1);
+  });
+});
+
+/* ------------------------------------------------------------------ trap 5 */
+/**
+ * The screen must state the window it actually used.
+ *
+ * bid.ts says of its two relaxations: "Both are reported so the reader knows
+ * how loose the comparison got." Only the tolerance ever was. The assistant
+ * said "since 2022" unconditionally, so a range built from 180 days of paper
+ * was described to the reader as four years of evidence — an overstatement of
+ * the evidence base, on the one screen whose whole job is to say what the
+ * evidence is.
+ *
+ * Asserted against the component source because the phrase is the defect: a
+ * render test would pass on whichever single window the fixture happened to
+ * produce, and the bug was in the case it did not produce.
+ */
+describe('the bid assistant does not overstate how far back it looked', () => {
+  const src = readFileSync('src/components/auctions/BidAssistant.tsx', 'utf8');
+
+  it('derives the phrase from windowDays rather than always saying "since 2022"', () => {
+    expect(src, 'the assistant never reads guidance.windowDays').toMatch(
+      /windowPhrase\(guidance\.windowDays\)/
+    );
+  });
+
+  it('no longer hardcodes GUIDANCE_FROM into the evidence sentences', () => {
+    /* GUIDANCE_FROM may still appear inside windowPhrase — that is its correct
+     * use, for the null window. What must not come back is a sentence that
+     * states it regardless of the window actually used. */
+    const body = src.slice(src.indexOf('export function BidAssistant'));
+    const claims = body
+      .split('\n')
+      .filter((l) => /GUIDANCE_FROM/.test(l) && !/^\s*(\*|\/\/)/.test(l));
+    expect(
+      claims,
+      'an evidence sentence names GUIDANCE_FROM directly again, so a 180-day pool will be described as spanning years'
+    ).toEqual([]);
+  });
+
+  it('phrases each rung of the ladder distinctly', () => {
+    /* RECENCY_LADDER is [180, 365, 730, null]; if two rungs read the same the
+     * reader cannot tell a six-month pool from a two-year one. */
+    const said = [180, 365, 730, null].map((w) => windowPhrase(w));
+    expect(new Set(said).size, `two rungs read identically: ${said.join(' | ')}`).toBe(4);
+    expect(windowPhrase(null)).toContain(GUIDANCE_FROM);
+    expect(windowPhrase(180)).toMatch(/6 months/);
+    expect(windowPhrase(365)).toMatch(/last year/);
+    expect(windowPhrase(730)).toMatch(/2 years/);
   });
 });

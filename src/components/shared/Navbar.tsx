@@ -52,7 +52,13 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 className={cn(
-                  'whitespace-nowrap rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors lg:px-3 lg:text-sm',
+                  // min-h-11 (44px), not more padding: every sizing comment in
+                  // this file is about WIDTH — fitting the wordmark, seven
+                  // labels and four icons into 768px at md. Height is the one
+                  // dimension that is not contended, so the tap target can
+                  // reach 44px without touching the constraint that actually
+                  // binds. These links were ~28px tall.
+                  'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-1.5 text-xs font-medium transition-colors lg:px-3 lg:text-sm',
                   isActive(href)
                     ? 'bg-ink text-sand-50'
                     : 'text-ink-muted hover:bg-sand-200 hover:text-ink'
@@ -71,7 +77,7 @@ export default function Navbar() {
               href="/sell/"
               aria-label="Should you sell?"
               className={cn(
-                'rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
+                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
                 isActive('/sell/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >
@@ -82,7 +88,7 @@ export default function Navbar() {
               href="/prices/"
               aria-label="Your price book"
               className={cn(
-                'rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
+                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
                 isActive('/prices/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >
@@ -95,7 +101,7 @@ export default function Navbar() {
               href="/alerts/"
               aria-label={unseen ? `Alerts — ${unseen} new` : 'Alerts'}
               className={cn(
-                'relative rounded-lg p-2 transition-colors hover:bg-sand-200',
+                'relative inline-flex min-h-11 items-center justify-center rounded-lg p-2 transition-colors hover:bg-sand-200',
                 isActive('/alerts/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >

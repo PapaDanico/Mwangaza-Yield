@@ -19,6 +19,36 @@ h1, h2, h3, h4 {
   @apply font-mono tabular-nums;
 }
 
+/* ── Keyboard focus ──
+ *
+ * This app defined NO focus styling anywhere: `grep -rn "focus-visible|focus:ring"
+ * src/` returned zero matches across every component. Every link, button and
+ * input therefore fell back to whatever the browser draws, which differs by
+ * engine — and Safari's default on an element with a custom background is
+ * markedly weaker than Chrome's two-tone ring. A keyboard user's ability to see
+ * where they are was left to their choice of browser.
+ *
+ * WHY TWO RINGS AND NOT ONE AMBER ONE
+ *
+ * The obvious move is a single gold ring, matching the brand. It fails on this
+ * palette specifically: the primary CTAs are `bg-gold-500`, and the landing
+ * page's closing button is gold on the navy band. Gold-on-gold is no indicator
+ * at all, and it would fail on exactly the most important control on the page.
+ *
+ * So: a navy outline with a sand ring inside it. On the sand page the navy is
+ * the indicator; on a gold button or the navy band the sand ring is. One of the
+ * two always contrasts, which is the same reason browsers ship a black-and-white
+ * default rather than a coloured one.
+ *
+ * `:where()` keeps specificity at zero, so any component that needs its own
+ * treatment can override this with a plain utility and not an `!important`.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid theme('colors.ink.DEFAULT');
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px theme('colors.sand.50');
+}
+
 /* One-page printable report: hide the app chrome, reveal the report sheet. */
 .print-only {
   display: none;

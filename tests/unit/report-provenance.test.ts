@@ -139,12 +139,17 @@ describe('the passive-income sheet', () => {
 /**
  * The e2e fit check measures the sheet under geometry it writes itself.
  *
- * `tests/e2e/smoke.mjs` forces the sheet to 1123px with 34px/40px padding and
- * then asserts nothing overflows and no ink lands within 6mm of the paper
- * edge. Those numbers are a COPY of what ReportActions applies at export time,
- * and a copy is a thing that drifts: change the padding in the exporter and
- * the e2e keeps measuring the old geometry, passing while real downloads come
- * back from the printer shaved.
+ * `tests/e2e/smoke.mjs` asserts nothing overflows and no ink lands within 6mm
+ * of the paper edge. Those numbers used to be a COPY of what ReportActions
+ * applies at export time, and a copy is a thing that drifts: change the
+ * geometry in the exporter and the e2e keeps measuring the old one, passing
+ * while real downloads come back from the printer shaved.
+ *
+ * The exporter no longer captures at one fixed width — it picks the width that
+ * prints the largest type for each sheet — so both sides now read
+ * CAPTURE_WIDTHS and CAPTURE_PADDING from lib/report-styling.ts instead. This
+ * pins that single source, because a shared constant only helps while both
+ * sides actually share it.
  *
  * The clearance is not incidental either. The placed image runs to the paper
  * edge by design — what keeps text off a printer's unprintable margin is this
@@ -153,19 +158,47 @@ describe('the passive-income sheet', () => {
 describe('the exporter geometry the e2e fit check assumes', () => {
   const src = read('src/components/report/ReportActions.tsx');
 
-  it('still captures at A4 landscape width', () => {
-    expect(src, 'the capture width moved; tests/e2e/smoke.mjs measures 1123px').toMatch(
-      /el\.style\.width = '1123px'/
-    );
+  it('takes its capture geometry from the shared module', () => {
+    expect(
+      src,
+      'the exporter hardcodes its capture geometry again; tests/e2e/smoke.mjs reads report-styling.ts'
+    ).toMatch(/chooseCaptureWidth/);
+    expect(src).toMatch(/CAPTURE_PADDING/);
+    expect(src, 'a hardcoded capture width is back').not.toMatch(/el\.style\.width = '1123px'/);
+
+    const e2e = read('tests/e2e/smoke.mjs');
+    expect(
+      e2e,
+      'the fit check no longer reads the exporter geometry, so it can drift again'
+    ).toMatch(/CAPTURE_WIDTHS/);
+    expect(e2e).toMatch(/CAPTURE_PADDING/);
+
+    // A4 landscape must still be among the candidates, or the widest sheets
+    // have nowhere to lay out.
+    const styling = read('src/lib/report-styling.ts');
+    expect(styling).toMatch(/CAPTURE_WIDTHS = \[\s*1123/);
   });
 
   it('still pads enough to clear a printer margin', () => {
-    const pad = src.match(/el\.style\.padding = '(\d+)px (\d+)px'/);
+    /* Read from lib/report-styling.ts, which both the exporter and the e2e fit
+     * check now take it from. Measured against the WIDEST candidate width,
+     * because that is where a given pixel of padding buys the fewest
+     * millimetres of paper — a narrower layout scales the gutters up with
+     * everything else.
+     *
+     * This is the cheap static floor. The e2e measures the ink's real distance
+     * from the paper edge on every sheet at the width actually chosen, which
+     * is the check that would catch a height-bound sheet losing clearance. */
+    const styling = read('src/lib/report-styling.ts');
+    const pad = styling.match(/export const CAPTURE_PADDING = '(\d+)px (\d+)px'/);
     expect(pad, 'the export padding moved or was removed').toBeTruthy();
-    const sideMm = (Number(pad![2]) / 1123) * 297;
+    const widest = Math.max(
+      ...(styling.match(/CAPTURE_WIDTHS = \[([^\]]+)\]/)![1]
+        .split(',')
+        .map((x) => Number(x.trim())))
+    );
+    const sideMm = (Number(pad![2]) / widest) * 297;
     expect(sideMm, `side padding is only ${sideMm.toFixed(1)}mm of paper`).toBeGreaterThanOrEqual(6);
-    // Matching the literal the e2e uses, so a change to either fails here.
-    expect(`${pad![1]}px ${pad![2]}px`).toBe('34px 40px');
   });
 
   it('still fits the image rather than cropping it', () => {

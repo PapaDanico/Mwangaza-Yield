@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FileDown, ImageDown, Printer } from 'lucide-react';
 import { printReport } from '@/lib/share';
 import { bodyLooksUnstyled, MASTHEAD_SHARE } from '@/lib/report-styling';
+import { chooseCaptureWidth, CAPTURE_PADDING } from '@/lib/report-styling';
 
 /**
  * Getting the one-page report off the device — as an actual PDF.
@@ -339,22 +340,12 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * measurement of a different document — 80px narrower in content and 68px
      * shorter — which would pick the wrong width with total confidence. */
     el.style.boxSizing = 'border-box';
-    el.style.padding = '34px 40px';
+    el.style.padding = CAPTURE_PADDING;
 
-    const A4_ASPECT = 297 / 210;
-    const CANDIDATE_WIDTHS = [1123, 1040, 1000, 950, 900];
-    let bestWidth = 1123;
-    let bestScale = 0;
-    for (const w of CANDIDATE_WIDTHS) {
+    const bestWidth = chooseCaptureWidth((w) => {
       el.style.width = `${w}px`;
-      const h = Math.max(1, el.scrollHeight);
-      // The page fit uses whichever edge binds; mm per CSS pixel follows.
-      const mmPerPx = w / h > A4_ASPECT ? 297 / w : 210 / h;
-      if (mmPerPx > bestScale) {
-        bestScale = mmPerPx;
-        bestWidth = w;
-      }
-    }
+      return el.scrollHeight;
+    });
     el.style.width = `${bestWidth}px`;
     el.style.background = '#ffffff';
     /* Margins. On screen the sheet is print-only and takes its gutters from
@@ -458,7 +449,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * measurement of a different document — 80px narrower in content and 68px
      * shorter — which would pick the wrong width with total confidence. */
     el.style.boxSizing = 'border-box';
-    el.style.padding = '34px 40px';
+    el.style.padding = CAPTURE_PADDING;
 
     const A4_ASPECT = 297 / 210;
       const contentAspect = canvas.width / canvas.height;

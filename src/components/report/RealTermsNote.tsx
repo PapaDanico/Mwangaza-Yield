@@ -59,7 +59,7 @@ export default function RealTermsNote() {
   const keeps = (years: number) => 100 / Math.pow(1 + cpi.rate / 100, years);
 
   return (
-    <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+    <p className="mt-3 text-[11px] leading-relaxed text-ink-muted">
       <strong>These are nominal shillings.</strong> A government bond pays the same coupon
       every year, so the income above is fixed while prices are not. At the latest published
       inflation of <span className="num">{cpi.rate.toFixed(1)}%</span>, held flat purely to

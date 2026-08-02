@@ -89,12 +89,12 @@ export default function GoalReport({
             <p className="font-display text-xl font-bold">
               Mwangaza <span className="text-gold-600">Yield</span>
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-ink-faint">
+            <p className="text-[11px] uppercase tracking-widest text-ink-faint">
               Intelligence layer for Kenya&apos;s bond market
             </p>
           </div>
         </div>
-        <div className="text-right text-[10px] text-ink-faint">
+        <div className="text-right text-[11px] text-ink-faint">
           <p>{goal.title} plan</p>
           <p>{generatedAt}</p>
         </div>
@@ -103,7 +103,7 @@ export default function GoalReport({
       {/* h2 for the same reason as the ladder report: this sheet lives inside a
           page that already owns the h1, and two h1s is a document outline lie. */}
       <h2 className="mt-5 font-display text-2xl font-bold">{goal.tagline}</h2>
-      <p className="mt-1 max-w-3xl text-[11px] leading-relaxed text-ink-muted">
+      <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-ink-muted">
         {goal.description}
       </p>
 
@@ -123,7 +123,7 @@ export default function GoalReport({
             />
           </div>
           <Section title="How this was worked out" />
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <tbody>
               <Row label="Target annual income (net)" value={formatKES(fire.targetAnnualIncomeKES)} />
               <Row
@@ -139,7 +139,7 @@ export default function GoalReport({
               <Row label="Shortfall" value={formatKES(fire.shortfallKES)} />
             </tbody>
           </table>
-          <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+          <p className="mt-3 text-[11px] leading-relaxed text-ink-muted">
             Planned on a <strong>{fire.ladderRungs}-bond ladder</strong> at{' '}
             {formatPct(fire.planningNetYield)}, which is {fire.downsidePp.toFixed(2)} percentage
             points below what the same ladder yields today — the fall the Central Bank Rate has
@@ -167,9 +167,9 @@ export default function GoalReport({
             />
           </div>
           <Section title="Year by year" />
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Year</th>
                 <th className="py-1.5 text-right">Fee due</th>
                 <th className="py-1.5 text-right">Principal maturing</th>
@@ -223,9 +223,9 @@ export default function GoalReport({
             <Metric label="Months paid" value={`${income.monthsPaid} of 12`} />
           </div>
           <Section title="When the money lands" />
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[9px] uppercase tracking-wide text-ink-faint">
+              <tr className="text-left text-[10px] uppercase tracking-wide text-ink-faint">
                 {MONTHS.map((m, i) => (
                   <th key={i} className="pb-1 text-center">{m}</th>
                 ))}
@@ -236,7 +236,7 @@ export default function GoalReport({
                 {income.monthlyIncomeKES.map((v, i) => (
                   <td
                     key={i}
-                    className={`num border border-sand-200 py-2 text-center text-[9px] ${
+                    className={`num border border-sand-200 py-2 text-center text-[10px] ${
                       v > 0 ? 'bg-mint-500/10 font-semibold text-mint-700' : 'text-ink-faint'
                     }`}
                   >
@@ -261,9 +261,9 @@ export default function GoalReport({
           <div className={incomeOptions && incomeOptions.length > 0 ? 'grid grid-cols-2 gap-8' : ''}>
           <div>
           <Section title="The bonds behind it" />
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Bond</th>
                 <th className="py-1.5 text-right">Face value</th>
                 {/* "each", because this is the PER-PAYMENT coupon, not the
@@ -285,7 +285,7 @@ export default function GoalReport({
                   <td className="py-1.5 font-medium">
                     {h.bond.issueCode}
                     {h.bond.taxExempt && (
-                      <span className="ml-1 text-[8px] font-semibold uppercase text-mint-700">tax-free</span>
+                      <span className="ml-1 text-[9px] font-semibold uppercase text-mint-700">tax-free</span>
                     )}
                   </td>
                   <td className="num py-1.5 text-right">{formatKES(h.faceValueKES)}</td>
@@ -309,7 +309,7 @@ export default function GoalReport({
             * looks complete and is not, handed to somebody as a record of what
             * was bought. The totals above still count all of them. */}
           {income.holdings.length > INCOME_ROWS && (
-            <p className="mt-1.5 text-[10px] text-ink-muted">
+            <p className="mt-1.5 text-[11px] text-ink-muted">
               {income.holdings.length - INCOME_ROWS} further holding
               {income.holdings.length - INCOME_ROWS === 1 ? '' : 's'} not listed here, of{' '}
               {income.holdings.length}. Every figure above counts all of them.
@@ -328,15 +328,15 @@ export default function GoalReport({
           {incomeOptions && incomeOptions.length > 0 && (
             <div>
               <Section title="Why this spread" />
-              <p className="mb-2 text-[10px] leading-relaxed text-ink-muted">
+              <p className="mb-2 text-[11px] leading-relaxed text-ink-muted">
                 Kenyan bonds pay twice a year, so one bond covers two months six apart and it
                 takes six of them to reach every month. Filling a gap month means buying the
                 best bond that pays IN it rather than the best bond available — so a wider
                 spread earns less. Every option below was priced on the same capital.
               </p>
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+                  <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
                     <th className="py-1.5">Spread</th>
                     <th className="py-1.5 text-right">Months paid</th>
                     <th className="py-1.5 text-right">Net income / year</th>
@@ -355,7 +355,7 @@ export default function GoalReport({
                       >
                         <td className="py-1.5">
                           {o.holdings} bonds
-                          {chosen && <span className="ml-1 text-[8px] uppercase text-gold-700">chosen</span>}
+                          {chosen && <span className="ml-1 text-[9px] uppercase text-gold-700">chosen</span>}
                         </td>
                         <td className="num py-1.5 text-right">{o.plan.monthsPaid} of 12</td>
                         <td className="num py-1.5 text-right">{formatKES(o.plan.totalNetAnnualKES)}</td>
@@ -386,7 +386,7 @@ export default function GoalReport({
             />
           </div>
           <Section title="The arithmetic" />
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <tbody>
               <Row
                 label={`Quoted discount rate (${preservation.tenorDays}-day bill)`}
@@ -396,7 +396,7 @@ export default function GoalReport({
               <Row label="Interest kept after 15% withholding tax" value={formatKES(preservation.netInterestKES)} />
             </tbody>
           </table>
-          <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+          <p className="mt-3 text-[11px] leading-relaxed text-ink-muted">
             The shortest tenor on offer, chosen because liquidity is the objective here rather than
             yield. The quoted rate is a discount, not a return: it is earned on a smaller outlay, so
             the true yield is higher — and 15% withholding tax then pulls the net below the quote.
@@ -405,7 +405,7 @@ export default function GoalReport({
         </>
       )}
 
-      <footer className="mt-6 border-t border-sand-300 pt-3 text-[9px] leading-relaxed text-ink-faint">
+      <footer className="mt-6 border-t border-sand-300 pt-3 text-[10px] leading-relaxed text-ink-faint">
         Yields are solved from each bond&apos;s remaining cash-flow schedule; withholding tax applies
         to coupons only (infrastructure bonds are exempt) and principal redemption is untaxed.
         Accrued interest uses Actual/364 and coupon dates run in exact 182-day steps from issue — the
@@ -430,7 +430,7 @@ function Metric({
     tone === 'mint' ? 'text-mint-700' : tone === 'gold' ? 'text-gold-700' : 'text-ink';
   return (
     <div className="rounded-lg border border-sand-300 px-3 py-2">
-      <p className="text-[9px] uppercase tracking-wide text-ink-faint">{label}</p>
+      <p className="text-[10px] uppercase tracking-wide text-ink-faint">{label}</p>
       <p className={`num mt-0.5 text-base font-bold ${colour}`}>{value}</p>
     </div>
   );
@@ -438,7 +438,7 @@ function Metric({
 
 function Section({ title }: { title: string }) {
   return (
-    <h3 className="mt-5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint">
+    <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-widest text-ink-faint">
       {title}
     </h3>
   );
@@ -456,9 +456,9 @@ function Row({ label, value }: { label: string; value: string }) {
 /** Shared by the fee plan; kept here so the report has one bond-table style. */
 function BondTable({ rungs }: { rungs: SchoolFeesPlan['ladder']['rungs'] }) {
   return (
-    <table className="w-full text-[11px]">
+    <table className="w-full text-[12px]">
       <thead>
-        <tr className="border-b border-sand-300 text-left text-[9px] uppercase tracking-wide text-ink-faint">
+        <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
           <th className="py-1.5">Bond</th>
           <th className="py-1.5 text-right">Face value</th>
           <th className="py-1.5 text-right">Price</th>
@@ -472,7 +472,7 @@ function BondTable({ rungs }: { rungs: SchoolFeesPlan['ladder']['rungs'] }) {
             <td className="py-1.5 font-medium">
               {r.bond.issueCode}
               {r.bond.taxExempt && (
-                <span className="ml-1 text-[8px] font-semibold uppercase text-mint-700">tax-free</span>
+                <span className="ml-1 text-[9px] font-semibold uppercase text-mint-700">tax-free</span>
               )}
             </td>
             <td className="num py-1.5 text-right">{formatKES(r.faceValueKES)}</td>

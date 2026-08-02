@@ -35,12 +35,12 @@ export default function LadderReport({
             <p className="font-display text-xl font-bold">
               Mwangaza <span className="text-gold-600">Yield</span>
             </p>
-            <p className="text-[10px] uppercase tracking-widest text-ink-faint">
+            <p className="text-[11px] uppercase tracking-widest text-ink-faint">
               Intelligence layer for Kenya&apos;s bond market
             </p>
           </div>
         </div>
-        <div className="text-right text-[10px] text-ink-faint">
+        <div className="text-right text-[11px] text-ink-faint">
           <p>Bond Ladder Plan</p>
           <p>{generatedAt}</p>
         </div>
@@ -76,7 +76,7 @@ export default function LadderReport({
           { label: 'Total settlement cost', value: formatKES(plan.totalCostKES), accent: 'text-ink' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-sand-300 p-3">
-            <p className="text-[10px] uppercase tracking-wider text-ink-faint">{s.label}</p>
+            <p className="text-[11px] uppercase tracking-wider text-ink-faint">{s.label}</p>
             <p className={`num mt-1 text-lg font-bold ${s.accent}`}>{s.value}</p>
           </div>
         ))}
@@ -87,7 +87,7 @@ export default function LadderReport({
       </h2>
       <table className="mt-2 w-full text-xs">
         <thead>
-          <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
+          <tr className="border-b border-sand-300 text-left text-[11px] uppercase tracking-wide text-ink-faint">
             <th className="py-1.5">Bond</th>
             <th className="py-1.5 text-right">Face value</th>
             <th className="py-1.5 text-right">Price</th>
@@ -100,7 +100,7 @@ export default function LadderReport({
             <tr key={r.bond.isin} className="border-b border-sand-200">
               <td className="py-1.5 font-medium">
                 {r.bond.issueCode}
-                {r.bond.taxExempt && <span className="ml-1.5 text-[9px] font-bold text-mint-700">TAX-FREE</span>}
+                {r.bond.taxExempt && <span className="ml-1.5 text-[10px] font-bold text-mint-700">TAX-FREE</span>}
               </td>
               <td className="num py-1.5 text-right">{formatKES(r.faceValueKES)}</td>
               <td className="num py-1.5 text-right">{r.price.toFixed(2)}</td>
@@ -119,25 +119,25 @@ export default function LadderReport({
           const total = p.couponsKES + p.principalKES;
           return (
             <div key={p.year} className="flex flex-1 flex-col items-center gap-1">
-              <span className="num text-[8px] text-ink-soft">
+              <span className="num text-[9px] text-ink-soft">
                 {total >= 1e6 ? `${(total / 1e6).toFixed(1)}M` : `${Math.round(total / 1000)}k`}
               </span>
               <div className="flex h-16 w-full flex-col-reverse rounded bg-sand-200">
                 <div className="w-full rounded-b bg-gold-500" style={{ height: `${(p.couponsKES / maxYear) * 100}%` }} />
                 <div className="w-full rounded-t bg-mint-600" style={{ height: `${(p.principalKES / maxYear) * 100}%` }} />
               </div>
-              <span className="num text-[8px] text-ink-muted">{p.year}</span>
+              <span className="num text-[9px] text-ink-muted">{p.year}</span>
             </div>
           );
         })}
       </div>
-      <p className="mt-1.5 text-[9px] text-ink-faint">
+      <p className="mt-1.5 text-[10px] text-ink-faint">
         Gold: net coupons received. Emerald: principal returned at maturity.
       </p>
 
       <RealTermsNote />
 
-      <footer className="mt-6 border-t border-sand-300 pt-3 text-[9px] leading-relaxed text-ink-faint">
+      <footer className="mt-6 border-t border-sand-300 pt-3 text-[10px] leading-relaxed text-ink-faint">
         Yields are solved from the stated price on each bond&apos;s remaining cash-flow schedule;
         withholding tax is applied to coupons only (infrastructure bonds are exempt), principal
         redemption untaxed. Accrued interest uses Actual/364 and coupon dates run in exact 182-day

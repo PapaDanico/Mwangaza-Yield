@@ -70,3 +70,55 @@ export const MASTHEAD_SHARE = 0.15;
 export function bodyLooksUnstyled(data: Uint8ClampedArray): boolean {
   return colouredFraction(data) < MIN_BODY_COLOUR;
 }
+
+/* ------------------------------------------------------- capture geometry */
+
+/**
+ * The widths the exporter lays the sheet out at, best-first by measurement.
+ *
+ * Shared rather than copied because `tests/e2e/smoke.mjs` measures the sheet
+ * under geometry it writes itself, and that copy is what drifts: the fit check
+ * would keep measuring 1123px while real downloads were captured at 900px,
+ * passing happily on a geometry the product no longer uses.
+ */
+export const CAPTURE_WIDTHS = [1123, 1040, 1000, 950, 900];
+
+/** The gutters the capture applies. Text clears the printer's dead margin by
+ *  this alone, so it is measured in the fit check rather than assumed. */
+export const CAPTURE_PADDING = '34px 40px';
+
+/** A4 landscape, long edge over short. */
+export const A4_ASPECT = 297 / 210;
+
+/**
+ * Millimetres per CSS pixel once the page fit has placed the sheet.
+ *
+ * The fit binds on whichever edge is tighter: a sheet wider than the page's
+ * aspect is limited by width, a taller one by height. This is the whole reason
+ * a narrower layout can print LARGER — it trades a width that was not binding
+ * for a scale that is.
+ */
+export function placedScaleMmPerPx(width: number, height: number): number {
+  return width / Math.max(1, height) > A4_ASPECT ? 297 / width : 210 / Math.max(1, height);
+}
+
+/**
+ * Pick the layout width that renders the largest type for this sheet.
+ *
+ * `heightAt` must apply the width and return the resulting scroll height WITH
+ * the capture padding already in place. A height read before the gutters exist
+ * is a measurement of a different document — 68px shorter — and picks a width
+ * with complete confidence while being wrong.
+ */
+export function chooseCaptureWidth(heightAt: (width: number) => number): number {
+  let best = CAPTURE_WIDTHS[0];
+  let bestScale = 0;
+  for (const w of CAPTURE_WIDTHS) {
+    const scale = placedScaleMmPerPx(w, heightAt(w));
+    if (scale > bestScale) {
+      bestScale = scale;
+      best = w;
+    }
+  }
+  return best;
+}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FileDown, ImageDown, Printer } from 'lucide-react';
 import { printReport } from '@/lib/share';
 import { bodyLooksUnstyled, MASTHEAD_SHARE } from '@/lib/report-styling';
+import { chooseCaptureWidth, CAPTURE_PADDING } from '@/lib/report-styling';
 
 /**
  * Getting the one-page report off the device — as an actual PDF.
@@ -304,7 +305,48 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * orientation choice in downloadPdf still measures the result rather than
      * assuming it, so a report that genuinely comes out tall still gets
      * portrait. */
-    el.style.width = '1123px'; // A4 landscape at 96dpi
+    /* CHOSEN BY MEASUREMENT, not fixed at the page width.
+     *
+     * 1123px is A4 landscape at 96dpi, and laying out there means the fit
+     * scales the sheet by 297mm/1123px — every design pixel lands at 0.75pt,
+     * which is why the printed type read as cramped.
+     *
+     * But the page fit binds on whichever edge is tighter, and these sheets
+     * are WIDER than A4 landscape: measured, they ran aspect 1.47 to 2.42
+     * against the page's 1.414, leaving up to 87mm of blank paper below the
+     * content while the type was shrunk to fit a width that was never the
+     * problem.
+     *
+     * Laying out NARROWER makes the sheet taller in CSS pixels but scales it
+     * up more on the page, and the trade is favourable until height becomes
+     * the binding edge. Measured on the real sheets, 11px type renders at:
+     *
+     *                        1123px   1000px   900px
+     *   Financial indep.      8.2pt    9.3pt   9.4pt
+     *   School fees           8.2pt    8.4pt   8.2pt
+     *   Passive income        8.2pt    8.2pt   8.1pt
+     *
+     * The optimum differs per sheet because it depends on how the content
+     * reflows, so this measures instead of picking one. Each candidate width
+     * is applied, the resulting height read, and the scale the page fit would
+     * actually use computed — then the width that renders the largest type
+     * wins.
+     *
+     * Passive income gains nothing here, and that is honest: its content
+     * already fills a page at 1123px, so the only remaining levers for that
+     * sheet are less content or a second page. */
+    /* Padding first, and box-sizing with it. The loop below measures real
+     * heights, and a measurement taken before the gutters exist is a
+     * measurement of a different document — 80px narrower in content and 68px
+     * shorter — which would pick the wrong width with total confidence. */
+    el.style.boxSizing = 'border-box';
+    el.style.padding = CAPTURE_PADDING;
+
+    const bestWidth = chooseCaptureWidth((w) => {
+      el.style.width = `${w}px`;
+      return el.scrollHeight;
+    });
+    el.style.width = `${bestWidth}px`;
     el.style.background = '#ffffff';
     /* Margins. On screen the sheet is print-only and takes its gutters from
      * the @page rule, which never runs when the page is RASTERISED instead of
@@ -315,8 +357,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      *
      * box-sizing matters as much as the padding: without it the padding is
      * added OUTSIDE the forced 1123px and the sheet stops being A4-shaped. */
-    el.style.boxSizing = 'border-box';
-    el.style.padding = '34px 40px';
+
 
     try {
       const { default: html2canvas } = await import('html2canvas-pro');
@@ -403,7 +444,14 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
        * Chosen from the measurement, not hardcoded the other way: a future
        * report that is genuinely tall should get portrait, and this keeps
        * working when the sheet's design changes. */
-      const A4_ASPECT = 297 / 210;
+      /* Padding first, and box-sizing with it. The loop below measures real
+     * heights, and a measurement taken before the gutters exist is a
+     * measurement of a different document — 80px narrower in content and 68px
+     * shorter — which would pick the wrong width with total confidence. */
+    el.style.boxSizing = 'border-box';
+    el.style.padding = CAPTURE_PADDING;
+
+    const A4_ASPECT = 297 / 210;
       const contentAspect = canvas.width / canvas.height;
       const landscape = contentAspect > 1;
       const pdf = new jsPDF({

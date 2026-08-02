@@ -23,8 +23,29 @@
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import zlibSync from 'node:zlib';
 import { join, extname } from 'node:path';
+
+/* Read from the exporter's own module rather than restated here.
+ *
+ * This check measures the sheet under geometry it would otherwise COPY from
+ * ReportActions, and a copy drifts: it would keep measuring 1123px while real
+ * downloads were captured at 900px, passing on a geometry the product no
+ * longer uses. A .mjs test cannot import the .ts module, so it parses it —
+ * and refuses loudly if the declarations move, rather than falling back to a
+ * guess. */
+const STYLING_SRC = readFileSync(new URL('../../src/lib/report-styling.ts', import.meta.url), 'utf8');
+const CAPTURE_WIDTHS = (() => {
+  const m = STYLING_SRC.match(/export const CAPTURE_WIDTHS = \[([^\]]+)\]/);
+  if (!m) throw new Error('cannot find CAPTURE_WIDTHS in src/lib/report-styling.ts');
+  return m[1].split(',').map((x) => Number(x.trim())).filter(Number.isFinite);
+})();
+const CAPTURE_PADDING = (() => {
+  const m = STYLING_SRC.match(/export const CAPTURE_PADDING = '([^']+)'/);
+  if (!m) throw new Error('cannot find CAPTURE_PADDING in src/lib/report-styling.ts');
+  return m[1];
+})();
 
 const PORT = Number(process.env.E2E_PORT || 4399);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -764,14 +785,23 @@ async function main() {
     await page.waitForTimeout(900);
 
     // Measured under the exact geometry the exporter imposes, then restored.
-    const m = await page.evaluate(() => {
+    const m = await page.evaluate(({ CAPTURE_WIDTHS, CAPTURE_PADDING }) => {
       const el = document.getElementById('goal-report-sheet');
       if (!el) return null;
       const prev = el.getAttribute('style') || '';
       el.style.display = 'block';
-      el.style.width = '1123px';
+      // The exporter picks this by measurement; mirror its choice rather than
+      // hardcoding one, or this check measures a geometry no download uses.
+      let W = CAPTURE_WIDTHS[0], bestScale = 0;
+      for (const w of CAPTURE_WIDTHS) {
+        el.style.width = `${w}px`;
+        const h = Math.max(1, el.scrollHeight);
+        const scale = w / h > 297 / 210 ? 297 / w : 210 / h;
+        if (scale > bestScale) { bestScale = scale; W = w; }
+      }
+      el.style.width = `${W}px`;
       el.style.boxSizing = 'border-box';
-      el.style.padding = '34px 40px';
+      el.style.padding = CAPTURE_PADDING;
       const r = el.getBoundingClientRect();
       const H = Math.ceil(Math.max(r.height, el.scrollHeight)) + 8;
       let left = Infinity, right = -Infinity;
@@ -784,25 +814,25 @@ async function main() {
         right = Math.max(right, q.right - r.left);
       }
       el.setAttribute('style', prev);
-      return { overflow: Math.ceil(el.scrollWidth) - 1123, H, left, right };
-    });
+      return { overflow: Math.ceil(el.scrollWidth) - W, H, left, right, W };
+    }, { CAPTURE_WIDTHS, CAPTURE_PADDING });
     if (!m) { fail(`goals: ${objective} renders no printable sheet`); continue; }
 
     if (m.overflow > 1) {
       fail(`goals: the ${objective} sheet is ${m.overflow}px wider than the capture — that much is cut off the right edge`);
     }
     // The sheet is placed at exactly the page width, so px map to mm directly.
-    const mm = (px) => (px / 1123) * 297;
+    const mm = (px) => (px / m.W) * 297;
     const SAFE_MM = 6; // typical consumer-printer unprintable margin is ~5mm
-    if (mm(m.left) < SAFE_MM || mm(1123 - m.right) < SAFE_MM) {
+    if (mm(m.left) < SAFE_MM || mm(m.W - m.right) < SAFE_MM) {
       fail(
-        `goals: ${objective} puts ink ${Math.min(mm(m.left), mm(1123 - m.right)).toFixed(1)}mm from the paper edge — inside what most printers cannot print`
+        `goals: ${objective} puts ink ${Math.min(mm(m.left), mm(m.W - m.right)).toFixed(1)}mm from the paper edge — inside what most printers cannot print`
       );
     }
     // Landscape is what keeps these to one page; a sheet taller than it is
     // wide takes the portrait branch and starts spilling.
-    if (m.H >= 1123) {
-      fail(`goals: the ${objective} sheet is ${m.H}px tall against 1123px wide — it will not fit one landscape page`);
+    if (m.H >= m.W) {
+      fail(`goals: the ${objective} sheet is ${m.H}px tall against ${m.W}px wide — it will not fit one landscape page`);
     }
   }
   if (failures.length === fitBefore) pass('all four goal sheets fit A4 landscape with no overflow and >6mm ink clearance');

@@ -6,17 +6,17 @@
     "date": "2026-06-09",
     "unit": "%",
     "source": "CBK MPC",
-    "lastChecked": "2026-07-31"
+    "lastChecked": "2026-08-03"
   },
   {
-    "id": "cpi-2026-07",
+    "id": "cpi-2026-08-03",
     "indicator": "CPI",
-    "value": 6.5,
-    "date": "2026-07-31",
+    "value": 6.41,
+    "date": "2026-08-03",
     "unit": "% y/y",
-    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
-    "fallback": false,
-    "lastChecked": "2026-07-31"
+    "source": "CBK",
+    "fallback": true,
+    "lastChecked": "2026-08-03"
   },
   {
     "id": "fx-2026-07",

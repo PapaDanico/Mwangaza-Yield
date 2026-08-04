@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import auctionsData from '../../public/data/auction-results.json';
 import type { AuctionPrint } from '../../src/types/bond';
 import {
@@ -7,6 +8,7 @@ import {
   median,
   MIN_AUCTIONS_FOR_A_MEDIAN,
 } from '../../src/lib/subscription';
+import { auctionKind } from '../../src/lib/auction-history';
 
 const PRINTS = auctionsData as unknown as AuctionPrint[];
 
@@ -194,5 +196,85 @@ describe('measured on the shipped archive', () => {
     expect(s!.medianSubscription, 'a median was quoted from under the threshold').toBeNull();
     // The all-time figure still stands, because it is drawn from everything.
     expect(s!.medianSubscriptionAllTime).not.toBeNull();
+  });
+});
+
+/**
+ * A cover ratio is only meaningful for an auction that asked the market for cash.
+ *
+ * `auctionDemand` grouped by source document and counted every one of them, so
+ * switches, taps and buybacks were reported next to real issuance as though
+ * they were the same measurement. They are not:
+ *
+ *   - a SWITCH is a debt exchange, raising no cash at all;
+ *   - a TAP is a fixed-price top-up where under-filling is routine;
+ *   - a BUYBACK has the Treasury buying, not selling.
+ *
+ * This was live and it was wrong in the most damaging possible direction. Of
+ * the twelve auctions the demand card showed, five were not issuance, and four
+ * of the six it flagged as having "not attracted the money on offer" were
+ * switches or taps that cannot fail in that sense. The card read "median 1.13x,
+ * 6 of 12 did not attract the money on offer" — a market in trouble — while
+ * issuance alone read 1.89x with 2 of 12 short. CBK's own published figure for
+ * February 2026 was 427%.
+ *
+ * auction-review.ts had already diagnosed this exactly, named 0.82x and 0.13x
+ * as the switch auctions doing the damage, and written the classifier to
+ * separate them. It is unpublished, so the fix never reached the published
+ * card. All 823 tests passed throughout.
+ */
+describe('demand counts only auctions that were selling for cash', () => {
+  const ARCHIVE = JSON.parse(
+    readFileSync('public/data/auction-results.json', 'utf8')
+  ) as AuctionPrint[];
+
+  it('admits no switch, tap or buyback into the series', () => {
+    const series = auctionDemand(ARCHIVE);
+    expect(series.length, 'no auctions at all, so this proves nothing').toBeGreaterThan(10);
+    const wrong = series
+      .map((d) => ({ d, kind: auctionKind({ sourceUrl: d.sourceUrl } as AuctionPrint) }))
+      .filter((x) => x.kind !== 'issuance');
+    expect(
+      wrong.map((x) => `${x.d.auctionDate} ${x.kind} ${x.d.subscription.toFixed(2)}x`),
+      'a non-issuance auction is being reported as a subscription'
+    ).toEqual([]);
+  });
+
+  it('drops the specific switch auctions that were being shown as failures', () => {
+    /* 0.82x and 0.13x are named in auction-review.ts as the switches that
+     * "read as failed auctions when nothing failed". They were both on the
+     * live page. */
+    const dates = new Set(auctionDemand(ARCHIVE).map((d) => d.auctionDate));
+    for (const switched of ['2026-07-15', '2026-04-15', '2026-05-20']) {
+      expect(dates.has(switched), `${switched} is a switch auction and is still counted`).toBe(
+        false
+      );
+    }
+  });
+
+  it('and the filter actually changes the published answer', () => {
+    /* Without this, the two assertions above would pass on an archive that
+     * happened to contain no switches — and the guard would be decorative. */
+    const kept = auctionDemand(ARCHIVE).length;
+    const everyDocument = new Set(
+      ARCHIVE.filter((p) => p.sourceUrl && p.auctionDate && p.amountOfferedKESM && p.bidsReceivedKESM)
+        .map((p) => p.sourceUrl)
+    ).size;
+    expect(
+      kept,
+      'filtering removed nothing, so switches and taps were never in the archive to begin with'
+    ).toBeLessThan(everyDocument);
+  });
+
+  it('reports a market that is oversubscribed, as every observer of it says', () => {
+    /* The tripwire auction-review.ts asks for in so many words: a number that
+     * disagrees with everyone who follows this market is a bug, not a finding.
+     * Kenyan issuance has been persistently oversubscribed. */
+    const s = demandSummary(ARCHIVE)!;
+    expect(
+      s.medianSubscription,
+      `recent issuance now medians ${s.medianSubscription?.toFixed(2)}x — if this has fallen ` +
+        'below 1.0x either the market has genuinely turned or the parser is dropping bids'
+    ).toBeGreaterThan(1);
   });
 });

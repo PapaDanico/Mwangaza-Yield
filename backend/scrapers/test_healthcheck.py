@@ -8,12 +8,16 @@ people learn to ignore is worse than no alarm at all.
 """
 
 import json
+from datetime import date
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE))
+from healthcheck import BUDGETS  # noqa: E402
+
 DATA = HERE.parent.parent / "public" / "data"
 
 
@@ -28,12 +32,71 @@ def run_healthcheck(data_dir: Path) -> subprocess.CompletedProcess:
     )
 
 
+def _freshen(path: Path, field: str) -> None:
+    """Stamp every occurrence of `field` in one file to today."""
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return
+    today = date.today().isoformat()
+
+    def walk(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k == field and isinstance(v, (str, int)):
+                    node[k] = today
+                else:
+                    walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(payload)
+    path.write_text(json.dumps(payload))
+
+
 def fixture_dir(tmp: Path, **overrides) -> Path:
-    """Copy the live dataset, replacing named files with test payloads."""
+    """Copy the live dataset, hold every date fresh, then apply the overrides.
+
+    THE COPY USED TO BE LEFT AS-IS, AND THAT MADE THESE TESTS A CALENDAR BOMB.
+
+    Every one of them asserts something about `secondary.json`, but the fixture
+    is the whole live dataset and healthcheck.py exits non-zero if ANY budget is
+    breached. So the moment an unrelated indicator aged past its limit, a test
+    named "empty secondary is not a problem" started failing — and its message
+    said `empty secondary.json raised an alarm`, which was not true. The alarm
+    was Sovereign context at 946 days against a 900-day budget, a real condition
+    with nothing whatever to do with secondary trades.
+
+    It blocked every pull request in the repository on 2026-08-04, for a reason
+    none of them had caused.
+
+    Worse, the failure was the honest half. The two `..._still_fails` tests below
+    assert a NON-zero exit, and the same unrelated staleness was making the
+    healthcheck non-zero on its own — so they were passing without exercising
+    their subject at all, and would have kept passing if secondary handling had
+    broken completely.
+
+    Holding every other date fresh isolates the subject: these now fail when, and
+    only when, secondary.json handling is wrong. The staleness they were
+    accidentally tripping on is still caught where it belongs — healthcheck.py
+    runs as its own gate in the scheduled refresh job, and it raised issue #149
+    for this exact condition hours before CI went red.
+
+    The fields come from BUDGETS rather than a list retyped here, so a new
+    freshness check cannot quietly reintroduce the bomb.
+    """
     d = tmp / "data"
     d.mkdir()
     for src in DATA.glob("*.json"):
         (d / src.name).write_text(src.read_text())
+
+    overridden = {f"{name}.json" for name in overrides}
+    for fname, _label, field, _budget, _why in BUDGETS:
+        if fname in overridden:
+            continue  # the file under test keeps whatever the test gave it
+        _freshen(d / fname, field)
+
     for name, payload in overrides.items():
         (d / f"{name}.json").write_text(json.dumps(payload))
     return d

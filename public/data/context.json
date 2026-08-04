@@ -1,49 +1,5 @@
 [
   {
-    "id": "wb-ny-gdp-mktp-kd-zg",
-    "label": "GDP growth",
-    "value": 4.63,
-    "unit": "% y/y",
-    "asOf": "2025",
-    "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
-    "note": "Whether the economy behind the borrowing is still expanding. Growth is what eventually pays debt down without new borrowing.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "wb-fi-res-totl-mo",
-    "label": "Reserves (import cover)",
-    "value": 4.03,
-    "unit": "months",
-    "asOf": "2024",
-    "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/FI.RES.TOTL.MO?locations=KE",
-    "note": "Months of imports the central bank could fund from its reserves. Below three is generally considered thin, and the statutory floor is four.",
-    "sentiment": "good"
-  },
-  {
-    "id": "wb-ne-exp-gnfs-zs",
-    "label": "Exports / GDP",
-    "value": 15.76,
-    "unit": "%",
-    "asOf": "2025",
-    "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/NE.EXP.GNFS.ZS?locations=KE",
-    "note": "How much foreign currency the economy actually earns. External debt is repaid in dollars, and exports are where they come from.",
-    "sentiment": "watch"
-  },
-  {
-    "id": "wb-gc-xpn-intp-rv-zs",
-    "label": "Interest / government revenue",
-    "value": 24.28,
-    "unit": "%",
-    "asOf": "2023",
-    "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/GC.XPN.INTP.RV.ZS?locations=KE",
-    "note": "The share of every shilling collected in tax already committed to interest before a single service is funded. This is the measure that tightens first, and it deteriorates long before anything is missed.",
-    "sentiment": "good"
-  },
-  {
     "id": "wb-dt-dod-dect-gn-zs",
     "label": "External debt / GNI",
     "value": 34.99,
@@ -53,16 +9,5 @@
     "sourceUrl": "https://data.worldbank.org/indicator/DT.DOD.DECT.GN.ZS?locations=KE",
     "note": "Debt owed abroad, which must be serviced in foreign currency rather than shillings \u2014 so a weaker shilling makes it heavier without anyone borrowing more.",
     "sentiment": "good"
-  },
-  {
-    "id": "wb-dt-tds-dect-ex-zs",
-    "label": "Debt service / exports",
-    "value": 27.22,
-    "unit": "%",
-    "asOf": "2024",
-    "source": "World Bank Open Data (CC BY 4.0)",
-    "sourceUrl": "https://data.worldbank.org/indicator/DT.TDS.DECT.EX.ZS?locations=KE",
-    "note": "What repayment costs measured against what the country earns abroad, which is the source of the currency it is repaid in.",
-    "sentiment": "caution"
   }
 ]

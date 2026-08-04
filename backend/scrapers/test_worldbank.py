@@ -74,6 +74,93 @@ def collapse_guard():
           wb.MIN_INDICATORS > len(wb.INDICATORS) / 2, True)
 
 
+def falls_back_to_a_second_query_shape():
+    """A refused query must be retried a different way before giving up.
+
+    THE EVIDENCE THIS IS BUILT ON, AND ITS LIMIT.
+
+    On 2026-08-04 a refresh run recorded seven of eight indicators returning
+    400 Bad Request while GC.DOD.TOTL.GD.ZS returned a clean 200 carrying no
+    observation. One indicator answering proves the host, the network and the
+    request credentials are all fine, which is what makes a rejected QUERY the
+    suspect rather than a blocked client. Adding a User-Agent on the previous
+    attempt changed nothing and eliminated the other candidate.
+
+    `mrnev` is therefore the suspect and CANNOT be confirmed from here —
+    api.worldbank.org is unreachable through this machine's outbound proxy. So
+    the code tries both shapes rather than betting on the diagnosis, and these
+    tests pin the BEHAVIOUR (retry, then surface) instead of the theory.
+    """
+    print("\na refused query shape is retried before giving up")
+
+    calls = []
+
+    class Resp:
+        def __init__(self, status, payload=None):
+            self.status_code = status
+            self._payload = payload
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise wb.requests.HTTPError(f"{self.status_code} Client Error")
+
+        def json(self):
+            return self._payload
+
+    good = [{"page": 1}, [{"value": 7.5, "date": "2025"}]]
+
+    def only_second_shape_works(url, params=None, headers=None, timeout=None):
+        calls.append(params)
+        return Resp(400) if "mrnev" in params else Resp(200, good)
+
+    real = wb.requests.get
+    try:
+        wb.requests.get = only_second_shape_works
+        got = wb.latest_value("NY.GDP.MKTP.KD.ZG")
+    finally:
+        wb.requests.get = real
+
+    check("the value survives a 400 on the first shape", got, {"value": 7.5, "year": "2025"})
+    check("it actually tried twice", len(calls), 2)
+    check("the first attempt used mrnev", "mrnev" in calls[0], True)
+    check("the fallback dropped mrnev", "mrnev" in calls[1], False)
+    check("the fallback asked for a date window", "date" in calls[1], True)
+
+    # And when EVERY shape is refused it must raise, not report "no observation".
+    # Those mean different things: one is the World Bank not holding a series,
+    # the other is us being unable to ask. Only the second is a pipeline fault.
+    def nothing_works(url, params=None, headers=None, timeout=None):
+        return Resp(400)
+
+    raised = False
+    try:
+        wb.requests.get = nothing_works
+        wb.latest_value("NY.GDP.MKTP.KD.ZG")
+    except wb.requests.HTTPError:
+        raised = True
+    except Exception:
+        raised = False
+    finally:
+        wb.requests.get = real
+    check("a total refusal is raised, not silently 'no observation'", raised, True)
+
+    # A connection-level failure is not worth retrying: same host, same answer.
+    conn_calls = []
+
+    def connection_refused(url, params=None, headers=None, timeout=None):
+        conn_calls.append(params)
+        raise wb.requests.ConnectionError("no route to host")
+
+    try:
+        wb.requests.get = connection_refused
+        wb.latest_value("NY.GDP.MKTP.KD.ZG")
+    except wb.requests.ConnectionError:
+        pass
+    finally:
+        wb.requests.get = real
+    check("a dead connection is not retried", len(conn_calls), 1)
+
+
 def identifies_itself():
     """A default python-requests user-agent is the likeliest cause of the 400."""
     print("\nthe scraper identifies itself to the API")
@@ -156,6 +243,7 @@ def main():
         check(f"{rec['label']} value is rounded", rec["value"], 12.35)
 
     collapse_guard()
+    falls_back_to_a_second_query_shape()
     identifies_itself()
 
     if failures:

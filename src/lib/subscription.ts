@@ -1,4 +1,5 @@
 import type { AuctionPrint } from '../types/bond';
+import { auctionKind } from './auction-history';
 
 /**
  * How much money chased each auction, and how much of it the Treasury took.
@@ -88,6 +89,31 @@ export function auctionDemand(prints: AuctionPrint[]): AuctionDemand[] {
   for (const p of prints) {
     if (!p.sourceUrl || !p.auctionDate) continue;
     if (!p.amountOfferedKESM || !p.bidsReceivedKESM) continue;
+    /* Only genuine issuance. A cover ratio assumes the Treasury asked the
+     * market for cash and the market answered; three of the four auction kinds
+     * in this archive break that assumption, and their ratios were being
+     * reported as though they had not.
+     *
+     * A SWITCH is a debt EXCHANGE — holders hand back one bond and take
+     * another, and no cash is raised — so "bids" against "offered" is not a
+     * subscription at all. A TAP is a fixed-price top-up where under-filling is
+     * routine and means nothing about appetite. A BUYBACK has the Treasury on
+     * the other side of the trade entirely.
+     *
+     * The damage was visible on the live page. Of the twelve most recent
+     * auctions shown, FIVE were not issuance, and four of the six flagged as
+     * having "not attracted the money on offer" were switches or taps that
+     * cannot fail in that sense — 0.82x on 2026-07-15, 0.13x on 2026-04-15,
+     * 0.76x on 2026-05-20, 0.58x on 2026-06-15. Issuance alone, the same weeks
+     * read 2 of 7 below offer at a median near 1.87x, not 6 of 12 at 1.13x.
+     * The card was describing a market in trouble; the market was oversubscribed.
+     *
+     * auction-review.ts had already diagnosed exactly this, named those two
+     * ratios, written `auctionKind` to separate them, and recorded that "a
+     * number that disagrees with everyone who follows the market is not a
+     * discovery, it is a bug". That module is unpublished, so the fix never
+     * reached the card that was publishing the wrong number. */
+    if (auctionKind(p) !== 'issuance') continue;
     if (!byDocument.has(p.sourceUrl)) byDocument.set(p.sourceUrl, []);
     byDocument.get(p.sourceUrl)!.push(p);
   }

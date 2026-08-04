@@ -67,7 +67,19 @@ export function auctionKind(print: AuctionPrint): AuctionKind {
   const name = (print.sourceUrl ?? '').toUpperCase();
   if (/BUY\s*-?\s*BACK/.test(name)) return 'buyback';
   if (name.includes('SWITCH')) return 'switch';
-  if (name.includes('TAP')) return 'tap';
+  /* Letter boundaries, not a bare `includes`. "ADAPTATION" contains TAP, so a
+   * green ADAPTATION bond would be filed as a tap sale and dropped from the
+   * only statistic that counts real auctions. CBK also writes "TAPSALE" as one
+   * word about as often as "TAP SALE", and \b never fires beside the numeric
+   * id and underscore CBK prefixes to these filenames — "838376338_TAP SALE
+   * RESULTS" — so the boundary has to be a letter test, and the trailing side
+   * must allow SALE specifically and nothing else.
+   *
+   * No ADAPTATION bond is in the archive today, so this is a latent trap
+   * rather than a live defect; the reasoning was already worked out and
+   * written down in auction-review.ts and is simply applied here. Both failure
+   * directions are tested. */
+  if (/(?<![A-Z])TAP(?:SALE)?(?![A-Z])/.test(name)) return 'tap';
   return 'issuance';
 }
 

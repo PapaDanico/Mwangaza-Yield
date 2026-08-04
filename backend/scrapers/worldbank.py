@@ -78,12 +78,51 @@ INDICATORS = [
 
 TIMEOUT = 60
 
+# Identify ourselves rather than arriving as "python-requests/2.x".
+#
+# On 2026-08-04 the validate-sources probe recorded every World Bank call
+# returning HTTP 400 with a 1,647-byte text/html body. The v2 API answers real
+# errors in JSON; an HTML 400 is a front door refusing the request, and the
+# commonest reason a front door refuses one is a default client user-agent.
+#
+# This is a hypothesis, not a diagnosis — it cannot be tested from the machine
+# this was written on, where api.worldbank.org is unreachable through the
+# outbound proxy. It costs nothing if it is wrong, it is good manners to a free
+# public API either way, and the completeness guard below is what actually
+# stops a refusal from reaching readers.
+USER_AGENT = (
+    "MwangazaYield/1.0 (+https://mwangazayield.org; sovereign context refresh)"
+)
+
+# How many of the eight indicators must survive a run for it to count.
+#
+# WHY A FLOOR AT ALL
+#
+# `write_dataset` refuses only a COMPLETELY empty result. Anything else is a
+# success, so a run that lost seven of eight indicators wrote the survivor,
+# exited 0, and told the workflow nothing was wrong.
+#
+# That is not hypothetical. It is the shipped state as this is written:
+# public/data/context.json holds ONE record — External debt / GNI, vintage 2024
+# — against eight defined here. The Sovereign Context panel promises a credit
+# picture and has been showing an eighth of one. Nothing alarmed, because
+# staleness was the only thing anyone was measuring, and the survivor was
+# keeping the file's date alive.
+#
+# Six of eight, not eight: the World Bank genuinely lacks some series for some
+# countries in some years, and a scraper that demands perfection raises an
+# alarm nobody can clear — the wolf-crying this project widened the
+# context.json budget to avoid. Six leaves room for two real gaps and still
+# catches a collapse.
+MIN_INDICATORS = 6
+
 
 def latest_value(indicator_code: str) -> dict | None:
     """Most recent non-null observation for Kenya, with its year."""
     resp = requests.get(
         f"{BASE}/{indicator_code}",
         params={"format": "json", "per_page": 20, "mrnev": 1},
+        headers={"User-Agent": USER_AGENT},
         timeout=TIMEOUT,
     )
     resp.raise_for_status()
@@ -138,6 +177,29 @@ def scrape() -> list:
     return records
 
 
+def refuse_if_collapsed(records: list) -> None:
+    """Exit non-zero rather than publish a fraction of the picture.
+
+    Keeping the previous file is the right failure here: it is complete and
+    merely old, where a partial write is incomplete AND looks current. The
+    non-zero exit is what the CI step's `|| echo "failed=worldbank"` reads, so
+    this is also what turns a silent collapse into the pipeline alert that a
+    reader-facing gap deserves.
+    """
+    if len(records) >= MIN_INDICATORS:
+        return
+    got = ", ".join(r["label"] for r in records) or "nothing"
+    print(
+        f"[worldbank] only {len(records)} of {len(INDICATORS)} indicators came back "
+        f"({got}) — refusing to overwrite a fuller file with a partial one. "
+        "The existing context.json is kept.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
 if __name__ == "__main__":
     print(f"[worldbank] fetching as of {date.today().isoformat()}", file=sys.stderr)
-    write_dataset("context", scrape())
+    records = scrape()
+    refuse_if_collapsed(records)
+    write_dataset("context", records)

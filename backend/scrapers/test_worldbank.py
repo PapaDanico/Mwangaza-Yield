@@ -26,6 +26,90 @@ def check(label, actual, expected):
         print(f"  ok  {label}")
 
 
+def check_exits(label, records, expect_exit):
+    """Run refuse_if_collapsed and report whether it stopped the run."""
+    try:
+        wb.refuse_if_collapsed(records)
+        actually_exited = False
+    except SystemExit:
+        actually_exited = True
+    check(label, actually_exited, expect_exit)
+
+
+def rec(n):
+    return [{"label": f"indicator {i}"} for i in range(n)]
+
+
+def collapse_guard():
+    """A partial fetch must not overwrite a fuller file.
+
+    THE DEFECT THIS EXISTS FOR, WHICH WAS LIVE WHEN IT WAS WRITTEN.
+
+    `write_dataset` refuses only a COMPLETELY empty result, so a run that lost
+    seven of its eight indicators wrote the one survivor, exited 0, and told the
+    workflow nothing had gone wrong. public/data/context.json held exactly one
+    record — External debt / GNI, vintage 2024 — against eight defined in the
+    scraper, and the Sovereign Context panel had been showing an eighth of a
+    credit picture with nothing alarming.
+
+    What alarmed instead was staleness, 946 days of it, because the lone
+    survivor kept the file's date alive. The symptom everyone could see was the
+    date; the disease was that seven indicators had quietly stopped arriving.
+
+    Note what the ORIGINAL tests in this file check: that every entry in
+    wb.INDICATORS carries a note and a sensible rule. That is a statement about
+    the source code's table, and it was true throughout. Nothing checked what
+    the scraper actually produced.
+    """
+    print("\na partial fetch is refused rather than published")
+    check_exits("a full set of 8 is written", rec(8), False)
+    check_exits(f"the floor of {wb.MIN_INDICATORS} is written", rec(wb.MIN_INDICATORS), False)
+    check_exits("one below the floor stops the run", rec(wb.MIN_INDICATORS - 1), True)
+    check_exits("the shipped 1-of-8 collapse stops the run", rec(1), True)
+    check_exits("a total failure stops the run", rec(0), True)
+
+    # The floor must leave room for genuine gaps without accepting a collapse.
+    check("floor leaves room for real gaps", wb.MIN_INDICATORS < len(wb.INDICATORS), True)
+    check("floor is a majority of the set",
+          wb.MIN_INDICATORS > len(wb.INDICATORS) / 2, True)
+
+
+def identifies_itself():
+    """A default python-requests user-agent is the likeliest cause of the 400."""
+    print("\nthe scraper identifies itself to the API")
+    check("a user agent is set", bool(wb.USER_AGENT.strip()), True)
+    check("it is not the requests default", "python-requests" not in wb.USER_AGENT, True)
+    check("it says who to contact", "mwangazayield.org" in wb.USER_AGENT, True)
+
+    # And that it is actually SENT. Asserting only that the constant exists
+    # would pass with the header never attached to the request — the same
+    # shape of guard this project keeps having to replace.
+    sent = {}
+
+    class FakeResp:
+        status_code = 200
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return [{"page": 1}, [{"value": 1.0, "date": "2025"}]]
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        sent["headers"] = headers or {}
+        return FakeResp()
+
+    real_get = wb.requests.get
+    try:
+        wb.requests.get = fake_get
+        wb.latest_value("NY.GDP.MKTP.KD.ZG")
+    finally:
+        wb.requests.get = real_get
+
+    check("the header reaches the request",
+          sent.get("headers", {}).get("User-Agent"), wb.USER_AGENT)
+
+
 def main():
     print("every indicator carries what the dashboard renders")
     for code, label, unit, note, rule in wb.INDICATORS:
@@ -52,14 +136,27 @@ def main():
     check("no rule means no verdict", wb.sentiment_for(15.76, None), "watch")
 
     print("\nthe emitted record carries every field the UI reads")
-    wb.latest_value = lambda code: {"value": 12.3456, "year": "2025"}
-    records = wb.scrape()
+    # Restored afterwards. It was not, and that leaked: every check added below
+    # this line silently received the stub instead of the real function, so a
+    # later test that patched requests.get to prove the User-Agent header was
+    # sent saw no request at all and reported the header missing when it was
+    # present. A fixture that outlives its test turns the next test into a
+    # measurement of the fixture.
+    real_latest_value = wb.latest_value
+    try:
+        wb.latest_value = lambda code: {"value": 12.3456, "year": "2025"}
+        records = wb.scrape()
+    finally:
+        wb.latest_value = real_latest_value
     check("one record per indicator", len(records), len(wb.INDICATORS))
     required = ("id", "label", "value", "unit", "asOf", "source", "sourceUrl", "note", "sentiment")
     for rec in records:
         for field in required:
             check(f"{rec['label']} has {field}", field in rec and rec[field] not in (None, ""), True)
         check(f"{rec['label']} value is rounded", rec["value"], 12.35)
+
+    collapse_guard()
+    identifies_itself()
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

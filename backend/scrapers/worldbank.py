@@ -117,23 +117,77 @@ USER_AGENT = (
 MIN_INDICATORS = 6
 
 
+# How the observations are asked for, most convenient first.
+#
+# `mrnev=1` ("most recent non-empty value") is one round trip and exactly the
+# question being asked, so it stays first. The plain date window is the same
+# question the long way round: ask for a span of years and take the newest
+# non-null from the reply, which is what the loop below already does.
+#
+# WHY THERE IS A SECOND SHAPE AT ALL
+#
+# On 2026-08-04 seven of the eight indicators came back 400 Bad Request while
+# GC.DOD.TOTL.GD.ZS returned a perfectly good 200 with no observation in it.
+# That asymmetry is the whole clue. A blocked client is blocked for every
+# indicator; a rejected QUERY is rejected wherever the API dislikes it, and one
+# indicator answering proves the host, the network and the credentials are all
+# fine. Adding a user-agent on the previous attempt changed nothing, which
+# eliminated the other candidate.
+#
+# So `mrnev` is the suspect — retired, narrowed, or newly refused for series
+# whose most recent non-empty value is far enough back. It cannot be confirmed
+# from the machine this was written on, where api.worldbank.org is unreachable
+# through the outbound proxy.
+#
+# This is deliberately NOT a bet on that diagnosis. Both shapes are tried, so
+# the scraper recovers if `mrnev` is the problem and is no worse off if it is
+# not: the fallback costs one extra request per indicator, only on failure,
+# only until the first shape works again.
+QUERY_SHAPES = (
+    {"format": "json", "per_page": 20, "mrnev": 1},
+    # Twelve years is enough to reach the newest vintage of an annual series
+    # that lags its reference year, without asking for the entire history.
+    {"format": "json", "per_page": 100, "date": f"{date.today().year - 12}:{date.today().year}"},
+)
+
+
 def latest_value(indicator_code: str) -> dict | None:
-    """Most recent non-null observation for Kenya, with its year."""
-    resp = requests.get(
-        f"{BASE}/{indicator_code}",
-        params={"format": "json", "per_page": 20, "mrnev": 1},
-        headers={"User-Agent": USER_AGENT},
-        timeout=TIMEOUT,
-    )
-    resp.raise_for_status()
-    payload = resp.json()
-    # v2 returns [pagination_header, [observations]]; an error returns a dict.
-    if not isinstance(payload, list) or len(payload) < 2 or not payload[1]:
+    """Most recent non-null observation for Kenya, with its year.
+
+    Tries each query shape in turn and gives up only when the API has refused
+    all of them. A connection-level failure is NOT retried here — a second
+    identical request to a host that would not talk to us buys nothing and
+    doubles the time a broken run takes to say so.
+    """
+    last_http_error: requests.HTTPError | None = None
+
+    for params in QUERY_SHAPES:
+        try:
+            resp = requests.get(
+                f"{BASE}/{indicator_code}",
+                params=params,
+                headers={"User-Agent": USER_AGENT},
+                timeout=TIMEOUT,
+            )
+            resp.raise_for_status()
+        except requests.HTTPError as exc:
+            last_http_error = exc
+            continue
+
+        payload = resp.json()
+        # v2 returns [pagination_header, [observations]]; an error returns a dict.
+        if not isinstance(payload, list) or len(payload) < 2 or not payload[1]:
+            return None
+        # Newest first, so the first non-null is the most recent one.
+        for obs in payload[1]:
+            if obs.get("value") is not None:
+                return {"value": float(obs["value"]), "year": obs["date"]}
         return None
-    for obs in payload[1]:
-        if obs.get("value") is not None:
-            return {"value": float(obs["value"]), "year": obs["date"]}
-    return None
+
+    # Every shape was refused. Raise so scrape() records it as a failure rather
+    # than as "no observation", which would read as the World Bank simply not
+    # holding the series — a very different thing from being unable to ask.
+    raise last_http_error  # type: ignore[misc]
 
 
 def sentiment_for(value: float, rule) -> str:

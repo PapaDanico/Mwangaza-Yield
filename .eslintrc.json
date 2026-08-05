@@ -1,0 +1,4 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "ignorePatterns": ["out/", "public/", "engine-dist/", "node_modules/", "coverage/"]
+}

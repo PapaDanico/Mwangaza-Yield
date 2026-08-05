@@ -73,6 +73,17 @@ const KNOWN_GOOD = new Set([
   // a person, same as the others above.
   'hello@jipangefinance.org',
   'sample@example.com',
+  /* npm's own deprecation notice for glob, which quotes the maintainer's
+   * contact address: "Support ... may be purchased ... by contacting i@izs.me".
+   * It entered package-lock.json when ESLint was added — glob@7 arrives
+   * transitively through file-entry-cache -> flat-cache -> rimraf — and it is
+   * the only address anywhere in the lockfile.
+   *
+   * Named as a value rather than pardoning package-lock.json, per the rule
+   * above: a lockfile is exactly the sort of large machine-written file where a
+   * blanket exemption would hide the next thing. If more registry addresses
+   * appear they will fail here and be judged one at a time. */
+  'i@izs.me',
   // Invented placeholders in the DhowCSD parser fixtures. Structurally valid
   // so the parser is genuinely exercised; deliberately all-zero so no real
   // person is behind them.

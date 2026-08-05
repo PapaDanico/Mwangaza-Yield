@@ -41,6 +41,22 @@ jobs:
       # pinned in tsconfig.json; this step is what makes the gap visible if it
       # ever reopens, since tests and scripts are outside the build's reach.
       - run: npm run typecheck
+
+      # Lint runs here because until now it ran NOWHERE.
+      #
+      # `npm run lint` was `next lint` with no ESLint config and no eslint
+      # dependency, so invoking it dropped you into Next's interactive setup
+      # prompt — it could not pass or fail, and CI never called it. The cost was
+      # not hypothetical: both report components carried an
+      # `eslint-disable-next-line @next/next/no-img-element` comment that
+      # suppressed nothing, because an explanatory comment sat between the
+      # disable and the <img> it was meant to cover. Somebody wrote the
+      # suppression, and no tool ever told them it was inert.
+      #
+      # --max-warnings 0 because the tree is at zero today. A warning budget
+      # accumulates until nobody reads the output.
+      - run: npm run lint
+
       - run: npm run build
 
       # The unit suite proves the maths; this proves the reader sees it. Every

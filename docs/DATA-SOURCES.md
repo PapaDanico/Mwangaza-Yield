@@ -236,13 +236,46 @@ claim as "nobody publishes this" — the ratio is quoted constantly in Kenyan co
    one undifferentiated map of year → number. A forecast rendered in a panel of measurements,
    beside World Bank outturns, is the dishonest kind of accurate. Filtering to years before the
    current one is a fix, but it is our inference about their data, not their labelling.
-3. **The licence is unverified.** The World Bank is CC BY 4.0, which is why it is the one source
-   here we redistribute. IMF terms have not been read — they cannot be fetched from the dev
-   sandbox — and FRED defers to the originating source, so FRED does not launder the question.
+3. **The licence.** This one was first recorded as "unverified because the dev sandbox cannot
+   reach the terms page" — which is a fact about our proxy, not about the IMF, and was the wrong
+   thing to leave in a record of why we declined. The probe now reads both terms pages on the
+   runner. See below: it changed the answer on FRED and left it genuinely open on the IMF.
 
 What is *now* known and was not before: the gap is narrower than the page implied. The World
 Bank does serve Kenya's **external debt stock** in dollars, machine-readably, under a licence we
 already rely on. What it declines is the **ratio to GDP** specifically.
+
+### 7.1 What the terms say (2026-08-05, read on the runner)
+
+**FRED does not launder the question — it answers it, and the answer is no.** Its own terms,
+quoted from the page:
+
+> As long as you don't engage in a prohibited/restricted use … you are free to use FRED for your
+> own **non-commercial, educational, and personal** uses.
+
+> Series with a **copyright notice are owned by third parties and have special restrictions**.
+> Before using data with a copyright notice for anything other than your own personal use, you
+> must **contact the data owner to obtain permission**.
+
+And among the prohibited uses:
+
+> **Redistribute any third party's proprietary content** … for commercial use without first
+> obtaining **express written permission from the data provider**.
+
+`KENGGXWDGG01GDPPT` is an IMF series carried by FRED — third-party content by FRED's own
+definition. So FRED grants us nothing here, and the permission it points at is the IMF's to give.
+That is a settled negative rather than an open question, which is a better place to be than
+before we asked.
+
+**The IMF's own terms remain unread, and the probe says so rather than guessing.**
+`imf.org/external/terms.htm` returns 200 with an effectively empty body — no extractable prose,
+so the page is presumably assembled by script. The probe distinguishes this from "the terms are
+here and mention nothing", because collapsing the two is how *"we checked"* comes to mean *"we
+failed to check"*. **Reading it needs a human with a browser.**
+
+**Net effect on the decision: unchanged, but for better reasons.** Two data grounds still stand
+on their own (disagreeing vintages, unflagged projections). The licence ground is now one
+verified prohibition and one honest unknown, instead of a sandbox error.
 
 ## 7. Monitoring and alerting
 

@@ -194,11 +194,24 @@ def report_terms() -> None:
         text = re.sub(r"<[^>]+>", " ", body)
         text = re.sub(r"\s+", " ", text).strip()
         print(f"   length : {len(text)} chars of text")
+        # Two different findings that a single "no matches" message would blur
+        # into one. An empty body means the page carries no prose we can read —
+        # a frameset, or content assembled by script — and says NOTHING about
+        # what the licence permits. A populated body with no matching sentence
+        # is a real negative: the terms are there and none of them mention
+        # redistribution. Reporting the first as though it were the second is
+        # how "we checked" comes to mean "we failed to check".
+        if len(text) < 200:
+            print("   NO READABLE TEXT — 200 with an effectively empty body.")
+            print("   This is NOT evidence about the licence. The page is likely")
+            print("   script-rendered; it must be read by a human in a browser.")
+            continue
         sentences = re.split(r"(?<=[.;])\s+", text)
         hits = [s.strip() for s in sentences
                 if any(m in s.lower() for m in markers) and 40 < len(s) < 600]
         if not hits:
-            print("   NOTHING matched the redistribution markers — read the page by hand.")
+            print("   Terms present, but no sentence mentions redistribution.")
+            print("   A real negative, not a failure to fetch — read by hand to confirm.")
             continue
         for s in hits[:12]:
             print(f"   > {s}")

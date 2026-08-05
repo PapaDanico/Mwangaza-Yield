@@ -9,10 +9,10 @@
     "lastChecked": "2026-08-05"
   },
   {
-    "id": "cpi-2026-08-03",
+    "id": "cpi-2026-08-05",
     "indicator": "CPI",
-    "value": 6.41,
-    "date": "2026-08-03",
+    "value": 6.49,
+    "date": "2026-08-05",
     "unit": "% y/y",
     "source": "CBK",
     "fallback": true,

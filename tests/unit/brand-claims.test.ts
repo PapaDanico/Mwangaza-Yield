@@ -66,10 +66,36 @@ const shipped = (src: string): string =>
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ');
 
 describe('the product does not make claims it cannot support', () => {
-  const files = execFileSync('git', ['ls-files', 'src/*.ts', 'src/*.tsx', 'public/data/*.json'], {
-    cwd: ROOT,
-    encoding: 'utf8',
-  })
+  /* `--others --exclude-standard` as well as the index, because a file that is
+   * not yet committed is exactly when this guard matters most.
+   *
+   * The scan was `git ls-files` alone, which lists only TRACKED files. A newly
+   * written page is untracked, so it was invisible: the suite ran green on a
+   * machine where the offending sentence was sitting in the working tree, and
+   * only turned red in CI after the commit made the file tracked. That is the
+   * worst possible order — the author sees green, review sees red, and the
+   * feedback arrives after the work is packaged.
+   *
+   * It happened on src/app/yield-curve/page.tsx, whose "not live market
+   * prices" disclaimer trips the pattern (the regex cannot read a negation,
+   * and loosening it to accept one would be the wrong repair — the phrase is
+   * avoidable and the guard should stay blunt).
+   *
+   * `--exclude-standard` keeps .gitignore honoured, so node_modules and out/
+   * do not enter the scan. */
+  const files = execFileSync(
+    'git',
+    [
+      'ls-files',
+      '--cached',
+      '--others',
+      '--exclude-standard',
+      'src/*.ts',
+      'src/*.tsx',
+      'public/data/*.json',
+    ],
+    { cwd: ROOT, encoding: 'utf8' }
+  )
     .split('\n')
     .filter(Boolean);
 

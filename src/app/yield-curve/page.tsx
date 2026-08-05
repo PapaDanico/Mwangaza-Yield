@@ -42,9 +42,10 @@ export default function YieldCurvePage() {
           </p>
           <h2>What this is not</h2>
           <p>
-            These are auction clearing rates, not live market prices. We publish no secondary
-            market prices, so this cannot tell you what a bond is worth to sell today — only what
-            the government paid to issue at that tenor, in that year.
+            These are auction clearing rates — what accepted bidders paid on the day the bond was
+            sold. They are not traded prices. We publish no secondary-market prices at all, so
+            this cannot tell you what a bond is worth to sell today; only what the government paid
+            to issue at that tenor, in that year.
           </p>
           <p>
             Nor is any of it a forecast. What the curve did is a matter of record; what it does

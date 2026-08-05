@@ -120,6 +120,54 @@ def probe(name: str, url: str) -> None:
               f"({len(months_seen)} distinct months).")
 
 
+def dump_table(name: str, url: str) -> None:
+    """Print the table's HEADERS and first rows, so a parser is written against
+    what is there rather than what it would be convenient for it to be.
+
+    The loose scan says the CBK inflation page carries a series. It does not
+    say WHICH series. The samples it returned descend smoothly — 5.08, 4.88,
+    4.66, 4.42 — which is the signature of a twelve-month rolling average, not
+    of a year-on-year rate that moves with the months. CBK's table carries both
+    columns, and they are different numbers answering different questions.
+
+    Picking the wrong one silently would be worse than parsing nothing: every
+    real-terms figure on the site would be computed against an average when it
+    claimed to use the annual rate, and no test could catch it because both
+    columns are plausible percentages. So the headers get read by a human
+    first, and the parser addresses columns BY NAME afterwards.
+    """
+    print(f"\n-- {name} — structure")
+    try:
+        r = requests.get(url, timeout=TIMEOUT, headers=UA)
+        r.raise_for_status()
+    except Exception as exc:  # noqa: BLE001
+        print(f"   FAILED : {type(exc).__name__}: {exc}")
+        return
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(r.text, "lxml")
+    tables = soup.find_all("table")
+    print(f"   tables : {len(tables)}")
+    for ti, table in enumerate(tables):
+        rows = table.find_all("tr")
+        print(f"\n   [table {ti}] {len(rows)} rows")
+        for ri, row in enumerate(rows[:6]):
+            cells = [c.get_text(" ", strip=True) for c in row.find_all(["th", "td"])]
+            if cells:
+                print(f"     r{ri}: {cells}")
+        if len(rows) > 6:
+            last = [c.get_text(" ", strip=True) for c in rows[-1].find_all(["th", "td"])]
+            print(f"     r{len(rows)-1} (last): {last}")
+        # Whether the table is paginated matters as much as its shape. A
+        # DataTable rendering 25 of 300 rows server-side looks complete here
+        # and silently truncates the history a parser would collect.
+        cls = " ".join(table.get("class") or [])
+        print(f"     class : {cls or '(none)'}")
+    for hint in ("dataTable", "paginate", "wp-block-table", "ajax", "sSource"):
+        if hint.lower() in r.text.lower():
+            print(f"   pagination hint present in page source: {hint!r}")
+
+
 def probe_worldbank_cpi() -> None:
     """Annual inflation from a source we already read, as the floor case."""
     url = ("https://api.worldbank.org/v2/country/KE/indicator/FP.CPI.TOTL.ZG"
@@ -161,6 +209,9 @@ def main() -> int:
         ("CBK home (what macro_parser reads today)", "https://www.centralbank.go.ke/"),
     ):
         probe(name, url)
+
+    head("1b. The one that looked like a series — what is it actually?")
+    dump_table("CBK inflation rates page", "https://www.centralbank.go.ke/inflation-rates/")
 
     head("2. KNBS — record HOW it fails, do not assume the old finding holds")
     probe("KNBS home", "https://www.knbs.or.ke/")

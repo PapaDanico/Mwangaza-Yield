@@ -23,6 +23,7 @@ const COLUMNS = [
       { href: '/dashboard/', label: 'Dashboard' },
       { href: '/tbills/', label: 'Treasury Bills' },
       { href: '/auctions/', label: 'Auction Radar' },
+      { href: '/yield-curve/', label: 'Yield curve history' },
       { href: '/learn/', label: 'Tutorials' },
       { href: '/glossary/', label: 'Plain English' },
     ],

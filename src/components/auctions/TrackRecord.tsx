@@ -46,6 +46,14 @@ export default function TrackRecord() {
   // here: this component owns its own loading state rather than the store's.
   if (!ledger) return <div className="card h-40 animate-pulse" aria-hidden="true" />;
   const s = summariseLedger(ledger);
+  const unscored = ledger.filter((p) => p.scoredOn === undefined);
+  const pending = unscored.length;
+  // The earliest auction still awaiting a result: the date a reader can come
+  // back on. `sort` over a copy — `unscored` is a fresh array, so this is safe,
+  // but the rows below sort their own copy for the same reason.
+  const nextResult = pending
+    ? [...unscored].sort((a, b) => a.auctionDate.localeCompare(b.auctionDate))[0].auctionDate
+    : null;
   const rows = [...ledger].sort((a, b) => b.auctionDate.localeCompare(a.auctionDate)).slice(0, 12);
 
   return (
@@ -69,6 +77,24 @@ export default function TrackRecord() {
               the stated range contained the actual clearing rate{' '}
               <span className="num font-semibold">{s.hitRange}</span> time{s.hitRange === 1 ? '' : 's'}
               {' '}(middle half: <span className="num">{s.hitMiddleHalf}</span>).
+            </p>
+          )}
+          {/* RECORDED BUT NOT YET SCORED — the state this card is actually in
+            * today, and stays in until the first result publishes.
+            *
+            * The component had copy for an empty ledger and copy for a scored
+            * one, and nothing for the state in between: a visitor met five rows
+            * reading "awaiting result" with no sentence telling them what they
+            * were looking at. That is the state a shared link lands on right
+            * now, which makes it the one that most needed explaining. */}
+          {s.claims === 0 && pending > 0 && (
+            <p className="mt-1.5 text-sm text-ink-soft">
+              <span className="num font-semibold">{pending}</span> range
+              {pending === 1 ? ' is' : 's are'} on the record and not yet scored — written down
+              here before bidding closed, waiting on CBK to publish what the auction actually
+              paid{nextResult ? <> (the first is due after {nextResult})</> : null}. Nothing has
+              been graded yet, so there is no hit rate to quote and none is claimed. The replay
+              below is what there is to judge in the meantime.
             </p>
           )}
           <div className="mt-3 overflow-x-auto">

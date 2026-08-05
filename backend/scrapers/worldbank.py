@@ -223,6 +223,23 @@ def scrape() -> list:
             "value": value,
             "unit": unit,
             "asOf": obs["year"],
+            # WHEN WE ASKED, as distinct from what the answer was about.
+            #
+            # `asOf` is the VINTAGE — the reference year of the observation —
+            # and it is the only date these records carried. That made a whole
+            # class of failure invisible: the healthcheck reads the newest
+            # `asOf` across the file, so two indicators with a 2025 vintage
+            # made the file look 582 days old while Interest / government
+            # revenue sat at a 2023 vintage, 1313 days, and nothing could tell
+            # whether that was the World Bank having no newer figure or our
+            # fetch for that series having quietly broken.
+            #
+            # Those are different problems with different fixes and the data
+            # could not distinguish them. `fetchedAt` can: it moves every time
+            # this scraper successfully reads the indicator, whatever vintage
+            # comes back. A stale vintage with a fresh fetchedAt is the World
+            # Bank's answer and nothing to do; a stale fetchedAt is ours.
+            "fetchedAt": date.today().isoformat(),
             "source": "World Bank Open Data (CC BY 4.0)",
             "sourceUrl": f"https://data.worldbank.org/indicator/{code}?locations=KE",
             "note": note,

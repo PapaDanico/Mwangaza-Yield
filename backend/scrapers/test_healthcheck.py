@@ -149,3 +149,111 @@ if __name__ == "__main__":
                 failures += 1
                 print(f"FAIL {name}: {exc}")
     sys.exit(1 if failures else 0)
+
+
+# ---------------------------------------------------------------------------
+# Per-indicator visibility, and the fetch-recency alarm.
+#
+# context.json holds six World Bank indicators with independent vintages, and
+# the budget reads the NEWEST date in the file. Two indicators with a 2025
+# vintage made it report 582 days old while Interest / government revenue sat
+# at 1313 — three and a half years, invisible. The guard could not fire in the
+# case it existed to detect.
+# ---------------------------------------------------------------------------
+
+from healthcheck import (  # noqa: E402
+    report_per_indicator,
+    check_fetch_recency,
+    FETCH_MAX_AGE_DAYS,
+)
+from datetime import timedelta  # noqa: E402
+
+
+def _ctx(*specs):
+    """specs are (label, vintage_year, fetched_days_ago | None)."""
+    out = []
+    for label, year, fetched in specs:
+        rec = {"id": label.lower().replace(" ", "-"), "label": label, "asOf": str(year)}
+        if fetched is not None:
+            rec["fetchedAt"] = (date.today() - timedelta(days=fetched)).isoformat()
+        out.append(rec)
+    return out
+
+
+def test_every_indicator_is_reported_not_just_the_freshest():
+    rows: list = []
+    report_per_indicator(_ctx(("New", 2025, None), ("Ancient", 2019, None)), "Ctx", rows)
+    text = "\n".join(rows)
+    assert "New" in text
+    assert "Ancient" in text, "a stale indicator must not hide behind a fresh one"
+
+
+def test_indicators_are_listed_oldest_first():
+    rows: list = []
+    report_per_indicator(
+        _ctx(("New", 2025, None), ("Ancient", 2019, None), ("Middle", 2022, None)),
+        "Ctx",
+        rows,
+    )
+    body = [r for r in rows if "d  " in r]
+    order = [r.split("d  ")[1].strip() for r in body]
+    assert order == ["Ancient", "Middle", "New"], order
+
+
+def test_reporting_raises_no_alarm_on_vintage_spread_alone():
+    # The whole reason this reports rather than alarms: those lags are mostly
+    # real, and alarming on the oldest would fire every day forever.
+    problems: list = []
+    rows: list = []
+    report_per_indicator(_ctx(("Ancient", 2015, None)), "Ctx", rows)
+    assert problems == []
+
+
+def test_absent_fetchedAt_is_unknown_not_stale():
+    # Records written before the field existed must not raise an alarm about a
+    # deployment rather than about the data.
+    problems: list = []
+    rows: list = []
+    check_fetch_recency(_ctx(("A", 2025, None)), "Ctx", problems, rows)
+    assert problems == []
+    assert any("UNKNOWN" in r for r in rows)
+
+
+def test_a_recent_fetch_is_fine_however_old_the_vintage():
+    # The point of the split: a 2015 vintage fetched today is the World Bank's
+    # answer, not our fault.
+    problems: list = []
+    rows: list = []
+    check_fetch_recency(_ctx(("Ancient", 2015, 0)), "Ctx", problems, rows)
+    assert problems == [], problems
+    assert any(r.startswith("OK") for r in rows)
+
+
+def test_a_stale_fetch_is_a_problem_however_new_the_vintage():
+    problems: list = []
+    rows: list = []
+    check_fetch_recency(_ctx(("New", 2025, FETCH_MAX_AGE_DAYS + 5)), "Ctx", problems, rows)
+    assert len(problems) == 1, problems
+    assert "our pipeline" in problems[0]
+
+
+def test_the_oldest_fetch_decides_not_the_newest():
+    # Same failure mode as the original defect, one level down: one indicator
+    # refetched today must not hide five that stopped.
+    problems: list = []
+    rows: list = []
+    check_fetch_recency(
+        _ctx(("Fresh", 2025, 0), ("Stopped", 2024, FETCH_MAX_AGE_DAYS + 30)),
+        "Ctx",
+        problems,
+        rows,
+    )
+    assert len(problems) == 1, "a stopped indicator must not hide behind a fetched one"
+
+
+def test_the_shipped_context_file_is_reported_per_indicator():
+    # Non-vacuity: run it over the real file and require more than one line.
+    payload = json.loads((DATA / "context.json").read_text())
+    rows: list = []
+    report_per_indicator(payload, "Sovereign context", rows)
+    assert len(rows) >= 4, rows

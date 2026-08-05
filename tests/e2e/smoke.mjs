@@ -81,7 +81,7 @@ function startServer() {
 
 const ROUTES = [
   '/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/calculator/',
-  '/auctions/', '/portfolio/', '/prices/', '/sell/', '/alerts/', '/sources/',
+  '/auctions/', '/yield-curve/', '/portfolio/', '/prices/', '/sell/', '/alerts/', '/sources/',
   '/learn/', '/glossary/', '/faq/', '/about/', '/support/', '/terms/',
   '/privacy/', '/disclaimer/',
 ];

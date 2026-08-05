@@ -6,6 +6,7 @@ import {
   maturityAt,
   TENOR_BUCKETS,
   CURVE_MIN_BUCKETS,
+  curveContext,
 } from '../../src/lib/yield-curve';
 import { normaliseCode, auctionKind } from '../../src/lib/auction-history';
 import type { AuctionPrint, Bond } from '../../src/types/bond';
@@ -157,5 +158,50 @@ describe('the numbers are Kenya, not noise', () => {
       expect(c.rate).toBeGreaterThan(5);
       expect(c.rate).toBeLessThan(25);
     }
+  });
+});
+
+describe('the policy rate beside each curve', () => {
+  const cbr: { date: string; rate: number }[] = JSON.parse(
+    readFileSync('public/data/cbr-history.json', 'utf8')
+  );
+
+  it('has a real CBR history to work from', () => {
+    expect(cbr.length).toBeGreaterThan(50);
+  });
+
+  it('reports the rate IN FORCE at year end, not the last decision made that year', () => {
+    // The MPC does not meet every month. A year with no decision still has a
+    // policy rate — the previous one, still standing. Treating "no decision"
+    // as "no rate" would blank most years.
+    const quiet = curveContext([2013], cbr)[0];
+    expect(quiet.cbrPct).not.toBeNull();
+  });
+
+  it('counts decisions taken during the year separately from the rate', () => {
+    const rows = curveContext(
+      [2020],
+      [
+        { date: '2019-11-25', rate: 9.0 },
+        { date: '2020-03-23', rate: 7.25 },
+        { date: '2020-04-29', rate: 7.0 },
+        { date: '2021-01-27', rate: 7.0 },
+      ]
+    )[0];
+    expect(rows.cbrPct).toBe(7.0);
+    expect(rows.decisions).toBe(2);
+    expect(rows.netMoveBps).toBe(-200);
+  });
+
+  it('is null before the history begins rather than guessing backwards', () => {
+    const early = curveContext([2000], cbr)[0];
+    expect(early.cbrPct).toBeNull();
+  });
+
+  it('covers every drawable curve year', () => {
+    // The layer is useless if it blanks on the years the chart actually draws.
+    const drawable = rows.filter((r) => r.drawable).map((r) => r.year);
+    const ctx = curveContext(drawable, cbr);
+    expect(ctx.every((c) => c.cbrPct !== null)).toBe(true);
   });
 });

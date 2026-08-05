@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowRight, RefreshCw, Info } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+import { realTerms } from '@/lib/real-terms';
 import { computeTBill, projectRollover } from '@/lib/tbills';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
@@ -11,6 +12,7 @@ import LiveResult from '@/components/shared/LiveResult';
 
 export default function TBillsPage() {
   const tbills = useBondStore((s) => s.tbills);
+  const macro = useBondStore((s) => s.macro);
   const [amount, setAmount] = useState(500_000);
   const [tenor, setTenor] = useState<number | null>(null);
   const [rolloverMonths, setRolloverMonths] = useState(12);
@@ -21,6 +23,12 @@ export default function TBillsPage() {
   const result = useMemo(
     () => (selected ? computeTBill(amount, selected.discountRate, selected.tenorDays) : null),
     [selected, amount]
+  );
+  /* Recomputed only when the net yield or the CPI print changes — not on every
+     keystroke in the amount box, which does not move either. */
+  const real = useMemo(
+    () => (result ? realTerms(result.netEAY, macro) : null),
+    [result, macro]
   );
   const rollover = useMemo(
     () => (selected ? projectRollover(amount, selected.discountRate, selected.tenorDays, rolloverMonths) : null),
@@ -91,6 +99,42 @@ export default function TBillsPage() {
           to <span className="num font-semibold text-gold-700">{formatPct(result.netEAY)}</span>.
         </p>
       </div>
+
+      {/* WHAT IS LEFT AFTER PRICES — the layer, not a curiosity.
+        *
+        * The card above ends at the net yield, which is where every figure on
+        * this site has stopped. A reader seeing 11.56% net reasonably concludes
+        * they are getting meaningfully richer; at a mid-six CPI print they are
+        * getting richer by about half that. The app already held both numbers
+        * and never put them in the same sentence — the CPI sat on the macro
+        * panel as a standalone curiosity beside the shilling.
+        *
+        * `realTerms` returns null when there is no CPI or the print is stale,
+        * and this renders nothing in that case rather than deflating by a
+        * figure it cannot stand behind. */}
+      {real && (
+        <div className="card flex gap-3 border-l-4 border-l-ink">
+          <Info size={18} className="mt-0.5 shrink-0 text-ink-soft" aria-hidden="true" />
+          <p className="text-sm leading-relaxed text-ink-soft">
+            <span className="font-semibold text-ink">And prices rose too.</span>{' '}
+            With inflation at <span className="num">{formatPct(real.inflationPct)}</span> (KNBS,{' '}
+            {real.inflationAsOf}), the {selected.tenorDays}-day bill&apos;s{' '}
+            <span className="num">{formatPct(real.netPct)}</span> net leaves{' '}
+            <span
+              className={`num font-semibold ${real.losesToInflation ? 'text-red-600' : 'text-mint-700'}`}
+            >
+              {formatPct(real.realPct)}
+            </span>{' '}
+            {real.losesToInflation
+              ? 'after prices — this bill loses you buying power.'
+              : 'in real buying power.'}{' '}
+            <span className="text-ink-faint">
+              Compounded, not subtracted: {formatPct(real.netPct)} − {formatPct(real.inflationPct)}{' '}
+              would read {formatPct(real.netPct - real.inflationPct)} and overstate it.
+            </span>
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="card space-y-4">

@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { Download } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
-import { curveRows, curveToCSV, TENOR_BUCKETS, CURVE_MIN_BUCKETS } from '@/lib/yield-curve';
+import { curveRows, curveToCSV, curveContext, TENOR_BUCKETS, CURVE_MIN_BUCKETS } from '@/lib/yield-curve';
 import DataState from '@/components/shared/DataState';
 
 /* Distinct enough to tell apart at a glance, and ordered so the most recent
@@ -30,6 +30,7 @@ const COLOURS = [
 export default function CurveHistory() {
   const bonds = useBondStore((s) => s.bonds);
   const auctionResults = useBondStore((s) => s.auctionResults);
+  const cbrHistory = useBondStore((s) => s.cbrHistory);
   const [failed, setFailed] = useState(false);
 
   const rows = useMemo(
@@ -38,6 +39,10 @@ export default function CurveHistory() {
   );
 
   const drawable = rows.filter((r) => r.drawable);
+  const context = useMemo(
+    () => curveContext(drawable.map((r) => r.year), cbrHistory),
+    [drawable, cbrHistory]
+  );
   const sparse = rows.filter((r) => !r.drawable);
 
   /* Recharts wants one object per X value with a key per series, so the shape
@@ -122,6 +127,66 @@ export default function CurveHistory() {
         median clearing rate — what accepted bidders actually got — across that year&apos;s
         auctions at that tenor.
       </p>
+
+      {/* THE POLICY RATE BESIDE THE CURVE IT RULED
+        *
+        * A curve does not move on its own, and the Central Bank Rate is the
+        * biggest published influence on it. This is the one historical context
+        * the archive can genuinely supply: 119 dated MPC decisions since 2008,
+        * against a CPI series of which we hold only today's print.
+        *
+        * Deliberately a table of two published series and no more. No
+        * correlation, no share of the move attributed to policy, nothing about
+        * what either does next. The interesting reading is the one the numbers
+        * make available on their own — that in 2023 and 2024 the short end
+        * moved considerably further than the CBR did — and stating that as a
+        * computed finding would be a model wearing the clothes of a fact. */}
+      {context.length > 0 && (
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-medium text-ink-soft hover:text-gold-700">
+            What the Central Bank was doing in each of these years
+          </summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="min-w-full whitespace-nowrap text-left text-xs">
+              <thead className="text-ink-faint">
+                <tr>
+                  <th className="py-1 pr-3 font-medium">Year</th>
+                  <th className="py-1 pr-3 font-medium">CBR at year end</th>
+                  <th className="py-1 pr-3 font-medium">Moves</th>
+                  <th className="py-1 font-medium">Net change</th>
+                </tr>
+              </thead>
+              <tbody className="text-ink-soft">
+                {context.map((c) => (
+                  <tr key={c.year} className="border-t border-sand-200">
+                    <td className="num py-1.5 pr-3 font-medium text-ink">{c.year}</td>
+                    <td className="num py-1.5 pr-3">
+                      {c.cbrPct === null ? '—' : `${c.cbrPct.toFixed(2)}%`}
+                    </td>
+                    <td className="num py-1.5 pr-3">{c.decisions}</td>
+                    <td className="num py-1.5">
+                      {c.netMoveBps === 0 ? (
+                        <span className="text-ink-faint">no change</span>
+                      ) : (
+                        <span className={c.netMoveBps > 0 ? 'text-red-600' : 'text-mint-700'}>
+                          {c.netMoveBps > 0 ? '+' : ''}
+                          {c.netMoveBps} bps
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-xs text-ink-faint">
+            The rate shown is the one in force at the end of the year, since that is what the
+            year&apos;s later auctions cleared against — a year with no MPC decision still has a
+            policy rate, the previous one. Source: CBK MPC press releases, every one of which is
+            linked from the dashboard&apos;s rate history.
+          </p>
+        </details>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button

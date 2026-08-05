@@ -1058,6 +1058,46 @@ async function main() {
   }
   if (failures.length === persistBefore) pass('capital and the hand-picked rung both survived a reload');
 
+  /* ------------------------------------- the track record fits a phone */
+  /* The ledger table was built with an `overflow-x-auto` wrapper and then
+   * allowed to wrap inside it, so it never scrolled and instead squeezed:
+   * "2026-08-24" broke into "2026-" / "08-24", and the Result column — the
+   * outcome, the entire point of the page — was pushed past the card edge on a
+   * 360px phone. Every unit test passed throughout; nothing about a hit rate
+   * is wrong, it simply could not be read.
+   *
+   * This is the shape of check that catches it: measure the scroll container
+   * against its own width, and count outcomes the browser actually paints. It
+   * runs at the suite's 390px viewport, which is where a shared link lands. */
+  console.log('\ntrack record on a phone');
+  {
+    await page.goto(BASE + '/auctions/', { waitUntil: 'networkidle' });
+    const card = page.locator('div.card', { hasText: 'Bid guidance track record' });
+    await card.waitFor({ timeout: 20000 });
+    await card.scrollIntoViewIfNeeded();
+    const box = await card
+      .locator('div.overflow-x-auto')
+      .evaluate((e) => ({ sw: e.scrollWidth, cw: e.clientWidth }));
+    if (box.sw > box.cw) {
+      fail(`track record: table overflows its card by ${box.sw - box.cw}px at 390px`);
+    }
+    const rowCount = await card.locator('tbody tr').count();
+    // offsetParent is null for a display:none ancestor, which is how the
+    // desktop-only Result column hides. Counting painted outcomes therefore
+    // proves the mobile stack took over rather than the row losing its result.
+    const painted = await card
+      .locator('tbody td')
+      .evaluateAll((tds) =>
+        tds.filter((td) => td.offsetParent !== null && /awaiting result|in range|outside/.test(td.textContent || ''))
+          .length
+      );
+    if (rowCount > 0 && painted < rowCount) {
+      fail(`track record: ${rowCount} rows but only ${painted} outcomes visible at 390px`);
+    }
+    if (rowCount === 0) fail('track record: no rows rendered — the ledger did not load');
+    pass(`all ${rowCount} ledger rows fit the card and show their outcome`);
+  }
+
   /* ------------------------------------------- keyboard focus is visible */
   /* This app had NO focus styling at all — zero matches for focus-visible or
    * focus:ring across src/ — so the indicator was whatever the browser chose,

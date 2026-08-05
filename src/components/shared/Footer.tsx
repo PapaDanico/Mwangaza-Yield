@@ -33,6 +33,7 @@ const COLUMNS = [
     links: [
       { href: '/about/', label: 'About us' },
       { href: '/sources/', label: 'Data sources' },
+      { href: '/feed/', label: 'Free rates feed' },
       { href: '/faq/', label: 'FAQs' },
       { href: '/support/', label: 'Support' },
       { href: '/licensing/', label: 'How this is funded' },

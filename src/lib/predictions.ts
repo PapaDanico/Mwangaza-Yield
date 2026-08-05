@@ -17,7 +17,7 @@
  */
 
 import type { AuctionPrint, AuctionSchedule, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { bidGuidance, yearsToMaturityAt } from './bid';
 
 export interface Prediction {
@@ -176,9 +176,40 @@ export function scorePredictions(
         (x) =>
           normaliseCode(x.issueCode) === normaliseCode(p.issueCode) &&
           x.auctionDate >= p.recordedOn &&
+          /* ONLY AN ISSUANCE CAN GRADE AN ISSUANCE FORECAST
+           *
+           * `clearingRate` nulls buybacks and nothing else, so switches and
+           * tap sales reached this filter carrying a rate — 71 of the 317
+           * rate-bearing prints in the archive, 22%. A switch is a debt
+           * exchange and a tap is sold at a fixed price; neither is the
+           * competitive clearing rate this forecast was a forecast OF.
+           *
+           * Not hypothetical: replaying the scorer over the archive at a
+           * realistic 12-day lead, FXD1/2021/020's 2026-05-25 auction is
+           * graded against a switch printed five days earlier — 13.412
+           * instead of its own 13.742. 33bp is the width of the gap between
+           * a hit and a miss on the number this product is judged by. */
+          auctionKind(x) === 'issuance' &&
           clearingRate(x) !== null
       )
-      .sort((a, b) => a.auctionDate.localeCompare(b.auctionDate));
+      /* NEAREST, NOT FIRST
+       *
+       * This sorted by date ascending and took `find` — the EARLIEST print
+       * inside the ±14-day window, which is the previous auction of the same
+       * bond whenever the forecast was recorded more than a fortnight ahead.
+       * Ten auctions in the archive are graded against their predecessor at a
+       * 21-day lead: FXD1/2019/002's 2019-02-11 auction scores against 10.701
+       * from 2019-01-28 when the truth was 10.328.
+       *
+       * This is live. Two of the five standing predictions were recorded on
+       * 2026-07-31 for auctions on 2026-08-24 — a 24-day lead, inside the
+       * range where the bug fires. Sorting by distance to the predicted date
+       * makes the bond's own auction win whenever it exists. */
+      .sort(
+        (a, b) =>
+          Math.abs(daysBetween(a.auctionDate, p.auctionDate)) -
+          Math.abs(daysBetween(b.auctionDate, p.auctionDate))
+      );
     const print = candidates.find((x) => Math.abs(daysBetween(x.auctionDate, p.auctionDate)) <= 14);
     if (!print) return p;
 

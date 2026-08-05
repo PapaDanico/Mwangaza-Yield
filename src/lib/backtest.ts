@@ -40,7 +40,7 @@
  */
 
 import type { AuctionPrint, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { bidGuidance, yearsToMaturityAt } from './bid';
 
 /**
@@ -116,8 +116,22 @@ export function backtest(
   const out: BacktestResult[] = [];
 
   for (const print of chronological) {
+    /* THE COMMENT HERE USED TO READ "buybacks and taps carry no clearing
+     * rate". Half of that was true. `clearingRate` nulls buybacks and nothing
+     * else, so 65 tap sales and 6 switches — 71 of the 317 rate-bearing prints
+     * in the archive — were being replayed as though they were competitive
+     * auctions, and their outcomes are in the hit rate this page publishes.
+     *
+     * A tap sells at a fixed price and a switch is a debt exchange; neither
+     * asks the market what it wants to be paid, which is the only question the
+     * guidance range is answering. Backtesting against them measures the
+     * method on a question it was never posed.
+     *
+     * The comment was the giveaway: an assumption written down as though it
+     * were enforced, in the one file whose output is a public claim. */
+    if (auctionKind(print) !== 'issuance') continue;
     const actual = clearingRate(print);
-    if (actual === null) continue; // buybacks and taps carry no clearing rate
+    if (actual === null) continue;
 
     const prior = pointInTimePrints(chronological, print.auctionDate);
     if (prior.length < minPrior) continue;

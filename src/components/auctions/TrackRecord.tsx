@@ -18,6 +18,26 @@ import { backtest, summariseBacktest } from '@/lib/backtest';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
 
+/**
+ * One prediction's outcome, rendered identically wherever it appears.
+ *
+ * It appears twice: in its own column on sm and up, and stacked under the
+ * stated range below that (four columns need 368px and the narrowest phones
+ * give the card 286, so the column that fell off the edge was this one — the
+ * entire point of the ledger). Two call sites, one renderer, so the mobile and
+ * desktop readings cannot drift apart.
+ */
+function Outcome({ p }: { p: Prediction }) {
+  if (p.scoredOn === undefined) {
+    return <span className="text-ink-faint">awaiting result</span>;
+  }
+  return (
+    <span className={cn('num font-semibold', p.hitRange ? 'text-mint-700' : 'text-red-600')}>
+      {p.actualRate!.toFixed(2)}% {p.hitRange ? '✓ in range' : '✗ outside'}
+    </span>
+  );
+}
+
 export default function TrackRecord() {
   const [ledger, setLedger] = useState<Prediction[] | null>(null);
   const bonds = useBondStore((s) => s.bonds);
@@ -46,6 +66,14 @@ export default function TrackRecord() {
   // here: this component owns its own loading state rather than the store's.
   if (!ledger) return <div className="card h-40 animate-pulse" aria-hidden="true" />;
   const s = summariseLedger(ledger);
+  const unscored = ledger.filter((p) => p.scoredOn === undefined);
+  const pending = unscored.length;
+  // The earliest auction still awaiting a result: the date a reader can come
+  // back on. `sort` over a copy — `unscored` is a fresh array, so this is safe,
+  // but the rows below sort their own copy for the same reason.
+  const nextResult = pending
+    ? [...unscored].sort((a, b) => a.auctionDate.localeCompare(b.auctionDate))[0].auctionDate
+    : null;
   const rows = [...ledger].sort((a, b) => b.auctionDate.localeCompare(a.auctionDate)).slice(0, 12);
 
   return (
@@ -71,41 +99,89 @@ export default function TrackRecord() {
               {' '}(middle half: <span className="num">{s.hitMiddleHalf}</span>).
             </p>
           )}
+          {/* RECORDED BUT NOT YET SCORED — the state this card is actually in
+            * today, and stays in until the first result publishes.
+            *
+            * The component had copy for an empty ledger and copy for a scored
+            * one, and nothing for the state in between: a visitor met five rows
+            * reading "awaiting result" with no sentence telling them what they
+            * were looking at. That is the state a shared link lands on right
+            * now, which makes it the one that most needed explaining. */}
+          {s.claims === 0 && pending > 0 && (
+            <p className="mt-1.5 text-sm text-ink-soft">
+              <span className="num font-semibold">{pending}</span> range
+              {pending === 1 ? ' is' : 's are'} on the record and not yet scored — written down
+              here before bidding closed, waiting on CBK to publish what the auction actually
+              paid{nextResult ? <> (the first is due after {nextResult})</> : null}. Nothing has
+              been graded yet, so there is no hit rate to quote and none is claimed. The replay
+              below is what there is to judge in the meantime.
+            </p>
+          )}
+          {/* NOWRAP, AND WHY THE SCROLL CONTAINER NEEDED IT
+            *
+            * At 390px the cells wrapped instead of scrolling: "2026-08-24"
+            * broke across two lines as "2026-" / "08-24", and "awaiting
+            * result" split in two. A date broken mid-value is not a date, and
+            * the ragged two-line rows made a five-row table look like ten.
+            *
+            * The `overflow-x-auto` wrapper was already here to handle a table
+            * wider than the card — wrapping is what stopped it ever being
+            * needed. `whitespace-nowrap` hands the job back to it: values stay
+            * whole and the table scrolls sideways if it must. `w-full` becomes
+            * `min-w-full` so the table may exceed the card rather than being
+            * squeezed into it. */}
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="min-w-full whitespace-nowrap text-left text-xs">
               <thead className="text-ink-faint">
                 <tr>
-                  <th className="py-1 pr-3 font-medium">Bond</th>
-                  <th className="py-1 pr-3 font-medium">Auction</th>
-                  <th className="py-1 pr-3 font-medium">Recorded</th>
-                  <th className="py-1 pr-3 font-medium">Stated range</th>
-                  <th className="py-1 font-medium">Result</th>
+                  <th className="py-1 pr-2 font-medium sm:pr-3">Bond</th>
+                  <th className="py-1 pr-2 font-medium sm:pr-3">Auction</th>
+                  <th className="py-1 font-medium sm:pr-3">Stated range (%)</th>
+                  <th className="hidden py-1 font-medium sm:table-cell">Result</th>
                 </tr>
               </thead>
               <tbody className="text-ink-soft">
                 {rows.map((r) => (
                   <tr key={`${r.issueCode}|${r.auctionDate}`} className="border-t border-sand-200">
-                    <td className="py-1.5 pr-3 font-medium text-ink">{r.issueCode}</td>
-                    <td className="num py-1.5 pr-3">{r.auctionDate}</td>
-                    <td className="num py-1.5 pr-3">{r.recordedOn}</td>
-                    <td className="num py-1.5 pr-3">
-                      {r.low.toFixed(2)}–{r.high.toFixed(2)}%{r.thin && (
-                        <span className="ml-1 text-ink-faint">(thin sample)</span>
-                      )}
+                    {/* RECORDED-ON MOVED UNDER THE BOND CODE, NOT DROPPED
+                      * Five columns did not fit 390px, and the one pushed off
+                      * the edge was Result — the entire point of the ledger.
+                      * The recorded-on date is the credibility artefact and
+                      * could not simply go, so it sits under the code as a
+                      * caption. Four columns fit; nothing was lost. */}
+                    <td className="py-1.5 pr-2 align-top font-medium text-ink sm:pr-3">
+                      {r.issueCode}
+                      <span className="num block text-[10px] font-normal text-ink-faint">
+                        rec. {r.recordedOn}
+                      </span>
                     </td>
-                    <td className="py-1.5">
-                      {r.scoredOn === undefined ? (
-                        <span className="text-ink-faint">awaiting result</span>
-                      ) : (
-                        <span
-                          className={cn(
-                            'num font-semibold',
-                            r.hitRange ? 'text-mint-700' : 'text-red-600'
-                          )}
-                        >
-                          {r.actualRate!.toFixed(2)}% {r.hitRange ? '✓ in range' : '✗ outside'}
+                    <td className="num py-1.5 pr-2 sm:pr-3 align-top">{r.auctionDate}</td>
+                    <td className="num py-1.5 align-top sm:pr-3">
+                      {r.low.toFixed(2)}–{r.high.toFixed(2)}
+                      {/* The thin-sample marker sat inline after the range, in
+                        * a cell that must not wrap, so it added ~75px to the
+                        * widest column and pushed the table off a phone. It is
+                        * a caveat on the range rather than part of it, so it
+                        * reads as well on its own line — and costs no width. */}
+                      {r.thin && (
+                        <span className="block whitespace-normal text-[10px] text-ink-faint">
+                          thin sample
                         </span>
                       )}
+                      {/* `whitespace-normal` deliberately re-enables wrapping
+                        * for this line and nothing else. The table-wide nowrap
+                        * exists to stop dates and rates breaking mid-value; a
+                        * scored outcome is a phrase ("16.42% ✗ outside"), and
+                        * it is longer than "awaiting result" — pixel-tuning
+                        * the column to the longest string would only hold
+                        * until the wording changed. Letting the caption wrap
+                        * fits any label at any width. */}
+                      <span className="block whitespace-normal text-[11px] sm:hidden">
+                        <Outcome p={r} />
+                      </span>
+                    </td>
+                    <td className="hidden py-1.5 align-top sm:table-cell">
+                      <Outcome p={r} />
                     </td>
                   </tr>
                 ))}

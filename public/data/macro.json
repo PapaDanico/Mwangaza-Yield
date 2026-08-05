@@ -6,7 +6,7 @@
     "date": "2026-06-09",
     "unit": "%",
     "source": "CBK MPC",
-    "lastChecked": "2026-08-04"
+    "lastChecked": "2026-08-05"
   },
   {
     "id": "cpi-2026-08-03",
@@ -16,7 +16,7 @@
     "unit": "% y/y",
     "source": "CBK",
     "fallback": true,
-    "lastChecked": "2026-08-04"
+    "lastChecked": "2026-08-05"
   },
   {
     "id": "fx-2026-07",

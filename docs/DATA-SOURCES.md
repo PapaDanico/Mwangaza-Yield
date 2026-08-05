@@ -208,6 +208,42 @@ a GitHub runner (which, unlike the dev sandbox, has unrestricted egress):
 it checks not just reachability but whether each page still contains the marker its parser
 depends on, which is how a scraper actually dies.
 
+## 7. Who actually serves Kenya's debt-to-GDP (2026-08-05)
+
+`backend/scrapers/probe_debt_sources.py`, via `workflow_dispatch` → `probe-debt-sources`.
+Run it again rather than trusting this table if the question comes back.
+
+The question arose because `/sources` states that the World Bank returns no observation for
+Kenya against `GC.DOD.TOTL.GD.ZS`. That is a claim about **one API**, and it is not the same
+claim as "nobody publishes this" — the ratio is quoted constantly in Kenyan coverage.
+
+| Candidate | Result | Reading |
+|---|---|---|
+| WB `GC.DOD.TOTL.GD.ZS` | 200, **66 rows, 0 with a value** | The claim on `/sources` is correct. Verified, not assumed. |
+| WB `GC.DOD.TOTL.CN` | 200, 66 rows, 0 with a value | Same debt as a level. Also empty. Not a workaround. |
+| WB `DT.DOD.DECT.CD` | 200, **55 values**, 2024 = US$42.886bn | External debt **stock**, not a ratio. Real data, already redistributable. |
+| WB `DT.DOD.DPPG.GD.ZS` | 200 with `Invalid value` | The code does not exist. A guess, and it was wrong. |
+| WB `DT.DOD.PVLX.GN.ZS` | 200, **1 value**, 2024 = 24.70% | Present value of external debt / GNI. One observation is a data point, not a series. |
+| IMF DataMapper `GGXWDG_NGDP/KEN` | 200, 1998–2031 (34 points) | The series everyone quotes. **Runs to 2031 — most of the tail is forecast.** |
+| FRED `KENGGXWDGG01GDPPT` | 200, keyless CSV, 2021–2026 | Redistributes the IMF series. 2025 = 68.02, 2024 = 67.34, 2023 = 73.41. |
+
+**Not wired in, and the reasons are specific rather than squeamish.**
+
+1. **The two copies of the same IMF series disagree.** FRED gives 2026 as **70.08**; the IMF's
+   own DataMapper gives **71.6**. Same series, different vintage, 1.5 points apart. Publishing
+   either without saying which vintage it is would present a version as the value.
+2. **The projections are not flagged in the payload.** The IMF ships outturns and forecasts in
+   one undifferentiated map of year → number. A forecast rendered in a panel of measurements,
+   beside World Bank outturns, is the dishonest kind of accurate. Filtering to years before the
+   current one is a fix, but it is our inference about their data, not their labelling.
+3. **The licence is unverified.** The World Bank is CC BY 4.0, which is why it is the one source
+   here we redistribute. IMF terms have not been read — they cannot be fetched from the dev
+   sandbox — and FRED defers to the originating source, so FRED does not launder the question.
+
+What is *now* known and was not before: the gap is narrower than the page implied. The World
+Bank does serve Kenya's **external debt stock** in dollars, machine-readably, under a licence we
+already rely on. What it declines is the **ratio to GDP** specifically.
+
 ## 7. Monitoring and alerting
 
 The pipeline fails in two ways, and only one is obvious.

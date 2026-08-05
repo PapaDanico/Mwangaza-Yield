@@ -92,4 +92,37 @@ describe('the sources page does not contradict the data', () => {
     expect(sources).not.toMatch(/the app has never shown one/);
     expect(sources).not.toMatch(/so we show none/);
   });
+
+  /**
+   * The page counts out loud — "Seven figures", "we ask it for eight". A number
+   * written in prose is the first thing to go stale when the data moves, and it
+   * goes stale silently: nothing renders red, the sentence just becomes untrue.
+   * So the words are checked against the file they describe.
+   */
+  const WORDS: Record<number, string> = {
+    6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine',
+  };
+
+  it('states the shipped count in words, and the words are right', () => {
+    const word = WORDS[context.length];
+    expect(word, `no word for ${context.length} indicators`).toBeTruthy();
+    expect(sources).toMatch(new RegExp(`${word} figures`));
+  });
+
+  it('states how many we ask for, and it matches the scraper', () => {
+    // The scraper's list is the ONLY place the asked-for count is authoritative.
+    // Reading it here is what makes "eight" on the page a fact rather than a
+    // recollection — add a code to INDICATORS and this fails until the page
+    // agrees.
+    const scraper = readFileSync('backend/scrapers/worldbank.py', 'utf8');
+    const block = scraper.slice(
+      scraper.indexOf('INDICATORS = ['),
+      scraper.indexOf('TIMEOUT = 60'),
+    );
+    const codes = block.match(/^\s*\("[A-Z]{2}\.[A-Z0-9.]+",/gm) ?? [];
+    expect(codes.length).toBe(context.length + KNOWN_ABSENT.length);
+    const word = WORDS[codes.length];
+    expect(word, `no word for ${codes.length} codes`).toBeTruthy();
+    expect(sources).toMatch(new RegExp(`for ${word.toLowerCase()} indicators`));
+  });
 });

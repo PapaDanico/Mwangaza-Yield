@@ -38,7 +38,7 @@ export default function SovereignContext() {
 
       {/* The agencies' answer, before our ratios.
 
-          The seven indicators below are inputs to a credit judgement; this IS
+          The indicators below are inputs to a credit judgement; this IS
           the credit judgement, made by people paid to make it. Putting it
           second would have the reader assemble a verdict from ratios while the
           published verdict sat underneath. It also guards against the way the

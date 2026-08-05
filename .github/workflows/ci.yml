@@ -415,7 +415,32 @@ jobs:
         run: python check_archive.py 2>&1 | tee archive-integrity.txt; exit "${PIPESTATUS[0]}"
 
       - name: Raise an alert
-        if: failure()
+        # WHY NOT `failure()`, WHICH IS WHAT THIS WAS
+        #
+        # Every scraper step above ends in `|| echo "failed=..." >>
+        # $GITHUB_OUTPUT`. That construction exits 0 by design, so a scraper
+        # dying can never fail the job — and the nine `outputs.failed` values
+        # this script reads were read NOWHERE ELSE. The recording mechanism
+        # disabled the only alarm that consumed it: a value written precisely
+        # so a failure would be noticed, gated behind a condition the writing
+        # of it prevents.
+        #
+        # The comment on the scraper block says "every failure is RECORDED and
+        # surfaced at the end. Silently swallowing them is how a pipeline dies
+        # unnoticed." The recording was real. The surfacing was not.
+        #
+        # Not theoretical. The World Bank scraper spent days returning 400s and
+        # correctly refusing to overwrite context.json with a collapsed set.
+        # Every one of those runs recorded `failed=worldbank` and finished
+        # green. It came to light because a human asked, not because the
+        # pipeline said anything — and context.json's freshness budget is 900
+        # days, so on the current path nothing here would have raised it for
+        # over two years.
+        #
+        # Now runs whenever the job was not cancelled and decides for itself
+        # whether there is anything worth saying, so a scraper that fails every
+        # day is heard on the first one.
+        if: ${{ !cancelled() }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -448,6 +473,14 @@ jobs:
               '${{ steps.rates.outputs.failed }}',
             ].filter(Boolean);
 
+            /* Nothing to report is the common case now that this step runs on
+             * every completed run. Returning silently is the whole point: an
+             * alert that fires daily regardless of state is the wolf-crying
+             * the freshness budgets were widened to avoid. */
+            const healthFailed = '${{ steps.health.outcome }}' === 'failure';
+            const jobFailed = '${{ job.status }}' === 'failure';
+            if (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed) return;
+
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
               '## Data pipeline needs attention',
@@ -456,7 +489,9 @@ jobs:
                 ? `**Scrapers that failed:** ${failed.join(', ')}`
                 : brokeIntegrity
                   ? '**All scrapers exited cleanly, and the archive still contradicts itself.** This is not a crash and not a freshness problem.'
-                  : '**All scrapers exited cleanly** — this is a freshness problem, not a crash.',
+                  : healthFailed
+                    ? '**All scrapers exited cleanly** — this is a freshness problem, not a crash.'
+                    : '**A pipeline step failed before the data checks ran.** No scraper recorded a failure, so look at the run itself.',
               '',
               ...(brokeIntegrity ? [
                 '**Archive contradictions** — figures the current parser produced that cannot all be true:',

@@ -95,6 +95,7 @@ jobs:
         run: |
           python discover_treasury.py --selftest
           python test_cbr_history.py
+          python test_cpi_history.py
           python test_auction_results.py
           python test_calendar_parser.py
           python test_refresh_calendar.py
@@ -295,6 +296,15 @@ jobs:
         working-directory: backend/scrapers
         run: python probe_debt_sources.py || echo "debt-source probe failed — see output above"
 
+      - name: Probe whether a CPI series exists to read
+        # Shares this job rather than getting its own because it is the same
+        # kind of question against overlapping hosts, and both logs are short
+        # enough that the tail reaches them. It runs SECOND so that a hang on
+        # CBK — which has taken thirty minutes on the validate-sources job —
+        # cannot cost us the debt answer that already works.
+        working-directory: backend/scrapers
+        run: python probe_cpi_history.py || echo "CPI-history probe failed — see output above"
+
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
     if: github.event_name == 'schedule' || inputs.test_alert || inputs.refresh_now
@@ -341,6 +351,18 @@ jobs:
         id: cbr
         working-directory: backend/scrapers
         run: python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
+      - name: Capture CBK monthly inflation history
+        # Sits beside the CBR history because it is the same shape of job on
+        # the same site: one HTML table, read by column name. Allowed to fail
+        # without aborting the run, like every other scraper here, but the
+        # failure is recorded — cpi-history.json is what makes realSeries()
+        # return anything at all, so a silent loss would put every real-terms
+        # surface back to rendering nothing.
+        if: ${{ !inputs.test_alert }}
+        timeout-minutes: 5
+        id: cpi
+        working-directory: backend/scrapers
+        run: python cpi_history_parser.py || echo "failed=cpi-history" >> "$GITHUB_OUTPUT"
       - name: Expand the bond universe from the register + auction results
         if: ${{ !inputs.test_alert }}
         timeout-minutes: 5
@@ -494,6 +516,7 @@ jobs:
               '${{ steps.calendar.outputs.failed }}',
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',
+              '${{ steps.cpi.outputs.failed }}',
               '${{ steps.predictions.outputs.failed }}',
               '${{ steps.rates.outputs.failed }}',
             ].filter(Boolean);

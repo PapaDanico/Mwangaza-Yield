@@ -79,11 +79,17 @@ export default function GoalReport({
     <div id="goal-report-sheet" className="print-only text-ink">
       <header className="flex items-start justify-between border-b-2 border-gold-500 pb-4">
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           {/* width/height attributes as well as the CSS: html2canvas paints a
               clone, and if the stylesheet has not applied there an image with
               no intrinsic size expands to its container. That is what put a
-              794px logo where the report should have been. */}
+              794px logo where the report should have been.
+
+              next/image is the wrong tool here and not merely inconvenient: it
+              emits a srcset and lazy-loads, and html2canvas photographs the
+              clone before either resolves, so the report would print with no
+              logo at all. A plain <img> is the correct element for something
+              that has to be painted synchronously into a canvas. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="" width={48} height={48} className="h-12 w-12 rounded-lg" />
           <div>
             <p className="font-display text-xl font-bold">

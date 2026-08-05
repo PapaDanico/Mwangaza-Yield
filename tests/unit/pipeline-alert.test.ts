@@ -100,3 +100,36 @@ describe('every recorded failure is wired to the alert', () => {
     }
   });
 });
+
+describe('an unchanged fault is not emailed every morning', () => {
+  /**
+   * The alert now fires on the first failing day rather than waiting for a
+   * freshness budget to breach — and these reach a human by email. Commenting
+   * on every failing run would post an identical message daily until the fault
+   * is fixed, which is how an alert becomes something you filter.
+   *
+   * An unchanged fault stays visible as an OPEN ISSUE. That is the right
+   * register for "still true", as against "just happened".
+   */
+  const alert = REFRESH.slice(REFRESH.indexOf('- name: Raise an alert'));
+
+  it('compares against the previous alert before commenting', () => {
+    expect(alert).toMatch(/listComments/);
+    expect(alert).toMatch(/if \(substance\(last \|\| ''\) === substance\(body\)\) \{/);
+  });
+
+  it('returns without commenting when nothing changed', () => {
+    const guard = alert.slice(alert.indexOf('=== substance(body)'));
+    expect(guard.slice(0, 200)).toMatch(/return;/);
+  });
+
+  it('strips the run URL before comparing, since it differs every run', () => {
+    // Without this the bodies never match and the suppression never fires —
+    // a guard that cannot fire, which is the defect this file exists for.
+    expect(alert).toMatch(/replace\(\/\^\\\[View the run\\\].*\$\/m, ''\)/);
+  });
+
+  it('still creates a fresh issue when none is open', () => {
+    expect(alert).toMatch(/issues\.create\(/);
+  });
+});

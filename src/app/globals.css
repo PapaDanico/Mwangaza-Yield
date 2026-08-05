@@ -43,6 +43,22 @@ h1, h2, h3, h4 {
  * `:where()` keeps specificity at zero, so any component that needs its own
  * treatment can override this with a plain utility and not an `!important`.
  */
+/* ── Tap targets on disclosure toggles ──
+ *
+ * WCAG 2.5.8 asks for a 24x24 CSS-pixel target. A <summary> is a real control
+ * and its box is exactly its text line — 16px at text-xs, 23px at text-sm — so
+ * every disclosure on the site was under the floor. Found by driving all 23
+ * routes in a browser and measuring, which is the only way this shows up: the
+ * markup looks fine and the element is perfectly clickable with a mouse.
+ *
+ * Padding rather than a min-height, because `min-height` on a `display: list-item`
+ * element does not move the marker with the text, and a summary that grows
+ * downward away from its own triangle looks broken. 4px top and bottom takes
+ * the smallest case to 24 and leaves the layout otherwise where it was. */
+summary {
+  padding-block: 0.25rem;
+}
+
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 3px solid theme('colors.ink.DEFAULT');
   outline-offset: 2px;

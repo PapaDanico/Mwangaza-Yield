@@ -149,6 +149,82 @@ def check_bonds_are_plausible(problems: list, rows: list) -> None:
         rows.append(f"{'OK':<9} Bond figures  {len(bonds)} bond(s), all within plausible bounds")
 
 
+# Per-indicator reporting for the multi-indicator files.
+#
+# `newest_in_field` answers "how fresh is the freshest thing here", which is the
+# right question for macro.json or tbills.json — one subject, one date. It is
+# the wrong question for context.json, which holds six World Bank indicators
+# with independent vintages, because ONE refreshed indicator hides every stale
+# one behind it. On the day this was written GDP growth and Exports/GDP carried
+# a 2025 vintage and made the file read 582 days old, while Reserves, External
+# debt and Debt service sat at 948 and Interest / government revenue at 1313 —
+# three and a half years, entirely invisible to a budget measuring the maximum.
+#
+# The fix is NOT to switch the budget to the oldest. Those lags are mostly
+# real: the World Bank genuinely may not publish a recent figure for every
+# series, and alarming on the oldest would fire every day forever, which is the
+# wolf-crying the 900-day budget was widened to avoid in the first place.
+#
+# So this reports rather than alarms. The spread becomes visible in every
+# health report — which is all that was needed for a human to have spotted it —
+# and the alarm stays on `fetchedAt`, which is ours to be responsible for.
+def report_per_indicator(payload, label: str, rows: list) -> None:
+    if not isinstance(payload, list) or not payload:
+        return
+    today = date.today()
+    aged: list[tuple[int, str]] = []
+    for rec in payload:
+        if not isinstance(rec, dict):
+            continue
+        when = parse_day(rec.get("asOf"))
+        if when is None or when > today:
+            continue
+        aged.append(((today - when).days, str(rec.get("label") or rec.get("id"))))
+    if not aged:
+        return
+    aged.sort(reverse=True)
+    rows.append(f"{'':<9} {label} — vintage by indicator, oldest first:")
+    for days, name in aged:
+        rows.append(f"{'':<9}   {days:>5}d  {name}")
+
+
+# Whether OUR fetch is current, which is a different question from whether the
+# world has newer data. See the fetchedAt comment in worldbank.py: a stale
+# vintage with a fresh fetchedAt is the World Bank's answer and nothing to do;
+# a stale fetchedAt means this pipeline stopped asking, and that is a fault.
+#
+# Records written before fetchedAt existed do not carry it. Those are reported
+# as unknown rather than counted as stale, because treating an absent field as
+# a failure would raise an alarm about a deployment rather than about the data.
+FETCH_MAX_AGE_DAYS = 7
+
+
+def check_fetch_recency(payload, label: str, problems: list, rows: list) -> None:
+    if not isinstance(payload, list) or not payload:
+        return
+    today = date.today()
+    stamped = [r for r in payload if isinstance(r, dict) and r.get("fetchedAt")]
+    if not stamped:
+        rows.append(f"{'UNKNOWN':<9} {label} fetch age — no fetchedAt yet (written before it existed)")
+        return
+    oldest: int | None = None
+    for rec in stamped:
+        when = parse_day(rec["fetchedAt"])
+        if when is None or when > today:
+            continue
+        age = (today - when).days
+        oldest = age if oldest is None or age > oldest else oldest
+    if oldest is None:
+        return
+    status = "STALE" if oldest > FETCH_MAX_AGE_DAYS else "OK"
+    rows.append(f"{status:<9} {label} last fetched {oldest}d ago (max {FETCH_MAX_AGE_DAYS}d)")
+    if oldest > FETCH_MAX_AGE_DAYS:
+        problems.append(
+            f"{label}: our last successful fetch was {oldest} days ago, budget "
+            f"{FETCH_MAX_AGE_DAYS}d — this is our pipeline, not the source's lag"
+        )
+
+
 def main() -> None:
     today = date.today()
     problems: list[str] = []
@@ -184,6 +260,10 @@ def main() -> None:
             problems.append(f"{label}: no usable '{field}' in {filename}")
             rows.append(f"{'NO DATE':<9} {label}")
             continue
+
+        if filename == "context.json":
+            report_per_indicator(payload, label, rows)
+            check_fetch_recency(payload, label, problems, rows)
 
         age = (today - newest).days
         status = "STALE" if age > max_age else "OK"

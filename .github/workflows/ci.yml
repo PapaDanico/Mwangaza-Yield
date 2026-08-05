@@ -521,10 +521,41 @@ jobs:
             });
 
             if (existing.data.length) {
-              // Comment on the open alert rather than stacking duplicates.
+              const issue_number = existing.data[0].number;
+
+              /* SAY IT ONCE, NOT ONCE A DAY.
+               *
+               * This commented on every failing run. That was survivable while
+               * the alert was gated on `failure()` and so almost never fired —
+               * the gate the scraper recording itself prevented. Now that it
+               * fires on the FIRST failing day, an unchanged fault would post
+               * an identical comment every morning, and these reach a human by
+               * email. Thirty identical emails about one broken scraper is how
+               * an alert becomes something you filter, which is the failure
+               * this whole file keeps arguing against.
+               *
+               * So: post only when the situation has CHANGED. The run URL is
+               * stripped before comparing because it differs every run and is
+               * not news; everything else — which scrapers failed, what is
+               * stale, what contradicts — is the substance. An unchanged fault
+               * stays visible as an OPEN ISSUE, which is the right register
+               * for "still true" as against "just happened". */
+              const substance = (t) => t.replace(/^\[View the run\].*$/m, '').trim();
+              const priorComments = await github.rest.issues.listComments({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number, per_page: 100,
+              });
+              const mine = priorComments.data.filter((c) => c.user?.type === 'Bot');
+              const last = mine.length ? mine[mine.length - 1].body : existing.data[0].body;
+
+              if (substance(last || '') === substance(body)) {
+                core.info('Alert unchanged since the last run — not commenting again.');
+                return;
+              }
+
               await github.rest.issues.createComment({
                 owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: existing.data[0].number, body,
+                issue_number, body,
               });
             } else {
               await github.rest.issues.create({

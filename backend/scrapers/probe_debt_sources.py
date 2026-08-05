@@ -144,6 +144,68 @@ def report_fred() -> None:
         print(f"   csv    : {ln}")
 
 
+def report_terms() -> None:
+    """The condition that failed for the least defensible reason.
+
+    Three things had to hold before an IMF figure could ship. Two failed on the
+    data itself: two copies of the series disagree by 1.5 points on 2026, and
+    outturns arrive undifferentiated from forecasts running to 2031. Those are
+    honest grounds to decline.
+
+    The third — "the licence is unread" — failed only because the terms page
+    cannot be fetched from the development sandbox, where the gateway answers
+    403 to CONNECT. That is a fact about our proxy, not about the IMF, and
+    declining to publish on the strength of it would be dressing an obstacle up
+    as a finding. This runner can reach the page, so it reads it.
+
+    It prints what the page SAYS about redistribution rather than a verdict.
+    A licence decision is not a scraper's to make, and a probe that answered
+    "yes, we may republish" would be the one part of this file worth
+    distrusting.
+    """
+    for name, url, markers in (
+        (
+            "IMF terms and conditions",
+            "https://www.imf.org/external/terms.htm",
+            ("redistribut", "reproduc", "commercial", "attribut", "copyright",
+             "creative commons", "permission"),
+        ),
+        (
+            "FRED terms of use",
+            "https://fred.stlouisfed.org/legal/",
+            ("copyright", "third party", "redistribut", "permission", "source"),
+        ),
+    ):
+        status, body, err = get(url)
+        print(f"\n-- {name}")
+        print(f"   url    : {url}")
+        if err:
+            print(f"   FAILED : {err}")
+            continue
+        print(f"   status : {status}")
+        if status != 200 or not body:
+            continue
+        # Crude, and deliberately so: strip tags, then quote every sentence
+        # carrying a word that bears on republishing. Summarising a licence is
+        # how a licence gets misread — the sentences go in the log verbatim so
+        # a human reads the source's own words.
+        import re
+
+        text = re.sub(r"<[^>]+>", " ", body)
+        text = re.sub(r"\s+", " ", text).strip()
+        print(f"   length : {len(text)} chars of text")
+        sentences = re.split(r"(?<=[.;])\s+", text)
+        hits = [s.strip() for s in sentences
+                if any(m in s.lower() for m in markers) and 40 < len(s) < 600]
+        if not hits:
+            print("   NOTHING matched the redistribution markers — read the page by hand.")
+            continue
+        for s in hits[:12]:
+            print(f"   > {s}")
+        if len(hits) > 12:
+            print(f"   ... {len(hits) - 12} further matching sentences not shown")
+
+
 def main() -> int:
     head("Does anybody serve Kenya's debt-to-GDP in a form software can parse?")
     print("Writes nothing. Reports what each candidate actually answers.")
@@ -166,6 +228,9 @@ def main() -> int:
 
     head("3. FRED, which redistributes the IMF series without a key")
     report_fred()
+
+    head("4. What the terms actually say about republishing")
+    report_terms()
 
     head("Read this before wiring anything in")
     print(

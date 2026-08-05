@@ -182,3 +182,63 @@ export function curveToCSV(rows: CurveYear[]): string {
   }
   return lines.join('\n') + '\n';
 }
+
+/**
+ * The policy rate that ruled each year, beside the curve that year produced.
+ *
+ * A yield curve does not move on its own. The Central Bank Rate is the single
+ * biggest published influence on it, and the site holds 119 dated MPC decisions
+ * back to December 2008 — a genuine history, unlike inflation, of which it
+ * holds only the current print.
+ *
+ * Pairing them turns a stack of curves into an explanation: 2023 and 2024 sit
+ * high and inverted, and the CBR beside them says why. It also shows where the
+ * story is NOT that simple, which is the more interesting half — the short end
+ * moved further than policy did.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO
+ * ----------------------------------
+ * It does not attribute. No correlation is computed, no share of the move is
+ * assigned to policy, and nothing is said about what either does next. It puts
+ * two published, dated series side by side and leaves the reading to the
+ * reader. Anything more would be a model wearing the clothes of a fact.
+ *
+ * The figure quoted is the CBR in force at the END of the year, since that is
+ * the rate the year's later auctions actually cleared against. Where a year
+ * holds no decision, the last decision before it still stands — that is how a
+ * policy rate works, and carrying it forward is not interpolation.
+ */
+export interface CurveYearContext {
+  year: number;
+  /** CBR in force at year end, or null before the history begins. */
+  cbrPct: number | null;
+  /** Decisions taken during the year, and the net move in basis points. */
+  decisions: number;
+  netMoveBps: number;
+}
+
+export function curveContext(
+  years: number[],
+  cbr: { date: string; rate: number }[]
+): CurveYearContext[] {
+  const dated = cbr
+    .filter((d) => typeof d.date === 'string' && Number.isFinite(d.rate))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return years.map((year) => {
+    const end = `${year}-12-31`;
+    const start = `${year}-01-01`;
+    // Last decision on or before year end — the rate actually in force, which
+    // is not the same as the last decision made IN the year.
+    let inForce: number | null = null;
+    let atStart: number | null = null;
+    for (const d of dated) {
+      if (d.date <= end) inForce = d.rate;
+      if (d.date < start) atStart = d.rate;
+    }
+    const during = dated.filter((d) => d.date >= start && d.date <= end);
+    const netMoveBps =
+      inForce !== null && atStart !== null ? Math.round((inForce - atStart) * 100) : 0;
+    return { year, cbrPct: inForce, decisions: during.length, netMoveBps };
+  });
+}

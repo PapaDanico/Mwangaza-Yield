@@ -323,7 +323,11 @@ export default function LearnPage() {
             <div className="mt-3 space-y-3 text-sm leading-relaxed text-ink-soft">{l.body}</div>
             <Link
               href={l.cta.href}
-              className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-700 underline-offset-2 hover:underline"
+              /* min-h-6 (24px) for WCAG 2.5.8. This is a standalone call to
+                 action, not a link inside a sentence, so the inline exception
+                 does not cover it — measured at 20px when every route was
+                 driven in a browser. */
+              className="mt-4 inline-flex min-h-6 items-center gap-1.5 text-sm font-semibold text-gold-700 underline-offset-2 hover:underline"
             >
               {l.cta.label} <ArrowRight size={14} />
             </Link>

@@ -180,7 +180,10 @@ export default function SourcesPage() {
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     {/* A source we take nothing from gets no outbound link. */}
                     {s.url ? (
-                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="font-display font-semibold text-ink">
+                      /* inline-flex + min-h-6: this is the card's own heading
+                         link, a standalone target rather than a link inside a
+                         sentence, and it measured 23px. */
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center font-display font-semibold text-ink">
                         {s.name}
                       </a>
                     ) : (

@@ -270,6 +270,31 @@ jobs:
         working-directory: backend/scrapers
         run: python probe_multibond.py || echo "multi-bond probe failed — see output above"
 
+  probe-debt-sources:
+    # Alone, and dispatch-only, for the reason probe-multibond is: a diagnostic
+    # sharing a job with network-bound neighbours is a diagnostic one hung host
+    # away from never being read.
+    #
+    # It exists because the question cannot be answered from a development
+    # container. The sandbox's gateway answers 403 to CONNECT for every one of
+    # these hosts, so a local probe reports the proxy's policy rather than the
+    # source's. This runner has real egress; the answer it prints is about the
+    # World Bank, the IMF and FRED, which is the answer we actually need.
+    #
+    # It writes nothing and commits nothing. Read the log, then decide.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt
+      - name: Probe who serves Kenya debt-to-GDP in a machine-readable form
+        working-directory: backend/scrapers
+        run: python probe_debt_sources.py || echo "debt-source probe failed — see output above"
+
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
     if: github.event_name == 'schedule' || inputs.test_alert || inputs.refresh_now

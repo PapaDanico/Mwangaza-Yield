@@ -118,6 +118,15 @@ export default function DemandRecord() {
       )}
 
       <Explain label="How this is counted, and what it cannot tell you">
+        Only issuances — auctions where the government asks the market for cash. Tap sales
+        are sold at a fixed price, switches exchange one bond for another, and in a buyback
+        the Treasury is the buyer; none of them has a cover ratio, because none of them is
+        the market saying how much it wanted at a price. That is not a detail: including
+        them put the recent median at 1.13x and counted 6 of 12 auctions as undersubscribed,
+        against {x(s.medianSubscription)} and {s.undersubscribed} of {s.recent.length} on
+        issuances alone. If you reproduce this from CBK&apos;s own documents and get a lower
+        figure, this is why.
+        {' '}
         One row per auction document, not per bond. The offered amount is an auction-level
         figure that CBK repeats against every bond in a multi-bond sale, so dividing one
         bond&apos;s bids by it understates demand and counts the same auction twice — the 27 July
@@ -130,9 +139,10 @@ export default function DemandRecord() {
         {' '}
         The basis-point gap is the market weighted average rate minus the weighted average
         of accepted bids, both published by CBK, on sales only — in a buyback the government
-        is the buyer and the gap runs the other way. It could not be measured before today:
-        the parser had been reading the market row into both fields, so every gap was exactly
-        zero in all 244 records that carried them.
+        is the buyer and the gap runs the other way. It went unmeasured for a long time: the
+        parser read the market row into both fields, so every gap was exactly zero across all
+        244 records that carried them, and a column of zeroes looked like agreement rather
+        than a bug.
         {' '}
         Median of the last {RECENT_AUCTIONS} auctions, shown beside the all-time median because
         one number alone is either too old or too thin. It is a record of demand that has

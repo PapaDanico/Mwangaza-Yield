@@ -97,6 +97,21 @@ export default function TrackRecord() {
               the stated range contained the actual clearing rate{' '}
               <span className="num font-semibold">{s.hitRange}</span> time{s.hitRange === 1 ? '' : 's'}
               {' '}(middle half: <span className="num">{s.hitMiddleHalf}</span>).
+              {/* THE MIXED STATE — some scored, some still open.
+                * Found by dry-running the 12 August scoring: the summary read
+                * "Of 4 scored predictions" while the table showed five rows,
+                * and the fifth's "awaiting result" had no explanation, because
+                * the pending copy above is gated on nothing having scored yet.
+                * A reader counting rows against the sentence is owed the
+                * difference. */}
+              {pending > 0 && (
+                <>
+                  {' '}
+                  <span className="num">{pending}</span> more{' '}
+                  {pending === 1 ? 'is' : 'are'} on the record and still waiting on CBK to
+                  publish.
+                </>
+              )}
             </p>
           )}
           {/* RECORDED BUT NOT YET SCORED — the state this card is actually in

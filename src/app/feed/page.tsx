@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Prose from '@/components/shared/Prose';
 import FeedSnippets from '@/components/feed/FeedSnippets';
+import { refreshCadence } from '@/lib/data-freshness';
 
 /**
  * The feed, made findable.
@@ -22,7 +23,7 @@ import FeedSnippets from '@/components/feed/FeedSnippets';
 export const metadata: Metadata = {
   title: 'Free Kenyan rates feed — Mwangaza Yield',
   description:
-    'A free, CORS-open JSON and CSV feed of Kenyan Treasury bill yields, central bank rate, inflation and bond auction benchmarks — computed daily from published CBK and National Treasury releases.',
+    'A free, CORS-open JSON and CSV feed of Kenyan Treasury bill yields, central bank rate, inflation and bond auction benchmarks — computed from published CBK and National Treasury releases.',
 };
 
 export default function FeedPage() {
@@ -34,7 +35,8 @@ export default function FeedPage() {
       >
         <p>
           Everything this site computes from public Central Bank of Kenya and National Treasury
-          releases is published as a feed. It refreshes daily, it needs no key, and it sets{' '}
+          releases is published as a feed. It refreshes {refreshCadence()}, it needs no key, and it
+          sets{' '}
           <code>Access-Control-Allow-Origin: *</code> so a browser on your own domain can read it
           directly.
         </p>

@@ -143,3 +143,37 @@ export function freshnessNotice(f: Freshness): string | null {
     `indicative and check the Central Bank's own published results before acting on it.`
   );
 }
+
+
+/**
+ * The schedule in words, derived rather than written down.
+ *
+ * Three places on the site described the refresh cadence in prose: the home
+ * page said "Refreshed every weekday", the feed page said "It refreshes
+ * daily", and the feed's own meta description said "computed daily". All three
+ * were true when written and all three were made false by one line changing in
+ * ci.yml — by me, in the commit that moved the schedule to twice a day, Monday
+ * to Saturday. Saturday is not a weekday and twice is not daily.
+ *
+ * That is the same defect this session has been removing everywhere else: a
+ * claim on a page contradicted by the thing it describes. Replacing one
+ * hardcoded string with another only resets the clock on it, so the sentence
+ * is generated from the constants the cron test already pins to ci.yml. The
+ * chain is then: cron -> constants (tested) -> prose (derived), and no link in
+ * it can drift silently.
+ */
+export function refreshCadence(): string {
+  const times = REFRESH_HOURS_UTC.length;
+  const days = REFRESH_DAYS_UTC.length;
+  const perDay =
+    times === 1 ? 'once a day'
+      : times === 2 ? 'twice a day'
+        : `${times} times a day`;
+  const span =
+    days === 7 ? 'every day'
+      : days === 6 && !REFRESH_DAYS_UTC.includes(0) ? 'Monday to Saturday'
+        : days === 5 && !REFRESH_DAYS_UTC.includes(0) && !REFRESH_DAYS_UTC.includes(6)
+          ? 'every weekday'
+          : `on ${days} days a week`;
+  return `${perDay}, ${span}`;
+}

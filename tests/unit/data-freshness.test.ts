@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  missedRuns, freshness, freshnessNotice, QUIET_MISSES,
+  missedRuns, freshness, freshnessNotice, refreshCadence, QUIET_MISSES,
   REFRESH_HOURS_UTC, REFRESH_DAYS_UTC,
 } from '../../src/lib/data-freshness';
 
@@ -143,5 +143,26 @@ describe('freshnessNotice', () => {
     expect(note).toContain('2026-08-05');
     expect(note).toMatch(/check the Central Bank/);
     expect(note).toMatch(/indicative/);
+  });
+});
+
+describe('refreshCadence', () => {
+  it('describes the schedule the constants actually hold', () => {
+    expect(refreshCadence()).toBe('twice a day, Monday to Saturday');
+  });
+
+  it('never says "weekday" while Saturday is scheduled', () => {
+    // The home page said "Refreshed every weekday" and the cron change made it
+    // false. Deriving the words is the fix; this asserts the derivation cannot
+    // reproduce the original error.
+    if (REFRESH_DAYS_UTC.includes(6)) {
+      expect(refreshCadence()).not.toMatch(/weekday/);
+    }
+  });
+
+  it('never says "once" while two runs are scheduled', () => {
+    if (REFRESH_HOURS_UTC.length > 1) {
+      expect(refreshCadence()).not.toMatch(/once a day/);
+    }
   });
 });

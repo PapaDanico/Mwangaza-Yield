@@ -23,12 +23,21 @@
  *
  * WHY MISSED RUNS, NOT DAYS OLD
  * -----------------------------
- * The refresh is scheduled `0 3 * * 1-5` — weekdays only. So on a Sunday
- * evening the newest data is legitimately two and a half days old, and by
- * Monday 02:59 UTC it is nearly three. A plain "3 days old" threshold would
- * cry wolf every single weekend, which is how a warning becomes something
- * readers learn to scroll past — the exact wolf-crying the context.json budget
- * was widened to avoid.
+ * The refresh is scheduled `0 3,15 * * 1-6` — twice a day, Monday to Saturday.
+ * Sunday is deliberately excluded because nothing this project reads publishes
+ * then. So on a Sunday evening the newest data is legitimately over a day old,
+ * and by Monday 02:59 UTC it is around 36 hours. A plain "1 day old" threshold
+ * would cry wolf every single weekend, which is how a warning becomes
+ * something readers learn to scroll past — the exact wolf-crying the
+ * context.json budget was widened to avoid.
+ *
+ * THIS MUST TRACK ci.yml. The schedule below is a copy of the cron expression,
+ * and a copy is a thing that goes out of date. It was nearly wrong the moment
+ * it was written: the cron changed from `0 3 * * 1-5` to twice-daily in the
+ * same commit that introduced this file, and leaving the old shape here would
+ * have had the banner under-count missed runs — a check made wrong by the fix
+ * standing next to it. `schedule-matches-workflow.test.ts` parses ci.yml and
+ * fails if the two ever diverge again.
  *
  * Counting SCHEDULED RUNS THAT SHOULD HAVE HAPPENED AND DID NOT is both
  * quieter and more informative. Zero missed is silence. It also states a fact a
@@ -37,8 +46,11 @@
 
 import meta from '../../public/data/meta.json';
 
-/** UTC hour of the scheduled refresh; `0 3 * * 1-5` in ci.yml. */
-export const REFRESH_HOUR_UTC = 3;
+/** UTC hours of the scheduled refresh; `0 3,15 * * 1-6` in ci.yml. */
+export const REFRESH_HOURS_UTC = [3, 15];
+
+/** Days the refresh runs, as getUTCDay() values: Monday(1) to Saturday(6). */
+export const REFRESH_DAYS_UTC = [1, 2, 3, 4, 5, 6];
 
 /**
  * One missed run is tolerated in silence.
@@ -60,9 +72,8 @@ export interface Freshness {
   stale: boolean;
 }
 
-function isWeekday(d: Date): boolean {
-  const day = d.getUTCDay();
-  return day >= 1 && day <= 5;
+function isScheduledDay(d: Date): boolean {
+  return REFRESH_DAYS_UTC.includes(d.getUTCDay());
 }
 
 /**
@@ -82,20 +93,23 @@ export function missedRuns(since: Date, now: Date): number {
   // return looked defensive and was dead — no test could tell the two apart,
   // which is the definition of a line that is not doing anything.
   let missed = 0;
-  const cursor = new Date(Date.UTC(
-    since.getUTCFullYear(), since.getUTCMonth(), since.getUTCDate(),
-    REFRESH_HOUR_UTC, 0, 0, 0,
+  // Walk day by day and check each scheduled hour within it. Bounded so a
+  // corrupt stamp cannot spin: 400 days is longer than this project has
+  // existed and far past the point where the count means anything.
+  const day = new Date(Date.UTC(
+    since.getUTCFullYear(), since.getUTCMonth(), since.getUTCDate(), 0, 0, 0, 0,
   ));
-  // A run at or before `since` is the one that produced this data, not a
-  // missed one.
-  if (cursor <= since) cursor.setUTCDate(cursor.getUTCDate() + 1);
-
-  // Bounded so a corrupt future/past stamp cannot spin: 400 days is longer
-  // than this project has existed and far past the point where the count
-  // stops meaning anything.
-  for (let guard = 0; guard < 400 && cursor <= now; guard += 1) {
-    if (isWeekday(cursor)) missed += 1;
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  for (let guard = 0; guard < 400 && day <= now; guard += 1) {
+    if (isScheduledDay(day)) {
+      for (const hour of REFRESH_HOURS_UTC) {
+        const run = new Date(day.getTime());
+        run.setUTCHours(hour, 0, 0, 0);
+        // A run at or before `since` is the one that produced this data, or
+        // an older one — not a miss.
+        if (run > since && run <= now) missed += 1;
+      }
+    }
+    day.setUTCDate(day.getUTCDate() + 1);
   }
   return missed;
 }

@@ -29,14 +29,45 @@ def scrape() -> list:
     records = []
 
     cbk = fetch_text("https://www.centralbank.go.ke/")
+
+    # WHY EXTRACTION FAILURE IS REPORTED SEPARATELY FROM CARRY-FORWARD
+    #
+    # carry_forward already prints when an indicator is preserved, and it did:
+    # "[macro] carrying forward FX_USD_KES from 2026-07-20" appeared on every
+    # run for eighteen days while USD/KES — a rate CBK publishes every trading
+    # day — sat frozen on the dashboard. Nobody read it, because a line in a
+    # green job's log is not an alarm.
+    #
+    # Two failures produce that identical line and want opposite responses.
+    # If the PAGE WAS UNREACHABLE, waiting is correct: the next run fixes it.
+    # If the page loaded and the PATTERN NO LONGER MATCHES, waiting fixes
+    # nothing — CBK has changed its markup and the scraper needs editing. This
+    # says which, so the next person to look does not have to guess.
+    #
+    # The alarm itself now lives in healthcheck.py's per-indicator budgets,
+    # where a stale FX can no longer hide behind a fresh CPI.
+    missed: list[str] = []
+
     cbr = re.search(r"Central Bank Rate[\s\S]{0,80}?([\d.]+)\s*%", cbk, re.I)
     if cbr:
         records.append({"id": f"cbr-{today}", "indicator": "CBR", "value": float(cbr.group(1)),
                         "date": today, "unit": "%", "source": "CBK"})
+    else:
+        missed.append("CBR")
+
     fx = re.search(r"(?:USD|US Dollar)[\s\S]{0,60}?(\d{2,3}\.\d+)", cbk)
     if fx:
         records.append({"id": f"fx-{today}", "indicator": "FX_USD_KES", "value": float(fx.group(1)),
                         "date": today, "unit": "KES/USD", "source": "CBK"})
+    else:
+        missed.append("FX_USD_KES")
+
+    if missed:
+        print(
+            f"[macro] PAGE LOADED ({len(cbk)} chars) BUT NO MATCH for {', '.join(missed)} — "
+            f"this is a changed CBK layout, not an outage, and waiting will not fix it",
+            file=sys.stderr,
+        )
 
     # KNBS first; CBK publishes the same headline CPI and is the fallback.
     # `fallback` is carried as its own field rather than smuggled into the

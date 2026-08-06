@@ -5,7 +5,29 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: '0 3 * * 1-5' # 6am EAT, weekdays
+    # 6am and 6pm EAT, Monday to Saturday.
+    #
+    # WHY TWICE, AND WHY SATURDAY
+    #
+    # One 6am run means every figure is up to a full DAY behind, and the lag
+    # lands worst exactly where it matters most. CBK auctions Treasury bills on
+    # Thursday and publishes results that evening; a 6am-only schedule reads
+    # them on Friday morning, so the site shows last week's rates for the whole
+    # of Thursday — the day a reader deciding whether to bid is most likely to
+    # look. The 6pm run reads them the same evening.
+    #
+    # The same applies to the indicative USD/KES rate, which CBK republishes
+    # every trading day, and to bond auction results, which land in the
+    # afternoon.
+    #
+    # Saturday exists because Friday afternoon publications otherwise wait
+    # until Monday 6am — up to 62 hours, over a weekend when nothing else on
+    # the site changes to hint that the figures have not.
+    #
+    # Sunday is deliberately left out: nothing this project reads is published
+    # on a Sunday, and a run that can only ever find nothing is a run whose
+    # failures are pure noise.
+    - cron: '0 3,15 * * 1-6'
   workflow_dispatch:
     inputs:
       validate_only:

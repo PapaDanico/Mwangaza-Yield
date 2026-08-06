@@ -24,7 +24,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from cpi_history_parser import parse, corroborates, WANTED_COL, DECOY_COL  # noqa: E402
+from cpi_history_parser import (  # noqa: E402
+    parse, corroborates, latest_month, WANTED_COL, DECOY_COL,
+)
 
 HEADER = ("<tr><th>Year</th><th>Month</th><th>Annual Average Inflation</th>"
           "<th>12-Month Inflation</th></tr>")
@@ -124,6 +126,43 @@ def main() -> int:
           "corroboration accepted the DECOY value — it is not checking anything")
     check(not corroborates(rows, 6.49, "2019-03"),
           "corroboration returned true for a month that is not present")
+
+    # THE ASSERTION THIS SUITE DID NOT HAVE, AND THE BUG IT WOULD HAVE CAUGHT.
+    #
+    # Every test above checked that corroboration REJECTS wrong things. None
+    # checked that the caller feeds it a month that exists. So main() passed
+    # today's month, CBK's table lags by one, and a completely correct series
+    # printed "DISAGREES — one of the two reads the wrong column" on every run.
+    #
+    # A guard that fires on every healthy run is as useless as one that cannot
+    # fire: the reader learns to skip it, and it is silent-by-habit on the day
+    # it matters. So the healthy path is now asserted as explicitly as the
+    # failing ones.
+    newest = latest_month(rows)
+    check(newest == "2026-07", f"latest_month should be 2026-07, got {newest}")
+    check(corroborates(rows, 6.49, newest),
+          "a correct series reports disagreement against its own newest month")
+
+    # And the specific trap: the month AFTER the newest must not be what we ask
+    # about. This is the state that shipped.
+    check(not corroborates(rows, 6.49, "2026-08"),
+          "fixture unexpectedly contains 2026-08 — this trap no longer tests anything")
+
+    check(latest_month([]) is None, "latest_month should be None for an empty series")
+
+    # fetchedAt: the field that separates "CBK published nothing newer" from
+    # "our scraper stopped". Both are a series whose newest row is last month.
+    check(all(r.get("fetchedAt") for r in rows), "a row carries no fetchedAt")
+    # A date that can never be today. The first version of this assertion used
+    # 2026-08-06 — which WAS the day it was written, so it passed whether or not
+    # the argument was honoured, and mutation testing caught it passing against
+    # a parser that ignored the parameter entirely. A fixture value that
+    # coincides with the environment tests the environment, not the code.
+    stamped = parse(PAGE, fetched_at="1999-01-01")
+    check(all(r["fetchedAt"] == "1999-01-01" for r in stamped),
+          "fetched_at argument was ignored")
+    check(stamped[-1]["date"] == "2026-07-01",
+          "fetchedAt must not be confused with the month the figure describes")
 
     if FAILURES:
         print(f"\n{len(FAILURES)} CPI history parser test(s) FAILED:", file=sys.stderr)

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
 import EvidenceStrip from '@/components/landing/EvidenceStrip';
+import { refreshCadence } from '@/lib/data-freshness';
 
 const features = [
   { Icon: Calculator, title: 'What you actually earn', desc: 'Enter what you would pay and see the return after tax — the figure that reaches your bank account, not the one on the poster.' },
@@ -66,7 +67,7 @@ export default function LandingPage() {
           {/* Trust markers, per the brand board's poster footer */}
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-sand-300 pt-5">
             {[
-              { Icon: RefreshCw, label: 'Refreshed every weekday' },
+              { Icon: RefreshCw, label: `Refreshed ${refreshCadence()}` },
               { Icon: Landmark, label: 'Official CBK figures' },
               { Icon: Users, label: 'For ordinary savers' },
               { Icon: BarChart3, label: 'Every source named' },

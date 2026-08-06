@@ -37,6 +37,9 @@ OPTIONAL_IF_EMPTY = {"secondary.json"}
 # (filename, human name, date field, max age in days, why that budget)
 BUDGETS = [
     ("meta.json", "Pipeline last ran", "generatedAt", 7, "refresh runs every weekday"),
+    # The file-level budget is the BACKSTOP now, not the check. See
+    # PER_INDICATOR_BUDGETS below: macro.json holds five indicators on wholly
+    # different cadences and a single number cannot police them.
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
     # Secondary trades are OPTIONAL_IF_EMPTY (see below). This file is empty
@@ -202,6 +205,83 @@ def report_per_indicator(payload, label: str, rows: list) -> None:
         rows.append(f"{'':<9}   {days:>5}d  {name}")
 
 
+# PER-INDICATOR BUDGETS FOR macro.json, AND THE BUG THAT FORCED THEM
+#
+# The comment above says newest_in_field is "the right question for macro.json
+# — one subject, one date". That was wrong, and the cost was eighteen days of
+# a stale exchange rate that nothing reported.
+#
+# macro.json holds FIVE indicators on wholly different cadences: USD/KES moves
+# every trading day, CPI is monthly, the CBR changes only when the MPC meets,
+# roughly every two months. A single 40-day budget keyed to the newest record
+# is satisfied by whichever one happened to update most recently. On the day
+# this was written CPI carried 2026-08-05 and the file read "OK, 1d old", while
+# FX_USD_KES sat at 2026-07-20 — eighteen days — and carried no lastChecked at
+# all, meaning the scraper had not produced an FX record in all that time and
+# carry_forward had been faithfully preserving the last good one.
+#
+# That is the same masking this module already fixed for context.json, in a
+# file the fix explicitly skipped on a premise nobody rechecked. A daily rate
+# and a two-monthly rate cannot share a threshold: set it loose enough for the
+# CBR and FX can rot for two months; set it tight enough for FX and the CBR
+# alarms every week it does not meet.
+#
+# So each indicator gets the budget its own publisher's cadence justifies.
+# Anything not listed falls back to the file-level budget rather than being
+# silently exempt — an unlisted indicator should be conservative, not invisible.
+PER_INDICATOR_BUDGETS = {
+    # CBK publishes an indicative rate every trading day. Four days covers a
+    # weekend plus one missed run before it speaks.
+    "FX_USD_KES": (4, "CBK publishes an indicative rate every trading day"),
+    # KNBS releases the index in the last days of each month.
+    "CPI": (45, "released monthly"),
+    "CPI_CORE": (45, "released monthly"),
+    "CPI_NONCORE": (45, "released monthly"),
+    # The MPC meets roughly every two months and the rate often does not move;
+    # a tighter budget would alarm on the Bank doing nothing, which is not news.
+    "CBR": (130, "MPC meets ~every 2 months"),
+}
+
+
+def check_per_indicator_budgets(payload, label: str, problems: list, rows: list) -> None:
+    """Hold each indicator in a multi-indicator file to its own cadence.
+
+    Reports every indicator so the table shows the whole picture, and raises a
+    problem only for the ones past their own budget.
+    """
+    if not isinstance(payload, list) or not payload:
+        return
+    today = date.today()
+    seen: dict[str, tuple[int, int, str]] = {}
+    for rec in payload:
+        if not isinstance(rec, dict):
+            continue
+        name = str(rec.get("indicator") or "")
+        when = parse_day(rec.get("date"))
+        if not name or when is None or when > today:
+            continue
+        age = (today - when).days
+        budget, why = PER_INDICATOR_BUDGETS.get(name, (None, ""))
+        if budget is None:
+            # Not listed: fall back to the file budget rather than exempting it.
+            budget, why = 40, "no specific budget — using the file default"
+        # Keep the FRESHEST record per indicator; a file may hold history.
+        prior = seen.get(name)
+        if prior is None or age < prior[0]:
+            seen[name] = (age, budget, why)
+
+    if not seen:
+        return
+    rows.append(f"{'':<9} {label} — by indicator, oldest first:")
+    for name, (age, budget, why) in sorted(seen.items(), key=lambda kv: -kv[1][0]):
+        state = "OK" if age <= budget else "STALE"
+        rows.append(f"{'':<9}   {state:<5} {age:>4}d / {budget}d  {name}  ({why})")
+        if age > budget:
+            problems.append(
+                f"{label}: {name} is {age} days old, budget {budget}d ({why})"
+            )
+
+
 # Whether OUR fetch is current, which is a different question from whether the
 # world has newer data. See the fetchedAt comment in worldbank.py: a stale
 # vintage with a fresh fetchedAt is the World Bank's answer and nothing to do;
@@ -274,6 +354,9 @@ def main() -> None:
             problems.append(f"{label}: no usable '{field}' in {filename}")
             rows.append(f"{'NO DATE':<9} {label}")
             continue
+
+        if filename == "macro.json":
+            check_per_indicator_budgets(payload, label, problems, rows)
 
         if filename == "context.json":
             report_per_indicator(payload, label, rows)

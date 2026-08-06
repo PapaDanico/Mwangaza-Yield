@@ -138,17 +138,6 @@ def test_missing_secondary_file_still_fails():
         assert "MISSING" in res.stdout
 
 
-if __name__ == "__main__":
-    failures = 0
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            try:
-                fn()
-                print(f"PASS {name}")
-            except AssertionError as exc:
-                failures += 1
-                print(f"FAIL {name}: {exc}")
-    sys.exit(1 if failures else 0)
 
 
 # ---------------------------------------------------------------------------
@@ -164,6 +153,7 @@ if __name__ == "__main__":
 from healthcheck import (  # noqa: E402
     report_per_indicator,
     check_fetch_recency,
+    check_per_indicator_budgets,
     FETCH_MAX_AGE_DAYS,
 )
 from datetime import timedelta  # noqa: E402
@@ -257,3 +247,155 @@ def test_the_shipped_context_file_is_reported_per_indicator():
     rows: list = []
     report_per_indicator(payload, "Sovereign context", rows)
     assert len(rows) >= 4, rows
+
+
+# ---------------------------------------------------------------------------
+# Per-indicator budgets for macro.json.
+#
+# The bug: macro.json was held to ONE 40-day budget keyed to its newest record.
+# CPI updated daily-ish and kept the file reading "1d old" while FX_USD_KES —
+# a rate CBK publishes every trading day — sat eighteen days stale and carried
+# no lastChecked at all, meaning the scraper had produced nothing for it.
+# ---------------------------------------------------------------------------
+
+def _macro(*rows):
+    """(indicator, days_ago) -> macro.json-shaped records."""
+    today = date.today()
+    return [
+        {
+            "id": f"{name.lower()}-{i}",
+            "indicator": name,
+            "value": 1.0,
+            "date": (today - timedelta(days=ago)).isoformat(),
+            "unit": "%",
+        }
+        for i, (name, ago) in enumerate(rows)
+    ]
+
+
+def test_a_daily_rate_is_not_given_a_monthly_budget():
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_macro(("FX_USD_KES", 18)), "Macro", problems, rows)
+    assert len(problems) == 1, problems
+    assert "FX_USD_KES" in problems[0]
+    assert "18 days old" in problems[0]
+
+
+def test_a_fresh_sibling_cannot_hide_a_stale_one():
+    # THE ACTUAL SHIPPED BUG. CPI one day old, FX eighteen. The file-level
+    # check reported OK; this must not.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(
+        _macro(("CPI", 1), ("FX_USD_KES", 18)), "Macro", problems, rows
+    )
+    assert len(problems) == 1, "a fresh CPI hid a stale FX — the masking is back"
+    assert "FX_USD_KES" in problems[0]
+
+
+def test_the_cbr_does_not_alarm_for_doing_nothing():
+    # The MPC meets ~every two months. A 58-day-old CBR is the Bank holding
+    # rates, which is not news and must not raise an alarm.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_macro(("CBR", 58)), "Macro", problems, rows)
+    assert problems == [], problems
+
+
+def test_fx_stays_quiet_over_a_weekend():
+    # Three days covers Friday's rate read on Monday morning. Alarming here
+    # would be the weekly wolf-cry this module keeps arguing against.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_macro(("FX_USD_KES", 3)), "Macro", problems, rows)
+    assert problems == [], problems
+
+
+def test_every_indicator_is_reported_even_when_healthy():
+    # Silence about a healthy indicator is how the next stale one hides.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(
+        _macro(("CBR", 1), ("CPI", 1), ("FX_USD_KES", 1)), "Macro", problems, rows
+    )
+    assert problems == []
+    body = "\n".join(rows)
+    for name in ("CBR", "CPI", "FX_USD_KES"):
+        assert name in body, f"{name} missing from the health table"
+
+
+def test_an_unlisted_indicator_is_conservative_not_exempt():
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_macro(("GDP", 400)), "Macro", problems, rows)
+    assert len(problems) == 1, "an unlisted indicator was silently exempted"
+
+
+def test_the_freshest_record_per_indicator_decides():
+    # A file holding history must be judged on its newest entry per indicator,
+    # not its oldest.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(
+        _macro(("FX_USD_KES", 90), ("FX_USD_KES", 1)), "Macro", problems, rows
+    )
+    assert problems == [], "an old historical row alarmed despite a fresh one"
+
+
+def test_the_shipped_macro_file_is_reported_per_indicator():
+    # Non-vacuity against the real file.
+    payload = json.loads((DATA / "macro.json").read_text())
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(payload, "Macro", problems, rows)
+    assert len(rows) >= 3, rows
+
+
+# ---------------------------------------------------------------------------
+# THE RUNNER LIVES AT THE BOTTOM, AND THAT IS NOT A STYLE CHOICE.
+#
+# It used to sit at line 141, roughly a third of the way down. Python executes
+# top to bottom, so when the interpreter reached it only the three tests
+# defined above existed in globals() — and the block ends in sys.exit(), so
+# every line below it was never even reached.
+#
+# SIXTEEN OF NINETEEN TESTS IN THIS FILE HAD NEVER RUN. CI invoked the file on
+# every push, saw exit 0, and reported the scraper suite green. Among the dead
+# tests were the eight written to guard against ONE fresh indicator hiding a
+# stale sibling — the precise defect that then shipped, leaving USD/KES
+# eighteen days out of date with nothing reporting it.
+#
+# The guard existed, was correct, and could not run: the same failure this
+# whole file is about, one level up, in the thing doing the checking.
+#
+# The count assertion below is the fix for the fix. Appending a test after the
+# runner is the natural thing to do and was silently fatal; now the file fails
+# if the number of tests it DEFINES ever exceeds the number it RUNS.
+# ---------------------------------------------------------------------------
+
+def test_every_test_in_this_file_actually_runs():
+    """Guards the harness against the bug that hid sixteen tests."""
+    import re as _re
+
+    source = Path(__file__).read_text()
+    defined = set(_re.findall(r"^def (test_\w+)", source, _re.M))
+    runnable = {n for n, f in globals().items() if n.startswith("test_") and callable(f)}
+    missing = defined - runnable
+    assert not missing, f"defined but unreachable: {sorted(missing)}"
+
+
+if __name__ == "__main__":
+    failures = 0
+    collected = sorted(
+        (n, f) for n, f in globals().items() if n.startswith("test_") and callable(f)
+    )
+    for name, fn in collected:
+        try:
+            fn()
+            print(f"PASS {name}")
+        except AssertionError as exc:
+            failures += 1
+            print(f"FAIL {name}: {exc}")
+    print(f"\n{len(collected) - failures}/{len(collected)} passed")
+    sys.exit(1 if failures else 0)

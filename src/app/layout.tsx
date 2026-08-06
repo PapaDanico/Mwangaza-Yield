@@ -7,6 +7,7 @@ const roboto = Roboto({ subsets: ['latin'], weight: ['400', '500', '700'], varia
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '600'], variable: '--font-jetbrains' });
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
+import StaleDataNotice from '@/components/shared/StaleDataNotice';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
 import { APP_URL } from '@/lib/share';
@@ -74,6 +75,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             sitting high on a short document drops half a viewport.
             Reserving a viewport's worth of main means the footer starts below
             the fold and stays there. */}
+        {/* Above <main>, so it is read before the figures it qualifies rather
+            than after them. Renders nothing in the ordinary case. */}
+        <StaleDataNotice />
         <main
           id="main"
           className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"

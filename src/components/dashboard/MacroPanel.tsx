@@ -2,6 +2,8 @@
 
 import { useBondStore } from '@/stores/bondStore';
 import Reserve from '@/components/shared/Reserve';
+import { indicatorAge, indicatorStaleNote } from '@/lib/indicator-freshness';
+import { cn } from '@/lib/utils';
 
 const LABELS: Record<string, string> = {
   CBR: 'Central Bank Rate',
@@ -41,10 +43,29 @@ export default function MacroPanel() {
   const macro = all.filter((m) => HEADLINE.includes(m.indicator));
   if (!macro.length) return <Reserve height={84} />;
 
+  /* A FIGURE THAT HAS STOPPED MOVING MUST NOT LOOK LIKE ONE THAT HAS NOT.
+   *
+   * USD/KES sat at 2026-07-20 for eighteen days beside a CPI from yesterday,
+   * and both rendered identically — same weight, same colour, on a page whose
+   * whole promise is the latest available information. The card did print the
+   * date, but behind `hidden sm:block`, so on a 390px phone the one number
+   * that had rotted was the one shown with the least context.
+   *
+   * Each indicator is now judged against its own publisher's cadence — see
+   * indicator-freshness.ts, whose budgets are held to healthcheck.py's by a
+   * test — and a stale one says how old it is and how old it should get, so
+   * the reader can judge it rather than decode a warning colour. */ 
+
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      {macro.map((m) => (
-        <div key={m.id} className="card p-3 sm:p-4">
+      {macro.map((m) => {
+        const age = indicatorAge(m.indicator, m.date);
+        const note = indicatorStaleNote(age);
+        return (
+        <div
+          key={m.id}
+          className={cn('card p-3 sm:p-4', note && 'border-gold-600/50 bg-gold-500/[0.06]')}
+        >
           <p className="truncate text-[11px] text-ink-faint sm:text-xs">
             <span className="sm:hidden">{SHORT_LABELS[m.indicator] ?? m.indicator}</span>
             <span className="hidden sm:inline">{LABELS[m.indicator] ?? m.indicator}</span>
@@ -56,9 +77,20 @@ export default function MacroPanel() {
             {m.value}
             <span className="ml-1 inline-block text-xs font-normal text-ink-muted sm:text-sm">{m.unit}</span>
           </p>
-          <p className="mt-1 hidden text-[11px] text-ink-faint sm:block">{m.source} · {m.date}</p>
+          {/* The date is shown on EVERY screen size now. It used to be
+              sm:block only, which hid it on exactly the devices most of this
+              audience uses. On a phone the source is dropped instead — the
+              date is what tells a reader whether to trust the number. */}
+          <p className="mt-1 text-[11px] text-ink-faint">
+            <span className="hidden sm:inline">{m.source} · </span>
+            {m.date}
+          </p>
+          {note && (
+            <p className="mt-1 text-[11px] font-medium leading-snug text-gold-800">{note}</p>
+          )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -359,6 +359,43 @@ def main() -> None:
     # fail a build. Kept visibly separate rather than folded in with a flag,
     # because "this check does not gate, and here is why" is a fact about the
     # check that a reader should not have to infer from a boolean.
+    # UNDATED OUTCOME RECORDS.
+    #
+    # Thirteen records carry a weighted average rate, a price and an amount
+    # accepted, and no auctionDate at all — most from a file CBK named
+    # "Tap sale advert.pdf". An advert announces a sale; a weighted average
+    # rate and an amount accepted are outcomes. Either the filename misleads or
+    # the parser read the wrong document, and from here it cannot tell which.
+    #
+    # They are inert TODAY, which was measured rather than assumed: dropping
+    # all thirteen leaves the published rates feed byte-identical, the yield
+    # curve identical, and bid guidance identical across twelve tenor-by-tax
+    # combinations. Every consumer already filters on auctionDate.
+    #
+    # So this reports and does not gate. The risk is not what reads them now,
+    # it is the next consumer that forgets to filter and silently ingests
+    # outcome figures belonging to no date. A count that is visible is a count
+    # somebody notices growing.
+    undated = [
+        r for r in records
+        if not r.get("auctionDate")
+        and any(r.get(k) is not None for k in
+                ("weightedAverageRate", "pricePer100", "amountAcceptedKESM"))
+    ]
+    print("\n--- reported, not gated: outcome figures with no auction date")
+    if not undated:
+        print("OK    every record carrying an outcome also carries a date")
+    else:
+        print(f"note  {len(undated)} record(s) hold a rate, price or amount but no "
+              f"auctionDate.\n      Inert while every consumer filters on the date; "
+              f"a new consumer that does not\n      would ingest figures belonging to "
+              f"no point in time.")
+        for r in undated[:6]:
+            src = str(r.get("sourceUrl") or "").rsplit("/", 1)[-1][:52]
+            print(f"        {r.get('issueCode')}  war={r.get('weightedAverageRate')}  <{src}>")
+        if len(undated) > 6:
+            print(f"        ... and {len(undated) - 6} more")
+
     advisory = filename_names_a_bond_we_lost(records)
     print(f"\n--- reported, not gated: a bond named in the filename with no row")
     if not advisory:

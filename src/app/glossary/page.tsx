@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Prose from '@/components/shared/Prose';
-import { GLOSSARY } from '@/lib/glossary';
+import GlossaryBrowser from '@/components/glossary/GlossaryBrowser';
 
 export const metadata: Metadata = {
   title: 'Plain English — Mwangaza Yield',
@@ -22,44 +22,7 @@ export default function GlossaryPage() {
         with the formal definition underneath where the precision genuinely matters.
       </p>
 
-      <nav aria-label="Jump to a term" className="not-prose my-6 flex flex-wrap gap-1.5">
-        {GLOSSARY.map((t) => (
-          <a
-            key={t.slug}
-            href={`#${t.slug}`}
-            className="rounded-lg border border-sand-300 bg-sand-100 px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-gold-500 hover:text-ink"
-          >
-            {t.term}
-          </a>
-        ))}
-      </nav>
-
-      <div className="not-prose space-y-3">
-        {GLOSSARY.map((t) => (
-          <section
-            key={t.slug}
-            id={t.slug}
-            className="scroll-mt-24 rounded-xl border border-sand-300 bg-sand-50 p-4"
-          >
-            <div className="flex flex-wrap items-baseline gap-x-2">
-              <h2 className="font-display text-base font-bold text-ink">{t.term}</h2>
-              {t.also && <span className="text-xs text-ink-faint">also: {t.also}</span>}
-            </div>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{t.plain}</p>
-            {t.why && (
-              <p className="mt-2 border-l-2 border-gold-500 pl-3 text-sm leading-relaxed text-ink-muted">
-                {t.why}
-              </p>
-            )}
-            {t.precise && (
-              <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-                <span className="font-semibold uppercase tracking-wider">Precisely: </span>
-                {t.precise}
-              </p>
-            )}
-          </section>
-        ))}
-      </div>
+      <GlossaryBrowser />
 
       <h2>Still unclear?</h2>
       <p>

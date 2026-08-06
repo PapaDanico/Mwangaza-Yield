@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-06T05:50:08.719595+00:00",
+  "generatedAt": "2026-08-06T06:07:05.129221+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -54,7 +54,7 @@
       "value": 8.75,
       "unit": "%",
       "date": "2026-06-09",
-      "lastChecked": "2026-08-05",
+      "lastChecked": "2026-08-06",
       "source": "CBK MPC",
       "fallback": false
     },
@@ -62,7 +62,7 @@
       "value": 6.49,
       "unit": "% y/y",
       "date": "2026-08-05",
-      "lastChecked": "2026-08-05",
+      "lastChecked": "2026-08-06",
       "source": "CBK",
       "fallback": true
     },
@@ -148,8 +148,8 @@
     ],
     "demand": {
       "auctions": 26,
-      "medianCoverRatio": 1.516,
-      "medianAcceptanceRate": 0.727
+      "medianCoverRatio": 1.404,
+      "medianAcceptanceRate": 0.701
     }
   }
 }

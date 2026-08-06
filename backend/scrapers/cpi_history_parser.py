@@ -98,7 +98,7 @@ def find_table(soup: BeautifulSoup):
     return None, []
 
 
-def parse(html: str) -> list:
+def parse(html: str, fetched_at: str | None = None) -> list:
     soup = BeautifulSoup(html, "lxml")
     table, header = find_table(soup)
     if table is None:
@@ -146,6 +146,13 @@ def parse(html: str) -> list:
             # JSON should be able to see WHICH of the two published series
             # this is without opening the scraper.
             "series": "12-Month Inflation",
+            # `date` is the month the figure DESCRIBES; `fetchedAt` is when we
+            # last asked. worldbank.py carries this for the reason that applies
+            # here too: without it, "CBK has published nothing newer" and "our
+            # scraper stopped running" are the same observation. CBK's table
+            # lags a month by design, so a newest row dated last month is
+            # normal and must not be readable as a fault.
+            "fetchedAt": fetched_at or date.today().isoformat(),
         })
 
     records.sort(key=lambda r: r["date"])
@@ -161,11 +168,42 @@ def corroborates(records: list, known_value: float, known_date: str) -> bool:
     publishing either without noticing is the failure this function exists to
     prevent. Kept as code rather than as a note in a commit message, because a
     check that lives in prose is a check nobody runs again.
+
+    `known_date` is a YYYY-MM prefix. Absence of that month is NOT agreement and
+    not disagreement — see `latest_month()` for why the caller must not pass the
+    current month.
     """
     for r in records:
         if r["date"].startswith(known_date):
             return abs(r["value"] - known_value) < 0.005
     return False
+
+
+def latest_month(records: list) -> str | None:
+    """The newest month the series actually has, as YYYY-MM.
+
+    WHY THIS EXISTS, AND WHY IT IS NOT A TIDY-UP
+    --------------------------------------------
+    The corroboration was called with TODAY'S month. CBK's table lags by one:
+    on 6 August its newest row is July. So `corroborates()` looked for a month
+    that does not exist, returned False, and the run printed
+
+        DISAGREES — one of the two reads the wrong column
+
+    against a series that was completely correct. Verified on live data: the
+    same records return True for '2026-07' and False for '2026-08'.
+
+    That is worse than no check. A guard that fires on every healthy run trains
+    the reader to skip it, so on the day the columns genuinely do diverge —
+    the one event this exists to catch — the warning will look like every other
+    morning's noise. The project has spent this whole cycle removing guards that
+    could not fire; this was the mirror image, shipped by the same hand.
+
+    Anchoring to the newest row present also survives the lag changing. If CBK
+    publishes twice in a month, or skips one, the comparison still lands on a
+    month that exists.
+    """
+    return max((r["date"][:7] for r in records), default=None)
 
 
 def scrape() -> list:
@@ -196,13 +234,20 @@ def main() -> int:
     # so it is printed — but it does not block the write, because the home page
     # regex is the less reliable of the two and a stale print there should not
     # be able to withhold a good history.
-    today_ym = date.today().strftime("%Y-%m")
+    #
+    # Against the newest month PRESENT, not today's. See latest_month().
+    newest = latest_month(records)
     from_macro = latest_macro_cpi()
-    if from_macro is not None:
-        agrees = corroborates(records, from_macro, today_ym)
+    if from_macro is not None and newest is not None:
+        agrees = corroborates(records, from_macro, newest)
         print(f"[cpi-history] macro.json CPI is {from_macro}; "
-              f"{today_ym} 12-Month Inflation "
+              f"{newest} 12-Month Inflation "
               f"{'AGREES' if agrees else 'DISAGREES — one of the two reads the wrong column'}",
+              file=sys.stderr)
+    elif from_macro is None:
+        # Said out loud rather than skipped in silence. No macro print means the
+        # cross-check did not run, which is different from it having passed.
+        print("[cpi-history] macro.json holds no CPI print — column not cross-checked",
               file=sys.stderr)
 
     write_dataset("cpi-history", records)

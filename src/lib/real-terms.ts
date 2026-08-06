@@ -78,23 +78,25 @@ export function realTerms(netPct: number, macro: MacroIndicator[]): RealTerms | 
  * Why a historical real curve is not published, stated in code rather than
  * left for someone to try.
  *
- * The obvious next move from `realTerms` is to run it down the yield curve and
- * draw what savers kept in each year. It cannot be done from the data this
- * project holds: `macro.json` carries the CURRENT CPI reading and no history,
- * so the only inflation figure available to pair with a 2019 clearing rate is
- * a 2026 one.
+ * Runs `realTerms` down the yield curve to draw what savers actually kept in
+ * each year.
  *
- * That is not a small approximation. Kenyan headline inflation ran above 9% in
- * 2017, near 5% in 2020 and 9.6% in 2022; deflating every year's yields by one
- * recent print would invent a real curve whose shape is an artefact of a
- * single month's data. `real-yield.ts` says the same thing about holding one
- * print constant across a bond's life, and the reasoning is identical here.
+ * THE HISTORY NOW EXISTS. This docstring used to say it did not — that
+ * `macro.json` carries the current CPI reading and no history, so the only
+ * figure available to pair with a 2019 clearing rate was a 2026 one. That was
+ * true when written and is no longer: `cpi-history.json` carries 259 monthly
+ * 12-Month Inflation readings from CBK, January 2005 to date, with no missing
+ * months.
  *
- * So this function exists to be honest about the gap and to fail loudly if
- * someone wires a historical series in without checking it is contemporaneous.
- * When a CPI history is collected, pass readings dated to each rate and this
- * becomes the real curve; until then it returns null for anything it cannot
- * date-match.
+ * The reason for the original refusal has NOT gone away, which is why the
+ * refusal stays. Kenyan headline inflation ran above 9% in 2017, near 5% in
+ * 2020 and 9.6% in 2022; deflating every year's yields by one recent print
+ * would invent a real curve whose shape is an artefact of a single month's
+ * data. `real-yield.ts` says the same about holding one print constant across
+ * a bond's life. Having a history available makes it EASIER to wire the wrong
+ * thing in — a full map that silently misses a year still looks complete — so
+ * `toleranceDays` still governs, and a point it cannot date-match still voids
+ * the whole series rather than leaving a hole in it.
  */
 export function realSeries(
   points: { date: string; netPct: number }[],

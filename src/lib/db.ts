@@ -4,6 +4,24 @@ import type { SavedPlan } from './plans';
 import type { AlertRule } from './alerts';
 import type { UserPrice } from './prices';
 
+/**
+ * A monthly CPI print as `cpi-history.json` ships it.
+ *
+ * `date` is the month the figure DESCRIBES; `fetchedAt` is when we last asked.
+ * CBK's table lags a month, so a newest row dated last month is normal and
+ * must not read as a stalled pipeline.
+ */
+export interface CpiPoint {
+  id: string;
+  indicator: 'CPI';
+  value: number;
+  date: string;
+  unit: string;
+  source: string;
+  series: string;
+  fetchedAt?: string;
+}
+
 /** One event we have already shown, so opening the app again does not repeat it. */
 export interface AlertDelivery {
   id: string;       // the AlertEvent id
@@ -25,6 +43,7 @@ class MwangazaDB extends Dexie {
   alertLog!: Table<AlertDelivery, string>;
   /** Prices the reader looked up themselves. Never synced, never transmitted. */
   userPrices!: Table<UserPrice, string>;
+  cpiHistory!: Table<CpiPoint, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -60,6 +79,13 @@ class MwangazaDB extends Dexie {
     // is the reader's own work. Losing it to a data update would be a bug.
     this.version(8).stores({
       userPrices: 'isin, observedOn, updatedAt',
+    });
+    // Monthly CPI, so the yield curve can be shown in real terms offline as
+    // well as online. Part of the refresh transaction like every other
+    // published table — it is CBK's data, not the reader's, and must be
+    // replaced wholesale rather than accumulated.
+    this.version(9).stores({
+      cpiHistory: 'id, date',
     });
   }
 }

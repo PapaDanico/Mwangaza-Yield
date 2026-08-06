@@ -64,6 +64,20 @@ BUDGETS = [
     # parser's own MIN_DECISIONS guard; this is the backstop for a capture that
     # keeps succeeding while silently missing new meetings.
     ("cbr-history.json", "CBR decision history", "date", 130, "MPC meets ~every 2 months"),
+    # CPI history was deliberately left OUT of this list when its parser shipped:
+    # the file did not exist yet, a missing file is reported as MISSING, and this
+    # check also runs in the dispatch-only validate-sources job where the scraper
+    # does not — so listing it early would have raised an alarm about a
+    # deployment rather than about data. The file exists now, so that reason has
+    # expired and leaving it out would be the unmonitored dataset instead.
+    #
+    # 75 days, not 40 like macro.json, because `date` here is the month the
+    # figure DESCRIBES and CBK's table lags by one: on 6 August the newest row
+    # is dated 1 July, already ~36 days old on the day it is perfectly current.
+    # A 40-day budget would spend half of every month in alarm. 75 gives a full
+    # missed publication before it speaks, which is the first point at which
+    # something is actually wrong.
+    ("cpi-history.json", "CPI history", "date", 75, "monthly, and CBK's table lags a month"),
 ]
 
 

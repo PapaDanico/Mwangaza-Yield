@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import { summariseLedger, type Prediction } from '@/lib/predictions';
+import { scoringVerdict } from '@/lib/prediction-verdict';
 import { backtest, summariseBacktest } from '@/lib/backtest';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
@@ -66,6 +67,14 @@ export default function TrackRecord() {
   // here: this component owns its own loading state rather than the store's.
   if (!ledger) return <div className="card h-40 animate-pulse" aria-hidden="true" />;
   const s = summariseLedger(ledger);
+  /* THE INTERPRETATION, FIXED BEFORE THE RESULTS.
+   *
+   * Written on 6 August with all five predictions unscored, so the sentence
+   * for a clean sweep and the sentence for a total miss were composed to the
+   * same standard by the same hand on the same day. Reading it off the counts
+   * rather than writing it afterwards is what stops the outcome choosing the
+   * tone. See prediction-verdict.ts. */
+  const verdict = scoringVerdict(ledger, s);
   const unscored = ledger.filter((p) => p.scoredOn === undefined);
   const pending = unscored.length;
   // The earliest auction still awaiting a result: the date a reader can come
@@ -113,6 +122,18 @@ export default function TrackRecord() {
                 </>
               )}
             </p>
+          )}
+          {s.claims > 0 && (
+            <div className="mt-2 rounded-xl border border-sand-300 bg-sand-50 p-3">
+              <p className="text-sm font-medium text-ink">{verdict.headline}</p>
+              <ul className="mt-1.5 space-y-1.5">
+                {verdict.caveats.map((c) => (
+                  <li key={c} className="text-xs leading-relaxed text-ink-soft">
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {/* RECORDED BUT NOT YET SCORED — the state this card is actually in
             * today, and stays in until the first result publishes.

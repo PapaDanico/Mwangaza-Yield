@@ -17,6 +17,7 @@ import {
 import { Download } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { curveRows, curveToCSV, curveContext, TENOR_BUCKETS, CURVE_MIN_BUCKETS } from '@/lib/yield-curve';
+import { annualInflation, realCurveRows, partialYearNote } from '@/lib/real-curve';
 import DataState from '@/components/shared/DataState';
 
 /* Distinct enough to tell apart at a glance, and ordered so the most recent
@@ -31,7 +32,9 @@ export default function CurveHistory() {
   const bonds = useBondStore((s) => s.bonds);
   const auctionResults = useBondStore((s) => s.auctionResults);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
+  const cpiHistory = useBondStore((s) => s.cpiHistory);
   const [failed, setFailed] = useState(false);
+  const [real, setReal] = useState(false);
 
   const rows = useMemo(
     () => (auctionResults.length ? curveRows(auctionResults, bonds) : []),
@@ -45,6 +48,29 @@ export default function CurveHistory() {
   );
   const sparse = rows.filter((r) => !r.drawable);
 
+  /* THE REAL CURVE, AND WHY THE TOGGLE IS OFF BY DEFAULT.
+   *
+   * Nominal is what CBK published and what every other source quotes, so it is
+   * the figure a reader arrives able to check us on. Real terms is the more
+   * useful number and the less familiar one; making it the default would have
+   * the chart disagree with every other page about Kenya on first sight.
+   *
+   * `realCurveRows` DROPS a year it cannot deflate rather than passing it
+   * through nominal, so the real view can legitimately show fewer lines than
+   * the nominal one. That is the honest outcome — a deflated line and an
+   * undeflated one on one axis under one legend would be two quantities
+   * pretending to be one. */
+  const inflationByYear = useMemo(() => annualInflation(cpiHistory), [cpiHistory]);
+  const realYears = useMemo(
+    () => realCurveRows(drawable, inflationByYear),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, inflationByYear]
+  );
+  const canShowReal = realYears.length > 0;
+  const showingReal = real && canShowReal;
+  const shown = showingReal ? realYears : drawable;
+  const droppedForReal = showingReal ? drawable.length - realYears.length : 0;
+
   /* Recharts wants one object per X value with a key per series, so the shape
    * is transposed here: rows are tenors, columns are years. A year with a gap
    * at some tenor simply has no key for it, and `connectNulls` bridges it
@@ -52,7 +78,7 @@ export default function CurveHistory() {
    * not a yield that fell to zero. */
   const data = TENOR_BUCKETS.map((b) => {
     const point: Record<string, number | string> = { tenor: b.label, years: b.years };
-    for (const row of drawable) {
+    for (const row of shown) {
       const cell = row.cells.find((c) => c.label === b.label);
       if (cell) point[String(row.year)] = cell.rate;
     }
@@ -86,11 +112,32 @@ export default function CurveHistory() {
     );
   }
 
-  const first = drawable[0].year;
-  const last = drawable[drawable.length - 1].year;
+  const first = shown[0]?.year;
+  const last = shown[shown.length - 1]?.year;
 
   return (
     <div>
+      {canShowReal && (
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {/* Label-wrapped so the whole phrase is the hit target, not the 16px
+              box — the WCAG 2.5.8 fix applied across this app. */}
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+            <input
+              type="checkbox"
+              checked={real}
+              onChange={(e) => setReal(e.target.checked)}
+              className="h-4 w-4 accent-teal-700"
+            />
+            Show what savers kept, after tax and inflation
+          </label>
+          {showingReal && (
+            <span className="text-xs text-ink-faint">
+              Nominal is what CBK published; this is what it was worth.
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="h-80 w-full">
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -12 }}>
@@ -106,7 +153,7 @@ export default function CurveHistory() {
               labelFormatter={(l: string) => `${l} tenor`}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            {drawable.map((row, i) => (
+            {shown.map((row, i) => (
               <Line
                 key={row.year}
                 type="monotone"
@@ -126,7 +173,29 @@ export default function CurveHistory() {
         market&apos;s rather than an accident of when each bond was last sold. Every point is the
         median clearing rate — what accepted bidders actually got — across that year&apos;s
         auctions at that tenor.
+        {showingReal && (
+          <>
+            {' '}
+            Each point is then reduced by withholding tax — 10% at ten years or longer, 15% below
+            it — and by that year&apos;s average inflation. A point below zero means money placed
+            that year bought less at the end of it than at the start, however healthy the headline
+            rate looked.
+          </>
+        )}
       </p>
+
+      {showingReal && droppedForReal > 0 && (
+        <p className="mt-2 text-xs text-ink-faint">
+          <strong className="tabular-nums">{droppedForReal}</strong>{' '}
+          {droppedForReal === 1 ? 'year is' : 'years are'} not drawn here: we hold no inflation
+          reading for {droppedForReal === 1 ? 'it' : 'them'}. Showing those lines undeflated beside
+          the rest would put two different quantities on one axis.
+        </p>
+      )}
+
+      {showingReal && partialYearNote(realYears) && (
+        <p className="mt-2 text-xs text-ink-faint">{partialYearNote(realYears)}</p>
+      )}
 
       {/* THE POLICY RATE BESIDE THE CURVE IT RULED
         *

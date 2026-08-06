@@ -83,6 +83,16 @@ export interface MacroIndicator {
   fallback?: boolean;
   /** When the value was last CONFIRMED, as distinct from when it changed. */
   lastChecked?: string;
+  /**
+   * Which declared route actually produced this figure — see
+   * backend/scrapers/sources.py.
+   *
+   * `fallback` says a substitute stood in; this says WHICH one, which is the
+   * difference between knowing the primary source broke and knowing what to go
+   * and fix. A record that quietly arrives via a fallback for weeks looks
+   * identical to a healthy one without it.
+   */
+  via?: string;
 }
 
 export interface RateDecision {

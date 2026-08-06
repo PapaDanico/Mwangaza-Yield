@@ -8,6 +8,10 @@ import requests
 from bs4 import BeautifulSoup
 
 from common import DATA_DIR, write_dataset
+from sources import (
+    resolve, report,
+    FX_ROUTES, FX_BAND, CBR_ROUTES, CBR_BAND, CPI_ROUTES, CPI_BAND,
+)
 
 # CBK is reachable from code (all endpoints HTTP 200, verified 2026-07-25 on a
 # network-open runner). A browser UA is sent as good manners, not necessity.
@@ -28,75 +32,46 @@ def scrape() -> list:
     today = date.today().isoformat()
     records = []
 
-    cbk = fetch_text("https://www.centralbank.go.ke/")
-
-    # WHY EXTRACTION FAILURE IS REPORTED SEPARATELY FROM CARRY-FORWARD
+    # RANKED ROUTES, NOT ONE REGEX. See sources.py: each indicator declares an
+    # ordered list of ways to obtain it plus a plausibility band, so a layout
+    # change on the preferred page costs a fallback rather than an update, and
+    # a match that is not the quantity is rejected instead of published.
     #
-    # carry_forward already prints when an indicator is preserved, and it did:
-    # "[macro] carrying forward FX_USD_KES from 2026-07-20" appeared on every
-    # run for eighteen days while USD/KES — a rate CBK publishes every trading
-    # day — sat frozen on the dashboard. Nobody read it, because a line in a
-    # green job's log is not an alarm.
-    #
-    # Two failures produce that identical line and want opposite responses.
-    # If the PAGE WAS UNREACHABLE, waiting is correct: the next run fixes it.
-    # If the page loaded and the PATTERN NO LONGER MATCHES, waiting fixes
-    # nothing — CBK has changed its markup and the scraper needs editing. This
-    # says which, so the next person to look does not have to guess.
-    #
-    # The alarm itself now lives in healthcheck.py's per-indicator budgets,
-    # where a stale FX can no longer hide behind a fresh CPI.
-    missed: list[str] = []
+    # Pages are fetched at most once each and shared across indicators — three
+    # of the routes below point at the CBK home page.
+    cache: dict[str, str] = {}
 
-    cbr = re.search(r"Central Bank Rate[\s\S]{0,80}?([\d.]+)\s*%", cbk, re.I)
-    if cbr:
-        records.append({"id": f"cbr-{today}", "indicator": "CBR", "value": float(cbr.group(1)),
-                        "date": today, "unit": "%", "source": "CBK"})
-    else:
-        missed.append("CBR")
+    def fetch(url: str) -> str:
+        if url not in cache:
+            cache[url] = fetch_text(url)
+        return cache[url]
 
-    fx = re.search(r"(?:USD|US Dollar)[\s\S]{0,60}?(\d{2,3}\.\d+)", cbk)
-    if fx:
-        records.append({"id": f"fx-{today}", "indicator": "FX_USD_KES", "value": float(fx.group(1)),
-                        "date": today, "unit": "KES/USD", "source": "CBK"})
-    else:
-        missed.append("FX_USD_KES")
+    fx = resolve("FX_USD_KES", FX_ROUTES, fetch, *FX_BAND)
+    cbr = resolve("CBR", CBR_ROUTES, fetch, *CBR_BAND)
+    report(fx)
+    report(cbr)
 
-    if missed:
-        print(
-            f"[macro] PAGE LOADED ({len(cbk)} chars) BUT NO MATCH for {', '.join(missed)} — "
-            f"this is a changed CBK layout, not an outage, and waiting will not fix it",
-            file=sys.stderr,
-        )
+    if cbr.ok:
+        records.append({"id": f"cbr-{today}", "indicator": "CBR", "value": cbr.value,
+                        "date": today, "unit": "%", "source": "CBK", "via": cbr.via})
+    if fx.ok:
+        records.append({"id": f"fx-{today}", "indicator": "FX_USD_KES", "value": fx.value,
+                        "date": today, "unit": "KES/USD", "source": "CBK indicative",
+                        "via": fx.via})
 
-    # KNBS first; CBK publishes the same headline CPI and is the fallback.
-    # `fallback` is carried as its own field rather than smuggled into the
-    # source string: the UI cannot branch on prose, and "CBK (KNBS
-    # unavailable)" was being rendered as though it were an ordinary citation.
-    cpi_value = None
-    try:
-        knbs = fetch_text("https://www.knbs.or.ke/")
-        cpi = re.search(r"(?:inflation|CPI)[\s\S]{0,80}?([\d.]+)\s*%", knbs, re.I)
-        if cpi:
-            cpi_value = (float(cpi.group(1)), "KNBS", False)
-    except requests.exceptions.SSLError as exc:
-        # Verified 2026-07-25 on a network-open runner: knbs.or.ke fails TLS
-        # verification (incomplete chain). We do NOT disable verification —
-        # silently trusting an unverified certificate for financial data is a
-        # worse outcome than falling back to another authoritative source.
-        print(f"KNBS TLS verification failed ({exc.__class__.__name__}) — falling back to CBK", file=sys.stderr)
-    except requests.RequestException as exc:
-        print(f"KNBS fetch failed ({exc}) — falling back to CBK", file=sys.stderr)
-
-    if cpi_value is None:
-        cpi = re.search(r"(?:Inflation Rate|Overall Inflation)[\s\S]{0,80}?([\d.]+)\s*%", cbk, re.I)
-        if cpi:
-            cpi_value = (float(cpi.group(1)), "CBK", True)
-
-    if cpi_value:
-        records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi_value[0],
-                        "date": today, "unit": "% y/y", "source": cpi_value[1],
-                        "fallback": cpi_value[2]})
+    # KNBS first, CBK as the fallback — the ordering that `via` now records in
+    # the data rather than in a source string the UI cannot branch on. KNBS
+    # fails TLS verification from CI on an incomplete chain, verified again on
+    # 2026-08-06, and we do not disable verification for financial data; the
+    # resolver reports that as a failed route and moves on.
+    cpi = resolve("CPI", CPI_ROUTES, fetch, *CPI_BAND)
+    report(cpi)
+    if cpi.ok:
+        records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi.value,
+                        "date": today, "unit": "% y/y",
+                        "source": "KNBS" if cpi.via == "knbs-home" else "CBK",
+                        "fallback": cpi.via != "knbs-home",
+                        "via": cpi.via})
 
     existing = read_existing()
     return carry_forward(date_by_observation(records, existing), existing)

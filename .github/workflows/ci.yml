@@ -369,6 +369,17 @@ jobs:
       # FRED is ruled out (its terms prohibit commercial redistribution of
       # third-party content) and the IMF's licence page returns no readable
       # text, so CBK is the remaining licence-clean candidate.
+      # CMA is the REGULATOR (cma.or.ke), not the Exchange, so the
+      # no-exchange-data rule does not reach it automatically. But that rule
+      # exists to avoid redistributing the Exchange's data, and a regulator
+      # reprinting Exchange figures is the same data one masthead removed.
+      # This sorts what CMA publishes into aggregate market activity (a
+      # regulator's ordinary business, pursuable) and per-security prices
+      # (almost certainly Exchange-derived, and a licence question before it
+      # is a parsing one). It writes nothing.
+      - name: Probe what CMA publishes, and whose data it is
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_cma.py || echo "CMA probe failed — see output above"
       - name: Probe whether CBK bulletins carry fresher sovereign figures
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_cbk_bulletin.py || echo "bulletin probe failed — see output above"

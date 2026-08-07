@@ -75,17 +75,38 @@ on:
         default: false
 
 # Cancel any in-progress run for the same branch or PR the moment a newer
-# commit arrives. This prevents a rapid sequence of agent commits from
-# stacking up concurrent runs that race through the runner pool and burn
-# through the GITHUB_TOKEN rate limit (check-run creation, status writes)
-# faster than the quota refills.
+# commit arrives, so a rapid sequence of commits does not stack up concurrent
+# runs racing through the runner pool.
 #
-# Scheduled runs are EXCLUDED from cancellation: they perform the actual
-# data refresh and must be allowed to complete. `workflow_dispatch` is also
-# excluded so a manually-triggered probe or refresh is never silently killed
-# by a concurrent push.
+# THE EXEMPTION IS IN THE GROUP, NOT IN THE FLAG, AND THAT IS THE WHOLE POINT.
+#
+# `cancel-in-progress` is evaluated on the INCOMING run and decides whether it
+# cancels others in its group. It does not protect the run it is set on. So
+# setting it false for `schedule` only stops a scheduled run from cancelling
+# other things — it does nothing to stop a push from cancelling the refresh.
+#
+# And a push would. A scheduled run's `github.ref` is `refs/heads/main`, which
+# is also the ref of every push to main, so keying the group on ref alone puts
+# them in the SAME group. The refresh job commits and pushes its data to main,
+# which means the collision is on the normal path rather than a corner case:
+# the refresh could cancel its own successor, or a routine merge could kill a
+# refresh mid-write.
+#
+# That last case is why this matters beyond wasted minutes. write_dataset is
+# atomic now (os.replace, see backend/scrapers/common.py), so a cancelled run
+# leaves the previous dataset intact rather than a truncated file — but the
+# guarantee is only worth having if the cancellation is intentional.
+#
+# Putting `github.run_id` in the group for the events that must finish gives
+# each of them a group of one, which nothing else can ever join and therefore
+# nothing can cancel. Push and pull_request runs keep sharing the `-ci` group
+# and keep superseding each other, which is the intended behaviour.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      && github.run_id || 'ci'
+    }}
   cancel-in-progress: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
 
 jobs:

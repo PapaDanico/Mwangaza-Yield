@@ -46,8 +46,14 @@
 
 import meta from '../../public/data/meta.json';
 
-/** UTC hours of the scheduled refresh; `0 3,15 * * 1-6` in ci.yml. */
+/** UTC hours of the scheduled refresh; `17 3,15 * * 1-6` in ci.yml. */
 export const REFRESH_HOURS_UTC = [3, 15];
+
+/**
+ * The minute within each hour. Deliberately not 0 — see the comment on the
+ * cron in ci.yml. Pinned here so the copy cannot drift from the schedule.
+ */
+export const REFRESH_MINUTE_UTC = 17;
 
 /** Days the refresh runs, as getUTCDay() values: Monday(1) to Saturday(6). */
 export const REFRESH_DAYS_UTC = [1, 2, 3, 4, 5, 6];
@@ -61,6 +67,37 @@ export const REFRESH_DAYS_UTC = [1, 2, 3, 4, 5, 6];
  * so it should not duplicate a warning the other system gives better.
  */
 export const QUIET_MISSES = 1;
+
+/**
+ * How long after its slot a run may start before it counts as MISSED.
+ *
+ * This is not padding. GitHub does not run a scheduled workflow at the minute
+ * you asked for: scheduled runs sit on a shared queue, and the top of the hour
+ * is its most contended minute. Measured on this repository's own history —
+ * every scheduled run since the cron was introduced on 2026-07-25, against a
+ * `0 3` slot:
+ *
+ *     2026-07-30  05:41Z   2h41m late
+ *     2026-07-31  06:14Z   3h14m late
+ *     2026-08-03  06:23Z   3h23m late
+ *     2026-08-04  05:46Z   2h46m late
+ *     2026-08-05  05:45Z   2h45m late
+ *     2026-08-06  05:48Z   2h48m late
+ *
+ * `created_at` equals `run_started_at` in all six, so this is GitHub creating
+ * the run late, not the job taking a long time. The delay is systematic, and
+ * it is roughly three hours.
+ *
+ * Without a grace period `missedRuns()` counts a slot as missed the instant it
+ * passes, so between 03:00 and about 06:00 every weekday this surface would
+ * report a missed update that had merely not started yet. That is the exact
+ * wolf-crying the whole module argues against, and it would fire daily.
+ *
+ * Four hours covers the worst observed delay with roughly forty minutes in
+ * hand. It is deliberately generous: the cost of waiting is a late warning,
+ * and the cost of not waiting is a warning nobody believes.
+ */
+export const RUN_GRACE_HOURS = 4;
 
 export interface Freshness {
   generatedAt: string;
@@ -103,10 +140,13 @@ export function missedRuns(since: Date, now: Date): number {
     if (isScheduledDay(day)) {
       for (const hour of REFRESH_HOURS_UTC) {
         const run = new Date(day.getTime());
-        run.setUTCHours(hour, 0, 0, 0);
+        run.setUTCHours(hour, REFRESH_MINUTE_UTC, 0, 0);
         // A run at or before `since` is the one that produced this data, or
-        // an older one — not a miss.
-        if (run > since && run <= now) missed += 1;
+        // an older one — not a miss. And a run whose slot has passed but whose
+        // grace has not is LATE, which on this scheduler is the normal case
+        // rather than a fault. See RUN_GRACE_HOURS.
+        const dueBy = run.getTime() + RUN_GRACE_HOURS * 3_600_000;
+        if (run > since && dueBy <= now.getTime()) missed += 1;
       }
     }
     day.setUTCDate(day.getUTCDate() + 1);

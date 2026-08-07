@@ -1,0 +1,264 @@
+"""Read the sovereign-panel ratios the QEBR actually states, and refuse the rest.
+
+WHAT THIS REPLACES, AND WHAT IT DOES NOT
+----------------------------------------
+The sovereign panel carries seven ratios, all from the World Bank, the oldest
+stamped 2023. probe_qebr.py established that the Treasury's Quarterly Economic
+and Budgetary Review carries some of them with figures beside their labels.
+
+This parser takes THREE of them. It deliberately does not take the fourth, and
+that refusal is the most important thing in this file.
+
+THE THREE IT TAKES, AND WHY THEY ARE SAFE
+-----------------------------------------
+Each is a single figure stated next to its own label, in a sentence that says
+what it is. Nothing is computed, combined or converted:
+
+    GDP growth        "registered a real gdp growth rate of 4.6 percent"
+    Import cover      "reserves represented 5.7 months of import cover"
+    Current account   "deficit stood at us$ 3,298.9 million (2.4 percent of gdp)"
+
+The last is the best case in the document: the Treasury has already divided by
+GDP and printed the ratio, so we are reading a number rather than making one.
+
+A cross-check that the extraction is sound rather than merely plausible: the
+World Bank puts 2025 GDP growth at 4.63 and the QEBR says 4.6. Two independent
+sources agreeing to a rounding is worth more than any regex.
+
+THE FOURTH IS REFUSED, AND HERE IS THE EVIDENCE
+-----------------------------------------------
+`Interest / government revenue` is the panel's oldest figure at 1,314 days, so
+it is the one most worth replacing and the one this parser most wants. Both
+halves that probe_qebr.py matched are the WRONG NUMBERS, and each is wrong in a
+way that reads as right:
+
+    "36. foreign interest payments amounted to ksh. 104.7 billion"
+
+FOREIGN interest, not total. Domestic interest is the larger share for Kenya
+and is reported separately.
+
+    "shortfall recorded in ordinary revenue of ksh. 110.6 billion"
+
+A SHORTFALL AGAINST TARGET — the amount revenue MISSED BY, not the revenue.
+Reading it as the level understates revenue by an order of magnitude.
+
+Divide one by the other and you get 104.7 / 110.6 = 94.7%, against a real
+figure nearer a third. It is not a small error: it would put a headline on the
+dashboard saying Kenya spends almost every shilling it collects on interest,
+sourced to the National Treasury, and it would look entirely credible.
+
+That is why `interest_over_revenue` exists below and always returns None. A
+deleted function invites reimplementation; a function that documents its own
+refusal does not. It will return a figure the day somebody confirms which line
+in the QEBR carries TOTAL interest and which carries the revenue LEVEL — from
+the tables, not from prose that happens to contain both words.
+
+HOW IT REFUSES IN GENERAL
+-------------------------
+Every extractor requires the number adjacent to its own label, and returns None
+otherwise. A missing indicator is a fact the caller can act on; a guessed one
+is not recoverable, because nothing downstream can tell it from a real one.
+"""
+import re
+import sys
+from io import BytesIO
+
+import requests
+
+TIMEOUT = 45
+UA = {"User-Agent": "mwangaza-yield/1.0 (+https://mwangazayield.org)"}
+
+SOURCE = "National Treasury, Quarterly Economic and Budgetary Review"
+INDEX = "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report"
+
+# Enough pages to reach the macro section, few enough to stay quick. The
+# figures sought sit in the opening economic review, not the annexes.
+MAX_PAGES = 25
+
+# Written as a NUMBER FOLLOWED BY ITS OWN WORDS, so a figure can only be picked
+# up in a sentence that says what it is. `[\d.,]+` rather than `\d+` because
+# the document writes 3,298.9 and 4.6 in the same paragraph.
+NUM = r"([\d][\d,]*\.?\d*)"
+
+
+def _f(s: str) -> float:
+    return float(s.replace(",", ""))
+
+
+def gdp_growth(text: str):
+    """"registered a real gdp growth rate of 4.6 percent"
+
+    Anchored on "real gdp growth" so a nominal or sectoral growth rate cannot
+    satisfy it — the document quotes several, and they are different numbers
+    for different things.
+    """
+    m = re.search(rf"real gdp growth rate of\s+{NUM}\s*per\s*cent", text)
+    return _f(m.group(1)) if m else None
+
+
+def import_cover(text: str):
+    """"reserves represented 5.7 months of import cover"
+
+    The same sentence also carries the prior-year comparison ("compared to 4.7
+    months"), so the pattern requires "months of import cover" immediately
+    after the figure rather than merely nearby.
+    """
+    m = re.search(rf"{NUM}\s*months?\s+of\s+import\s+cover", text)
+    return _f(m.group(1)) if m else None
+
+
+def current_account_pct_gdp(text: str):
+    """"deficit stood at us$ 3,298.9 million (2.4 percent of gdp)"
+
+    Returned NEGATIVE when the document says deficit, which it does in every
+    edition seen. The panel's World Bank series is signed the same way, and a
+    deficit published as a positive number would read as a surplus — the one
+    error here that flips the meaning rather than shifting the value.
+    """
+    # `[\s\S]` rather than `[^.]`. The first version excluded full stops to
+    # stay inside one sentence, and the figure it is reaching across is
+    # "us$ 3,298.9 million" — the decimal point stopped the match dead, so the
+    # extractor returned None on the exact sentence it was written for. Both
+    # ends are tightly anchored, so a 120-character window cannot wander into
+    # a different claim.
+    m = re.search(
+        rf"current account (deficit|surplus)[\s\S]{{0,120}}?\(\s*{NUM}\s*per\s*cent\s+of\s+gdp\s*\)",
+        text)
+    if not m:
+        return None
+    value = _f(m.group(2))
+    return -value if m.group(1) == "deficit" else value
+
+
+def interest_over_revenue(text: str):
+    """ALWAYS None. See the module docstring for the evidence.
+
+    The two figures a keyword match finds are FOREIGN interest (not total) and
+    a SHORTFALL in ordinary revenue (not the level). Dividing them yields 94.7%
+    against a true figure nearer a third — a wrong number that would look like
+    a fiscal emergency and carry the Treasury's name.
+
+    This is a function rather than an absence so that the reasoning sits where
+    somebody would come looking to add it. Returning None is the correct
+    output until the source lines are confirmed from the tables.
+    """
+    return None
+
+
+def reporting_period(text: str) -> str | None:
+    """The quarter the document describes, read from the document."""
+    # THE QUARTER AND THE YEAR MUST COME FROM THE SAME PHRASE.
+    #
+    # The first version searched for a quarter word and a fiscal year
+    # separately and joined them. Every QEBR compares against the prior year,
+    # so "fy 2024/25" appears in the prose BEFORE the document's own
+    # "second quarter fy 2025/2026" — and the parser stamped Q2 2025/26 figures
+    # as FY 2024/25. A whole year wrong, from two correct matches combined.
+    joint = re.search(
+        r"\b(first|second|third|fourth)\s+quarter\s+fy\s*(20\d\d)\s*[/-]\s*(\d{2,4})\b",
+        text[:8000])
+    if joint:
+        return f"{joint.group(1).title()} Quarter FY {joint.group(2)}/{joint.group(3)}"
+    # No fallback that guesses. A period assembled from unrelated matches is
+    # how the bug above happened, and a figure under the wrong year is worse
+    # than a figure with no year at all.
+    return None
+
+
+INDICATORS = [
+    ("qebr-gdp-growth", "GDP growth", gdp_growth, "% y/y",
+     "Whether the economy behind the borrowing is still expanding. Growth is "
+     "what eventually pays debt down without new borrowing."),
+    ("qebr-import-cover", "Reserves (import cover)", import_cover, "months",
+     "How many months of imports the reserves would cover. The buffer that "
+     "decides whether a shilling shock has to be met by borrowing."),
+    ("qebr-current-account", "Current account / GDP", current_account_pct_gdp,
+     "% of GDP",
+     "What the country earns abroad against what it spends there. A persistent "
+     "deficit has to be financed, and financing it is what borrowing is for."),
+]
+
+
+def extract(text: str, period: str | None = None) -> list:
+    """Records for whatever is confidently present. Never guesses."""
+    low = text.lower()
+    period = period or reporting_period(low)
+    out = []
+    for ident, label, fn, unit, note in INDICATORS:
+        value = fn(low)
+        if value is None:
+            continue
+        out.append({
+            "id": ident,
+            "label": label,
+            "value": value,
+            "unit": unit,
+            "asOf": period or "unknown",
+            "source": SOURCE,
+            "sourceUrl": INDEX,
+            "note": note,
+        })
+    return out
+
+
+def read_pdf(raw: bytes) -> str:
+    import pdfplumber
+    with pdfplumber.open(BytesIO(raw)) as pdf:
+        n = min(len(pdf.pages), MAX_PAGES)
+        return "\n".join((pdf.pages[i].extract_text() or "") for i in range(n))
+
+
+def main() -> int:
+    """Dry run: fetch the newest QEBR, print what would be extracted.
+
+    Writes nothing. Wiring these into context.json is a separate decision from
+    proving they can be read, and the World Bank figures they would replace are
+    honest about their own age in the meantime.
+    """
+    print("QEBR parser — DRY RUN, writes nothing")
+    try:
+        r = requests.get(INDEX, timeout=TIMEOUT, headers=UA)
+    except Exception as exc:  # noqa: BLE001
+        print(f"index unreachable: {type(exc).__name__}: {exc}")
+        return 0
+    if r.status_code != 200:
+        print(f"index returned {r.status_code}")
+        return 0
+
+    links = re.findall(r'href="([^"]+\.pdf)"', r.text, re.I)
+    qebrs = [u if u.startswith("http") else "https://www.treasury.go.ke" + u
+             for u in links if "qebr" in u.lower()]
+    if not qebrs:
+        print("no QEBR links found on the index page")
+        return 0
+
+    def recency(u: str):
+        hay = u.lower().replace("%20", " ").replace("-", " ")
+        years = [int(y) for y in re.findall(r"\b(20\d\d)\b", hay)]
+        q = next((i + 1 for i, w in enumerate(("first", "second", "third", "fourth"))
+                  if w in hay), 0)
+        return (max(years) if years else 0, q)
+
+    target = sorted(qebrs, key=recency, reverse=True)[0]
+    print(f"newest QEBR: {target}")
+    try:
+        raw = requests.get(target, timeout=TIMEOUT, headers=UA).content
+        text = read_pdf(raw)
+    except Exception as exc:  # noqa: BLE001
+        print(f"could not read it: {type(exc).__name__}: {exc}")
+        return 0
+
+    print(f"text: {len(text)} chars, period: {reporting_period(text.lower())}")
+    records = extract(text)
+    for rec in records:
+        print(f"  {rec['label']:26} {rec['value']:>8}  {rec['unit']}  asOf {rec['asOf']}")
+    missing = [lbl for _, lbl, fn, _, _ in INDICATORS if fn(text.lower()) is None]
+    for lbl in missing:
+        print(f"  {lbl:26}    NOT FOUND — refusing rather than guessing")
+    print("\nInterest / government revenue      REFUSED BY DESIGN — the matches "
+          "are FOREIGN interest and a revenue SHORTFALL, not totals.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

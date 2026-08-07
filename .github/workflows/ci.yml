@@ -188,6 +188,7 @@ jobs:
           python test_macro_parser.py
           python test_treasury_debt.py
           python test_qebr.py
+          python test_qebr_parser.py
           # Must come last: it asserts every file above is actually invoked.
           python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
@@ -412,6 +413,15 @@ jobs:
         # (#176). Runs after the debt probe because they share a host.
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
+
+      - name: Dry-run the QEBR parser against the live document
+        # DRY RUN: prints what it would extract and writes nothing. Proving
+        # three figures can be read is a different decision from publishing
+        # them, and the World Bank figures they would replace are honest about
+        # their own age in the meantime. Bounded in the shell, not with
+        # timeout-minutes (#176).
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python qebr_parser.py || echo "QEBR parser dry run failed — see output above"
 
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same

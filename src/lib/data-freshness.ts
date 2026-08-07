@@ -45,6 +45,7 @@
  */
 
 import meta from '../../public/data/meta.json';
+import freshnessReport from '../../public/data/freshness.json';
 
 /** UTC hours of the scheduled refresh; `17 3,15 * * 1-6` in ci.yml. */
 export const REFRESH_HOURS_UTC = [3, 15];
@@ -216,4 +217,60 @@ export function refreshCadence(): string {
           ? 'every weekday'
           : `on ${days} days a week`;
   return `${perDay}, ${span}`;
+}
+
+
+/**
+ * Datasets that are past their OWN budget, from the pipeline's own verdict.
+ *
+ * WHY THIS IS SEPARATE FROM missedRuns().
+ *
+ * `freshness()` above answers "is the pipeline running?" — it counts scheduled
+ * runs that should have happened and did not, from meta.generatedAt. That is a
+ * true and useful question, and it is not the one a reader is asking.
+ *
+ * A reader wants to know whether the number in front of them is current, and
+ * the pipeline can be running perfectly while one source has been failing for
+ * three weeks: meta.generatedAt is refreshed by ANY scraper succeeding, so a
+ * stale dataset sits behind a stamp that says today. #179 is exactly this —
+ * open, legitimate, and invisible on the site.
+ *
+ * The per-dataset verdict is computed in backend/scrapers/healthcheck.py,
+ * where the budgets live with the reasoning for each one, and published to
+ * freshness.json. It is READ here, not recomputed: two copies of a cadence
+ * table would drift, and the copy that drifts is never the one that gets
+ * corrected. That argument is the same one rates-feed.ts makes about T-bill
+ * conventions, and it was right there too.
+ */
+export interface DatasetFreshness {
+  file: string;
+  label: string;
+  asOf: string;
+  ageDays: number;
+  budgetDays: number;
+  stale: boolean;
+}
+
+export function staleDatasets(): DatasetFreshness[] {
+  return (freshnessReport.datasets as DatasetFreshness[]).filter((d) => d.stale);
+}
+
+/**
+ * What to tell the reader about a specific source that has gone stale.
+ *
+ * Names the dataset, because "some data is old" is not actionable and this is
+ * the whole point of publishing per-dataset ages. Returns null when everything
+ * is inside its budget — silence is the healthy state, and a banner that is
+ * always present is a banner nobody reads.
+ */
+export function staleDatasetNotice(stale: DatasetFreshness[] = staleDatasets()): string | null {
+  if (stale.length === 0) return null;
+  const named = stale
+    .map((d) => `${d.label} (${d.ageDays} days old, expected within ${d.budgetDays})`)
+    .join('; ');
+  return (
+    `Some figures here have not refreshed on schedule: ${named}. ` +
+    `The rest of the site is current — check the Central Bank's own published ` +
+    `figures before acting on the ones named.`
+  );
 }

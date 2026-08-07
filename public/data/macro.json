@@ -1,12 +1,23 @@
 [
   {
-    "id": "cbr-2026-06-09",
+    "id": "cbr-2026-08-07",
     "indicator": "CBR",
     "value": 8.75,
-    "date": "2026-06-09",
+    "date": "2026-08-07",
     "unit": "%",
-    "source": "CBK MPC",
-    "lastChecked": "2026-08-06"
+    "source": "CBK",
+    "via": "cbk-home",
+    "lastChecked": "2026-08-07"
+  },
+  {
+    "id": "fx-2026-08-07",
+    "indicator": "FX_USD_KES",
+    "value": 129.41,
+    "date": "2026-08-07",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "cbk-home",
+    "lastChecked": "2026-08-07"
   },
   {
     "id": "cpi-2026-08-05",
@@ -16,16 +27,9 @@
     "unit": "% y/y",
     "source": "CBK",
     "fallback": true,
-    "lastChecked": "2026-08-06",
-    "period": "2026-07"
-  },
-  {
-    "id": "fx-2026-07",
-    "indicator": "FX_USD_KES",
-    "value": 129.5,
-    "date": "2026-07-20",
-    "unit": "KES/USD",
-    "source": "CBK indicative"
+    "via": "cbk-home",
+    "period": "2026-07",
+    "lastChecked": "2026-08-07"
   },
   {
     "id": "cpi-core-2026-07",

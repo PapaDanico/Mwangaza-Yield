@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-06T06:07:05.129221+00:00",
+  "generatedAt": "2026-08-07T04:36:30.313172+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -53,16 +53,16 @@
     "centralBankRate": {
       "value": 8.75,
       "unit": "%",
-      "date": "2026-06-09",
-      "lastChecked": "2026-08-06",
-      "source": "CBK MPC",
+      "date": "2026-08-07",
+      "lastChecked": "2026-08-07",
+      "source": "CBK",
       "fallback": false
     },
     "inflation": {
       "value": 6.49,
       "unit": "% y/y",
       "date": "2026-08-05",
-      "lastChecked": "2026-08-06",
+      "lastChecked": "2026-08-07",
       "source": "CBK",
       "fallback": true
     },
@@ -83,10 +83,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.5,
+      "value": 129.41,
       "unit": "KES/USD",
-      "date": "2026-07-20",
-      "lastChecked": "2026-07-20",
+      "date": "2026-08-07",
+      "lastChecked": "2026-08-07",
       "source": "CBK indicative",
       "fallback": false
     }

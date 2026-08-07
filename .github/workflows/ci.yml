@@ -158,6 +158,7 @@ jobs:
           python test_check_archive.py
           python test_healthcheck.py
           python test_macro_parser.py
+          python test_treasury_debt.py
           # Must come last: it asserts every file above is actually invoked.
           python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
@@ -362,6 +363,17 @@ jobs:
       - name: Probe who serves Kenya debt-to-GDP in a machine-readable form
         working-directory: backend/scrapers
         run: python probe_debt_sources.py || echo "debt-source probe failed — see output above"
+
+      - name: Probe the Treasury's monthly debt bulletin
+        # The only candidate that is ALREADY a permitted source, so the open
+        # question is machine-readability rather than licensing — unlike FRED
+        # (bars commercial redistribution) and the IMF (projections, not
+        # outturns). Bounded in the shell, not with timeout-minutes: a
+        # `timeout-minutes` kill bypasses the `||` guard and skips every later
+        # step, which is exactly how the World Bank step once took six
+        # scrapers and the freshness gate down with it (#176).
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_treasury_debt.py || echo "treasury-debt probe failed — see output above"
 
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same

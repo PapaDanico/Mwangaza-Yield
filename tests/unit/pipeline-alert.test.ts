@@ -95,6 +95,21 @@ describe('the alert can actually fire', () => {
     expect(REFRESH).toMatch(/labels: \[label\]/);
   });
 
+  it('waits for the issue index before asserting the close', () => {
+    /* THE FIRST LIVE DISPATCH FAILED ON A DEFECT THAT DID NOT EXIST.
+     *
+     * It reported "the close path is broken". The close path was fine — the
+     * issue was created at 13:29:38.12 and listForRepo ran at 13:29:38.36,
+     * and GitHub's issue listing is eventually consistent, so the recovery
+     * loop iterated over nothing.
+     *
+     * Proven by re-dispatch: the second run closed the first run's issue, by
+     * then indexed, with a Recovered comment. The recovery branch has now
+     * executed against a real issue for the first time. */
+    expect(REFRESH).toContain('Waiting for #');
+    expect(REFRESH).toMatch(/for \(let attempt = 0; attempt < \d+; attempt\+\+\)/);
+  });
+
   it('fails the self-test when the recovery branch closes nothing', () => {
     /* THE GUARD INSIDE THE GUARD.
      *
@@ -105,8 +120,12 @@ describe('the alert can actually fire', () => {
       REFRESH.indexOf('if (testRecovery ||'),
       REFRESH.indexOf('const run ='),
     );
-    expect(quiet).toContain('closed += 1');
-    expect(quiet).toMatch(/if \(testRecovery && closed === 0\)/);
+    expect(quiet).toContain('closedNumbers.push');
+    // NOT `closed === 0`. That was the first version and it was too weak: the
+    // second live dispatch closed the PREVIOUS run's issue, counted one, and
+    // passed green while leaving the issue it had just raised open. A guard
+    // any close satisfies is satisfied by the wrong close.
+    expect(quiet).toMatch(/if \(testRecovery && !closedNumbers\.includes\(selfTestIssue\)\)/);
     expect(quiet).toContain('core.setFailed');
   });
 

@@ -53,6 +53,7 @@ export default function ToolShell({
   title,
   intro,
   children,
+  after,
 }: {
   /** ReactNode rather than string: two of these headings carry a lucide icon. */
   title: ReactNode;
@@ -61,6 +62,47 @@ export default function ToolShell({
   intro: ReactNode;
   /** The interactive island. */
   children: ReactNode;
+  /**
+   * Editorial prose BELOW the tool, rendered on the server.
+   *
+   * A HEADING AND A SENTENCE IS NOT CONTENT, WHICH TOOK A SECOND LOOK TO SEE.
+   *
+   * The first version of this component moved the heading and one intro
+   * paragraph out of the client island, taking these pages from a literally
+   * empty `<main>` to a populated one. That was the right fix and it was
+   * reported as closing the gap. Measured properly on 2026-08-07 — counting
+   * TEXT rather than markup, which is what the earlier measurement got wrong —
+   * it had not:
+   *
+   *     /tbills/      217 chars      /calculator/  307 chars
+   *     /dashboard/   316 chars      /yield-curve/ 1455 chars
+   *
+   * `/yield-curve/` is the page that reads properly without JavaScript, and
+   * the difference is not the shell: it is that the yield-curve page says
+   * something. It explains what a curve is, how to read the shape, and — the
+   * part that matters most here — what the figures are NOT. The tool sits in
+   * the middle of an argument rather than under a label.
+   *
+   * So this slot exists to carry that second half. It is deliberately BELOW
+   * the interactive part: somebody who came to calculate lands on the
+   * calculator, and somebody who came from a search engine or arrived with
+   * JavaScript disabled still finds prose that answers the question they
+   * searched for.
+   *
+   * WHAT BELONGS IN IT
+   *
+   * The things a reader needs and the tool cannot say in a label: the
+   * convention behind a number, the tax treatment, and above all the limits of
+   * what the figure means. This project publishes no secondary-market prices,
+   * and several of these tools are exactly where a reader might assume it
+   * does. Saying so in server-rendered text is worth more than any keyword.
+   *
+   * What does NOT belong is filler written to raise a character count. The
+   * guard in tests/e2e/smoke.mjs checks length because length is measurable,
+   * but a paragraph that says nothing passes it and fails the reader. Optional
+   * on purpose: a page with nothing further to say should say nothing further.
+   */
+  after?: ReactNode;
 }) {
   return (
     <div className="space-y-5">
@@ -69,6 +111,11 @@ export default function ToolShell({
         <p className="mt-1 max-w-[64ch] text-sm leading-relaxed text-ink-muted">{intro}</p>
       </div>
       {children}
+      {after && (
+        <div className="mt-8 max-w-[68ch] space-y-4 border-t border-sand-200 pt-6 text-sm leading-relaxed text-ink-soft [&_a]:text-gold-700 [&_a]:underline-offset-2 hover:[&_a]:underline [&_h2]:font-display [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-ink [&_strong]:text-ink">
+          {after}
+        </div>
+      )}
     </div>
   );
 }

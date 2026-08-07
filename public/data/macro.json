@@ -1,11 +1,11 @@
 [
   {
-    "id": "cbr-2026-08-07",
+    "id": "cbr-2026-06-09",
     "indicator": "CBR",
     "value": 8.75,
-    "date": "2026-08-07",
+    "date": "2026-06-09",
     "unit": "%",
-    "source": "CBK",
+    "source": "CBK MPC",
     "via": "cbk-home",
     "lastChecked": "2026-08-07"
   },

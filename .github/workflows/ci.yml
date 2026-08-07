@@ -171,6 +171,16 @@ jobs:
       - name: Probe live data sources
         working-directory: backend/scrapers
         run: python validate.py
+      # validate.py asks whether the page is REACHABLE and contains a marker.
+      # Both stayed green for the seventeen days USD/KES was frozen, because
+      # the marker it checks on the CBK home page is "Central Bank Rate" — a
+      # different indicator on the same page. This exercises the actual
+      # patterns the pipeline depends on, which is the one question neither
+      # validate.py nor the fixture-based test_sources.py could answer.
+      - name: Probe whether the declared routes still match the live pages
+        timeout-minutes: 4
+        working-directory: backend/scrapers
+        run: python probe_routes.py || echo "route probe failed — see output above"
       - name: Dry-run the macro scraper
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers

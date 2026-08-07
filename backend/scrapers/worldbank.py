@@ -12,6 +12,7 @@ The indicators chosen are the ones that tell a BOND investor whether the
 borrower is good for the money — not general development statistics.
 """
 import sys
+import time
 from datetime import date
 
 import requests
@@ -205,9 +206,39 @@ def sentiment_for(value: float, rule) -> str:
     return "good" if ok else "caution"
 
 
-def scrape() -> list:
+# A WALL CLOCK THIS SCRAPER IMPOSES ON ITSELF.
+#
+# Eight indicators, up to three query shapes each, sixty seconds per request:
+# the worst case is about twenty-four minutes. The CI step allows six. So on a
+# day when the World Bank API is slow this step was GUARANTEED to blow its
+# bound — which is what happened on 2026-08-07, at 6m12s.
+#
+# Being killed externally is the worst of the options. The process dies before
+# it can report, the step is marked failed, and — until the bound was moved
+# into the shell — six later scrapers and the freshness gate were skipped with
+# it. Stopping ourselves is strictly better: whatever came back is assessed by
+# refuse_if_collapsed(), which either writes a complete-enough file or exits 1
+# deliberately so the pipeline records `failed=worldbank` and carries on.
+#
+# Deliberately well under the step's own 360s so this fires FIRST. A
+# self-imposed budget larger than the external one could never fire, which is
+# the defect this repository keeps finding in itself.
+BUDGET_SECONDS = 240
+
+
+def scrape(budget_seconds: float = BUDGET_SECONDS) -> list:
     records = []
+    started = time.monotonic()
     for code, label, unit, note, rule in INDICATORS:
+        if time.monotonic() - started > budget_seconds:
+            print(
+                f"[worldbank] budget of {budget_seconds:.0f}s spent after "
+                f"{len(records)} of {len(INDICATORS)} indicators — stopping here "
+                "rather than being killed mid-request. What came back is judged "
+                "by refuse_if_collapsed().",
+                file=sys.stderr,
+            )
+            break
         try:
             obs = latest_value(code)
         except requests.RequestException as exc:

@@ -197,8 +197,69 @@ def identifies_itself():
           sent.get("headers", {}).get("User-Agent"), wb.USER_AGENT)
 
 
+def test_budget_stops_before_the_ci_bound_does():
+    """The self-imposed budget must fire BEFORE the shell timeout kills us.
+
+    A budget larger than the external bound could never fire — the exact
+    "guard that cannot fire in the case it exists to detect" this repository
+    keeps finding. So the ordering is asserted against ci.yml itself rather
+    than trusted.
+    """
+    import re
+    from pathlib import Path
+    ci = (Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml").read_text()
+    m = re.search(r"timeout -k \d+s (\d+)s python worldbank\.py", ci)
+    check("ci.yml bounds worldbank.py in the shell", bool(m), True)
+    if m:
+        shell = int(m.group(1))
+        check(f"budget {wb.BUDGET_SECONDS}s is under the {shell}s shell bound",
+              wb.BUDGET_SECONDS < shell, True)
+        # And with real margin — a request can be in flight when the budget is
+        # checked, and it may take up to TIMEOUT to return.
+        check("with at least one request-timeout of margin",
+              shell - wb.BUDGET_SECONDS >= wb.TIMEOUT, True)
+
+
+def test_budget_stops_the_loop_and_keeps_what_it_got():
+    """Exhausting the budget must return partial records, not raise."""
+    calls = {"n": 0}
+
+    def slow(code):
+        calls["n"] += 1
+        return {"value": 1.0, "year": "2024"}
+
+    real = wb.latest_value
+    try:
+        wb.latest_value = slow
+        got = wb.scrape(budget_seconds=0)  # already spent
+    finally:
+        wb.latest_value = real
+    check("a spent budget fetches nothing", calls["n"], 0)
+    check("and returns a list rather than raising", isinstance(got, list), True)
+
+
+def test_a_generous_budget_still_fetches_everything():
+    """The mirror. A budget that stops every run is as useless as none."""
+    def quick(code):
+        return {"value": 1.0, "year": "2024"}
+
+    real = wb.latest_value
+    try:
+        wb.latest_value = quick
+        got = wb.scrape(budget_seconds=3600)
+    finally:
+        wb.latest_value = real
+    check("all indicators collected under a generous budget",
+          len(got), len(wb.INDICATORS))
+
+
 def main():
-    print("every indicator carries what the dashboard renders")
+    print("the self-imposed budget")
+    test_budget_stops_before_the_ci_bound_does()
+    test_budget_stops_the_loop_and_keeps_what_it_got()
+    test_a_generous_budget_still_fetches_everything()
+
+    print("\nevery indicator carries what the dashboard renders")
     for code, label, unit, note, rule in wb.INDICATORS:
         check(f"{label} has a note", bool(note and note.strip()), True)
         check(f"{label} note is a real explanation, not a stub", len(note) > 40, True)

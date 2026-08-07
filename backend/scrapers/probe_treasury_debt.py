@@ -133,6 +133,29 @@ def score(href: str, label: str) -> int:
     return n
 
 
+def recency(href: str) -> tuple:
+    """(year, month) named in the link, for breaking score ties. (0, 0) if none.
+
+    Scores tie constantly — every monthly bulletin looks equally like a monthly
+    bulletin, which is the scorer working correctly. But the first run of this
+    probe sorted on score alone, so among a dozen links all scoring 19 it took
+    whichever three the dict happened to yield first and reported on September,
+    October and November 2025 while May and June 2026 sat further down the same
+    list. Reporting on a bulletin nine months stale is a strange way to argue
+    that this source is fresher than a 2023 World Bank figure.
+
+    This reads the month from the URL, which is safe HERE because it only
+    orders candidates. The month a figure is STAMPED with still comes from
+    reporting_month() reading the cover page — a filename may carry a revision
+    date instead, and getting that wrong would put a real number under a wrong
+    date.
+    """
+    hay = href.lower().replace("%20", " ").replace("-", " ")
+    y = re.search(r"\b(20\d\d)\b", hay)
+    m = next((i + 1 for i, name in enumerate(MONTHS) if name in hay), 0)
+    return (int(y.group(1)) if y else 0, m)
+
+
 def links_from(html: str, base: str):
     """Every PDF link on the page, with its anchor text, scored and sorted."""
     out = []
@@ -151,7 +174,10 @@ def links_from(html: str, base: str):
     for s, href, label in out:
         if href not in best or s > best[href][0]:
             best[href] = (s, label)
-    return sorted(((s, u, l) for u, (s, l) in best.items()), reverse=True)
+    # Score first, then RECENCY. Without the second key a dozen bulletins all
+    # scoring 19 come back in arbitrary order and the newest is not read.
+    return sorted(((s, u, l) for u, (s, l) in best.items()),
+                  key=lambda t: (t[0], recency(t[1])), reverse=True)
 
 
 def context(text: str, needle: str, width: int = 110) -> str:
@@ -185,12 +211,18 @@ def inspect(url: str, label: str) -> None:
     if status != 200 or not raw:
         return
     try:
-        from pypdf import PdfReader
-        reader = PdfReader(BytesIO(raw))
-        pages = len(reader.pages)
-        read = min(pages, 12)
-        text = "\n".join((reader.pages[i].extract_text() or "")
-                         for i in range(read))
+        # pdfplumber, because that is what backend/requirements.txt installs
+        # and what auction_results.py already reads CBK PDFs with. The first
+        # version of this probe imported pypdf, which is not a dependency —
+        # so every document reported "UNREADABLE as PDF" and the probe was
+        # answering a question about its own imports while looking like it
+        # was answering one about the Treasury.
+        import pdfplumber
+        with pdfplumber.open(BytesIO(raw)) as pdf:
+            pages = len(pdf.pages)
+            read = min(pages, 12)
+            text = "\n".join((pdf.pages[i].extract_text() or "")
+                             for i in range(read))
     except Exception as exc:  # noqa: BLE001
         print(f"   UNREADABLE as PDF: {type(exc).__name__}: {exc}")
         return

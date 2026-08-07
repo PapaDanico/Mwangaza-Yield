@@ -33,9 +33,11 @@ This runs offline. It asserts nothing about the network, so a Treasury outage
 cannot turn it red — the probe itself reports reachability, and reachability is
 not what this file is about.
 """
+import re
 import sys
+from pathlib import Path
 
-from probe_treasury_debt import reporting_month, score
+from probe_treasury_debt import links_from, recency, reporting_month, score
 
 THRESHOLD = 10
 
@@ -98,6 +100,45 @@ def main() -> int:
           "reporting_month did not read the month off the cover page")
     check(reporting_month("no month here at all").startswith("NOT FOUND"),
           "reporting_month invented a month from a document that has none")
+
+    # THE TIE-BREAK. Every monthly bulletin scores the same, correctly. The
+    # first run of this probe sorted on score alone and reported on September,
+    # October and November 2025 while May and June 2026 sat in the same list.
+    # These are the real filenames from that run, deliberately including both
+    # the hyphenated and the space-separated forms the site actually mixes.
+    base = "https://www.treasury.go.ke/sites/default/files/Debt%20Monthly%20Bulletins/"
+    html = "".join(
+        f'<a href="{base}{n}">Download</a>' for n in (
+            "September-2025-Monthly-Bulletin-1.pdf",
+            "October%202025%20Monthly%20Bulletin.pdf",
+            "May%202026%20Monthly%20Bulletin.pdf",
+            "June%202026%20Monthly%20Bulletin.pdf",
+            "July-2025-Monthly-Bulletin.pdf",
+        ))
+    order = [u for _, u, _ in links_from(html, base)]
+    check(bool(order) and "June%202026" in order[0],
+          f"the newest bulletin is not read first; got {order[:1]}")
+    check(len(order) > 1 and "May%202026" in order[1],
+          f"second place is not the second-newest; got {order[1:2]}")
+    check(recency(base + "June%202026%20Monthly%20Bulletin.pdf") == (2026, 6),
+          "recency misread a space-separated filename")
+    check(recency(base + "September-2025-Monthly-Bulletin-1.pdf") == (2025, 9),
+          "recency misread a hyphenated filename")
+
+    # THE IMPORT GUARD. The first run of this probe imported pypdf, which is
+    # not in backend/requirements.txt, so every document reported "UNREADABLE
+    # as PDF" — and this test file passed green throughout, because it only
+    # ever exercised the scorer. A probe that cannot open its documents is
+    # answering a question about its own imports.
+    src = Path(__file__).with_name("probe_treasury_debt.py").read_text()
+    reqs = (Path(__file__).parents[1] / "requirements.txt").read_text().lower()
+    for mod in sorted(set(re.findall(r"^\s*import\s+([a-z_][a-z0-9_]*)",
+                                     src, re.M))):
+        if mod in ("re", "sys", "io"):
+            continue
+        check(mod in reqs,
+              f"probe imports '{mod}', which is not in requirements.txt — "
+              f"it will fail on the runner with ModuleNotFoundError")
 
     for f in FAILURES:
         print(f"FAIL: {f}", file=sys.stderr)

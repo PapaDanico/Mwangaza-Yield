@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-07T05:49:15.369684+00:00",
+  "generatedAt": "2026-08-07T16:13:44.794177+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -83,7 +83,7 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.41,
+      "value": 129.39,
       "unit": "KES/USD",
       "date": "2026-08-07",
       "lastChecked": "2026-08-07",
@@ -148,8 +148,8 @@
     ],
     "demand": {
       "auctions": 26,
-      "medianCoverRatio": 1.404,
-      "medianAcceptanceRate": 0.701
+      "medianCoverRatio": 1.516,
+      "medianAcceptanceRate": 0.727
     }
   }
 }

@@ -253,6 +253,10 @@ def check_per_indicator_budgets(payload, label: str, problems: list, rows: list)
         return
     today = date.today()
     seen: dict[str, tuple[int, int, str]] = {}
+    # Why an indicator is old matters more than that it is. `carry_forward`
+    # writes attemptFailed when every route failed, so "nobody has published a
+    # new figure" and "our way in has broken" stop reading identically here.
+    breaking: dict[str, str] = {}
     for rec in payload:
         if not isinstance(rec, dict):
             continue
@@ -269,6 +273,10 @@ def check_per_indicator_budgets(payload, label: str, problems: list, rows: list)
         prior = seen.get(name)
         if prior is None or age < prior[0]:
             seen[name] = (age, budget, why)
+            if rec.get("attemptFailed"):
+                breaking[name] = str(rec["attemptFailed"])
+            else:
+                breaking.pop(name, None)
 
     if not seen:
         return
@@ -276,9 +284,23 @@ def check_per_indicator_budgets(payload, label: str, problems: list, rows: list)
     for name, (age, budget, why) in sorted(seen.items(), key=lambda kv: -kv[1][0]):
         state = "OK" if age <= budget else "STALE"
         rows.append(f"{'':<9}   {state:<5} {age:>4}d / {budget}d  {name}  ({why})")
+        broken = breaking.get(name)
+        if broken:
+            rows.append(f"{'':<9}         last fetch FAILED — {broken}")
         if age > budget:
+            detail = f", budget {budget}d ({why})"
+            if broken:
+                # An actively failing fetch is a different job for whoever
+                # reads this: fix a route, not wait for a publisher.
+                detail += f"; every route failed on the last run — {broken}"
+            problems.append(f"{label}: {name} is {age} days old{detail}")
+        elif broken:
+            # Within budget but the fetch is broken. Worth saying BEFORE the
+            # age crosses the line, which is the whole value of recording the
+            # attempt: FX had four days of grace in which this was knowable.
             problems.append(
-                f"{label}: {name} is {age} days old, budget {budget}d ({why})"
+                f"{label}: {name} is within its {budget}d budget but every route "
+                f"failed on the last run — {broken}"
             )
 
 

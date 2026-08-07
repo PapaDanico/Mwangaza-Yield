@@ -126,6 +126,9 @@ jobs:
           python test_worldbank.py
           python test_check_archive.py
           python test_healthcheck.py
+          python test_macro_parser.py
+          # Must come last: it asserts every file above is actually invoked.
+          python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
       # or whether data is FRESH. Neither would have caught the worst bug found
       # so far, because it produced values that were individually plausible and

@@ -74,7 +74,9 @@ def scrape() -> list:
                         "via": cpi.via})
 
     existing = read_existing()
-    return carry_forward(date_by_observation(records, existing), existing)
+    return carry_forward(
+        date_by_observation(records, existing), existing, (fx, cbr, cpi),
+    )
 
 
 def read_existing() -> list:
@@ -123,20 +125,66 @@ def today_iso() -> str:
     return date.today().isoformat()
 
 
-def carry_forward(records: list, existing: list) -> list:
-    """Keep indicators this run could not refresh.
+def carry_forward(records: list, existing: list, resolutions=()) -> list:
+    """Keep indicators this run could not refresh, and say so IN THE DATA.
 
-    Without this, a partial scrape REPLACES the dataset and silently deletes
-    whatever it failed to fetch — e.g. losing CPI from the app entirely because
-    KNBS was down that morning. A stale indicator, clearly dated, beats a
-    missing one.
+    Without the carrying-forward, a partial scrape REPLACES the dataset and
+    silently deletes whatever it failed to fetch — e.g. losing CPI from the app
+    entirely because KNBS was down that morning. A stale indicator, clearly
+    dated, beats a missing one.
+
+    But carrying a row forward UNCHANGED is how USD/KES sat at 2026-07-20 for
+    seventeen days without anybody noticing. The carried row was byte-identical
+    to a healthy one: same `date`, same `value`, and — because `lastChecked` is
+    only stamped on a record that actually resolved — no field at all saying
+    when we last tried. Nothing downstream could distinguish
+
+        we have not attempted this indicator            (nothing is wrong)
+        we attempt it every run and it keeps failing    (a source has moved)
+
+    and the second is an emergency wearing the first one's clothes. The only
+    trace was a line on stderr in a CI log nobody reads, which is the same as
+    no trace: this project's recurring defect is a guard that cannot fire in
+    the case it exists to detect, and a warning nobody receives has not fired.
+
+    So a failed attempt is now recorded on the row itself. Deliberately NOT via
+    `lastChecked` — that field means "we looked and the figure was confirmed
+    unchanged", and stamping it on a failure would make a broken indicator
+    render as freshly verified every morning. That is the false-freshness bug
+    `date_by_observation` exists to prevent, and writing it back in here under a
+    different name would undo that fix. A failure gets its own vocabulary:
+
+        lastAttempt   — when we last tried, succeed or fail
+        attemptFailed — why the last try produced nothing
+
+    `lastChecked` keeps meaning confirmation, and its ABSENCE alongside a
+    recent `lastAttempt` is now a readable statement: unconfirmed since `date`,
+    despite trying.
     """
+    failed = {
+        r.indicator: r for r in resolutions
+        if r is not None and not r.ok
+    }
     fresh = {r["indicator"] for r in records}
     for old in existing:
-        if old.get("indicator") not in fresh:
-            print(f"[macro] carrying forward {old.get('indicator')} from {old.get('date')}",
-                  file=sys.stderr)
-            records.append(old)
+        name = old.get("indicator")
+        if name in fresh:
+            continue
+        row = dict(old)
+        res = failed.get(name)
+        if res is not None:
+            # Attempted this run and every route failed. Name the routes so the
+            # data says which way in, not merely that there was no way in.
+            row["lastAttempt"] = today_iso()
+            row["attemptFailed"] = "; ".join(
+                f"{a.route}: {a.reason}" for a in res.attempts
+            ) or "no routes configured"
+            print(f"[macro] {name} FAILED every route, carrying {old.get('date')} "
+                  f"forward: {row['attemptFailed']}", file=sys.stderr)
+        else:
+            print(f"[macro] carrying forward {name} from {old.get('date')} "
+                  f"(not attempted this run)", file=sys.stderr)
+        records.append(row)
     return records
 
 

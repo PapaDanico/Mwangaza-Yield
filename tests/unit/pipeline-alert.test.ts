@@ -163,3 +163,61 @@ describe('an unchanged fault is not emailed every morning', () => {
     expect(alert).toMatch(/issues\.create\(/);
   });
 });
+
+/**
+ * A recorded failure must be able to actually happen.
+ *
+ * Every scraper step ends in `|| echo "failed=..." >> $GITHUB_OUTPUT`, so a
+ * failing scraper is reported by the alert step without aborting the run.
+ * `timeout-minutes` defeats that entirely: GitHub kills the shell and marks
+ * the step FAILED, so the `||` never runs, nothing is recorded, and every
+ * later step is skipped because their `if:` carries no status function.
+ *
+ * On 2026-08-07 the World Bank step hit its six-minute bound at 6m12s. The
+ * macro scraper had already run so USD/KES refreshed — but the securities
+ * register, auction results, CBR history, CPI history, the bond universe and
+ * the auction calendar were all skipped, and so was `Check data freshness`,
+ * the gate that would have caught it. Seven steps carried the same pairing.
+ *
+ * The bound now lives in the shell (`timeout -k 20s Ns …`), which returns 124
+ * and lets the `||` fire. This fails if the two are ever paired again.
+ */
+describe('scraper steps can record their own failure', () => {
+  const REFRESH_JOB = CI.slice(CI.indexOf('\n  refresh-data:'));
+
+  it('reads a real job body', () => {
+    expect(REFRESH_JOB).toContain('Run macro scraper');
+    expect(REFRESH_JOB.length).toBeGreaterThan(2000);
+  });
+
+  it('pairs no `timeout-minutes` with a `|| echo failed=` guard', () => {
+    // Split into steps and check each one in isolation, so a bound on one
+    // step cannot be excused by a guard on another.
+    const steps = REFRESH_JOB.split('\n      - name: ').slice(1);
+    const broken = steps
+      .filter((s) => /timeout-minutes:/.test(s.split('\n      - name:')[0]))
+      .filter((s) => /\|\| echo "failed=/.test(s.split('\n      - name:')[0]))
+      .map((s) => s.split('\n')[0]);
+    expect(
+      broken,
+      `these steps bound with timeout-minutes AND rely on a || guard the bound `
+        + `bypasses — move the bound into the shell:\n${broken.join('\n')}`,
+    ).toEqual([]);
+  });
+
+  it('bounds every recorded scraper in the shell instead', () => {
+    // The guard above is satisfied by removing the bound entirely, which would
+    // reintroduce the unbounded-step problem. So each guarded scraper must
+    // carry a shell timeout.
+    const steps = REFRESH_JOB.split('\n      - name: ').slice(1);
+    const guarded = steps.filter((s) => /\|\| echo "failed=[a-z-]+" >> "\$GITHUB_OUTPUT"/.test(s));
+    expect(guarded.length).toBeGreaterThan(5);
+    const unbounded = guarded
+      .filter((s) => /run: python /.test(s))
+      .map((s) => s.split('\n')[0]);
+    expect(
+      unbounded,
+      `guarded scrapers with no shell bound: ${unbounded.join(', ')}`,
+    ).toEqual([]);
+  });
+});

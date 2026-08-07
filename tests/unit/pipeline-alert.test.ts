@@ -47,7 +47,37 @@ describe('the alert can actually fire', () => {
     // Running on every completed run is only safe if the quiet case is quiet.
     // An alert that fires daily regardless of state is the wolf-crying the
     // freshness budgets were deliberately widened to avoid.
-    expect(REFRESH).toMatch(/if \(!failed\.length && !healthFailed && !brokeIntegrity && !jobFailed\) return;/);
+    expect(REFRESH).toMatch(/if \(!failed\.length && !healthFailed && !brokeIntegrity && !jobFailed\) \{/);
+    // The quiet branch must still end in a return, or a healthy run would fall
+    // through and raise the very alert it just decided not to raise.
+    const quiet = REFRESH.slice(REFRESH.indexOf('if (!failed.length'));
+    expect(quiet.slice(0, quiet.indexOf('const run ='))).toContain('return;');
+  });
+
+  it('CLOSES a recovered alert instead of leaving it open forever', () => {
+    // This step could raise an alert and could never clear one, so `open`
+    // degraded from "still true" to "was true once" — and the script's own
+    // comment leans on open meaning "still true" ("stays visible as an OPEN
+    // ISSUE, which is the right register"). An alarm nobody can switch off is
+    // one people stop switching on.
+    const quiet = REFRESH.slice(
+      REFRESH.indexOf('if (!failed.length'),
+      REFRESH.indexOf('const run ='),
+    );
+    expect(quiet).toContain('issues.update');
+    expect(quiet).toMatch(/state: 'closed'/);
+    // Closed WITH a comment, so the issue records a fault that ended rather
+    // than one somebody tidied away.
+    expect(quiet).toContain('createComment');
+    // And only ever issues this automation raised.
+    expect(quiet).toMatch(/labels: label/);
+  });
+
+  it('declares the alert label exactly once', () => {
+    // Both branches need it and JS would throw on a redeclaration in the same
+    // scope — a failure that only shows up at 3am inside github-script.
+    const decls = REFRESH.match(/const label = 'scraper-alert';/g) ?? [];
+    expect(decls).toHaveLength(1);
   });
 });
 

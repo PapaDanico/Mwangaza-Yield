@@ -15,7 +15,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from macro_parser import (  # noqa: E402
-    carry_forward, date_by_observation, reference_period, today_iso,
+    MAX_MOVE, carry_forward, date_by_observation, implausible_move,
+    reference_period, reject_implausible, today_iso,
 )
 from sources import Attempt, Resolution  # noqa: E402
 
@@ -161,6 +162,96 @@ def test_an_indicator_with_no_history_keeps_todays_date() -> None:
     out = date_by_observation([row("CPI", 6.49, today_iso())], [])
     check(out[0]["date"] == today_iso(), "a first observation is dated today")
     check(out[0]["lastChecked"] == today_iso(), "a first observation was checked")
+
+
+# --------------------------------------------------------------------------
+# implausible_move / reject_implausible — the wrong-but-in-band trap
+#
+# The live probe on 2026-08-07 resolved FX_USD_KES to 85.1625 off CBK's forex
+# page while the real rate was ~129.5, almost certainly matching a historical
+# row. Everything we had passed it: page reachable, regex matched, number
+# parsed, and 85.1625 sits inside the 50-500 band. A 34% error was one
+# scheduled run away from being published as current.
+# --------------------------------------------------------------------------
+
+PREV = [row("FX_USD_KES", 129.5, "2026-07-20"), row("CBR", 8.75, "2026-06-09")]
+
+
+def test_the_85_point_16_rate_is_refused() -> None:
+    why = implausible_move("FX_USD_KES", 85.1625, PREV)
+    check(why is not None, "the 34% jump was accepted")
+    check("85.1625" in why and "129.5" in why,
+          f"the reason must name both values, got {why}")
+
+
+def test_an_ordinary_days_move_is_accepted() -> None:
+    # The mirror. A guard that fires in every case is as useless as one that
+    # never fires, and this one sits in front of the only FX figure we have.
+    for v in (129.5, 130.2, 127.0, 135.0, 124.0):
+        check(implausible_move("FX_USD_KES", v, PREV) is None,
+              f"a normal rate {v} was refused")
+
+
+def test_the_limit_is_applied_at_its_edge() -> None:
+    limit = MAX_MOVE["FX_USD_KES"]
+    check(implausible_move("FX_USD_KES", 129.5 * (1 + limit), PREV) is None,
+          "a move exactly at the limit must pass")
+    check(implausible_move("FX_USD_KES", 129.5 * (1 + limit) + 0.1, PREV) is not None,
+          "a move past the limit must be refused")
+
+
+def test_a_first_observation_is_never_refused() -> None:
+    # Nothing to compare against. Refusing here would mean never accepting any
+    # figure at all — a guard that fires in every case.
+    check(implausible_move("FX_USD_KES", 129.5, []) is None,
+          "a first observation must be accepted")
+    check(implausible_move("GDP", 5.1, PREV) is None,
+          "an indicator with no prior value must be accepted")
+
+
+def test_an_indicator_keeps_its_OWN_tolerance() -> None:
+    # Inflation genuinely can move by half its own value; USD/KES cannot.
+    check(implausible_move("CPI", 9.0, [row("CPI", 6.49, "2026-08-05")]) is None,
+          "CPI's wider tolerance was not applied")
+    check(implausible_move("FX_USD_KES", 9.0, PREV) is not None,
+          "FX must not inherit CPI's tolerance")
+
+
+def test_a_rejected_resolution_becomes_a_FAILED_one() -> None:
+    res = reject_implausible(succeeded("FX_USD_KES", 85.1625), PREV)
+    check(not res.ok, "an implausible value must not resolve")
+    check(res.value is None, "the bad value must not survive as the answer")
+    check(any(a.value == 85.1625 for a in res.attempts),
+          "the rejected value must be kept for whoever reads the log")
+
+
+def test_a_plausible_resolution_passes_through_untouched() -> None:
+    ok = succeeded("FX_USD_KES", 130.2)
+    res = reject_implausible(ok, PREV)
+    check(res is ok, "a good resolution should not be rebuilt")
+    check(res.ok and res.value == 130.2, "a good value was altered")
+
+
+def test_an_already_failed_resolution_is_left_alone() -> None:
+    f = failed("FX_USD_KES", "no match")
+    check(reject_implausible(f, PREV) is f, "a failed resolution was rebuilt")
+
+
+def test_a_zero_or_missing_prior_does_not_divide_by_zero() -> None:
+    check(implausible_move("X", 5.0, [row("X", 0, "2026-01-01")]) is None,
+          "a zero prior must not blow up or refuse")
+    check(implausible_move("X", None, PREV) is None, "no value, nothing to judge")
+
+
+def test_a_rejected_value_is_carried_forward_and_reported() -> None:
+    """End to end: the bad rate must leave the old one in place, and say why."""
+    res = reject_implausible(succeeded("FX_USD_KES", 85.1625), PREV)
+    out = carry_forward([], PREV, (res,))
+    fx = next(r for r in out if r["indicator"] == "FX_USD_KES")
+    check(fx["value"] == 129.5, f"the good value was lost, got {fx['value']}")
+    check("85.1625" in fx.get("attemptFailed", ""),
+          "the data must record what was refused")
+    check("lastChecked" not in fx, "a refused value must not count as confirmed")
 
 
 # --------------------------------------------------------------------------

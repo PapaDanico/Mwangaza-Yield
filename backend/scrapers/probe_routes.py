@@ -35,7 +35,7 @@ stop dispatching.
 """
 import sys
 
-from macro_parser import fetch_text
+from macro_parser import fetch_text, implausible_move, read_existing
 from sources import (
     resolve, FX_ROUTES, FX_BAND, CBR_ROUTES, CBR_BAND, CPI_ROUTES, CPI_BAND,
 )
@@ -66,26 +66,61 @@ def main() -> int:
     print("Exercises the declared routes against the live pages. Reports only.\n")
 
     healthy, degraded, broken = [], [], []
+    suspects, disagreeing = [], []
+    existing = read_existing()
 
     for name, routes, band in INDICATORS:
-        print(f"{name}  (plausible range {band[0]}-{band[1]})")
+        held = next((r.get("value") for r in existing
+                     if isinstance(r, dict) and r.get("indicator") == name), None)
+        print(f"{name}  (plausible range {band[0]}-{band[1]}"
+              + (f", currently holding {held})" if held is not None else ")"))
         if not routes:
             print("    NO ROUTES DECLARED")
             broken.append(name)
             print()
             continue
-        res = resolve(name, routes, fetch, *band)
-        for i, a in enumerate(res.attempts):
-            mark = "OK  " if a.ok else "FAIL"
-            rank = "preferred" if i == 0 else f"fallback {i}"
-            print(f"    {mark} [{rank}] {a.route}")
-            print(f"         {a.url}")
-            print(f"         {a.reason}" + (f"  (value {a.value})" if a.value is not None else ""))
-        untried = len(routes) - len(res.attempts)
-        if untried > 0:
-            print(f"    -- {untried} later route(s) not tried, the above answered")
 
-        if not res.ok:
+        # EVERY route is tried, not just up to the first success.
+        #
+        # The ranked resolver stops as soon as one answers, which is right for
+        # the pipeline and wrong for a diagnostic. On 2026-08-07 the preferred
+        # FX route answered 85.1625 — a historical rate, ~34% below the real
+        # one — and because it answered, the fallback was never consulted and
+        # this probe printed a confident "OK". Trying them all turns two routes
+        # into a cross-check: if they disagree, at least one is wrong, and that
+        # is knowable here without knowing which.
+        values = {}
+        for i, route in enumerate(routes):
+            one = resolve(name, [route], fetch, *band)
+            a = one.attempts[0] if one.attempts else None
+            mark = "OK  " if one.ok else "FAIL"
+            rank = "preferred" if i == 0 else f"fallback {i}"
+            print(f"    {mark} [{rank}] {route.name}")
+            print(f"         {route.url}")
+            if a is not None:
+                print(f"         {a.reason}"
+                      + (f"  (value {a.value})" if a.value is not None else ""))
+            if one.ok:
+                values[route.name] = one.value
+                suspect = implausible_move(name, one.value, existing)
+                if suspect:
+                    print(f"         SUSPECT: {suspect}")
+                    suspects.append(f"{name} via {route.name} -> {one.value}")
+
+        if len(set(values.values())) > 1:
+            print(f"    !! ROUTES DISAGREE: {values} — at least one is wrong")
+            disagreeing.append(name)
+
+        res = resolve(name, routes, fetch, *band)
+        # A value the pipeline would REFUSE must never be summarised as
+        # healthy. The first version of this probe reported exactly that — "OK:
+        # 85.1625" — and a verdict that contradicts itself two lines later is
+        # how a diagnostic gets skimmed and its warning missed.
+        if res.ok and implausible_move(name, res.value, existing):
+            print(f"    => SUSPECT: {res.value} via '{res.via}' — in band, present, "
+                  f"and too far from what we hold to be a real move. "
+                  f"macro_parser will refuse this and keep the previous figure.")
+        elif not res.ok:
             print(f"    => BROKEN: no route produced a usable {name}")
             broken.append(name)
         elif res.used_fallback:
@@ -101,6 +136,13 @@ def main() -> int:
     print(f"  healthy  : {', '.join(healthy) or '(none)'}")
     print(f"  degraded : {', '.join(degraded) or '(none)'}")
     print(f"  broken   : {', '.join(broken) or '(none)'}")
+    print(f"  SUSPECT  : {', '.join(suspects) or '(none)'}")
+    print(f"  DISAGREE : {', '.join(disagreeing) or '(none)'}")
+    if suspects or disagreeing:
+        print("\nA suspect value is the dangerous case: it is present, in band, and")
+        print("wrong. macro_parser refuses these (see implausible_move) and carries")
+        print("the previous figure forward, so the site stays stale rather than")
+        print("becoming wrong -- but the ROUTE still needs fixing.")
     if broken:
         print("\nA broken indicator means macro.json will carry the previous value")
         print("forward. That is now visible in the data as `attemptFailed`, and")

@@ -21,6 +21,32 @@
 > **Everything the app publishes now comes from CBK, the National Treasury, KNBS and the
 > World Bank.** `secondary.json` ships empty and stays that way.
 
+### The CMA route was investigated and is closed — 2026-08-07
+
+The Capital Markets Authority is the regulator, not the Exchange, so nothing in the rule
+above reached it automatically, and its Quarterly Statistical Bulletin does carry
+secondary bond market figures — Q2 2026 was published and reachable, with a
+"Quarterly Bonds Turnover" table. It was a fair question and it was asked properly.
+
+`probe_cma.py` answered it on a CI runner. Three consecutive bulletins — Q2 2026,
+Q1 2026 and Q4 2025 — were downloaded and their text searched for provenance. **All
+three credit the Nairobi Securities Exchange**, matching on `nairobi securities
+exchange`, `nse` and `source:`. The Q4 2025 bulletin additionally carries per-security
+identifiers (`isin`, `fxd1`, `ifb1`, `sdb1`).
+
+So the bond figures in the CMA bulletin are the Exchange's data reprinted under a
+different masthead, and a regulator republishing it does not change whose it is. The
+rule above exists to avoid redistributing that data, and reading it from CMA would be
+the same redistribution one hop removed. **CMA bond market data is not used.**
+
+Two things this does *not* say. It is not a claim that CMA forbids reuse — CMA's own
+terms were not the deciding factor and were not read; the Exchange attribution settled
+it first. And it does not close the door on genuinely CMA-original aggregates
+(licensing statistics, market conduct, investor numbers), which no Exchange feed
+produces. If one of those is ever wanted, it is a fresh question, and the test is the
+same: open the document, find the table's own source note, and write the answer down
+here before a parser exists.
+
 Verified via web research on 2026-07-24. This is the authoritative reference for where
 Mwangaza Yield's data comes from and how to refresh it.
 

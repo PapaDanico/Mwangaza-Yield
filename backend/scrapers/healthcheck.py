@@ -398,11 +398,31 @@ def main() -> None:
     for row in rows:
         print(row)
 
+    # THE REPORT IS WRITTEN ON EVERY RUN, INCLUDING THE HEALTHY ONE.
+    #
+    # It used to be written only when `problems` was non-empty. The alert step
+    # reads this file and, if the read throws, says:
+    #
+    #     (no freshness report — a scraper step failed before the check ran)
+    #
+    # So a PERFECTLY HEALTHY pipeline produced the sentence asserting that a
+    # step had failed before the check ran. Observed on 2026-08-07: the check
+    # had run and passed — the alert step's own `healthFailed` was false — and
+    # the issue still carried that line, sending a reader looking for a crash
+    # that never happened.
+    #
+    # The fallback text states a CAUSE it cannot know: a missing file means the
+    # file is missing, not that a step failed. Writing unconditionally removes
+    # the ambiguity at the source, which is better than rewording a message
+    # that is only ever read when something has already gone unexplained.
+    report = ("\n".join(f"- {p}" for p in problems) if problems
+              else "All datasets within their freshness budgets.")
+    Path("healthcheck-report.txt").write_text(report)
+
     if problems:
         print("\n=== PROBLEMS ===", file=sys.stderr)
         for p in problems:
             print(f"- {p}", file=sys.stderr)
-        Path("healthcheck-report.txt").write_text("\n".join(f"- {p}" for p in problems))
         sys.exit(1)
 
     print("\nAll datasets within their freshness budgets.")

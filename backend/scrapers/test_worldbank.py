@@ -12,7 +12,9 @@ No type could have caught it. The JSON is read at runtime and cast, so the
 compiler believes whatever the interface claims. Only the producer can be held
 to it, which is what this file does.
 """
+import re
 import sys
+from pathlib import Path
 
 import worldbank as wb
 
@@ -253,6 +255,46 @@ def test_a_generous_budget_still_fetches_everything():
           len(got), len(wb.INDICATORS))
 
 
+def budget_can_actually_reach_success() -> None:
+    """The self-imposed budget must be able to reach the success condition.
+
+    BUDGET_SECONDS was 240 against MIN_INDICATORS=6 and TIMEOUT=60. Reaching
+    the minimum costs 6 x 60 = 360s in the slow case, so the budget could fit
+    four timeouts where six were required. The scraper stopped short every
+    time, refuse_if_collapsed() correctly refused the partial result, and the
+    CI step recorded `failed=worldbank` on EVERY run — and an alert that fires
+    always carries exactly as much information as one that never fires.
+
+    Nothing was red. worldbank.py did the right thing at every step; the
+    numbers simply could not add up, and no test compared them. This is that
+    test.
+
+    It also checks the shell bound in ci.yml sits ABOVE the budget. If the
+    shell kills the process while it is still inside its own budget, the
+    self-stop never runs and #176 returns wearing a different costume.
+    """
+    need = wb.MIN_INDICATORS * wb.TIMEOUT
+    ok = wb.BUDGET_SECONDS >= need
+    check("budget can reach MIN_INDICATORS", ok, True)
+    if not ok:
+        failures.append(
+            f"BUDGET_SECONDS={wb.BUDGET_SECONDS} but reaching MIN_INDICATORS="
+            f"{wb.MIN_INDICATORS} costs up to {need}s — the scraper can only "
+            f"ever stop short and be recorded as failed")
+
+    ci = (Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml").read_text()
+    m = re.search(r"timeout -k \d+s (\d+)s python worldbank\.py", ci)
+    check("ci.yml bounds worldbank.py in the shell", bool(m), True)
+    if m:
+        shell = int(m.group(1))
+        above = shell > wb.BUDGET_SECONDS
+        check("shell bound sits above the self-imposed budget", above, True)
+        if not above:
+            failures.append(
+                f"shell bound {shell}s <= BUDGET_SECONDS {wb.BUDGET_SECONDS} — "
+                f"the shell kills the scraper before it can stop itself")
+
+
 def main():
     print("the self-imposed budget")
     test_budget_stops_before_the_ci_bound_does()
@@ -306,6 +348,7 @@ def main():
     collapse_guard()
     falls_back_to_a_second_query_shape()
     identifies_itself()
+    budget_can_actually_reach_success()
 
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)

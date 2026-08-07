@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-07T04:36:30.313172+00:00",
+  "generatedAt": "2026-08-07T05:49:15.369684+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -53,9 +53,9 @@
     "centralBankRate": {
       "value": 8.75,
       "unit": "%",
-      "date": "2026-08-07",
+      "date": "2026-06-09",
       "lastChecked": "2026-08-07",
-      "source": "CBK",
+      "source": "CBK MPC",
       "fallback": false
     },
     "inflation": {

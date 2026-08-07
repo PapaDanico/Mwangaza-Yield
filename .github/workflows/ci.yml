@@ -778,6 +778,7 @@ jobs:
              * it. A self-test that exercised a duplicate would prove the
              * duplicate works. */
             const testRecovery = '${{ inputs.test_recovery }}' === 'true';
+            let selfTestIssue = null;
             if (testRecovery) {
               const made = await github.rest.issues.create({
                 owner: context.repo.owner, repo: context.repo.repo,
@@ -795,6 +796,32 @@ jobs:
                 ].join('\n'),
               });
               core.info(`Self-test raised #${made.data.number}; the recovery branch must now close it.`);
+              selfTestIssue = made.data.number;
+
+              /* WAIT FOR THE INDEX, BECAUSE listForRepo IS EVENTUALLY
+               * CONSISTENT AND 240ms WAS NOT ENOUGH.
+               *
+               * The first live dispatch failed with "the close path is
+               * broken", and the close path was fine. The issue was created at
+               * 13:29:38.12 and the list ran at 13:29:38.36; GitHub had not
+               * indexed it yet, so the recovery loop iterated over nothing and
+               * the assertion below fired against a defect that did not exist.
+               *
+               * Worse, the SECOND dispatch then passed green — it closed the
+               * FIRST run's issue, which by then was indexed, while leaving
+               * its own open. One leaked issue per run, and a self-test
+               * reporting success for closing something it did not raise.
+               *
+               * Polling until the new issue is visible removes both. */
+              for (let attempt = 0; attempt < 10; attempt++) {
+                const seen = await github.rest.issues.listForRepo({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  state: 'open', labels: label,
+                });
+                if (seen.data.some((i) => i.number === selfTestIssue)) break;
+                core.info(`Waiting for #${selfTestIssue} to appear in the issue index...`);
+                await new Promise((r) => setTimeout(r, 3000));
+              }
             }
 
             if (testRecovery || (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed)) {
@@ -819,7 +846,7 @@ jobs:
                * Closed with a comment rather than silently, so the issue is a
                * record of a fault that ended rather than one someone tidied
                * away. */
-              let closed = 0;
+              const closedNumbers = [];
               const open = await github.rest.issues.listForRepo({
                 owner: context.repo.owner, repo: context.repo.repo,
                 state: 'open', labels: label,
@@ -846,17 +873,21 @@ jobs:
                   state: 'closed', state_reason: 'completed',
                 });
                 core.info(`Closed recovered alert #${issue.number}`);
-                closed += 1;
+                closedNumbers.push(issue.number);
               }
-              /* The self-test must FAIL if nothing closed. Without this the
-               * dispatch is green whether the branch worked or not, which is a
-               * guard that cannot fire in the case it exists to detect — the
-               * defect this repository keeps finding in itself, and one it
-               * would be particularly silly to ship inside a self-test. */
-              if (testRecovery && closed === 0) {
+              /* The self-test must fail unless ITS OWN issue closed.
+               *
+               * `closed === 0` was the first version and it was too weak: the
+               * second live dispatch closed the PREVIOUS run's issue, counted
+               * one, and passed — while leaving the issue it had just raised
+               * open. A guard that any close satisfies is satisfied by the
+               * wrong close. */
+              if (testRecovery && !closedNumbers.includes(selfTestIssue)) {
                 core.setFailed(
-                  'test_recovery raised an alert and the recovery branch closed nothing. ' +
-                  'The close path is broken.'
+                  `test_recovery raised #${selfTestIssue} and the recovery branch did not ` +
+                  `close it (closed: ${closedNumbers.join(', ') || 'nothing'}). ` +
+                  'Either the close path is broken, or the issue index did not catch up ' +
+                  'within the polling window above.'
                 );
               }
               return;

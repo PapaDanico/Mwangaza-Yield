@@ -159,6 +159,7 @@ jobs:
           python test_healthcheck.py
           python test_macro_parser.py
           python test_treasury_debt.py
+          python test_qebr.py
           # Must come last: it asserts every file above is actually invoked.
           python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
@@ -374,6 +375,15 @@ jobs:
         # scrapers and the freshness gate down with it (#176).
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_treasury_debt.py || echo "treasury-debt probe failed — see output above"
+
+      - name: Probe the QEBR for the sovereign panel's missing denominators
+        # The debt bulletin answered a different question: it carries debt/GDP
+        # and Ksh absolutes, none of which are the seven RATIOS the panel
+        # shows. A ratio needs both halves, so this reports per-ratio rather
+        # than per-indicator. Bounded in the shell, not with timeout-minutes
+        # (#176). Runs after the debt probe because they share a host.
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
 
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same

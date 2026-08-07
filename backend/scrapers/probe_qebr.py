@@ -219,6 +219,23 @@ def links_from(html: str):
                   key=lambda t: (recency(t[1]), t[0]), reverse=True)
 
 
+def present(text: str, needle: str) -> bool:
+    """Whole-word match. `needle in text` is not good enough for short tokens.
+
+    Observed on the runner: 'gni' matched inside "si-GNI-ficant", so
+    `External debt / GNI` reported BOTH off the word "significant" in a
+    sentence about road construction. A ratio built on that would be invented
+    from a substring — the same class of error as matching the glossary, one
+    level lower down.
+
+    Boundaries are applied to every phrase rather than only the short ones. A
+    rule that fires selectively is a rule somebody has to remember, and 'gdp'
+    inside "gdp-linked" or 'exports' inside "exports/gdp" are the same problem
+    waiting for a different document.
+    """
+    return re.search(rf"(?<![a-z]){re.escape(needle)}(?![a-z])", text) is not None
+
+
 def context(text: str, needle: str, width: int = 120):
     """Return (context, numeric) for the best occurrence of `needle`.
 
@@ -310,8 +327,8 @@ def inspect(url: str, label: str) -> None:
 
     low = text.lower()
     for name, nums, dens in RATIOS:
-        n_hit = next((p for p in nums if p in low), None)
-        d_hit = next((p for p in dens if p in low), None)
+        n_hit = next((p for p in nums if present(low, p)), None)
+        d_hit = next((p for p in dens if present(low, p)), None)
         if n_hit and d_hit:
             verdict = "BOTH      "
         elif n_hit:

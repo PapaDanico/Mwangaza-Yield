@@ -33,7 +33,8 @@ import re
 import sys
 from pathlib import Path
 
-from probe_qebr import RATIOS, context, links_from, recency, reporting_period, score
+from probe_qebr import (RATIOS, context, links_from, present, recency,
+                        reporting_period, score)
 
 THRESHOLD = 10
 BASE = "https://www.treasury.go.ke/sites/default/files/"
@@ -161,6 +162,21 @@ def main() -> int:
                   "gross domestic product")[1] is True,
           "with both a glossary entry and a real figure present, the probe "
           "must prefer the occurrence carrying a number")
+
+    # A SUBSTRING IS NOT A MATCH.
+    #
+    # Observed on the runner: 'gni' matched inside "si-GNI-ficant", so
+    # `External debt / GNI` reported BOTH off the word "significant" in a
+    # sentence about road construction. A ratio built on that is invented from
+    # a substring — the glossary error one level further down.
+    check(present("gross national income (gni) rose", "gni") is True,
+          "a real GNI mention was missed")
+    check(present("a significant scale-up in housing", "gni") is False,
+          "'gni' matched inside 'significant' — substring, not a word")
+    check(present("the ogdp fund", "gdp") is False,
+          "'gdp' matched inside another word")
+    check(present("gdp-linked bonds", "gdp") is True,
+          "a hyphen must not hide a genuine match")
 
     # The probe must import only what the runner installs. An earlier probe
     # imported pypdf, which is not a dependency, so every document reported

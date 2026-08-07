@@ -10,6 +10,7 @@ import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING
 import { nonNegativeNumber } from '@/lib/utils';
 import { track } from '@/lib/analytics';
 import DataState from '@/components/shared/DataState';
+import FollowChannel from '@/components/shared/FollowChannel';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
 import RealYieldCard from '@/components/shared/RealYieldCard';
@@ -357,6 +358,10 @@ export default function CalculatorClient() {
           generous — the follow-up question, answered against the bond's own
           past rather than a benchmark the reader would have to learn first. */}
       <AuctionHistory issueCode={bond.issueCode} />
+
+      {/* Past the `if (!bond) return <DataState />` guard, so this only ever
+        * follows a computed result. */}
+      <FollowChannel what="Bond yields" />
     </>
   );
 }

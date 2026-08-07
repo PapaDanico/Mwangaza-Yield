@@ -158,12 +158,47 @@ def interest_over_revenue(text: str):
 
     WHAT WOULD ACTUALLY SETTLE IT, and why it is not a regex:
 
-    MAX_PAGES reads 25 of 51 pages, and Q2's prose references "table 5:
-    expenditure and net lending". Interest almost certainly sits in a fiscal
-    TABLE further in. Table cells are a different extraction problem from
-    prose — extract_text flattens them — so this needs extract_tables over the
-    full document, then a check that the interest line and the revenue line are
-    the same period and the same basis. That is a piece of work, not a pattern.
+    ROUND 3 — THE TABLES WERE READ, AND THE ANSWER IS STILL NO.
+
+    The obvious next move was extract_tables over the full document, and
+    probe_qebr_tables.py did it. Reported per strategy, both 2025/26 QEBRs:
+
+        Q3 (51 pages)   lines: 1 table    text: 44 tables    33 candidate
+        Q2 (44 pages)   lines: 1 table    text: 41 tables    rows in total
+
+    The line-based default finds one table per document because these reports
+    are typeset without ruling lines. The text strategy finds dozens — but they
+    are PROSE, sliced into pseudo-columns by character alignment, and the rows
+    come back with words split mid-token:
+
+        "amounted to KSh. 104.7 billion, an increase f | rom KSh."
+        "34. As a | proportion of G | DP, the to | tal reven | ue"
+
+    None of the 33 rows is a fiscal-table row. Table 5, "expenditure and net
+    lending" — the one the prose points at — was extracted by NEITHER strategy.
+    It is likely a raster image, or needs explicit column boundaries. That is
+    the specific blocker now, in place of a vague "read the tables".
+
+    AND THE PERIODS DO NOT LINE UP ANYWAY, WHICH IS THE STRONGER REASON.
+
+    The revenue level is July 2025 - March 2026, which is Q3. Q3's document
+    carries no interest figure in prose or in any extractable table. Q2 states
+    foreign interest (Ksh 104.7bn) and goes on to mention domestic interest —
+    but Q2 covers July-December 2025. Pairing Q2 interest with Q3 revenue is
+    exactly the same-period failure this refusal exists to prevent, so the
+    apparent lead does not lead anywhere.
+
+    WHY THIS IS NOT WORTH A FOURTH ROUND
+
+    The panel is not missing this figure. context.json carries the World Bank's
+    GC.XPN.INTP.RV.ZS at 24.28. It is OLD, not absent, and an old figure that
+    says how old it is beats a current-looking one built from two numbers that
+    do not belong together.
+
+    If someone does return to this, start with a different publication — the
+    Annual Public Debt Report or the Budget Review and Outlook Paper — rather
+    than with better table settings on this one. Three rounds against the QEBR
+    have each ended here.
 
     This is a function rather than an absence so that the reasoning sits where
     somebody would come looking to add it. Returning None is the correct

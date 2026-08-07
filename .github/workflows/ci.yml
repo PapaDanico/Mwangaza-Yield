@@ -480,6 +480,28 @@ jobs:
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python qebr_parser.py --diagnose || echo "QEBR parser dry run failed — see output above"
 
+      # THE TABLES, WHICH extract_text CANNOT REACH.
+      #
+      # qebr_parser.py refuses Interest / government revenue because the
+      # numerator is absent from the first 25 pages of PROSE. The denominator
+      # is present. Q2's prose points at "table 5: expenditure and net
+      # lending", and extract_text flattens table cells — a row's label and its
+      # number can land on different lines — so a figure inside a fiscal table
+      # is not reliably reachable by any pattern over that text.
+      #
+      # This reads the tables directly, across all pages of the two newest
+      # documents, and prints the rows with their headers. It writes nothing
+      # and decides nothing: whether a ratio can honestly be published depends
+      # on the period and the basis in the header, which is a judgement to make
+      # against the table rather than against a plausible match.
+      #
+      # `|| echo` because a probe that cannot reach a source should record that
+      # and let the rest of the job run — the discipline for scrapers, not for
+      # the browser suite.
+      - name: Probe the QEBR fiscal tables for total interest
+        working-directory: backend/scrapers
+        run: timeout -k 20s 300s python probe_qebr_tables.py || echo "QEBR table probe failed — see output above"
+
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same
         # kind of question against overlapping hosts, and both logs are short

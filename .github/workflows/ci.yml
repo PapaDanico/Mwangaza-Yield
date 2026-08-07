@@ -5,7 +5,27 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # 6am and 6pm EAT, Monday to Saturday.
+    # Scheduled 06:17 and 18:17 EAT (03:17 and 15:17 UTC), Monday to Saturday.
+    #
+    # SCHEDULED IS NOT WHEN IT RUNS, AND THE DIFFERENCE IS HOURS.
+    #
+    # GitHub queues scheduled workflows, so the slot is the earliest it can
+    # start rather than when it does. Measured on this repository's own
+    # history — every scheduled run against the previous `0 3` slot:
+    #
+    #     scheduled 06:00 EAT  ->  actually ran 08:41 to 09:23 EAT
+    #
+    # created_at equals run_started_at in all six, so GitHub was creating the
+    # run late, not the job running long. In practice a reader in Nairobi sees
+    # the morning figures around 09:00 EAT and the evening ones around
+    # 21:00 EAT, not 06:00 and 18:00.
+    #
+    # That still satisfies the reasoning below — 21:00 EAT is the same evening
+    # as a Thursday auction — but the times in this file are the times we ASK
+    # for, and nothing here should be read as a promise about when data lands.
+    # data-freshness.ts carries a four-hour grace period for exactly this, so
+    # the site does not tell readers an update was missed when it is merely
+    # queued.
     #
     # WHY TWICE, AND WHY SATURDAY
     #

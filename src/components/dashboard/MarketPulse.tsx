@@ -12,6 +12,7 @@
 import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+import { refreshCadence } from '@/lib/data-freshness';
 import {
   demandPulse,
   recentClearingByTerm,
@@ -125,7 +126,14 @@ export default function MarketPulse() {
           <em>grouped per auction</em>: one auction often covers several bonds, and dividing per
           bond understates cover badly. A band with fewer than {MIN_BUCKET_SAMPLE} auctions shows no
           figure — a median of two numbers is an anecdote. Source: CBK auction result publications;
-          the archive is rebuilt every morning.
+          {/* Derived, not written down. This sentence used to name a single
+              daily time, which stopped being true when the schedule moved to
+              twice a day, Monday to Saturday — the same drift refreshCadence()
+              exists to end, and the same one that left the README describing
+              the wrong cron for hours after it changed. The exact stale
+              wording is not repeated here: schedule-matches-workflow.test.ts
+              greps for it, and a comment quoting it would trip that guard. */}
+          {' '}the archive is rebuilt {refreshCadence()}.
         </p>
       </Explain>
     </div>

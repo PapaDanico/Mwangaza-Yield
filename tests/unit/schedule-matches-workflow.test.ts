@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { REFRESH_HOURS_UTC, REFRESH_DAYS_UTC, REFRESH_MINUTE_UTC } from '../../src/lib/data-freshness';
 
 /**
@@ -125,5 +126,61 @@ describe('the README quotes the real schedule', () => {
     if (REFRESH_DAYS_UTC.includes(6)) {
       expect(README).not.toMatch(/weekday cron/i);
     }
+  });
+});
+
+/**
+ * No hardcoded cadence anywhere a reader can see it.
+ *
+ * This has now drifted three times from the same root cause. The schedule
+ * changed and prose describing it did not:
+ *
+ *   the home page said "Refreshed every weekday"
+ *   the README said "a weekday cron", twice
+ *   MarketPulse said "the archive is rebuilt every morning"
+ *
+ * Every one was true when written. `refreshCadence()` derives the sentence
+ * from the constants this file pins to ci.yml, so a surface that calls it
+ * cannot go stale — but only if surfaces actually call it rather than writing
+ * the words out again.
+ */
+describe('no surface hardcodes the refresh cadence', () => {
+  const SRC = join(process.cwd(), 'src');
+
+  function walk(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = join(dir, e.name);
+      return e.isDirectory() ? walk(p) : /\.tsx?$/.test(e.name) ? [p] : [];
+    });
+  }
+
+  const files = walk(SRC);
+
+  it('scans a real, non-empty tree', () => {
+    expect(files.length).toBeGreaterThan(50);
+  });
+
+  it('contains no stale cadence prose', () => {
+    // Only the phrases that CLAIM a cadence. `data-freshness.ts` names them in
+    // its own comments to explain the history, so it is excluded by path.
+    const CLAIMS = [
+      /rebuilt every morning/i,
+      /refreshed every weekday/i,
+      /refreshes daily/i,
+      /computed daily/i,
+      /updated every morning/i,
+    ];
+    const hits: string[] = [];
+    for (const f of files) {
+      if (f.endsWith('data-freshness.ts')) continue;
+      const src = readFileSync(f, 'utf8');
+      for (const re of CLAIMS) {
+        if (re.test(src)) hits.push(`${f.replace(SRC, 'src')}: ${re}`);
+      }
+    }
+    expect(
+      hits,
+      `hardcoded cadence found — call refreshCadence() instead:\n${hits.join('\n')}`,
+    ).toEqual([]);
   });
 });

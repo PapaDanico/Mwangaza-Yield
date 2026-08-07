@@ -86,15 +86,76 @@ describe('netlify.toml security headers', () => {
     expect(directives).toMatch(/Access-Control-Allow-Origin\s*=\s*"\*"/);
   });
 
-  it('does not claim a Content-Security-Policy it has not got', () => {
-    // If a CSP is ever added this test should be REPLACED with one that checks
-    // the policy is correct, not deleted quietly. Until then, asserting the
-    // absence keeps SECURITY.md honest: the gap is documented as a gap.
-    const hasCsp = /Content-Security-Policy\s*=/.test(directives);
-    expect(
-      hasCsp,
-      'a CSP appeared in netlify.toml — update SECURITY.md in both repos and '
-        + 'replace this assertion with one that checks the policy itself',
-    ).toBe(false);
+  /**
+   * REPLACED, NOT DELETED.
+   *
+   * This slot held `does not claim a Content-Security-Policy it has not got`,
+   * which asserted the ABSENCE of a policy and said of itself: "If a CSP is
+   * ever added this test should be REPLACED with one that checks the policy is
+   * correct, not deleted quietly." A CSP has been added, so here is that test.
+   */
+  describe('the Content-Security-Policy', () => {
+    const csp = (() => {
+      const block = TOML.match(/Content-Security-Policy\s*=\s*"""([\s\S]*?)"""/);
+      const line = TOML.match(/Content-Security-Policy\s*=\s*"([^"]+)"/);
+      const raw = block ? block[1] : line ? line[1] : '';
+      return raw.replace(/\\\s*\n/g, '').replace(/\s+/g, ' ').trim();
+    })();
+
+    it('exists, so the assertions below are not vacuous', () => {
+      expect(csp.length).toBeGreaterThan(60);
+      expect(csp).toContain('default-src');
+    });
+
+    /* The directives that need no nonce, break nothing, and were missing for
+     * as long as the header was. Each blocks a real attack: a <base> tag
+     * repointing every relative URL, a form rewritten to post somewhere else,
+     * a plugin payload, and framing by another origin. */
+    it.each([
+      ["default-src 'self'", 'an unlisted resource type falls back to same-origin'],
+      ["object-src 'none'", 'plugin-based payloads'],
+      ["base-uri 'self'", 'a <base> tag repointing every relative URL'],
+      ["form-action 'self'", 'a form rewritten to exfiltrate to another origin'],
+      ["frame-ancestors 'self'", 'clickjacking, and stronger than X-Frame-Options'],
+    ])('carries %s', (directive) => {
+      expect(csp).toContain(directive);
+    });
+
+    it('never permits unsafe-eval, anywhere', () => {
+      // Nothing here needs it, and it re-opens the whole class of injection
+      // the rest of the policy is trying to close.
+      expect(csp).not.toContain('unsafe-eval');
+    });
+
+    it('never wildcards a fetch directive', () => {
+      // `*` in script-src or default-src would make the policy decorative.
+      expect(csp).not.toMatch(/(?:default|script|connect|object)-src[^;]*\*/);
+    });
+
+    /**
+     * THE ONE LOOSE DIRECTIVE MUST STAY DOCUMENTED.
+     *
+     * script-src carries 'unsafe-inline', so the policy does NOT stop injected
+     * script. That is a real limit, and the failure mode to guard against is
+     * not the limit itself — it is the limit quietly outliving its disclosure,
+     * leaving SECURITY.md claiming a protection the header does not provide.
+     */
+    it('discloses that script-src permits inline script', () => {
+      expect(csp).toContain("script-src 'self' 'unsafe-inline'");
+      const security = readFileSync(join(process.cwd(), 'SECURITY.md'), 'utf8');
+      expect(
+        security,
+        "script-src permits inline script and SECURITY.md no longer says so — "
+          + 'the header and the disclosure have drifted apart',
+      ).toMatch(/unsafe-inline/);
+    });
+
+    it('is verified against the built site by CI, not merely reviewed', () => {
+      // A CSP cannot be signed off by reading it: the directive that breaks a
+      // page looks exactly like the one that does not. scripts/verify-csp.mjs
+      // serves ./out under this exact string and fails on any violation.
+      const ci = readFileSync(join(process.cwd(), '.github', 'workflows', 'ci.yml'), 'utf8');
+      expect(ci).toContain('verify:csp');
+    });
   });
 });

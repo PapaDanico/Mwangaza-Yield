@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "node tests/e2e/smoke.mjs",
+    "verify:csp": "node scripts/verify-csp.mjs",
     "build:engine": "node scripts/build-engine.mjs",
     "build:rates": "node scripts/build-rates-feed.mjs",
     "test:engine": "node scripts/engine-smoke.mjs",

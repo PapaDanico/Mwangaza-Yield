@@ -74,6 +74,20 @@ on:
         type: boolean
         default: false
 
+# Cancel any in-progress run for the same branch or PR the moment a newer
+# commit arrives. This prevents a rapid sequence of agent commits from
+# stacking up concurrent runs that race through the runner pool and burn
+# through the GITHUB_TOKEN rate limit (check-run creation, status writes)
+# faster than the quota refills.
+#
+# Scheduled runs are EXCLUDED from cancellation: they perform the actual
+# data refresh and must be allowed to complete. `workflow_dispatch` is also
+# excluded so a manually-triggered probe or refresh is never silently killed
+# by a concurrent push.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest

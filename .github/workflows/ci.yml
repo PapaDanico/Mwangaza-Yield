@@ -369,35 +369,57 @@ jobs:
       # data is fine thanks to carry_forward() — but every failure is RECORDED
       # and surfaced at the end. Silently swallowing them is how a pipeline
       # dies unnoticed.
+      # TIMEOUTS ARE IN THE SHELL, NOT IN `timeout-minutes`, AND THAT IS THE FIX.
+      #
+      # Every scraper below ends in `|| echo "failed=..." >> $GITHUB_OUTPUT`.
+      # That construction exists so a failing scraper is RECORDED and reported
+      # by the alert step, without aborting the run and skipping the scrapers
+      # that come after it.
+      #
+      # `timeout-minutes` defeats it completely. When the bound is hit, GitHub
+      # kills the shell and marks the step FAILED — the `||` never executes, so
+      # nothing is recorded, and every later step in the job is skipped because
+      # their `if:` carries no status function.
+      #
+      # This is not theoretical. On 2026-08-07 the World Bank step hit its
+      # six-minute bound at 6m12s. The macro scraper had already run, so
+      # USD/KES refreshed correctly — but the CBK securities register, auction
+      # results, CBR history, CPI history, the bond universe and the auction
+      # calendar were all SKIPPED, and so was `Check data freshness`, which is
+      # the gate that would have noticed. Seven steps carried the same pairing.
+      #
+      # `timeout` in the shell returns 124 instead, so the `||` fires: the
+      # failure is recorded, the alert names it, the step exits 0, and the rest
+      # of the pipeline runs. -k sends KILL if the process ignores TERM.
       - name: Run macro scraper
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
         id: macro
         working-directory: backend/scrapers
-        run: python macro_parser.py || echo "failed=macro" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 300s python macro_parser.py || echo "failed=macro" >> "$GITHUB_OUTPUT"
       - name: Refresh World Bank sovereign context (keyless, CC BY 4.0)
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 6
         id: worldbank
         working-directory: backend/scrapers
-        run: python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 360s python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
       - name: Reconcile bonds against the CBK securities register
         if: ${{ !inputs.test_alert }}
         id: registry
         working-directory: backend/scrapers
-        run: python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
+        # Bounded like the rest. This one had no bound at all — not
+        # `timeout-minutes`, not a shell timeout — and it reads CBK over
+        # the network, so it could have hung until the job-level limit.
+        # Found by the test below rather than by inspection.
+        run: timeout -k 20s 300s python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
       - name: Capture CBK auction results (coupon rates, clearing yields)
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 15
         id: auctions
         working-directory: backend/scrapers
-        run: python auction_results.py || echo "failed=auction-results" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 900s python auction_results.py || echo "failed=auction-results" >> "$GITHUB_OUTPUT"
       - name: Capture CBK Central Bank Rate history
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
         id: cbr
         working-directory: backend/scrapers
-        run: python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 300s python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
       - name: Capture CBK monthly inflation history
         # Sits beside the CBR history because it is the same shape of job on
         # the same site: one HTML table, read by column name. Allowed to fail
@@ -406,16 +428,14 @@ jobs:
         # return anything at all, so a silent loss would put every real-terms
         # surface back to rendering nothing.
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
         id: cpi
         working-directory: backend/scrapers
-        run: python cpi_history_parser.py || echo "failed=cpi-history" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 300s python cpi_history_parser.py || echo "failed=cpi-history" >> "$GITHUB_OUTPUT"
       - name: Expand the bond universe from the register + auction results
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
         id: expand
         working-directory: backend/scrapers
-        run: python expand_universe.py || echo "failed=expand-universe" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 300s python expand_universe.py || echo "failed=expand-universe" >> "$GITHUB_OUTPUT"
       # Runs even when a scraper above was killed on its timeout. Without this
       # a single hung third-party fetch discards every other scraper's work:
       # a since-removed exchange-price step once held a completed auction-archive
@@ -432,10 +452,9 @@ jobs:
       # names them. Ordering is the whole point — see refresh_calendar.py.
       - name: Refresh the auction calendar from CBK prospectuses
         if: ${{ !inputs.test_alert }}
-        timeout-minutes: 5
         id: calendar
         working-directory: backend/scrapers
-        run: python refresh_calendar.py || echo "failed=calendar" >> "$GITHUB_OUTPUT"
+        run: timeout -k 20s 300s python refresh_calendar.py || echo "failed=calendar" >> "$GITHUB_OUTPUT"
       - name: Update the prediction ledger
         if: ${{ !cancelled() && !inputs.test_alert }}
         id: predictions

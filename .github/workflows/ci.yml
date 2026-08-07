@@ -421,7 +421,7 @@ jobs:
         # their own age in the meantime. Bounded in the shell, not with
         # timeout-minutes (#176).
         working-directory: backend/scrapers
-        run: timeout -k 20s 240s python qebr_parser.py || echo "QEBR parser dry run failed — see output above"
+        run: timeout -k 20s 240s python qebr_parser.py --diagnose || echo "QEBR parser dry run failed — see output above"
 
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same

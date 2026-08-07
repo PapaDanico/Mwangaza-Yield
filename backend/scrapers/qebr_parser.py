@@ -257,6 +257,42 @@ def main() -> int:
         print(f"  {lbl:26}    NOT FOUND — refusing rather than guessing")
     print("\nInterest / government revenue      REFUSED BY DESIGN — the matches "
           "are FOREIGN interest and a revenue SHORTFALL, not totals.")
+
+    # --diagnose: print the raw text behind the two open questions.
+    #
+    # Both remaining problems are questions about what the DOCUMENT says, and
+    # neither can be answered from a development container — the proxy refuses
+    # treasury.go.ke. Guessing the wording is how reporting_period acquired its
+    # first bug and then its second, so this prints the evidence instead:
+    #
+    #   1. reporting_period returned None on the real Q3 file, so every record
+    #      is stamped "asOf unknown". The fix for the year-wrong bug required
+    #      the quarter and fiscal year to be adjacent, and evidently they are
+    #      not. What IS the phrasing?
+    #
+    #   2. current_account_pct_gdp returned -3.0 from Q3, and probe_qebr.py
+    #      found no number-adjacent current-account match in the same document.
+    #      One of them is wrong. Which sentence produced -3.0?
+    if "--diagnose" in sys.argv:
+        low = text.lower()
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 1 — how this document states its own period")
+        print("=" * 68)
+        print(" ".join(low[:900].split()))
+
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 2 — every 'current account', with room to see the figure")
+        print("=" * 68)
+        for m in re.finditer(r"current account", low):
+            lo, hi = max(0, m.start() - 90), min(len(low), m.end() + 190)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
+
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 3 — every 'percent of gdp', which is what the pattern ends on")
+        print("=" * 68)
+        for m in re.finditer(r"per\s*cent\s+of\s+gdp", low):
+            lo, hi = max(0, m.start() - 200), min(len(low), m.end() + 40)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
     return 0
 
 

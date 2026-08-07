@@ -1,0 +1,60 @@
+Copyright © 2026 Mwangaza Yield. All rights reserved.
+
+THIS IS NOT AN OPEN-SOURCE LICENCE.
+
+This file exists to state the terms explicitly. A repository with no LICENSE is
+already governed by copyright's default of all-rights-reserved, which is the
+intended position here — but "no file" and "deliberately closed" look identical
+to a reader, and only one of them is true. An institution's counsel asks this
+question early, and the answer should not have to be inferred.
+
+
+1. SOFTWARE
+
+No permission is granted to use, copy, modify, merge, publish, distribute,
+sublicense, or sell this software or any derivative of it. Viewing the source,
+including through the public repository, grants no licence to it.
+
+The analytics engine is offered commercially — see /licensing. Enquiries there.
+
+
+2. DATA IN public/data/
+
+These files are scraped from, or derived from, material published by the
+Central Bank of Kenya, the National Treasury, the Kenya National Bureau of
+Statistics, and the World Bank. Copyright in the underlying publications
+belongs to those bodies, not to this project, and nothing in section 1 asserts
+otherwise or purports to license their material onward.
+
+What this project claims is only its own selection, correction, and arrangement
+of those figures, and the code that produces them.
+
+Anyone relying on a figure should verify it against the publisher's own
+release. The files carry the provenance needed to do so: `source` names the
+publisher, `date` the period or observation, `lastChecked` when we last
+confirmed it, and `attemptFailed` why a refresh produced nothing.
+
+NO NAIROBI SECURITIES EXCHANGE DATA APPEARS ANYWHERE IN THIS PROJECT.
+
+The NSE's terms make its data proprietary — not copyable, storable or
+distributable, and not usable to build a product — and that applies to what
+sits publicly on its website as much as to a paid feed. The dependency was
+removed outright rather than relied upon as a use small enough that nobody
+minds: the scrapers that could once fetch it are deleted, no configuration
+reinstates them, and no claim to use exchange data appears in the app.
+`secondary.json` is empty in consequence. See README.md.
+
+
+3. THIRD-PARTY DEPENDENCIES
+
+Remain under their own licences, which this notice does not affect. They are
+listed in package-lock.json and backend/requirements.txt.
+
+
+4. NO ADVICE, NO WARRANTY
+
+This software and its data are provided for education and analysis, not as
+investment advice, and without warranty of any kind. Rates and yields are
+estimates derived from published figures and may be stale or wrong. Nobody
+associated with this project is liable for any decision taken in reliance on
+them.

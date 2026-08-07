@@ -33,7 +33,7 @@ import re
 import sys
 from pathlib import Path
 
-from probe_qebr import RATIOS, recency, reporting_period, score
+from probe_qebr import RATIOS, context, links_from, recency, reporting_period, score
 
 THRESHOLD = 10
 BASE = "https://www.treasury.go.ke/sites/default/files/"
@@ -118,6 +118,49 @@ def main() -> int:
             check(set(nums) != set(dens),
                   f"{name}: numerator and denominator phrasings are identical, "
                   f"so one match would report BOTH")
+
+    # THE NEWEST MUST WIN EVEN WHEN IT SCORES LOWER.
+    #
+    # Observed on the runner: the probe opened QEBRs from 2017/2018 while
+    # 2025/26 documents sat in the same list. The Treasury renamed the series,
+    # and the old files spell the title out while the new ones say "QEBR", so
+    # verbose-and-nine-years-stale scored 16 against terse-and-current at 15.
+    # Sorting on score first meant recency only ever broke an EXACT tie, so it
+    # never fired. These are the two real URLs, with the real inversion intact.
+    old = ("https://www.treasury.go.ke/sites/default/files/QEBRs/Quarterly-"
+           "Economic-and-Budgetary-Review-First-Quarter-Financial-Year-"
+           "2017-2018-Period-ending-30th-September-2017.pdf")
+    new = BASE + "QEBRs/Second%20QEBR%20report%20in%202025-26%20FY.pdf"
+    check(score(old, "Quarterly Economic and Budgetary Review First Quarter")
+          > score(new, "Second QEBR report"),
+          "the scoring inversion this ordering exists to survive is gone — "
+          "if scores no longer invert, re-derive the ordering rather than "
+          "assuming it is still needed")
+    html = (f'<a href="{old}">Quarterly Economic and Budgetary Review First Quarter</a>'
+            f'<a href="{new}">Second QEBR report</a>')
+    order = [u for _, u, _ in links_from(html)]
+    check(bool(order) and "2025-26" in order[0],
+          f"a 2017 QEBR is read before a 2025/26 one; got {order[:1]}")
+
+    # A LABEL WITH NO NUMBER IS NOT A FIGURE.
+    #
+    # Every QEBR opens with an abbreviations table, and the first run of this
+    # probe matched 'gross domestic product' there — proving the document
+    # DEFINES the term, not that it reports a value. Two such matches would
+    # report BOTH and yield a ratio invented from a glossary.
+    glossary = ("gdp gross domestic product ict information communication and "
+                "technology imf international monetary fund knbs kenya")
+    figure = ("the current account balance was at a deficit of us$ 5,110.1 "
+              "million (7.0 per cent of gdp) in the year to august")
+    check(context(glossary, "gross domestic product")[1] is False,
+          "a glossary-only match was reported as carrying a number")
+    check(context(figure, "current account")[1] is True,
+          "a real figure was reported as having no number nearby")
+    check(context(glossary + " ... " + figure.replace("current account",
+                                                      "gross domestic product"),
+                  "gross domestic product")[1] is True,
+          "with both a glossary entry and a real figure present, the probe "
+          "must prefer the occurrence carrying a number")
 
     # The probe must import only what the runner installs. An earlier probe
     # imported pypdf, which is not a dependency, so every document reported

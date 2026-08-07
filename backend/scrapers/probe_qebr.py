@@ -194,16 +194,68 @@ def links_from(html: str):
     for s, href, label in out:
         if href not in best or s > best[href][0]:
             best[href] = (s, label)
+    # RECENCY FIRST, THEN SCORE — and the order matters more than it looks.
+    #
+    # This was (score, recency), which reads sensibly and is wrong. Score and
+    # recency measure different things, and sorting on score first means
+    # recency only ever breaks an EXACT tie. It never fired.
+    #
+    # Observed on the runner: the probe opened QEBRs from 2017/2018 while
+    # 2025/26 documents sat in the same list. The Treasury renamed the series
+    # somewhere in between, and the old files spell the title out —
+    #
+    #   Quarterly-Economic-and-Budgetary-Review-First-Quarter-...-2017-2018  16
+    #   Second QEBR report in 2025-26 FY                                     15
+    #
+    # — so verbose-and-nine-years-stale outranked terse-and-current by one
+    # point, and the tie-break was never reached. A probe arguing that the
+    # Treasury is fresher than a 2023 World Bank figure, reporting on 2017.
+    #
+    # Sorting recency first says what was actually meant: among documents that
+    # look enough like a QEBR to qualify, read the NEWEST. Score still decides
+    # what qualifies — that is the threshold's job, applied by the caller —
+    # and still breaks ties between documents of the same period.
     return sorted(((s, u, l) for u, (s, l) in best.items()),
-                  key=lambda t: (t[0], recency(t[1])), reverse=True)
+                  key=lambda t: (recency(t[1]), t[0]), reverse=True)
 
 
-def context(text: str, needle: str, width: int = 120) -> str:
-    i = text.find(needle)
-    if i < 0:
-        return ""
-    lo, hi = max(0, i - width // 2), min(len(text), i + width)
-    return "..." + " ".join(text[lo:hi].split()) + "..."
+def context(text: str, needle: str, width: int = 120):
+    """Return (context, numeric) for the best occurrence of `needle`.
+
+    PREFERS AN OCCURRENCE WITH A NUMBER NEAR IT, AND SAYS WHEN THERE IS NONE.
+
+    The first version took the FIRST occurrence, and on the real documents that
+    was reliably the worst one. Every QEBR opens with an abbreviations table, so
+    'gross domestic product' matched here:
+
+        gdp gross domestic product ict information, communication and
+        technology imf international monetary fund knbs kenya national...
+
+    That is a glossary entry. It proves the document defines the term, not that
+    it reports a figure — precisely the "merely in the same document" failure
+    this probe's own doctrine warns against, reproduced by the probe.
+
+    A label with no number beside it cannot populate an indicator, so
+    occurrences are scanned and one carrying a digit within the window wins.
+    `numeric` is returned rather than inferred by the reader, because a match
+    with no number anywhere is a materially different finding from a match with
+    one, and the two must not print identically.
+    """
+    best = None
+    start = 0
+    while True:
+        i = text.find(needle, start)
+        if i < 0:
+            break
+        lo, hi = max(0, i - width // 2), min(len(text), i + width)
+        window = text[lo:hi]
+        snippet = "..." + " ".join(window.split()) + "..."
+        if re.search(r"\d", window):
+            return snippet, True
+        if best is None:
+            best = snippet
+        start = i + 1
+    return (best, False) if best else ("", False)
 
 
 def reporting_period(text: str) -> str:
@@ -269,10 +321,18 @@ def inspect(url: str, label: str) -> None:
         else:
             verdict = "NEITHER   "
         print(f"   {verdict} {name}")
-        if n_hit:
-            print(f"        num '{n_hit}': {context(low, n_hit)}")
-        if d_hit and d_hit != n_hit:
-            print(f"        den '{d_hit}': {context(low, d_hit)}")
+        for role, hit in (("num", n_hit), ("den", d_hit)):
+            if not hit or (role == "den" and hit == n_hit):
+                continue
+            snip, numeric = context(low, hit)
+            # A label with no digit beside it anywhere in the document is a
+            # glossary or contents entry, not a figure. Flagged loudly rather
+            # than printed identically, because a BOTH assembled from two
+            # glossary entries would be a ratio invented from a table of
+            # contents — which is what the first run of this probe reported.
+            flag = "" if numeric else \
+                "  [NO NUMBER NEARBY — glossary or contents entry, not a figure]"
+            print(f"        {role} '{hit}'{flag}: {snip}")
 
 
 def main() -> int:

@@ -44,7 +44,12 @@ changed=$(git diff --name-only "$CACHED_COMMIT_REF" "$COMMIT_REF" 2>/dev/null) |
 [ -n "$changed" ] || build "empty diff between two different commits"
 
 # Paths `next build` does not read. Keep this list short and provable.
-relevant=$(echo "$changed" | grep -Ev '^(docs/|tests/|backend/|\.github/|README\.md$|\.gitignore$)') || true
+# LICENSE and SECURITY.md earn their place here the same way everything else
+# does: `next build` provably does not read them. They were added on
+# 2026-08-07 and the merge that added them triggered a full production deploy
+# that could not change one byte of the published site — the cost this script
+# exists to avoid, paid on the very commit that documented it.
+relevant=$(echo "$changed" | grep -Ev '^(docs/|tests/|backend/|\.github/|README\.md$|LICENSE$|SECURITY\.md$|\.gitignore$)') || true
 
 if [ -z "$relevant" ]; then
   skip "$(echo "$changed" | wc -l | tr -d ' ') changed file(s), none of them reachable by next build"

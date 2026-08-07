@@ -126,6 +126,36 @@ describe('netlify build-skip decision', () => {
     const mixed = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
     expect(run(srcChange, mixed), 'docs + src together must build').toBe(BUILD);
 
+    // LICENSE and SECURITY.md, added 2026-08-07. The merge that introduced
+    // them triggered a full production deploy that could not change one byte
+    // of the published site — this script's own cost, paid on the commit that
+    // documented it. Asserted as a real diff rather than by reading the regex,
+    // because an anchoring mistake (LICENSE matching web/LICENSE, say) would
+    // pass a pattern check and skip a build that mattered.
+    execFileSync('bash', ['-c', `echo x > ${dir}/LICENSE; echo y > ${dir}/SECURITY.md`]);
+    git('add', '-A');
+    git('commit', '-qm', 'licence and disclosure policy');
+    const legal = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(mixed, legal), 'LICENSE + SECURITY.md alone should skip').toBe(SKIP);
+
+    /* ...and the entry must be anchored at BOTH ends.
+     *
+     * The first version of this assertion used src/licensing/LICENSE and was
+     * vacuous: the pattern is `^(...)`, so `^LICENSE` cannot match a path
+     * beginning `src/`, and removing the trailing `$` did not fail the test.
+     * It was caught by insisting a mutation actually apply before believing
+     * its result — the harness had silently no-opped twice before that.
+     *
+     * A root-level sibling is the case that discriminates. `LICENSE-THIRD-
+     * PARTY` starts with LICENSE, so an unanchored entry swallows it, and a
+     * file that could legitimately ship with the site would stop deploying.
+     */
+    execFileSync('bash', ['-c', `echo z > ${dir}/LICENSE-THIRD-PARTY`]);
+    git('add', '-A');
+    git('commit', '-qm', 'a differently-named root licence file');
+    const sibling = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(legal, sibling), 'LICENSE-THIRD-PARTY must still build').toBe(BUILD);
+
     execFileSync('rm', ['-rf', dir]);
   });
 });

@@ -557,6 +557,23 @@ jobs:
         if: ${{ !cancelled() && !inputs.test_alert }}
         id: rates
         run: node scripts/build-rates-feed.mjs || echo "failed=rates-feed" >> "$GITHUB_OUTPUT"
+      # BEFORE the commit, deliberately.
+      #
+      # This writes public/data/freshness.json — the per-dataset verdict the
+      # site's banner reads. The gating run of the same script is further down,
+      # AFTER the push, because it must see the committed state and because a
+      # non-zero exit there is what raises the alert. If publishing ran there
+      # too, the file would be written after the only step that could commit
+      # it and would ship a full run late — describing the previous refresh
+      # while sitting beside this one's data.
+      #
+      # --publish always exits 0. It is not the gate; it only records what the
+      # gate is about to find.
+      - name: Publish per-dataset freshness for the site
+        if: ${{ !cancelled() && !inputs.test_alert }}
+        working-directory: backend/scrapers
+        run: python healthcheck.py --publish
+
       - name: Commit updated data
         if: ${{ !cancelled() && !inputs.test_alert }}
         run: |

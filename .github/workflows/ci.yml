@@ -363,6 +363,15 @@ jobs:
         working-directory: backend/scrapers
         run: python probe_debt_sources.py || echo "debt-source probe failed — see output above"
 
+      # The sovereign panel's oldest figure is asOf 2023. This asks whether
+      # CBK's own bulletins carry a fresher one — the same document family
+      # sovereign-rating.ts already trusts for all three credit ratings.
+      # FRED is ruled out (its terms prohibit commercial redistribution of
+      # third-party content) and the IMF's licence page returns no readable
+      # text, so CBK is the remaining licence-clean candidate.
+      - name: Probe whether CBK bulletins carry fresher sovereign figures
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_cbk_bulletin.py || echo "bulletin probe failed — see output above"
       - name: Probe whether a CPI series exists to read
         # Shares this job rather than getting its own because it is the same
         # kind of question against overlapping hosts, and both logs are short

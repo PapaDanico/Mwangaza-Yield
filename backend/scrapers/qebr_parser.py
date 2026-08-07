@@ -133,10 +133,37 @@ def current_account_pct_gdp(text: str):
 def interest_over_revenue(text: str):
     """ALWAYS None. See the module docstring for the evidence.
 
-    The two figures a keyword match finds are FOREIGN interest (not total) and
-    a SHORTFALL in ordinary revenue (not the level). Dividing them yields 94.7%
-    against a true figure nearer a third — a wrong number that would look like
-    a fiscal emergency and carry the Treasury's name.
+    THE EVIDENCE CHANGED SHAPE TWICE. Both halves were originally believed
+    absent. Diagnostics against the live Q3 FY2025/26 document settled each:
+
+      DENOMINATOR — PRESENT, and better labelled than expected:
+        "the national government revenue collection including ministerial
+         appropriation in aid (a-i-a) for the period between july 2025 - march
+         2026 amounted to ksh 2,278.1 billion (12.1 percent of gdp)"
+      That is the LEVEL. Only the Q2 SHORTFALL sentence had been matched
+      before, and the level written off from that single match.
+
+      NUMERATOR — ABSENT from this document. Searching every occurrence of
+      interest payment/paid/cost, consolidated fund, cfs, domestic interest and
+      foreign interest across the Q3 text returns TWO hits, both inside the
+      abbreviations table:
+          "cfs consolidated fund services ebus extra budgetary units"
+      No interest figure of any kind. The foreign-interest line reasoned from
+      earlier (ksh 104.7 billion) is in the Q2 document, not this one.
+
+    So the ratio is not refused because the numbers mean the wrong thing. It is
+    refused because one of them is not there. Against Ksh 2,278.1bn of revenue,
+    that foreign figure would give 4.6% — nowhere near a plausible total — which
+    independently confirms foreign interest is not total interest.
+
+    WHAT WOULD ACTUALLY SETTLE IT, and why it is not a regex:
+
+    MAX_PAGES reads 25 of 51 pages, and Q2's prose references "table 5:
+    expenditure and net lending". Interest almost certainly sits in a fiscal
+    TABLE further in. Table cells are a different extraction problem from
+    prose — extract_text flattens them — so this needs extract_tables over the
+    full document, then a check that the interest line and the revenue line are
+    the same period and the same basis. That is a piece of work, not a pattern.
 
     This is a function rather than an absence so that the reasoning sits where
     somebody would come looking to add it. Returning None is the correct

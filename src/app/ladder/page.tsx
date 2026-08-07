@@ -13,6 +13,7 @@ import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
 import { nonNegativeNumber } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
+import WiderView from '@/components/shared/WiderView';
 import LadderReport from '@/components/report/LadderReport';
 import IssuerIntent from '@/components/ladder/IssuerIntent';
 import ReinvestmentEvidence from '@/components/ladder/ReinvestmentEvidence';
@@ -397,6 +398,30 @@ export default function LadderPage() {
           )}
         </div>
       </div>
+
+      {/* The traffic was flowing one way.
+       *
+       * JiPange credits this app by name for its auction yields; nothing here
+       * pointed back, and a review noticed. /goals already carries this card —
+       * the ladder, which is where somebody works out what a monthly
+       * commitment buys, is the more natural place for it and had none.
+       *
+       * The question is deliberately the one THIS page cannot answer. A ladder
+       * tells you what buying at these rates yields; it knows nothing about
+       * whether the monthly figure is affordable, which is the question a
+       * reader actually has next. */}
+      <WiderView
+        wider={{
+          question: 'Can you actually afford to fund this ladder every month?',
+          answer:
+            'This page shapes the bonds and shows what they pay. It knows nothing about your '
+            + 'salary, your rent or a loan running alongside — and a ladder you cannot feed is '
+            + 'a plan on paper. JiPange works backwards from what you earn to what you can '
+            + 'commit each month.',
+          href: 'https://jipangefinance.org/tools/savings-goal',
+          label: 'Work out the monthly saving',
+        }}
+      />
     </div>
   );
 }

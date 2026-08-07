@@ -76,15 +76,66 @@ def tenor_years(code: str) -> float | None:
     return float(m.group(3)) if m else None
 
 
+def _write_json_atomic(path: Path, payload) -> None:
+    """Write JSON so that a killed process can never leave a half-file.
+
+    THE CONTRACT AT THE TOP OF THIS MODULE WAS NOT BEING KEPT.
+
+    It promises that on any failure the scraper exits "WITHOUT touching the
+    existing file", because stale-but-valid data beats empty data. A plain
+    write_text() cannot honour that: it truncates the file first and then
+    streams bytes into it, so a process killed mid-write leaves neither the
+    old dataset nor the new one — it leaves a JSON file that stops in the
+    middle of a record. The app does not fall back to anything, because from
+    its point of view the file is present. It fails to parse it.
+
+    That is not a hypothetical kill. CI bounds every scraper with
+    `timeout -k 20s 600s`, which sends SIGKILL to a scraper that overruns, and
+    SIGKILL cannot be trapped or deferred. A concurrency rule that cancels
+    superseded runs adds a second source of the same signal.
+
+    os.replace() is atomic on POSIX: a reader sees either the whole old file
+    or the whole new one, never a boundary. Writing to a temp file in the SAME
+    directory matters — os.replace is only atomic within a filesystem, and a
+    temp file in /tmp can be on a different one.
+    """
+    tmp = path.with_name(f".{path.name}.tmp")
+    # A SIGKILL cannot run the cleanup below — that is what SIGKILL means — so
+    # the previous run's temp file may still be here. It is harmless where it
+    # sits: the leading dot and the .tmp suffix both keep it outside
+    # `git add public/data/*.json`, so it cannot reach the repository. Sweeping
+    # it anyway keeps a working copy from silting up, and means the assertion
+    # "no temp files in the data directory" is true between runs.
+    tmp.unlink(missing_ok=True)
+    try:
+        with tmp.open("w") as fh:
+            json.dump(payload, fh, indent=2)
+            fh.flush()
+            # The bytes must be on disk before the rename. Without fsync the
+            # rename can land while the contents are still in the page cache,
+            # which on a crash gives an atomically-renamed EMPTY file — the
+            # same failure this function exists to prevent, arrived by a
+            # different route.
+            os.fsync(fh.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        # Includes KeyboardInterrupt/SystemExit: a partial temp file left in
+        # public/data would be committed by CI alongside the real datasets.
+        tmp.unlink(missing_ok=True)
+        raise
+
+
 def write_dataset(name: str, records: list) -> None:
     if not records:
         print(f"[{name}] no records extracted — keeping existing file", file=sys.stderr)
         sys.exit(1)
     path = DATA_DIR / f"{name}.json"
-    path.write_text(json.dumps(records, indent=2))
-    meta = DATA_DIR / "meta.json"
-    meta.write_text(json.dumps({
+    _write_json_atomic(path, records)
+    # Written second and separately: if this one is interrupted the dataset is
+    # already safely in place, and a meta.json that lags by one run is a far
+    # smaller problem than a dataset that does not parse.
+    _write_json_atomic(DATA_DIR / "meta.json", {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "note": "Auto-refreshed by backend/scrapers via CI.",
-    }, indent=2))
+    })
     print(f"[{name}] wrote {len(records)} records to {path}")

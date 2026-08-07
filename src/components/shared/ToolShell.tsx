@@ -21,10 +21,21 @@ import type { ReactNode } from 'react';
  * finds by searching "Kenya treasury bill calculator", and they were the five
  * with nothing to find.
  *
- * The same five were also the only pages on the site with no `<title>` and no
- * description — not a coincidence, but the same cause: a `'use client'` module
- * cannot export `metadata`. So the page could not say what it was in the tab,
- * in a search result, or in a shared link.
+ * A NOTE ON METADATA, AND A CORRECTION
+ *
+ * The first version of this file claimed these pages had no `<title>` and no
+ * description. That was wrong. They had both, supplied by a per-route
+ * `layout.tsx` whose own docstring explains the reason: Next.js forbids
+ * `export const metadata` from a `'use client'` module, so the metadata was
+ * deliberately moved one level up. The mechanism had already been found and
+ * solved; only the server-rendered TEXT was missing.
+ *
+ * Because that was misread, this change briefly added a second `metadata`
+ * export in each page.tsx. Page metadata overrides layout metadata, so five
+ * curated titles were silently replaced by worse ones that also broke the
+ * site's em-dash separator convention. Those exports have been removed and
+ * `layout.tsx` is again the single source. `tool-metadata.test.ts` now fails
+ * if a route grows a second one.
  *
  * WHAT IT CHANGES, AND WHAT IT DELIBERATELY DOES NOT
  *

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 
 /**
  * The build-skip decision, tested by running the actual script.
@@ -156,6 +156,26 @@ describe('netlify build-skip decision', () => {
     const sibling = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
     expect(run(legal, sibling), 'LICENSE-THIRD-PARTY must still build').toBe(BUILD);
 
-    execFileSync('rm', ['-rf', dir]);
+    /* CLEANUP MUST NOT BE ABLE TO FAIL THE TEST.
+     *
+     * The twin of this file in JiPange had the identical bare
+     * `execFileSync('rm', ['-rf', dir])` inside the `it()`, and on a CI runner
+     * it threw:
+     *
+     *   rm: cannot remove '/tmp/tmp.WROQksc0NF/.git/objects': Directory not empty
+     *
+     * — `rm` racing a git process still writing into the throwaway repository
+     * these tests build. Every assertion had already passed; the suite went red
+     * over a temp directory.
+     *
+     * It had not fired here yet. Same race, same kind of runner, same test:
+     * fixed on both sides rather than waiting for the second one to go red on
+     * somebody else's merge. A leftover directory under /tmp is not a defect;
+     * failing a build over one is. */
+    try {
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    } catch {
+      // Deliberately swallowed — see above.
+    }
   });
 });

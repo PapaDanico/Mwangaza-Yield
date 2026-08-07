@@ -67,16 +67,76 @@ def scrape() -> list:
     cpi = resolve("CPI", CPI_ROUTES, fetch, *CPI_BAND)
     report(cpi)
     if cpi.ok:
-        records.append({"id": f"cpi-{today}", "indicator": "CPI", "value": cpi.value,
-                        "date": today, "unit": "% y/y",
-                        "source": "KNBS" if cpi.via == "knbs-home" else "CBK",
-                        "fallback": cpi.via != "knbs-home",
-                        "via": cpi.via})
+        rec = {"id": f"cpi-{today}", "indicator": "CPI", "value": cpi.value,
+               "date": today, "unit": "% y/y",
+               "source": "KNBS" if cpi.via == "knbs-home" else "CBK",
+               "fallback": cpi.via != "knbs-home",
+               "via": cpi.via}
+        period = reference_period(cpi.value)
+        if period:
+            rec["period"] = period
+        records.append(rec)
 
     existing = read_existing()
     return carry_forward(
         date_by_observation(records, existing), existing, (fx, cbr, cpi),
     )
+
+
+def reference_period(value, history: list | None = None) -> str | None:
+    """Which MONTH a headline CPI print describes, as YYYY-MM.
+
+    A monthly statistic has two dates and this file only ever recorded one.
+    `date` means "when this figure first appeared to us" — correct for USD/KES,
+    which genuinely changes on the day we read it, and the reason
+    `date_by_observation` exists. For CPI it is the date we happened to scrape
+    a number describing a month that had already closed.
+
+    The consequence reached the reader. On 2026-08-05 the dashboard showed
+
+        Inflation (CPI)   6.49 % y/y   CBK · 2026-08-05
+
+    and 6.49 is the twelve-month inflation for JULY. CBK's own table row is
+    ['2026', 'July', '5.08', '6.49']. So the site dated a July figure to
+    August, on a card whose entire job is telling a reader how current a number
+    is.
+
+    The same file already got this right for the splits: CPI_CORE and
+    CPI_NONCORE carry 2026-07-31 and cite "KNBS ... July 2026". The headline
+    was the odd one out, which is how it survived — it looked freshER than its
+    own components rather than wrong.
+
+    The month is not guessed from the calendar. Deriving it as "last month"
+    would be right most of the time and silently wrong exactly when a release
+    is late, which is when a reader most needs to know what they are looking
+    at. It comes from cpi-history.json, the series scraped from CBK's dated
+    table: the newest month whose value equals this print. `corroborates()`
+    already relies on that identity holding, so this reuses a check the project
+    trusts rather than inventing a second, weaker one.
+
+    Returns None when nothing matches — a new print we have no history row for
+    yet, or a changed value. No period is then written and the UI falls back to
+    the observation date, which is the honest answer rather than a plausible
+    one.
+    """
+    if value is None:
+        return None
+    if history is None:
+        path = DATA_DIR / "cpi-history.json"
+        try:
+            history = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            return None
+    if not isinstance(history, list):
+        return None
+    months = [
+        str(r["date"])[:7] for r in history
+        if isinstance(r, dict) and r.get("date")
+        # Float equality is safe here: both sides are one- or two-decimal
+        # percentages parsed from the same publisher's tables, not computed.
+        and r.get("value") == value
+    ]
+    return max(months) if months else None
 
 
 def read_existing() -> list:

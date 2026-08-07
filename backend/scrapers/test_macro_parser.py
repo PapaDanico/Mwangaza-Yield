@@ -14,7 +14,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from macro_parser import carry_forward, date_by_observation, today_iso  # noqa: E402
+from macro_parser import (  # noqa: E402
+    carry_forward, date_by_observation, reference_period, today_iso,
+)
 from sources import Attempt, Resolution  # noqa: E402
 
 FAILURES: list = []
@@ -159,6 +161,57 @@ def test_an_indicator_with_no_history_keeps_todays_date() -> None:
     out = date_by_observation([row("CPI", 6.49, today_iso())], [])
     check(out[0]["date"] == today_iso(), "a first observation is dated today")
     check(out[0]["lastChecked"] == today_iso(), "a first observation was checked")
+
+
+# --------------------------------------------------------------------------
+# reference_period — which MONTH a CPI print describes
+# --------------------------------------------------------------------------
+
+HISTORY = [
+    {"date": "2026-05-01", "value": 6.68},
+    {"date": "2026-06-01", "value": 6.41},
+    {"date": "2026-07-01", "value": 6.49},
+]
+
+
+def test_a_july_print_read_in_august_is_dated_july() -> None:
+    """THE SHIPPED BUG. macro.json dated July's 6.49 to 2026-08-05, and the
+    dashboard printed that date under a figure describing July."""
+    check(reference_period(6.49, HISTORY) == "2026-07",
+          f"got {reference_period(6.49, HISTORY)}")
+
+
+def test_an_earlier_month_resolves_to_its_own_month() -> None:
+    check(reference_period(6.41, HISTORY) == "2026-06",
+          f"got {reference_period(6.41, HISTORY)}")
+
+
+def test_an_unmatched_value_returns_None_rather_than_guessing() -> None:
+    # Falling back to the observation date is honest. Deriving "last month"
+    # from the calendar would be right most of the time and silently wrong
+    # exactly when a release is late — when a reader most needs to know.
+    check(reference_period(7.77, HISTORY) is None,
+          "an unmatched value must not be given a month")
+
+
+def test_a_repeated_value_takes_the_NEWEST_month() -> None:
+    # Inflation revisits the same rate often. An older match would date
+    # today's print to last year.
+    hist = HISTORY + [{"date": "2025-03-01", "value": 6.49}]
+    check(reference_period(6.49, hist) == "2026-07",
+          f"an older duplicate won: {reference_period(6.49, hist)}")
+
+
+def test_a_missing_or_unreadable_history_is_not_fatal() -> None:
+    check(reference_period(6.49, []) is None, "empty history should yield None")
+    check(reference_period(None, HISTORY) is None, "no value, no period")
+    check(reference_period(6.49, "not a list") is None, "a non-list must not throw")
+
+
+def test_malformed_history_rows_are_skipped_not_crashed_on() -> None:
+    hist = [None, "x", {}, {"value": 6.49}, {"date": "2026-07-01", "value": 6.49}]
+    check(reference_period(6.49, hist) == "2026-07",
+          f"got {reference_period(6.49, hist)}")
 
 
 # --------------------------------------------------------------------------

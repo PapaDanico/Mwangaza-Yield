@@ -89,3 +89,39 @@ export function indicatorStaleNote(age: IndicatorAge | null): string | null {
   if (!age || !age.stale) return null;
   return `${age.days} days old — ${age.cadence}`;
 }
+
+/**
+ * What to print as a figure's vintage: the month it DESCRIBES when that is a
+ * different thing from the day we read it, otherwise the day we read it.
+ *
+ * A monthly statistic has two dates and the macro card only ever showed one.
+ * On 2026-08-05 it read
+ *
+ *     Inflation (CPI)   6.49 % y/y   CBK · 2026-08-05
+ *
+ * and 6.49 is the twelve-month inflation for JULY — CBK's own table row is
+ * ['2026', 'July', '5.08', '6.49']. The card overstated the figure's currency
+ * by a month, which matters because saying how current a number is is the
+ * entire job of that line.
+ *
+ * It also read inconsistently against its own components: CPI_CORE and
+ * CPI_NONCORE sat in the same panel dated 2026-07-31 and sourced "July 2026".
+ * The headline looked FRESHER than its own parts, which is why nobody read it
+ * as wrong.
+ *
+ * Falls back to the raw date whenever `period` is absent or unparseable. A
+ * daily rate has no separate reference month, and inventing one would be worse
+ * than the problem being fixed.
+ */
+export function vintageLabel(date: string, period?: string): string {
+  if (!period) return date;
+  const m = /^(\d{4})-(\d{2})$/.exec(period);
+  if (!m) return date;
+  const month = Number(m[2]);
+  if (month < 1 || month > 12) return date;
+  const NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  return `${NAMES[month - 1]} ${m[1]}`;
+}

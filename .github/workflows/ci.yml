@@ -69,6 +69,10 @@ on:
         description: 'Self-test the alerting path: force a freshness failure and confirm the issue is raised. Commits nothing.'
         type: boolean
         default: false
+      test_recovery:
+        description: 'Self-test the RECOVERY path: raise a throwaway alert, then prove a healthy run closes it. Commits nothing.'
+        type: boolean
+        default: false
       refresh_now:
         description: 'Run the scrapers and commit fresh data immediately, without waiting for the 6am EAT schedule.'
         type: boolean
@@ -317,19 +321,19 @@ jobs:
           AUCTION_MAX_FILES: 25
         run: python auction_results.py || echo "auction parser failed — see output above"
       - name: Probe whether undated auctions carry their date in the document
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         timeout-minutes: 5
         working-directory: backend/scrapers
         run: python probe_undated.py || echo "undated probe failed — see output above"
 
       - name: Probe why no tap sale has ever parsed completely
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         timeout-minutes: 4
         working-directory: backend/scrapers
         run: python probe_tapsale.py || echo "tap-sale probe failed — see output above"
 
       - name: Probe what is still missing at the current parser version
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         timeout-minutes: 5
         working-directory: backend/scrapers
         run: python probe_gaps.py || echo "gap probe failed — see output above"
@@ -470,7 +474,7 @@ jobs:
 
   refresh-data:
     # Netlify redeploys automatically when this job pushes updated JSON to main.
-    if: github.event_name == 'schedule' || inputs.test_alert || inputs.refresh_now
+    if: github.event_name == 'schedule' || inputs.test_alert || inputs.test_recovery || inputs.refresh_now
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -508,12 +512,12 @@ jobs:
       # failure is recorded, the alert names it, the step exits 0, and the rest
       # of the pipeline runs. -k sends KILL if the process ignores TERM.
       - name: Run macro scraper
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: macro
         working-directory: backend/scrapers
         run: timeout -k 20s 300s python macro_parser.py || echo "failed=macro" >> "$GITHUB_OUTPUT"
       - name: Refresh World Bank sovereign context (keyless, CC BY 4.0)
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: worldbank
         working-directory: backend/scrapers
         # 600s, not 360s. worldbank.py stops ITSELF at BUDGET_SECONDS (480s =
@@ -523,7 +527,7 @@ jobs:
         # inside its own budget — reintroducing #176 by the back door.
         run: timeout -k 20s 600s python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
       - name: Reconcile bonds against the CBK securities register
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: registry
         working-directory: backend/scrapers
         # Bounded like the rest. This one had no bound at all — not
@@ -532,12 +536,12 @@ jobs:
         # Found by the test below rather than by inspection.
         run: timeout -k 20s 300s python registry.py || echo "failed=registry" >> "$GITHUB_OUTPUT"
       - name: Capture CBK auction results (coupon rates, clearing yields)
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: auctions
         working-directory: backend/scrapers
         run: timeout -k 20s 900s python auction_results.py || echo "failed=auction-results" >> "$GITHUB_OUTPUT"
       - name: Capture CBK Central Bank Rate history
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: cbr
         working-directory: backend/scrapers
         run: timeout -k 20s 300s python cbr_history_parser.py || echo "failed=cbr-history" >> "$GITHUB_OUTPUT"
@@ -548,12 +552,12 @@ jobs:
         # failure is recorded — cpi-history.json is what makes realSeries()
         # return anything at all, so a silent loss would put every real-terms
         # surface back to rendering nothing.
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: cpi
         working-directory: backend/scrapers
         run: timeout -k 20s 300s python cpi_history_parser.py || echo "failed=cpi-history" >> "$GITHUB_OUTPUT"
       - name: Expand the bond universe from the register + auction results
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: expand
         working-directory: backend/scrapers
         run: timeout -k 20s 300s python expand_universe.py || echo "failed=expand-universe" >> "$GITHUB_OUTPUT"
@@ -572,12 +576,12 @@ jobs:
       # forecast only for a future auction with named bonds, and this is what
       # names them. Ordering is the whole point — see refresh_calendar.py.
       - name: Refresh the auction calendar from CBK prospectuses
-        if: ${{ !inputs.test_alert }}
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: calendar
         working-directory: backend/scrapers
         run: timeout -k 20s 300s python refresh_calendar.py || echo "failed=calendar" >> "$GITHUB_OUTPUT"
       - name: Update the prediction ledger
-        if: ${{ !cancelled() && !inputs.test_alert }}
+        if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         id: predictions
         run: |
           { npm ci --ignore-scripts \
@@ -589,7 +593,7 @@ jobs:
       # leave consumers reading yesterday's yields — this is the file other
       # products build on. Depends on build:engine having run above.
       - name: Rebuild the published rates feed
-        if: ${{ !cancelled() && !inputs.test_alert }}
+        if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         id: rates
         run: node scripts/build-rates-feed.mjs || echo "failed=rates-feed" >> "$GITHUB_OUTPUT"
       # BEFORE the commit, deliberately.
@@ -605,12 +609,12 @@ jobs:
       # --publish always exits 0. It is not the gate; it only records what the
       # gate is about to find.
       - name: Publish per-dataset freshness for the site
-        if: ${{ !cancelled() && !inputs.test_alert }}
+        if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         working-directory: backend/scrapers
         run: python healthcheck.py --publish
 
       - name: Commit updated data
-        if: ${{ !cancelled() && !inputs.test_alert }}
+        if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -661,7 +665,7 @@ jobs:
       # and this one means they are actively wrong rather than merely old.
       - name: Check the auction archive for contradictions
         id: integrity
-        if: ${{ !cancelled() && !inputs.test_alert }}
+        if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         working-directory: backend/scrapers
         run: python check_archive.py 2>&1 | tee archive-integrity.txt; exit "${PIPESTATUS[0]}"
 
@@ -733,7 +737,50 @@ jobs:
             const jobFailed = '${{ job.status }}' === 'failure';
             const label = 'scraper-alert';
 
-            if (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed) {
+            /* THE RECOVERY PATH HAD NO SELF-TEST, WHICH IS THE HALF THAT
+             * MATTERS MORE.
+             *
+             * `test_alert` proves the alarm can be RAISED, and its comment
+             * gives the reason: so it "can be proven to still work after
+             * anyone edits it, rather than being discovered broken on the day
+             * it was needed". Every word of that applies to standing the alarm
+             * down, and nothing exercised it.
+             *
+             * It is also the harder half to notice when broken. A raise that
+             * stops working is loud — the issue everyone expected never
+             * appears. A close that stops working is silent: issues simply
+             * accumulate, `open` quietly decays from "still true" to "was true
+             * once", and by the time anyone notices, the signal is already
+             * worthless. As of this commit the recovery branch had never
+             * executed against a real issue — #179 was closed by hand.
+             *
+             * So the self-test manufactures the one precondition the branch
+             * needs and cannot arrange for itself: an OPEN alert on a healthy
+             * run. It raises a throwaway, clearly-labelled issue and then falls
+             * straight into the ordinary recovery code below — not a copy of
+             * it. A self-test that exercised a duplicate would prove the
+             * duplicate works. */
+            const testRecovery = '${{ inputs.test_recovery }}' === 'true';
+            if (testRecovery) {
+              const made = await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: `Self-test of the recovery path — run ${context.runId}`,
+                labels: [label],
+                body: [
+                  '## This is a self-test, not a fault',
+                  '',
+                  'Raised deliberately by a `test_recovery` dispatch so the',
+                  'recovery branch has an open alert to close. If this issue is',
+                  'still OPEN with a "Recovered" comment absent, the recovery',
+                  'path is broken and that is the finding.',
+                  '',
+                  `[View the run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+                ].join('\n'),
+              });
+              core.info(`Self-test raised #${made.data.number}; the recovery branch must now close it.`);
+            }
+
+            if (testRecovery || (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed)) {
               /* A RECOVERY MUST CLOSE THE ALERT, OR `open` STOPS MEANING
                * ANYTHING.
                *
@@ -755,6 +802,7 @@ jobs:
                * Closed with a comment rather than silently, so the issue is a
                * record of a fault that ended rather than one someone tidied
                * away. */
+              let closed = 0;
               const open = await github.rest.issues.listForRepo({
                 owner: context.repo.owner, repo: context.repo.repo,
                 state: 'open', labels: label,
@@ -781,6 +829,18 @@ jobs:
                   state: 'closed', state_reason: 'completed',
                 });
                 core.info(`Closed recovered alert #${issue.number}`);
+                closed += 1;
+              }
+              /* The self-test must FAIL if nothing closed. Without this the
+               * dispatch is green whether the branch worked or not, which is a
+               * guard that cannot fire in the case it exists to detect — the
+               * defect this repository keeps finding in itself, and one it
+               * would be particularly silly to ship inside a self-test. */
+              if (testRecovery && closed === 0) {
+                core.setFailed(
+                  'test_recovery raised an alert and the recovery branch closed nothing. ' +
+                  'The close path is broken.'
+                );
               }
               return;
             }

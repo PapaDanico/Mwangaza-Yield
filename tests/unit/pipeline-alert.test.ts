@@ -47,10 +47,17 @@ describe('the alert can actually fire', () => {
     // Running on every completed run is only safe if the quiet case is quiet.
     // An alert that fires daily regardless of state is the wolf-crying the
     // freshness budgets were deliberately widened to avoid.
-    expect(REFRESH).toMatch(/if \(!failed\.length && !healthFailed && !brokeIntegrity && !jobFailed\) \{/);
+    // The health condition itself is unchanged; the self-test is an OR in
+    // front of it, so a healthy run is still the only ordinary way in.
+    expect(REFRESH).toMatch(
+      /if \(testRecovery \|\| \(!failed\.length && !healthFailed && !brokeIntegrity && !jobFailed\)\) \{/
+    );
+    // And the self-test flag must be opt-in via a dispatch input, never
+    // something a scheduled run can trip into.
+    expect(REFRESH).toMatch(/const testRecovery = '\$\{\{ inputs\.test_recovery \}\}' === 'true';/);
     // The quiet branch must still end in a return, or a healthy run would fall
     // through and raise the very alert it just decided not to raise.
-    const quiet = REFRESH.slice(REFRESH.indexOf('if (!failed.length'));
+    const quiet = REFRESH.slice(REFRESH.indexOf('if (testRecovery ||'));
     expect(quiet.slice(0, quiet.indexOf('const run ='))).toContain('return;');
   });
 
@@ -61,7 +68,7 @@ describe('the alert can actually fire', () => {
     // ISSUE, which is the right register"). An alarm nobody can switch off is
     // one people stop switching on.
     const quiet = REFRESH.slice(
-      REFRESH.indexOf('if (!failed.length'),
+      REFRESH.indexOf('if (testRecovery ||'),
       REFRESH.indexOf('const run ='),
     );
     expect(quiet).toContain('issues.update');
@@ -71,6 +78,49 @@ describe('the alert can actually fire', () => {
     expect(quiet).toContain('createComment');
     // And only ever issues this automation raised.
     expect(quiet).toMatch(/labels: label/);
+  });
+
+  it('gives the RECOVERY path a self-test, as the raise path already has', () => {
+    /* test_alert proves the alarm can be RAISED, "so the alarm can be proven
+     * to still work after anyone edits it, rather than being discovered broken
+     * on the day it was needed". Standing it down had no such proof, and it is
+     * the half that fails silently: a broken raise is loud because the expected
+     * issue never appears, while a broken close just lets issues accumulate
+     * until `open` means nothing. */
+    expect(REFRESH).toContain('test_recovery');
+    // It must MANUFACTURE the precondition the branch cannot arrange for
+    // itself — an open alert on a healthy run — and then fall into the real
+    // recovery code rather than a copy of it.
+    expect(REFRESH).toMatch(/issues\.create\(/);
+    expect(REFRESH).toMatch(/labels: \[label\]/);
+  });
+
+  it('fails the self-test when the recovery branch closes nothing', () => {
+    /* THE GUARD INSIDE THE GUARD.
+     *
+     * Without this the dispatch is green whether the close worked or not —
+     * a guard that cannot fire in the case it exists to detect, which would be
+     * a particularly silly thing to ship inside a self-test. */
+    const quiet = REFRESH.slice(
+      REFRESH.indexOf('if (testRecovery ||'),
+      REFRESH.indexOf('const run ='),
+    );
+    expect(quiet).toContain('closed += 1');
+    expect(quiet).toMatch(/if \(testRecovery && closed === 0\)/);
+    expect(quiet).toContain('core.setFailed');
+  });
+
+  it('runs the job for a recovery self-test, and writes no data during one', () => {
+    /* The first version of this change added the input and the branch and did
+     * NOT add the job condition, so refresh-data would not have run at all and
+     * the self-test could never have fired. Caught here rather than by a
+     * dispatch that mysteriously did nothing. */
+    const jobGate = REFRESH.slice(0, REFRESH.indexOf('runs-on'));
+    expect(jobGate).toContain('inputs.test_recovery');
+    // And it must commit nothing, exactly like test_alert: both self-tests
+    // exercise the alert step, not the pipeline.
+    expect(REFRESH).toContain('!inputs.test_alert && !inputs.test_recovery');
+    expect(REFRESH).not.toMatch(/if: \$\{\{ !inputs\.test_alert \}\}/);
   });
 
   it('declares the alert label exactly once', () => {

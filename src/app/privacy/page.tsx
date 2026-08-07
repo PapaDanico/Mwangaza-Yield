@@ -124,7 +124,15 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li><strong>Access and correction</strong> — your data is on your device, in front of you. Every figure can be edited on the page that shows it.</li>
-        <li><strong>Deletion</strong> — &ldquo;Clear all holdings&rdquo; on the portfolio page, or clearing site data in your browser. For alerts, switching them off deletes the stored subscription.</li>
+        {/* The second sentence used to read "For alerts, switching them off
+            deletes the stored subscription." That was true until July 2026 and
+            was left behind when the push endpoint was removed — the section
+            above this one says in bold that it is gone. A rights clause
+            describing the deletion of a thing that no longer exists is the
+            worst kind of stale text in a statutory notice: it implies there IS
+            a stored subscription, which is precisely the claim the removal was
+            made to be able to deny. */}
+        <li><strong>Deletion</strong> — &ldquo;Clear all holdings&rdquo; on the portfolio page, or clearing site data in your browser. There is nothing to delete on our side, for alerts or anything else, because nothing of yours is stored there.</li>
         <li><strong>Objection</strong> — do not turn on alerts. Nothing else about the app sends anything anywhere, so there is nothing else to object to.</li>
       </ul>
       <p>

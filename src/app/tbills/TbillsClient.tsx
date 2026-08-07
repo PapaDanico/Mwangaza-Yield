@@ -8,6 +8,7 @@ import { computeTBill, projectRollover } from '@/lib/tbills';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
+import FollowChannel from '@/components/shared/FollowChannel';
 import LiveResult from '@/components/shared/LiveResult';
 
 export default function TbillsClient() {
@@ -266,6 +267,12 @@ export default function TbillsClient() {
           <a href="/ladder/" className="text-gold-700 underline-offset-2 hover:underline">Ladder Builder</a>.
         </p>
       </div>
+
+      {/* Placed HERE, past the `if (!selected || !result || !rollover)` guard
+        * on line 38, so it can only render once a reader has actually been
+        * given a bill comparison. That is the placement rule, not a layout
+        * preference — see FollowChannel's header. */}
+      <FollowChannel what="Bill rates" />
     </>
   );
 }

@@ -84,6 +84,23 @@ export interface MacroIndicator {
   /** When the value was last CONFIRMED, as distinct from when it changed. */
   lastChecked?: string;
   /**
+   * Which month a monthly statistic DESCRIBES, as YYYY-MM — not when we read
+   * it. A CPI print scraped on 5 August reports July, and dating it to August
+   * overstates by a month on the one card whose job is saying how current a
+   * number is. Absent for figures where the two coincide, like a daily rate.
+   */
+  period?: string;
+  /** When we last TRIED, whether or not it worked. See carry_forward. */
+  lastAttempt?: string;
+  /**
+   * Why the last attempt produced nothing, naming each route tried.
+   *
+   * Its presence beside a missing `lastChecked` is the readable form of "we
+   * are still asking and still not getting an answer" — the state USD/KES was
+   * in for seventeen days while looking identical to a healthy figure.
+   */
+  attemptFailed?: string;
+  /**
    * Which declared route actually produced this figure — see
    * backend/scrapers/sources.py.
    *

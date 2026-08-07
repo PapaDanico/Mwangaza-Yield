@@ -126,6 +126,9 @@ jobs:
           python test_worldbank.py
           python test_check_archive.py
           python test_healthcheck.py
+          python test_macro_parser.py
+          # Must come last: it asserts every file above is actually invoked.
+          python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
       # or whether data is FRESH. Neither would have caught the worst bug found
       # so far, because it produced values that were individually plausible and
@@ -168,6 +171,16 @@ jobs:
       - name: Probe live data sources
         working-directory: backend/scrapers
         run: python validate.py
+      # validate.py asks whether the page is REACHABLE and contains a marker.
+      # Both stayed green for the seventeen days USD/KES was frozen, because
+      # the marker it checks on the CBK home page is "Central Bank Rate" — a
+      # different indicator on the same page. This exercises the actual
+      # patterns the pipeline depends on, which is the one question neither
+      # validate.py nor the fixture-based test_sources.py could answer.
+      - name: Probe whether the declared routes still match the live pages
+        timeout-minutes: 4
+        working-directory: backend/scrapers
+        run: python probe_routes.py || echo "route probe failed — see output above"
       - name: Dry-run the macro scraper
         if: ${{ !inputs.validate_only }}
         working-directory: backend/scrapers
@@ -550,7 +563,59 @@ jobs:
              * the freshness budgets were widened to avoid. */
             const healthFailed = '${{ steps.health.outcome }}' === 'failure';
             const jobFailed = '${{ job.status }}' === 'failure';
-            if (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed) return;
+            const label = 'scraper-alert';
+
+            if (!failed.length && !healthFailed && !brokeIntegrity && !jobFailed) {
+              /* A RECOVERY MUST CLOSE THE ALERT, OR `open` STOPS MEANING
+               * ANYTHING.
+               *
+               * This step could raise an alert and could never clear one. The
+               * comment further down says an unchanged fault "stays visible as
+               * an OPEN ISSUE, which is the right register for 'still true'" —
+               * and that is exactly the load-bearing claim a missing close
+               * breaks. Without this, `open` degrades from "still true" to
+               * "was true once", and the next reader has to open the issue and
+               * read timestamps to learn whether the pipeline is healthy right
+               * now. An alarm that cannot be switched off is one people stop
+               * switching on.
+               *
+               * It is also the mirror of the defect this repository keeps
+               * finding in itself. A guard that cannot fire in the case it
+               * exists to detect is useless; so is a guard that, once fired,
+               * can never stand down.
+               *
+               * Closed with a comment rather than silently, so the issue is a
+               * record of a fault that ended rather than one someone tidied
+               * away. */
+              const open = await github.rest.issues.listForRepo({
+                owner: context.repo.owner, repo: context.repo.repo,
+                state: 'open', labels: label,
+              });
+              for (const issue of open.data) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: [
+                    '## Recovered',
+                    '',
+                    'A full run completed with every scraper exiting cleanly, every',
+                    'freshness budget met, and no contradiction in the archive.',
+                    '',
+                    `[View the run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+                    '',
+                    'Closing automatically. If the fault returns, a new alert is raised',
+                    'rather than this one reopened, so each issue covers one episode.',
+                  ].join('\n'),
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed', state_reason: 'completed',
+                });
+                core.info(`Closed recovered alert #${issue.number}`);
+              }
+              return;
+            }
 
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
@@ -585,7 +650,7 @@ jobs:
                 : 'The app keeps serving the last good data (see `carry_forward`), so nothing is broken for users yet — but the figures are ageing. Run the `validate-sources` job to see which sources are reachable.',
             ].join('\n');
 
-            const label = 'scraper-alert';
+            // `label` is declared above, where a recovery closes the open alert.
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo,
               state: 'open', labels: label,

@@ -343,6 +343,70 @@ def test_the_freshest_record_per_indicator_decides():
     assert problems == [], "an old historical row alarmed despite a fresh one"
 
 
+# ---------------------------------------------------------------------------
+# A BROKEN FETCH IS NOT THE SAME PROBLEM AS AN OLD FIGURE.
+#
+# The age check answers "is this figure past its cadence". It cannot answer
+# "are we still able to obtain it", and those need different people to do
+# different things: one waits for a publisher, the other fixes a route.
+# `carry_forward` now writes `attemptFailed` when every route failed, so the
+# distinction exists in the data and can be acted on here.
+# ---------------------------------------------------------------------------
+
+def _failing(name, ago, reason="cbk-home: no match"):
+    rec = _macro((name, ago))
+    rec[0]["attemptFailed"] = reason
+    return rec
+
+
+def test_a_broken_fetch_alarms_even_while_the_figure_is_still_in_budget():
+    # THE FOUR DAYS OF GRACE. FX has a 4-day budget; on day 1 of a broken
+    # route the figure is fine and the route is not. Saying so on day 1
+    # instead of day 5 is the entire point of recording the attempt.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_failing("FX_USD_KES", 1), "Macro", problems, rows)
+    assert len(problems) == 1, problems
+    assert "every route failed" in problems[0], problems
+    assert "cbk-home: no match" in problems[0], "the reason must reach the reader"
+
+
+def test_a_healthy_in_budget_indicator_still_says_nothing():
+    # The mirror of the above: if this ever alarms, the check fires in every
+    # case and is worth nothing.
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_macro(("FX_USD_KES", 1)), "Macro", problems, rows)
+    assert problems == [], problems
+
+
+def test_a_stale_AND_broken_indicator_reports_both_facts_in_one_problem():
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_failing("FX_USD_KES", 18), "Macro", problems, rows)
+    assert len(problems) == 1, "one indicator should raise one problem, not two"
+    assert "18 days old" in problems[0]
+    assert "every route failed" in problems[0]
+
+
+def test_the_failure_reason_appears_in_the_printed_table():
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(_failing("FX_USD_KES", 18), "Macro", problems, rows)
+    assert any("last fetch FAILED" in r for r in rows), rows
+
+
+def test_a_fresh_successful_row_clears_an_older_failed_one():
+    # A file holding both a failed carry and a later success must not keep
+    # reporting the stale failure — that is a warning that cannot be cleared,
+    # which is how readers learn to ignore warnings.
+    payload = _failing("FX_USD_KES", 18) + _macro(("FX_USD_KES", 0))
+    problems: list = []
+    rows: list = []
+    check_per_indicator_budgets(payload, "Macro", problems, rows)
+    assert problems == [], problems
+
+
 def test_the_shipped_macro_file_is_reported_per_indicator():
     # Non-vacuity against the real file.
     payload = json.loads((DATA / "macro.json").read_text())

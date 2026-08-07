@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   indicatorAge, indicatorStaleNote, INDICATOR_BUDGETS, DEFAULT_BUDGET_DAYS,
+  vintageLabel,
 } from '../../src/lib/indicator-freshness';
 
 const NOW = new Date('2026-08-06T12:00:00Z');
@@ -69,5 +70,38 @@ describe('indicatorStaleNote', () => {
     expect(note).toContain('17 days old');
     // Without the cadence the reader cannot judge whether 17 days is bad.
     expect(note).toContain('every trading day');
+  });
+});
+
+describe('vintageLabel', () => {
+  it('names the MONTH a CPI print describes, not the day we read it', () => {
+    // THE SHIPPED BUG. macro.json dated July's 6.49 to 2026-08-05, and CBK's
+    // own table row is ['2026','July','5.08','6.49'].
+    expect(vintageLabel('2026-08-05', '2026-07')).toBe('July 2026');
+  });
+
+  it('falls back to the date when there is no period', () => {
+    // A daily rate has no separate reference month, and inventing one would be
+    // worse than the problem being fixed.
+    expect(vintageLabel('2026-07-20')).toBe('2026-07-20');
+    expect(vintageLabel('2026-07-20', undefined)).toBe('2026-07-20');
+  });
+
+  it('falls back rather than guessing at a malformed period', () => {
+    for (const bad of ['2026', '2026-7', 'July', '', '2026-13', '2026-00']) {
+      expect(vintageLabel('2026-08-05', bad), `accepted ${JSON.stringify(bad)}`)
+        .toBe('2026-08-05');
+    }
+  });
+
+  it('handles both ends of the year', () => {
+    expect(vintageLabel('x', '2026-01')).toBe('January 2026');
+    expect(vintageLabel('x', '2026-12')).toBe('December 2026');
+  });
+
+  it('never renders a month number where a name belongs', () => {
+    // The off-by-one that a NAMES lookup invites.
+    expect(vintageLabel('x', '2026-02')).toBe('February 2026');
+    expect(vintageLabel('x', '2026-02')).not.toMatch(/\d{4}-/);
   });
 });

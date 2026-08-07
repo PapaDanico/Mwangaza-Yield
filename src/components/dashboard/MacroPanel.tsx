@@ -2,7 +2,7 @@
 
 import { useBondStore } from '@/stores/bondStore';
 import Reserve from '@/components/shared/Reserve';
-import { indicatorAge, indicatorStaleNote } from '@/lib/indicator-freshness';
+import { indicatorAge, indicatorStaleNote, vintageLabel } from '@/lib/indicator-freshness';
 import { cn } from '@/lib/utils';
 
 const LABELS: Record<string, string> = {
@@ -81,9 +81,13 @@ export default function MacroPanel() {
               sm:block only, which hid it on exactly the devices most of this
               audience uses. On a phone the source is dropped instead — the
               date is what tells a reader whether to trust the number. */}
+          {/* The month a monthly figure DESCRIBES, not the day we read it.
+              A CPI print scraped on 5 August reports July; dating it to
+              August overstated its currency by a month on the one line whose
+              job is to say how current the number is. See vintageLabel. */}
           <p className="mt-1 text-[11px] text-ink-faint">
             <span className="hidden sm:inline">{m.source} · </span>
-            {m.date}
+            {vintageLabel(m.date, m.period)}
           </p>
           {note && (
             <p className="mt-1 text-[11px] font-medium leading-snug text-gold-800">{note}</p>

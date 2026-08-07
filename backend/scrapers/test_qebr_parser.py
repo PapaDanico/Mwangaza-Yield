@@ -37,7 +37,20 @@ Q3 = """
 registering positive growth. 4. foreign exchange reserves stood at us$ 12,013.9
 million in march 2025. this level of reserves represented 5.7 months of import
 cover, compared to 4.7 months over the same period in 2025, and continues to
-provide an adequate buffer against short term shocks. third quarter fy 2025/2026
+provide an adequate buffer against short term shocks.
+"""
+
+# The REAL cover page, verbatim from the runner. The earlier fixtures ended
+# with "third quarter fy 2025/2026", which I wrote — the documents say
+# "financial year", and put a comma after the quarter. Inventing that detail is
+# the same error the header of this file warns about, committed in the file
+# that warns about it. Kept as its own constant because the cover page is what
+# reporting_period reads, and it must be the real one.
+COVER = """
+republic of kenya the national treasury quarterly economic and budgetary review
+third quarter, financial year 2025/2026 period ending 31st march 2026 may 2026
+edition ii quarterly economic and budgetary review third quarter, financial year
+2025/2026 period ending 31st march 2026 may 2026 edition iii iv table of contents
 """
 
 # Verbatim from the runner, Q2 FY2025/26 — carries the current account figure
@@ -49,7 +62,7 @@ million in december 2024. *provisional source of data: national treasury 36.
 foreign interest payments amounted to ksh. 104.7 billion, an increase from ksh.
 101.7 billion paid over the same period in the fy 2024/25. this performance is
 attributed to shortfall recorded in ordinary revenue of ksh. 110.6 billion and a
-shortfall in collection of the ministerial a-i-a. second quarter fy 2025/2026
+shortfall in collection of the ministerial a-i-a.
 """
 
 failures = []
@@ -111,16 +124,43 @@ def main() -> int:
           "gdp_growth matched a SECTORAL growth rate as though it were the "
           "headline real GDP figure — the documents quote several, and they "
           "are different numbers for different things")
+    # THE CURRENT FIGURE, NOT THE COMPARISON — verbatim from the Q3 document.
+    #
+    # This sentence carries TWO "percent of gdp" figures, and taking the wrong
+    # one is silent: 1.7 is a real Kenyan current-account number for a real
+    # month, just the wrong month. It is why -3.0 could not be trusted until
+    # the document was read; the diagnostic then showed these same figures
+    # stated twice, in the highlights and again in section 1.5.
+    #
+    # Verified by mutation: widening the non-greedy window to a greedy one
+    # returns -1.7 and turns this red.
+    q3_ca = ("5. current account the current account deficit stood at us$ 4,509.5 "
+             "million (3.0 percent of gdp) in march 2026, compared to us$ 2,291.8 "
+             "million (1.7 percent of gdp) in march 2025 reflecting higher goods "
+             "imports and lower secondary income transfers.")
+    check(current_account_pct_gdp(q3_ca) == -3.0,
+          f"Q3 current account = {current_account_pct_gdp(q3_ca)}, expected -3.0 "
+          f"(us$ 4,509.5m in march 2026) — NOT -1.7, which is march 2025")
+
     # The reserves sentence carries a comparison in the same clause.
     check(import_cover(Q3) != 4.7,
           "import_cover took the prior-year comparison instead of the current "
           "figure — both are 'months' in the same sentence")
 
     # --- period comes from the document ------------------------------------
-    check(reporting_period(Q3) == "Third Quarter FY 2025/2026",
-          f"period = {reporting_period(Q3)!r}")
-    check(reporting_period(Q2) == "Second Quarter FY 2025/2026",
-          f"period = {reporting_period(Q2)!r}")
+    # The cover page gives an EXACT date, which beats a quarter label: a reader
+    # sees how old a figure is without knowing when Q3 of a Kenyan fiscal year
+    # falls, and it sorts.
+    check(reporting_period(COVER) == "2026-03-31",
+          f"period from the real cover page = {reporting_period(COVER)!r}, "
+          f"expected 2026-03-31 from 'period ending 31st march 2026'")
+    # The quarter-label fallback must survive the comma and the spelled-out
+    # "financial year" — the two details that made attempt 2 return None.
+    check(reporting_period("third quarter, financial year 2025/2026 highlights")
+          == "Third Quarter FY 2025/2026",
+          "the quarter fallback does not handle the comma and 'financial year'")
+    check(reporting_period("a document with no period statement at all") is None,
+          "reporting_period invented a period")
 
     # --- records are shaped like the ones already in context.json -----------
     recs = extract(Q3)

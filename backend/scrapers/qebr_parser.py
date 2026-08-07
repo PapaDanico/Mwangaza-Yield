@@ -147,21 +147,50 @@ def interest_over_revenue(text: str):
 
 def reporting_period(text: str) -> str | None:
     """The quarter the document describes, read from the document."""
-    # THE QUARTER AND THE YEAR MUST COME FROM THE SAME PHRASE.
+    # READ FROM THE COVER PAGE, WHICH SAYS IT BETTER THAN A QUARTER LABEL DOES.
     #
-    # The first version searched for a quarter word and a fiscal year
-    # separately and joined them. Every QEBR compares against the prior year,
-    # so "fy 2024/25" appears in the prose BEFORE the document's own
-    # "second quarter fy 2025/2026" — and the parser stamped Q2 2025/26 figures
-    # as FY 2024/25. A whole year wrong, from two correct matches combined.
+    # This took three attempts and the first two are worth recording, because
+    # each was a reasonable guess and each was wrong in a different direction.
+    #
+    #   1. Quarter and fiscal year matched SEPARATELY and joined. Every QEBR
+    #      compares against the prior year, so "fy 2024/25" appears in the
+    #      prose first — Q2 2025/26 figures were stamped FY 2024/25. A whole
+    #      year wrong, assembled from two correct matches.
+    #
+    #   2. Over-corrected: required "quarter fy YYYY/YYYY" as one adjacent
+    #      phrase. Returned None on the real document, so every record was
+    #      "asOf unknown" and nothing could be published. Safe, but useless.
+    #
+    # The document itself, read on a runner rather than guessed at, opens:
+    #
+    #     quarterly economic and budgetary review third quarter, financial
+    #     year 2025/2026 period ending 31st march 2026 may 2026 edition
+    #
+    # Two things attempt 2 could not have known: there is a COMMA after the
+    # quarter, and it writes "financial year" rather than "fy". Guessing the
+    # wording was the mistake both times; this is the wording.
+    #
+    # "period ending 31st march 2026" is better than any quarter label. It is
+    # an exact date, so a reader sees how old a figure is rather than having to
+    # know when Q3 of a Kenyan fiscal year falls, and it sorts.
+    ending = re.search(
+        r"period\s+ending\s+(\d{1,2})\s*(?:st|nd|rd|th)?\s+"
+        r"(january|february|march|april|may|june|july|august|september|"
+        r"october|november|december)\s+(20\d\d)", text[:4000])
+    if ending:
+        month = ("january february march april may june july august september "
+                 "october november december").split().index(ending.group(2)) + 1
+        return f"{ending.group(3)}-{month:02d}-{int(ending.group(1)):02d}"
+
+    # Fallback: the quarter label, with the comma and the spelled-out words the
+    # cover page actually uses. Still one phrase — never assembled from parts.
     joint = re.search(
-        r"\b(first|second|third|fourth)\s+quarter\s+fy\s*(20\d\d)\s*[/-]\s*(\d{2,4})\b",
-        text[:8000])
+        r"\b(first|second|third|fourth)\s+quarter\s*,?\s*"
+        r"(?:financial\s+year|fy)\s*(20\d\d)\s*[/-]\s*(\d{2,4})\b", text[:8000])
     if joint:
         return f"{joint.group(1).title()} Quarter FY {joint.group(2)}/{joint.group(3)}"
-    # No fallback that guesses. A period assembled from unrelated matches is
-    # how the bug above happened, and a figure under the wrong year is worse
-    # than a figure with no year at all.
+    # No third fallback that guesses. A figure under the wrong date is worse
+    # than a figure with no date, which is what attempt 1 proved.
     return None
 
 

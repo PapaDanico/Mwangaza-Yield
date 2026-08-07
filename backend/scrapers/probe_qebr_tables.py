@@ -39,6 +39,20 @@ this probe is designed to expose or refute:
 
 Failing any of those, the honest output is still None, and this probe will
 have earned its place by saying so with the table in front of it.
+
+WHAT THE FIRST RUN ACTUALLY ESTABLISHED: NOTHING, AND THAT IS THE LESSON
+
+It reported "matching rows: 0" for both documents and printed a conclusion —
+"the figure is not in a table either" — that the measurement could not
+support. Zero matching rows has two causes, and the probe counted only one of
+them. Tables read and holding no interest line is evidence; no tables
+extracted at all is evidence of nothing, and pdfplumber's default finds tables
+by their RULING LINES, which a Treasury report largely does not draw.
+
+So a check built to stop a conclusion being taken on plausibility stated one
+of its own on plausibility. It now counts tables per strategy and says which
+case it is in, because a number that cannot distinguish its own causes is not
+a measurement.
 """
 import re
 import sys
@@ -106,14 +120,50 @@ def main() -> int:
             print(f"  unreachable: {type(exc).__name__}: {exc}")
             continue
 
+        # TWO STRATEGIES, BECAUSE ZERO ROWS HAS TWO CAUSES.
+        #
+        # The first version of this probe counted matching ROWS and never
+        # counted TABLES, then printed "the figure is not in a table either".
+        # It returned 0 for both documents — and 0 is ambiguous between "the
+        # tables were read and hold no interest line", which is evidence, and
+        # "no tables were extracted at all", which is evidence of nothing.
+        #
+        # pdfplumber's default finds tables by their RULING LINES. A table
+        # typeset without them — which is most of a Treasury report — is
+        # invisible to it, so the "lines" pass can return nothing while the
+        # document is full of tables. The prose in the same run cites "table 5:
+        # expenditure and net lending" and "table 3: balance of payments", so
+        # zero tables would have been a fact about the extractor, not the PDF.
+        #
+        # The text strategy infers columns from character alignment instead and
+        # reads ruled and unruled tables alike. Both are run, and the counts are
+        # printed, so a zero can be attributed to the right cause.
+        STRATEGIES = [
+            ("lines", {}),
+            ("text", {"vertical_strategy": "text", "horizontal_strategy": "text"}),
+        ]
+
         try:
             with pdfplumber.open(BytesIO(raw)) as pdf:
                 total_pages = len(pdf.pages)
                 print(f"  pages: {total_pages}  (the parser reads only its first 25)\n")
                 hits = 0
+                tables_found = {name: 0 for name, _ in STRATEGIES}
                 for page_no in range(total_pages):
                     page = pdf.pages[page_no]
-                    for t_no, table in enumerate(page.extract_tables() or []):
+                    tables = []
+                    for name, settings in STRATEGIES:
+                        try:
+                            got = page.extract_tables(settings) or []
+                        except Exception:  # noqa: BLE001
+                            got = []
+                        tables_found[name] += len(got)
+                        # The text strategy is only consulted where the line
+                        # strategy found nothing, so a ruled table is not read
+                        # twice and reported twice.
+                        if got and (name == "lines" or not tables):
+                            tables = got
+                    for t_no, table in enumerate(tables):
                         header = None
                         for row in table:
                             cells = [cell(c) for c in (row or [])]
@@ -135,12 +185,19 @@ def main() -> int:
                             if header:
                                 print(f"    HEADER: {header[:200]}")
                             print(f"    ROW   : {line[:260]}")
+                print(f"\n  tables extracted — lines: {tables_found['lines']}, "
+                      f"text: {tables_found['text']}")
+                print(f"  matching rows: {hits}")
                 if not hits:
-                    print("  NO MATCHING TABLE ROWS ANYWHERE IN THIS DOCUMENT.")
-                    print("  If both documents report this, the figure is not in a table")
-                    print("  either, and the refusal in qebr_parser.py stands on a third")
-                    print("  independent ground rather than on an unchecked assumption.")
-                print(f"\n  matching rows: {hits}")
+                    if tables_found["lines"] == 0 and tables_found["text"] == 0:
+                        print("  NO TABLES WERE EXTRACTED AT ALL, by either strategy.")
+                        print("  That is a fact about the extractor, not about the document —")
+                        print("  it settles NOTHING about whether the figure is there.")
+                    else:
+                        print("  Tables WERE read, and none carries a matching row. That is")
+                        print("  evidence of absence rather than absence of evidence, and it")
+                        print("  is a third independent ground for the refusal in")
+                        print("  qebr_parser.py.")
         except Exception as exc:  # noqa: BLE001
             print(f"  unreadable: {type(exc).__name__}: {exc}")
 

@@ -1195,6 +1195,53 @@ async function main() {
   else pass(`dashboard served ${offlineChars} characters offline`);
   await ctx.setOffline(false);
 
+  /* ------------------------------------------- server-rendered page text */
+  /*
+   * MEASURED FROM THE FILE ON DISK, NOT FROM THE BROWSER.
+   *
+   * Every other check here drives Chromium, which runs the JavaScript — so it
+   * cannot see the thing this one is about. These pages are complete once
+   * hydrated; the question is what arrives BEFORE that, which is what a
+   * crawler, a link preview, and a reader on a failing connection get.
+   *
+   * WHY THE NUMBER, AND WHY IT IS MEASURED IN TEXT
+   *
+   * An external review said the tool pages were empty shells. It was checked
+   * and reported as stale, on a measurement of HTML characters INCLUDING TAGS
+   * — which counts `class="mt-1 text-sm..."` as content. Measured as text, the
+   * reviewer was right and the refutation was wrong:
+   *
+   *     /tbills/ 217   /calculator/ 307   /dashboard/ 316   /yield-curve/ 1455
+   *
+   * `/yield-curve/` was the one page that read properly without JavaScript,
+   * and the difference was never the shell — it is that the page says
+   * something: what a curve is, how to read it, and what the figures are not.
+   *
+   * The floor is set below what each page now ships so ordinary editing does
+   * not trip it, and far above the 217 that started this. It is a FLOOR, not a
+   * target: a page can pass it with filler, which is why the prose says
+   * something a reader needs rather than something a counter likes.
+   */
+  console.log('\nserver-rendered text');
+  const MIN_TEXT = 900;
+  const TEXT_ROUTES = ['/dashboard/', '/tbills/', '/calculator/', '/sell/',
+    '/prices/', '/goals/', '/yield-curve/'];
+  for (const route of TEXT_ROUTES) {
+    const html = await readFile(join(ROOT, route.replace(/^\//, ''), 'index.html'), 'utf8')
+      .catch(() => '');
+    if (!html) { fail(`${route}: no built index.html to measure`); continue; }
+    const main = html.match(/<main[\s\S]*?<\/main>/);
+    if (!main) { fail(`${route}: built page has no <main>`); continue; }
+    const text = main[0]
+      .replace(/<script[\s\S]*?<\/script>/g, '')
+      .replace(/<[^>]+>/g, ' ')
+      .split(/\s+/).filter(Boolean).join(' ');
+    if (text.length < MIN_TEXT) {
+      fail(`${route}: only ${text.length} characters of server-rendered text in <main> `
+        + `(floor ${MIN_TEXT}) — a crawler and a reader without JavaScript see this much`);
+    } else pass(`${route} server-renders ${text.length} characters`);
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

@@ -66,6 +66,51 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* SERVER-RENDERED, AND THE ONLY TEXT ON THIS PAGE THAT IS.
+        *
+        * Everything above — yields, curve, macro panel, auction banner — is a
+        * client island that fetches its own data, so `next build` emits a page
+        * whose <main> held 316 characters of text: the heading and one line.
+        * That was the whole page to a crawler, a link preview, or a reader
+        * whose JavaScript had not arrived.
+        *
+        * The cards cannot be server-rendered without moving the data fetch,
+        * which is a real change to how the app loads and not one worth making
+        * for text. What CAN be said on the server is what the figures mean and
+        * what they are not — which is the part a reader arriving cold actually
+        * needs, and the part no chart conveys. */}
+      <div className="mt-10 max-w-[68ch] space-y-4 border-t border-sand-200 pt-6 text-sm leading-relaxed text-ink-soft [&_a]:text-gold-700 [&_a]:underline-offset-2 hover:[&_a]:underline [&_h2]:font-display [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-ink [&_strong]:text-ink">
+        <h2>What &ldquo;what you keep&rdquo; means here</h2>
+        <p>
+          Bonds are ranked by yield <strong>after Kenyan withholding tax</strong>, not by coupon.
+          Infrastructure bonds pay their coupon whole; other bonds with an original tenor of ten
+          years or more are withheld at 10%, and shorter ones at 15%. Ranking on the headline rate
+          puts them in a different and misleading order, which is why nothing on this page does.
+        </p>
+
+        <h2>Where these figures come from</h2>
+        <p>
+          Everything here is public: bond and bill terms and auction results from the Central Bank
+          of Kenya, fiscal figures from the National Treasury, inflation from KNBS, and the
+          sovereign context panel from the World Bank. Each figure carries the date of the document
+          it came from, because a rate is only meaningful with its vintage attached.{' '}
+          <Link href="/sources/">See the full list</Link>.
+        </p>
+
+        <h2>What this page is not</h2>
+        <p>
+          It is not a market screen. We publish <strong>no secondary-market prices</strong>, so
+          nothing here tells you what a bond is worth to sell today — only what it pays if held,
+          and what other bidders accepted at auction. Yields shown against bonds you have not
+          priced assume par, which is a placeholder rather than a quote; recording what you paid in{' '}
+          <Link href="/prices/">your price book</Link> replaces the assumption.
+        </p>
+        <p>
+          Nor is it a forecast, and nor is it advice. What rates have done is a matter of record;
+          what they do next is not, and no figure on this page should be read as a view on it.
+        </p>
+      </div>
     </div>
   );
 }

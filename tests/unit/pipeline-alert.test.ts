@@ -221,3 +221,65 @@ describe('scraper steps can record their own failure', () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * The browser suite must be bounded, and must still be able to fail.
+ *
+ * WHY IT IS A SEPARATE CONCERN FROM THE SCRAPERS ABOVE
+ *
+ * Every scraper carries `|| echo "failed=..."` so a failure is RECORDED while
+ * the rest of the pipeline continues, and #176 moved their bounds into the
+ * shell because `timeout-minutes` kills that guard.
+ *
+ * This step is the opposite case and needs the opposite treatment. A browser
+ * suite that fails means the site is broken for readers, so the build must go
+ * red — there is nothing to record and continue past. What it shares with the
+ * scrapers is the need for a bound: it had none at all, so a deadlocked
+ * browser would have run to GitHub's six-hour job limit. #176 fixed the
+ * scrapers and missed this step entirely.
+ *
+ * Two failure directions, both silent, so both are asserted:
+ *
+ *   no bound          — a hang costs six hours instead of ten minutes
+ *   a `||` appended   — the check can no longer fail the build, which is the
+ *                       same as deleting it, and is exactly what somebody
+ *                       reaches for when a suite is "flaky"
+ */
+describe('the browser smoke step', () => {
+  const STEP = (() => {
+    const i = CI.indexOf('- name: Browser smoke tests');
+    return i < 0 ? '' : CI.slice(i, CI.indexOf('\n      - ', i + 10));
+  })();
+
+  it('is present at all, so the assertions below are not vacuous', () => {
+    expect(STEP).toContain('test:e2e');
+  });
+
+  it('is bounded in the shell', () => {
+    const m = /timeout -k \d+s (\d+)s npm run test:e2e/.exec(STEP);
+    expect(
+      m,
+      'the browser suite has no shell bound — a deadlocked browser runs to '
+        + "GitHub's six-hour job limit, which is how this was found",
+    ).not.toBeNull();
+    // Measured at 124s on a real runner. Comfortably above, so a slow or
+    // contended runner still passes; far below six hours.
+    const seconds = Number(m![1]);
+    expect(seconds).toBeGreaterThanOrEqual(300);
+    expect(seconds).toBeLessThanOrEqual(1800);
+  });
+
+  it('does NOT swallow its own failure with a `||` guard', () => {
+    // The scraper pattern applied here would turn the check off: the step
+    // would pass whatever the browser found.
+    expect(
+      /\|\|/.test(STEP),
+      'a `||` on the browser step means a failing suite no longer fails the '
+        + 'build — that is the check being disabled, not made more reliable',
+    ).toBe(false);
+  });
+
+  it('does not use timeout-minutes, which kills without a message', () => {
+    expect(/timeout-minutes:/.test(STEP)).toBe(false);
+  });
+});

@@ -127,8 +127,36 @@ jobs:
         run: |
           PW=$(node -p "require('playwright-core/package.json').version")
           npx --yes "playwright@${PW}" install --with-deps chromium
+      # BOUNDED, AND DELIBERATELY WITHOUT A `|| echo` GUARD.
+      #
+      # This step had no bound of any kind — not `timeout-minutes`, not a shell
+      # timeout, and the suite sets no global Playwright timeout. #176 put every
+      # scraper behind a shell bound and this step was simply missed, so a
+      # deadlocked browser would have run to GitHub's six-hour job limit while
+      # the pull request sat there looking busy.
+      #
+      # THE NUMBER IS MEASURED, NOT PICKED. Observed on this runner:
+      #
+      #     09:24:54 -> 09:26:58   124 seconds, server-render check included
+      #
+      # 600s is roughly five times that. A cold or contended runner is slower
+      # than a warm one and must still pass; a hang must not cost six hours.
+      # The BUDGET_SECONDS defect earlier the same day was a bound chosen for a
+      # comfortable-looking margin rather than derived from what success costs,
+      # and it could never succeed. This one is derived.
+      #
+      # NO `|| echo "failed=..."` HERE, AND THAT IS THE POINT.
+      #
+      # Every scraper carries that guard because a failing scraper must be
+      # RECORDED while the rest of the pipeline continues. The opposite is true
+      # here: a browser suite that fails or hangs means the site is broken for
+      # readers, and the build must go red. `timeout` returns 124 on expiry,
+      # which fails the step, which is the intended outcome. Anyone adding a
+      # `||` to this line to "make CI less flaky" would be turning the check
+      # off — the exact failure this file has spent its comments arguing
+      # against, and pipeline-alert.test.ts fails if it appears.
       - name: Browser smoke tests
-        run: npm run test:e2e
+        run: timeout -k 20s 600s npm run test:e2e
 
       - uses: actions/setup-python@v5
         with:

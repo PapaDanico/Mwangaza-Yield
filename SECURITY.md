@@ -69,10 +69,30 @@ vulnerability.
 
 Stated plainly rather than left for you to discover:
 
-- **No Content-Security-Policy.** Next.js emits inline scripts and Tailwind
-  emits inline styles, so a correct policy needs nonces threaded through the
-  framework. A wrong CSP breaks the site in production only, so this is
-  deliberate work rather than a config line, and it has not been done.
+- **The Content-Security-Policy permits inline script.** `script-src` carries
+  `'unsafe-inline'`, so the policy does not stop injected script from running.
+  That is the honest limit and it is the only loose directive: everything else
+  is locked to same-origin, including `object-src 'none'`, `base-uri 'self'`,
+  `form-action 'self'` and `frame-ancestors 'self'`.
+
+  This entry previously read "No Content-Security-Policy", on the reasoning
+  that Next emits inline scripts, a correct policy therefore needs nonces, and
+  a wrong CSP breaks production only. All three are true, and they are an
+  argument about **one directive**. Applying it to the whole header meant the
+  site also went without the directives that need no nonce, break nothing, and
+  block real attacks — a `<base>` tag injection repointing every relative URL,
+  a form rewritten to post to another origin, a plugin-based payload.
+
+  Hashing the inline scripts was measured and rejected: the build emits 72
+  distinct inline scripts across 25 pages, nearly all Next's per-page RSC
+  payload, and 72 hashes regenerated every build — where one missed script
+  breaks production silently — is a worse failure mode than the labelled
+  `'unsafe-inline'`.
+
+  The policy is verified rather than reviewed. `npm run verify:csp` serves the
+  built site under the exact string parsed from `netlify.toml` and fails on any
+  console violation across every route; CI runs it on each pull request. A
+  directive that would break production breaks the run instead.
 
 ## Scope
 

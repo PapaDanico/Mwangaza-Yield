@@ -298,7 +298,17 @@ describe('scraper steps can record their own failure', () => {
 describe('the browser smoke step', () => {
   const STEP = (() => {
     const i = CI.indexOf('- name: Browser smoke tests');
-    return i < 0 ? '' : CI.slice(i, CI.indexOf('\n      - ', i + 10));
+    if (i < 0) return '';
+    const raw = CI.slice(i, CI.indexOf('\n      - ', i + 10));
+    /* Comments stripped, because a comment cannot disable a step.
+     *
+     * This bit: a later step's comment explaining that it is "deliberately
+     * WITHOUT a `|| echo` guard" fell inside this slice, and the `||` check
+     * below failed on prose describing the very discipline it enforces. The
+     * guard was measuring the text rather than the command — the same mistake
+     * as counting HTML characters and calling it page content. What runs is
+     * what is scanned. */
+    return raw.replace(/^\s*#.*$/gm, '');
   })();
 
   it('is present at all, so the assertions below are not vacuous', () => {

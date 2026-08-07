@@ -122,6 +122,48 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    # A Content-Security-Policy, which SECURITY.md said this site did not have
+    # and could not easily get. That was half right, and the half it got wrong
+    # cost the site every directive below.
+    #
+    # The reasoning was: Next emits inline scripts, so a correct policy needs
+    # nonces threaded through the framework, and a wrong CSP breaks production
+    # only. Both true. But they are an argument about ONE directive —
+    # script-src — and it was applied to the whole header, so object-src,
+    # base-uri, form-action and frame-ancestors went unset too. Those need no
+    # nonce, break nothing, and block real attacks: a <base> tag injection
+    # repointing every relative URL, a form rewritten to exfiltrate to another
+    # origin, a plugin-based payload.
+    #
+    # Measured against the actual build: 72 distinct inline scripts across 25
+    # pages, nearly all of them Next's per-page RSC payload. Hashing them is
+    # possible and was rejected — 72 hashes regenerated every build, where one
+    # missed script breaks production silently, is a worse failure mode than
+    # the honest 'unsafe-inline' below.
+    #
+    # SO script-src IS THE WEAK LINE AND IS LABELLED AS SUCH. It permits
+    # inline script and therefore does not stop injected script. Everything
+    # else is locked to same-origin. That is a smaller claim than "we have a
+    # CSP" and a much larger one than "we have none".
+    #
+    # Verified rather than reviewed: scripts/verify-csp.mjs serves the built
+    # site under THIS EXACT STRING, parsed from this file, and fails on any
+    # console violation across every route. A directive that would break
+    # production breaks CI instead. Confirmed to detect real breakage by
+    # mutation — script-src 'none' and a bare script-src 'self' both trip it.
+    Content-Security-Policy = """default-src 'self'; \
+base-uri 'self'; \
+object-src 'none'; \
+frame-ancestors 'self'; \
+form-action 'self'; \
+img-src 'self' data: blob:; \
+style-src 'self' 'unsafe-inline'; \
+font-src 'self' data:; \
+script-src 'self' 'unsafe-inline'; \
+connect-src 'self'; \
+manifest-src 'self'; \
+worker-src 'self' blob:; \
+upgrade-insecure-requests"""
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"

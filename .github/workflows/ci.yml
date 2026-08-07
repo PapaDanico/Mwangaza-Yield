@@ -197,6 +197,23 @@ jobs:
       - name: Browser smoke tests
         run: timeout -k 20s 600s npm run test:e2e
 
+      # The CSP is EXERCISED, not reviewed.
+      #
+      # A wrong directive breaks the site in production only — that property is
+      # exactly why this repository shipped without a policy for so long, and
+      # it is why a header string cannot be signed off by reading it. This step
+      # serves ./out under the real policy parsed from netlify.toml and fails
+      # on any console violation, so a directive that would break production
+      # breaks the pull request instead.
+      #
+      # Bounded like the suite above, and deliberately WITHOUT a `|| echo`
+      # guard: a policy that breaks a page must turn the run red.
+      #
+      # Chromium is already installed by the step above, and the browser is
+      # only usable if that install ran — so this must stay after it.
+      - name: Verify the Content-Security-Policy against every route
+        run: timeout -k 20s 300s npm run verify:csp
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

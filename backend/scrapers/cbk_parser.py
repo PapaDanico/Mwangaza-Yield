@@ -10,8 +10,6 @@ import re
 import sys
 from datetime import datetime
 
-import pdfplumber
-
 from common import write_dataset
 
 DATE_PATTERNS = {
@@ -36,6 +34,15 @@ def parse_date(raw: str) -> str:
 
 
 def parse_prospectus(pdf_path: str) -> dict:
+    # Imported here rather than at module scope, matching qebr_parser.py.
+    #
+    # A top-level `import pdfplumber` makes the whole module unimportable
+    # wherever the PDF stack is not installed or is broken — which took
+    # parse_date, ISSUE_RE, AMOUNT_RE and COUPON_RE down with it, none of which
+    # touch a PDF. That is why this file had no tests: the pure functions could
+    # not be reached to test them.
+    import pdfplumber
+
     with pdfplumber.open(pdf_path) as pdf:
         text = "\n".join(page.extract_text() or "" for page in pdf.pages)
 

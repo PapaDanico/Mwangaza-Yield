@@ -322,6 +322,49 @@ def main() -> int:
         for m in re.finditer(r"per\s*cent\s+of\s+gdp", low):
             lo, hi = max(0, m.start() - 200), min(len(low), m.end() + 40)
             print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
+
+        # DIAGNOSE 4 — is TOTAL interest stated anywhere?
+        #
+        # This is the one thing standing between the panel's oldest figure
+        # (Interest / government revenue, 1,314 days) and a current one. The
+        # denominator turned up in DIAGNOSE 3 by accident:
+        #
+        #   "the national government revenue collection including ministerial
+        #    appropriation in aid (a-i-a) for the period between july 2025 -
+        #    march 2026 amounted to ksh 2,278.1 billion (12.1 percent of gdp)"
+        #
+        # That is the LEVEL, not the shortfall I had been matching. So the
+        # denominator is readable and only the numerator is missing.
+        #
+        # What was found before is FOREIGN interest at ksh 104.7 billion —
+        # 4.6% of that revenue, which is nowhere near a plausible total and
+        # settles that foreign is not total.
+        #
+        # In Kenyan budget documents interest sits under CONSOLIDATED FUND
+        # SERVICES, usually split domestic and foreign. So this prints every
+        # occurrence of the words that would carry it, with enough room to see
+        # whether a figure follows and whether it is labelled total, domestic
+        # or foreign. Printing all of them rather than the first: the earlier
+        # error was reading one match and generalising from it.
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 4 — every mention of interest, to find a TOTAL")
+        print("=" * 68)
+        for m in re.finditer(r"interest\s+(?:payment|paid|cost)|consolidated fund"
+                             r"|\bcfs\b|domestic interest|foreign interest", low):
+            lo, hi = max(0, m.start() - 150), min(len(low), m.end() + 220)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
+
+        # DIAGNOSE 5 — the denominator, confirmed rather than assumed.
+        #
+        # Found once, in passing, while looking for something else. Before it
+        # can be a parser it has to be shown to be a stable, labelled line
+        # rather than a sentence that happened to appear in this edition.
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 5 — revenue LEVEL lines (not shortfalls)")
+        print("=" * 68)
+        for m in re.finditer(r"revenue collection|ordinary revenue|total revenue", low):
+            lo, hi = max(0, m.start() - 120), min(len(low), m.end() + 250)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
     return 0
 
 

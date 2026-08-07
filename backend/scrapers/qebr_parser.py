@@ -133,10 +133,37 @@ def current_account_pct_gdp(text: str):
 def interest_over_revenue(text: str):
     """ALWAYS None. See the module docstring for the evidence.
 
-    The two figures a keyword match finds are FOREIGN interest (not total) and
-    a SHORTFALL in ordinary revenue (not the level). Dividing them yields 94.7%
-    against a true figure nearer a third — a wrong number that would look like
-    a fiscal emergency and carry the Treasury's name.
+    THE EVIDENCE CHANGED SHAPE TWICE. Both halves were originally believed
+    absent. Diagnostics against the live Q3 FY2025/26 document settled each:
+
+      DENOMINATOR — PRESENT, and better labelled than expected:
+        "the national government revenue collection including ministerial
+         appropriation in aid (a-i-a) for the period between july 2025 - march
+         2026 amounted to ksh 2,278.1 billion (12.1 percent of gdp)"
+      That is the LEVEL. Only the Q2 SHORTFALL sentence had been matched
+      before, and the level written off from that single match.
+
+      NUMERATOR — ABSENT from this document. Searching every occurrence of
+      interest payment/paid/cost, consolidated fund, cfs, domestic interest and
+      foreign interest across the Q3 text returns TWO hits, both inside the
+      abbreviations table:
+          "cfs consolidated fund services ebus extra budgetary units"
+      No interest figure of any kind. The foreign-interest line reasoned from
+      earlier (ksh 104.7 billion) is in the Q2 document, not this one.
+
+    So the ratio is not refused because the numbers mean the wrong thing. It is
+    refused because one of them is not there. Against Ksh 2,278.1bn of revenue,
+    that foreign figure would give 4.6% — nowhere near a plausible total — which
+    independently confirms foreign interest is not total interest.
+
+    WHAT WOULD ACTUALLY SETTLE IT, and why it is not a regex:
+
+    MAX_PAGES reads 25 of 51 pages, and Q2's prose references "table 5:
+    expenditure and net lending". Interest almost certainly sits in a fiscal
+    TABLE further in. Table cells are a different extraction problem from
+    prose — extract_text flattens them — so this needs extract_tables over the
+    full document, then a check that the interest line and the revenue line are
+    the same period and the same basis. That is a piece of work, not a pattern.
 
     This is a function rather than an absence so that the reasoning sits where
     somebody would come looking to add it. Returning None is the correct
@@ -321,6 +348,49 @@ def main() -> int:
         print("=" * 68)
         for m in re.finditer(r"per\s*cent\s+of\s+gdp", low):
             lo, hi = max(0, m.start() - 200), min(len(low), m.end() + 40)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
+
+        # DIAGNOSE 4 — is TOTAL interest stated anywhere?
+        #
+        # This is the one thing standing between the panel's oldest figure
+        # (Interest / government revenue, 1,314 days) and a current one. The
+        # denominator turned up in DIAGNOSE 3 by accident:
+        #
+        #   "the national government revenue collection including ministerial
+        #    appropriation in aid (a-i-a) for the period between july 2025 -
+        #    march 2026 amounted to ksh 2,278.1 billion (12.1 percent of gdp)"
+        #
+        # That is the LEVEL, not the shortfall I had been matching. So the
+        # denominator is readable and only the numerator is missing.
+        #
+        # What was found before is FOREIGN interest at ksh 104.7 billion —
+        # 4.6% of that revenue, which is nowhere near a plausible total and
+        # settles that foreign is not total.
+        #
+        # In Kenyan budget documents interest sits under CONSOLIDATED FUND
+        # SERVICES, usually split domestic and foreign. So this prints every
+        # occurrence of the words that would carry it, with enough room to see
+        # whether a figure follows and whether it is labelled total, domestic
+        # or foreign. Printing all of them rather than the first: the earlier
+        # error was reading one match and generalising from it.
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 4 — every mention of interest, to find a TOTAL")
+        print("=" * 68)
+        for m in re.finditer(r"interest\s+(?:payment|paid|cost)|consolidated fund"
+                             r"|\bcfs\b|domestic interest|foreign interest", low):
+            lo, hi = max(0, m.start() - 150), min(len(low), m.end() + 220)
+            print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
+
+        # DIAGNOSE 5 — the denominator, confirmed rather than assumed.
+        #
+        # Found once, in passing, while looking for something else. Before it
+        # can be a parser it has to be shown to be a stable, labelled line
+        # rather than a sentence that happened to appear in this edition.
+        print("\n" + "=" * 68)
+        print("DIAGNOSE 5 — revenue LEVEL lines (not shortfalls)")
+        print("=" * 68)
+        for m in re.finditer(r"revenue collection|ordinary revenue|total revenue", low):
+            lo, hi = max(0, m.start() - 120), min(len(low), m.end() + 250)
             print(f"  @{m.start()}: ...{' '.join(low[lo:hi].split())}...")
     return 0
 

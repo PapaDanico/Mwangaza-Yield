@@ -27,13 +27,16 @@
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { freshness, freshnessNotice } from '@/lib/data-freshness';
+import { freshness, freshnessNotice, staleDatasetNotice } from '@/lib/data-freshness';
 
 export default function StaleDataNotice() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    setNotice(freshnessNotice(freshness(new Date())));
+    // Two independent questions, and the pipeline one comes first because it
+    // subsumes the other: if the refresh has stopped entirely, naming
+    // individual datasets is noise on top of the real fault.
+    setNotice(freshnessNotice(freshness(new Date())) ?? staleDatasetNotice());
   }, []);
 
   if (!notice) return null;

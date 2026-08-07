@@ -18,10 +18,10 @@ was actually refreshed, and trusting them makes the check silently useless.
 import json
 import os
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
-from common import DATA_DIR
+from common import DATA_DIR, _write_json_atomic
 
 # Alert self-test. With HEALTHCHECK_STRICT=1 every budget becomes 0 days, so
 # any dataset older than today trips the real staleness path — same report
@@ -341,10 +341,34 @@ def check_fetch_recency(payload, label: str, problems: list, rows: list) -> None
         )
 
 
+# When invoked with --publish the check writes what it found to
+# public/data/freshness.json and exits 0 regardless.
+#
+# WHY THE SITE NEEDS THIS AND meta.generatedAt IS NOT IT.
+#
+# meta.generatedAt is the moment the pipeline last WROTE something, and the
+# banner on the site is driven by it alone. That is a true statement about the
+# pipeline and a misleading one about the data: any single scraper succeeding
+# refreshes it, so a dataset that has been failing for three weeks sits behind
+# a stamp that says today.
+#
+# The per-dataset answer already exists, and is better than a write timestamp —
+# BUDGETS below measures the age of the DATA (auctionDate, asOf, date) against
+# a cadence chosen per source, and PER_INDICATOR_BUDGETS goes finer still,
+# because one refreshed indicator hides every stale one behind it. All of it
+# was reaching CI and none of it was reaching the reader.
+#
+# So the verdict is published rather than recomputed in TypeScript. Two copies
+# of these budgets would drift, and the copy that drifts is never the one that
+# gets corrected.
+PUBLISH = "--publish" in sys.argv
+
+
 def main() -> None:
     today = date.today()
     problems: list[str] = []
     rows: list[str] = []
+    published: list[dict] = []
 
     if STRICT:
         print("HEALTHCHECK_STRICT=1 — all freshness budgets forced to 0 days (alert self-test)\n")
@@ -387,6 +411,14 @@ def main() -> None:
         age = (today - newest).days
         status = "STALE" if age > max_age else "OK"
         rows.append(f"{status:<9} {label}  {age}d old (max {max_age}d)")
+        published.append({
+            "file": filename,
+            "label": label,
+            "asOf": newest.isoformat(),
+            "ageDays": age,
+            "budgetDays": max_age,
+            "stale": age > max_age,
+        })
         if age > max_age:
             problems.append(
                 f"{label}: newest '{field}' is {age} days old, budget {max_age}d ({rationale})"
@@ -418,6 +450,24 @@ def main() -> None:
     report = ("\n".join(f"- {p}" for p in problems) if problems
               else "All datasets within their freshness budgets.")
     Path("healthcheck-report.txt").write_text(report)
+
+    if PUBLISH:
+        # STRICT forces every budget to 0 for the alert self-test. Publishing
+        # that would put "everything is stale" on the live site to prove an
+        # alarm works, so the self-test never writes.
+        if STRICT:
+            print("\n--publish ignored under HEALTHCHECK_STRICT.", file=sys.stderr)
+        else:
+            _write_json_atomic(Path(DATA_DIR) / "freshness.json", {
+                "checkedAt": datetime.now(timezone.utc).isoformat(),
+                "datasets": published,
+            })
+            print(f"\npublished freshness for {len(published)} datasets")
+        # Publishing is not the gate. The same script runs again after the
+        # commit, without --publish, and that run is what fails CI and raises
+        # the alert. Exiting non-zero here would block the commit that carries
+        # the file we just wrote.
+        return
 
     if problems:
         print("\n=== PROBLEMS ===", file=sys.stderr)

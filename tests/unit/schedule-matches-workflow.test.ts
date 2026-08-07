@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { REFRESH_HOURS_UTC, REFRESH_DAYS_UTC } from '../../src/lib/data-freshness';
+import { REFRESH_HOURS_UTC, REFRESH_DAYS_UTC, REFRESH_MINUTE_UTC } from '../../src/lib/data-freshness';
 
 /**
  * `data-freshness.ts` holds a COPY of the refresh schedule, and a copy is a
@@ -58,8 +58,15 @@ describe('the refresh schedule in ci.yml', () => {
     expect(expandField(dow, 0, 6)).toEqual([...REFRESH_DAYS_UTC].sort((a, b) => a - b));
   });
 
-  it('runs on the hour, since the constants model whole hours only', () => {
-    expect(cronLines()[0].split(/\s+/)[0]).toBe('0');
+  it('matches REFRESH_MINUTE_UTC, and is deliberately not the top of the hour', () => {
+    // Minute 0 is GitHub's most contended scheduling slot. Every run on this
+    // repository against a `0 3` cron was created between 2h41m and 3h23m
+    // late. Moving off the hour is GitHub's own advice and costs nothing — so
+    // this asserts both that the copy matches AND that nobody has quietly put
+    // it back to 0.
+    const minute = cronLines()[0].split(/\s+/)[0];
+    expect(Number(minute)).toBe(REFRESH_MINUTE_UTC);
+    expect(minute).not.toBe('0');
   });
 });
 

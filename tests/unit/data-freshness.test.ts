@@ -5,7 +5,15 @@ import {
 } from '../../src/lib/data-freshness';
 
 /**
- * The refresh is `0 3,15 * * 1-6` — 03:00 and 15:00 UTC, Monday to Saturday.
+ * The refresh is `17 3,15 * * 1-6` — 03:17 and 15:17 UTC, Monday to Saturday,
+ * and a slot is not counted as MISSED until four hours after it.
+ *
+ * Both of those are measurements rather than preferences. GitHub creates
+ * scheduled runs off a contended queue: every run on this repository since the
+ * cron was introduced started between 2h41m and 3h23m late, with created_at
+ * equal to run_started_at. Minute 17 avoids the most contended slot; the grace
+ * period absorbs what remains. Without it this module reported a missed update
+ * every weekday morning.
  *
  * Every case is anchored to real weekdays so the weekend behaviour is tested
  * against the calendar rather than against an assumption about it:
@@ -31,49 +39,69 @@ describe('the schedule constants', () => {
 });
 
 describe('missedRuns', () => {
+  /* Slots are 03:17 and 15:17 UTC, and a slot is not MISSED until four hours
+   * after it — see RUN_GRACE_HOURS. These cases were rewritten around that,
+   * not patched until they went green: adjusting expected numbers would have
+   * preserved assertions about a schedule that no longer exists, which is the
+   * mistake this file's header already warns about once. */
+
   it('counts nothing straight after a successful run', () => {
-    expect(missedRuns(at('2026-08-06T03:05:00Z'), at('2026-08-06T09:00:00Z'))).toBe(0);
+    expect(missedRuns(at('2026-08-06T03:20:00Z'), at('2026-08-06T06:00:00Z'))).toBe(0);
+  });
+
+  it('DOES NOT count a run that is merely late — the daily wolf-cry case', () => {
+    // THE DEFECT THIS GRACE PERIOD FIXES. Built Wednesday afternoon, read at
+    // 06:00 Thursday. Thursday's 03:17 slot has passed but GitHub has not
+    // started it yet, and on this scheduler it usually has not: six of six
+    // observed runs started between 2h41m and 3h23m late. Without the grace
+    // this reported a missed update every single weekday morning.
+    expect(missedRuns(at('2026-08-05T15:20:00Z'), at('2026-08-06T06:00:00Z'))).toBe(0);
+  });
+
+  it('DOES count it once the grace has run out', () => {
+    // 03:17 + 4h = 07:17. At 07:30 the run is genuinely overdue.
+    expect(missedRuns(at('2026-08-05T15:20:00Z'), at('2026-08-06T07:30:00Z'))).toBe(1);
   });
 
   it('counts the afternoon run when the morning one produced the data', () => {
-    // 03:05 Thursday to 20:00 Thursday: 15:00 should have run.
-    expect(missedRuns(at('2026-08-06T03:05:00Z'), at('2026-08-06T20:00:00Z'))).toBe(1);
+    // 03:20 Thursday to 20:00 Thursday: 15:17 was due by 19:17.
+    expect(missedRuns(at('2026-08-06T03:20:00Z'), at('2026-08-06T20:00:00Z'))).toBe(1);
   });
 
-  it('counts both of a full missed day', () => {
-    // Thursday 03:05 to Friday 20:00: Thu 15:00, Fri 03:00, Fri 15:00.
-    expect(missedRuns(at('2026-08-06T03:05:00Z'), at('2026-08-07T20:00:00Z'))).toBe(3);
+  it('counts a full missed day', () => {
+    // Thu 03:20 to Fri 20:00: Thu 15:17, Fri 03:17, Fri 15:17 — all past grace.
+    expect(missedRuns(at('2026-08-06T03:20:00Z'), at('2026-08-07T20:00:00Z'))).toBe(3);
   });
 
-  it('DOES count Saturday now that Saturday is scheduled', () => {
-    // Friday 15:05 to Saturday 20:00: Sat 03:00 and Sat 15:00.
-    expect(missedRuns(at('2026-08-07T15:05:00Z'), at('2026-08-08T20:00:00Z'))).toBe(2);
+  it('DOES count Saturday, which is scheduled', () => {
+    expect(missedRuns(at('2026-08-07T15:20:00Z'), at('2026-08-08T20:00:00Z'))).toBe(2);
   });
 
-  it('DOES NOT count Sunday — the wolf-crying case', () => {
-    // Saturday 15:05 through Sunday: nothing is scheduled on a Sunday, so a
-    // reader looking on Sunday evening sees data that is correct and current.
-    const built = at('2026-08-08T15:05:00Z'); // Saturday afternoon
+  it('DOES NOT count Sunday — nothing we read publishes then', () => {
+    const built = at('2026-08-08T15:20:00Z'); // Saturday afternoon
     expect(missedRuns(built, at('2026-08-09T09:00:00Z'))).toBe(0);
     expect(missedRuns(built, at('2026-08-09T23:59:00Z'))).toBe(0);
   });
 
-  it('counts nothing at the worst legitimate moment: Monday 02:59', () => {
-    // ~36 hours old and entirely correct — Monday's first run has not fired.
-    expect(missedRuns(at('2026-08-08T15:05:00Z'), at('2026-08-10T02:59:00Z'))).toBe(0);
+  it('counts nothing at the worst legitimate moment: Monday 03:00', () => {
+    // ~36 hours old and entirely correct — Monday's slot has not arrived.
+    expect(missedRuns(at('2026-08-08T15:20:00Z'), at('2026-08-10T03:00:00Z'))).toBe(0);
   });
 
-  it('counts Monday morning once its run should have happened', () => {
-    expect(missedRuns(at('2026-08-08T15:05:00Z'), at('2026-08-10T03:30:00Z'))).toBe(1);
+  it('counts Monday morning only once its grace has expired', () => {
+    // 03:17 + 4h = 07:17. Still silent at 07:00, speaks at 07:30.
+    expect(missedRuns(at('2026-08-08T15:20:00Z'), at('2026-08-10T07:00:00Z'))).toBe(0);
+    expect(missedRuns(at('2026-08-08T15:20:00Z'), at('2026-08-10T07:30:00Z'))).toBe(1);
   });
 
   it('accumulates across a working week', () => {
-    // Friday 07 15:05 -> Friday 14 09:00. Sat(2) + Sun(0) + Mon-Thu(8) + Fri 03:00(1) = 11.
-    expect(missedRuns(at('2026-08-07T15:05:00Z'), at('2026-08-14T09:00:00Z'))).toBe(11);
+    // Fri 07 15:20 -> Fri 14 09:00. Sat(2) + Sun(0) + Mon-Thu(8) + Fri 03:17
+    // (due 07:17, before 09:00) = 11.
+    expect(missedRuns(at('2026-08-07T15:20:00Z'), at('2026-08-14T09:00:00Z'))).toBe(11);
   });
 
   it('returns 0 for a stamp in the future', () => {
-    expect(missedRuns(at('2026-08-20T03:00:00Z'), at('2026-08-06T09:00:00Z'))).toBe(0);
+    expect(missedRuns(at('2026-08-20T03:17:00Z'), at('2026-08-06T09:00:00Z'))).toBe(0);
   });
 
   it('refuses an invalid date instead of throwing or looping', () => {
@@ -87,36 +115,39 @@ describe('missedRuns', () => {
     expect(n).toBeLessThanOrEqual(800);
   });
 
-  it('uses the scheduled hours, not midnight', () => {
-    // Built 04:00 Thursday — after the 03:00 run, before the 15:00 one.
-    // By 14:00 nothing further has been scheduled.
-    expect(missedRuns(at('2026-08-06T04:00:00Z'), at('2026-08-06T14:00:00Z'))).toBe(0);
+  it('uses the scheduled minute, not the top of the hour', () => {
+    // Built 03:18 Thursday — one minute after the 03:17 slot, so that slot is
+    // the one that produced this data and is not a miss.
+    expect(missedRuns(at('2026-08-06T03:18:00Z'), at('2026-08-06T14:00:00Z'))).toBe(0);
+    // Built 03:16 — one minute BEFORE it. The slot still is not missed until
+    // 07:17, so at 14:00 it counts, and only it.
+    expect(missedRuns(at('2026-08-06T03:16:00Z'), at('2026-08-06T14:00:00Z'))).toBe(1);
   });
 });
 
 describe('freshness', () => {
   it('is not stale after a single missed run', () => {
-    const f = freshness(at('2026-08-06T20:00:00Z'), '2026-08-06T03:05:00Z');
+    const f = freshness(at('2026-08-06T20:00:00Z'), '2026-08-06T03:20:00Z');
     expect(f.missedRuns).toBe(1);
     expect(f.stale).toBe(false);
     expect(QUIET_MISSES).toBe(1);
   });
 
   it('is stale once misses clear the quiet threshold', () => {
-    const f = freshness(at('2026-08-07T20:00:00Z'), '2026-08-06T03:05:00Z');
+    const f = freshness(at('2026-08-07T20:00:00Z'), '2026-08-06T03:20:00Z');
     expect(f.missedRuns).toBeGreaterThan(QUIET_MISSES);
     expect(f.stale).toBe(true);
   });
 
   it('is NEVER stale across a normal Sunday', () => {
     for (const now of ['2026-08-09T09:00:00Z', '2026-08-09T23:00:00Z', '2026-08-10T02:00:00Z']) {
-      const f = freshness(at(now), '2026-08-08T15:05:00Z');
+      const f = freshness(at(now), '2026-08-08T15:20:00Z');
       expect(f.stale, `false alarm at ${now}`).toBe(false);
     }
   });
 
   it('reports age in days even when not stale', () => {
-    const f = freshness(at('2026-08-09T20:00:00Z'), '2026-08-08T15:05:00Z');
+    const f = freshness(at('2026-08-09T20:00:00Z'), '2026-08-08T15:20:00Z');
     expect(f.ageDays).toBe(1);
     expect(f.stale).toBe(false);
   });
@@ -130,15 +161,15 @@ describe('freshness', () => {
 
 describe('freshnessNotice', () => {
   it('says nothing when the data is current', () => {
-    expect(freshnessNotice(freshness(at('2026-08-06T09:00:00Z'), '2026-08-06T03:05:00Z'))).toBeNull();
+    expect(freshnessNotice(freshness(at('2026-08-06T09:00:00Z'), '2026-08-06T03:20:00Z'))).toBeNull();
   });
 
   it('says nothing on a Sunday', () => {
-    expect(freshnessNotice(freshness(at('2026-08-09T20:00:00Z'), '2026-08-08T15:05:00Z'))).toBeNull();
+    expect(freshnessNotice(freshness(at('2026-08-09T20:00:00Z'), '2026-08-08T15:20:00Z'))).toBeNull();
   });
 
   it('names the date and the consequence, not the mechanism', () => {
-    const note = freshnessNotice(freshness(at('2026-08-12T09:00:00Z'), '2026-08-05T03:05:00Z'))!;
+    const note = freshnessNotice(freshness(at('2026-08-12T09:00:00Z'), '2026-08-05T03:20:00Z'))!;
     expect(note).toBeTruthy();
     expect(note).toContain('2026-08-05');
     expect(note).toMatch(/check the Central Bank/);

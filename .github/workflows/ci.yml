@@ -27,7 +27,18 @@ on:
     # Sunday is deliberately left out: nothing this project reads is published
     # on a Sunday, and a run that can only ever find nothing is a run whose
     # failures are pure noise.
-    - cron: '0 3,15 * * 1-6'
+    # MINUTE 17, NOT 0, AND THAT IS THE POINT.
+    #
+    # GitHub runs scheduled workflows off a shared queue and the top of the
+    # hour is its most contended minute. Every scheduled run on this repository
+    # since 2026-07-25, against a `0 3` slot, was created between 2h41m and
+    # 3h23m late — created_at equals run_started_at in all six, so GitHub was
+    # creating the run late, not the job running long.
+    #
+    # An off-peak minute is GitHub's own documented advice and costs nothing.
+    # It will not eliminate the delay; data-freshness.ts carries a four-hour
+    # grace period for what remains, measured against that same history.
+    - cron: '17 3,15 * * 1-6'
   workflow_dispatch:
     inputs:
       validate_only:

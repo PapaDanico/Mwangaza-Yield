@@ -36,7 +36,7 @@ npm run build   # static export to out/
 ## Data pipeline
 
 The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary). Scrapers in
-`backend/scrapers/` refresh those files twice a day, Monday to Saturday (`0 3,15 * * 1-6`), via
+`backend/scrapers/` refresh those files twice a day, Monday to Saturday (`17 3,15 * * 1-6`), via
 GitHub Actions; a push to `main`
 triggers Netlify to redeploy. **Fail-safe contract:** a scraper that extracts nothing exits
 non-zero and leaves the previous file untouched — stale-but-valid beats empty.

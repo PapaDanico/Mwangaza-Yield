@@ -90,10 +90,31 @@ def main() -> int:
 
     # ---- the declared routes, against realistic page text ----
 
-    fx_page = "Mean Rate | US DOLLAR | 129.4512 | 129.9512"
+    fx_page = "Key Rates USD 129.4100 Central Bank Rate 8.75 %"
     r = resolve("FX_USD_KES", FX_ROUTES,
                 fetcher({FX_ROUTES[0].url: fx_page}), *FX_BAND)
     check(r.ok and 100 < r.value < 200, f"declared FX route failed on realistic text: {r.value}")
+    check(r.via == "cbk-home", f"expected the measured route to answer, got {r.via}")
+
+    # ---- THE ROUTE THAT RETURNED A HISTORICAL RATE STAYS OUT ----
+    #
+    # cbk-forex-page was ranked first on the reasonable assumption that a page
+    # existing to publish this figure is the better source, and its own comment
+    # admitted the assumption was untested. The live probe tested it:
+    #
+    #     cbk-forex-page -> 85.1625   (roughly the 2015 rate)
+    #     cbk-home       -> 129.41    (right)
+    #
+    # Because the preferred route ANSWERED, the working one was never
+    # consulted. Re-adding it without fixing the pattern would restore a broken
+    # source outranking a sound one, so this fails if it comes back.
+    names = [route.name for route in FX_ROUTES]
+    check("cbk-forex-page" not in names,
+          "cbk-forex-page is back in FX_ROUTES — it returned 85.1625 against a "
+          "real rate of 129.41; fix the pattern before re-adding it")
+    check(names[0] == "cbk-home",
+          f"the measured route must rank first, got {names}")
+    check(len(names) == len(set(names)), f"duplicate FX route names: {names}")
 
     r = resolve("CBR", CBR_ROUTES,
                 fetcher({CBR_ROUTES[0].url: "Central Bank Rate (CBR) 8.75%"}), *CBR_BAND)

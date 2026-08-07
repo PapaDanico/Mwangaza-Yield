@@ -160,15 +160,50 @@ def report(res: Resolution, stream=sys.stderr) -> None:
 CBK_HOME = "https://www.centralbank.go.ke/"
 
 FX_ROUTES = (
-    # Preferred: CBK's own forex page, which exists to publish exactly this.
-    # Unverified against the live page at the time of writing — GitHub Actions
-    # was down and this container cannot reach CBK — which is precisely why it
-    # is a RANKED route rather than a replacement. If it does not match, the
-    # home page below still answers and the log says the first one failed.
-    Route("cbk-forex-page", "https://www.centralbank.go.ke/rates/forex-exchange-rates/",
-          r"(?:US\s*DOLLAR|USD)[\s\S]{0,120}?(\d{2,3}\.\d{2,4})", re.I),
+    # THE HOME PAGE IS PREFERRED BECAUSE IT IS THE ONE THAT WAS MEASURED.
+    #
+    # This list used to open with CBK's dedicated forex page, on the reasonable
+    # assumption that a page existing to publish exactly this figure is the
+    # better source. Its own comment conceded the assumption was untested:
+    # "Unverified against the live page at the time of writing."
+    #
+    # The live probe tested it on 2026-08-07 and both routes answered:
+    #
+    #     cbk-forex-page  ->  85.1625     wrong
+    #     cbk-home        ->  129.41      right
+    #
+    # 85.16 is roughly where USD/KES sat in 2015, so the forex page's pattern
+    # was matching a historical row rather than today's. Nothing we had could
+    # tell: the page was reachable, the regex matched, the number parsed, and
+    # 85.1625 sits comfortably inside the 50-500 band. Because the preferred
+    # route ANSWERED, the working fallback was never consulted — a broken
+    # source outranking a sound one, silently, and the value it produced would
+    # have been published as the current rate.
+    #
+    # So the ordering is now evidence rather than inference. The measured route
+    # goes first.
     Route("cbk-home", CBK_HOME,
           r"(?:USD|US Dollar)[\s\S]{0,60}?(\d{2,3}\.\d+)", re.I),
+
+    # The forex page is REMOVED rather than demoted.
+    #
+    # Demoting it would leave a route known to return a wrong-but-plausible
+    # number sitting behind a working one, waiting for the day cbk-home fails.
+    # `implausible_move` would refuse it on any dataset that already holds a
+    # rate — but it compares against the last trusted value, and on a fresh
+    # dataset there is no last trusted value, so 85.1625 would publish. A guard
+    # that protects every case except the empty one is not the place to put a
+    # source we know to be broken.
+    #
+    # Losing it costs nothing today: a cbk-home failure means staleness, and a
+    # bad second route means a refused value, which is also staleness.
+    #
+    # To restore it, fix the pattern — do not simply re-add the route. Dispatch
+    # validate-sources and read probe_routes.py's output: on a suspect match it
+    # now prints the surrounding page text, which is the evidence needed to
+    # write a pattern that anchors on the current row instead of the first one
+    # it finds. That evidence did not exist when this route was written, which
+    # is how it came to be ranked first on a guess.
 )
 FX_BAND = (50.0, 500.0)
 

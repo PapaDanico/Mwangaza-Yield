@@ -88,3 +88,35 @@ describe('the parser this check depends on', () => {
     expect(cronLines()[0]).toMatch(/^\d+\s/);
   });
 });
+
+/**
+ * The README describes the schedule in prose, and prose drifts.
+ *
+ * It said "a weekday cron" for the whole time the cron ran twice a day,
+ * Monday to Saturday — stale from the moment the schedule changed, in the same
+ * class of defect `refreshCadence()` was written to end. That function fixes
+ * the SITE copy by deriving it; the README is outside its reach, so the README
+ * quotes the cron expression verbatim and this checks the quote.
+ *
+ * Quoting the expression rather than paraphrasing it is the point. "Twice a
+ * day, Monday to Saturday" can be right or wrong in a dozen ways a test cannot
+ * see; `0 3,15 * * 1-6` can only be right or wrong in one.
+ */
+describe('the README quotes the real schedule', () => {
+  const README = readFileSync('README.md', 'utf8');
+
+  it('is a README with something in it', () => {
+    // Without this, every assertion below passes against an empty string.
+    expect(README.length).toBeGreaterThan(500);
+  });
+
+  it('contains the cron expression from ci.yml verbatim', () => {
+    expect(README).toContain(cronLines()[0]);
+  });
+
+  it('no longer calls the schedule a weekday one while Saturday is scheduled', () => {
+    if (REFRESH_DAYS_UTC.includes(6)) {
+      expect(README).not.toMatch(/weekday cron/i);
+    }
+  });
+});

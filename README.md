@@ -36,11 +36,12 @@ npm run build   # static export to out/
 ## Data pipeline
 
 The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary). Scrapers in
-`backend/scrapers/` refresh those files on a weekday cron via GitHub Actions; a push to `main`
+`backend/scrapers/` refresh those files twice a day, Monday to Saturday (`0 3,15 * * 1-6`), via
+GitHub Actions; a push to `main`
 triggers Netlify to redeploy. **Fail-safe contract:** a scraper that extracts nothing exits
 non-zero and leaves the previous file untouched — stale-but-valid beats empty.
 
-`public/data/` holds **live scraped data**, refreshed by the weekday cron and cross-checked in CI
+`public/data/` holds **live scraped data**, refreshed by that cron and cross-checked in CI
 (`published-cross-check`, `schedule-vs-dataset`, `check_archive.py`). Source formats change without
 notice, so the `validate-sources` job probes them on every run.
 

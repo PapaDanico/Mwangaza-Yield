@@ -223,7 +223,24 @@ def sentiment_for(value: float, rule) -> str:
 # Deliberately well under the step's own 360s so this fires FIRST. A
 # self-imposed budget larger than the external one could never fire, which is
 # the defect this repository keeps finding in itself.
-BUDGET_SECONDS = 240
+# A BUDGET SMALLER THAN THE WORK ITS SUCCESS REQUIRES CAN ONLY EVER FAIL.
+#
+# This was 240s against a 360s shell bound, chosen for its margin and nothing
+# else. The arithmetic makes that number unusable: refuse_if_collapsed() needs
+# MIN_INDICATORS (6) before it will write, and a slow indicator costs TIMEOUT
+# (60s), so simply REACHING the success condition can take 6 x 60 = 360s.
+# A 240s budget fits four timeouts. It stopped the scraper short of six every
+# time, refuse_if_collapsed() then correctly refused a partial file, and the
+# step recorded `failed=worldbank` on every single run — turning an occasional
+# fault into a permanent one and an alert into wallpaper.
+#
+# So the budget is derived from what success actually costs rather than picked
+# for a comfortable-looking margin. All eight indicators at full timeout is
+# 8 x 60 = 480s; the shell bound is raised to 600s to keep the same shape as
+# every other scraper (the process stops ITSELF, and the shell bound is the
+# backstop for a hang, not the normal path). test_worldbank.py asserts the
+# relationship so this cannot silently drift back.
+BUDGET_SECONDS = float(len(INDICATORS)) * TIMEOUT
 
 
 def scrape(budget_seconds: float = BUDGET_SECONDS) -> list:

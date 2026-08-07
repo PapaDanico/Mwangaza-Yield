@@ -420,7 +420,12 @@ jobs:
         if: ${{ !inputs.test_alert }}
         id: worldbank
         working-directory: backend/scrapers
-        run: timeout -k 20s 360s python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
+        # 600s, not 360s. worldbank.py stops ITSELF at BUDGET_SECONDS (480s =
+        # every indicator at full timeout); this bound is the backstop for a
+        # hang, so it must sit above the budget or the process never gets to
+        # use it. At 360s the shell would have killed a scraper that was still
+        # inside its own budget — reintroducing #176 by the back door.
+        run: timeout -k 20s 600s python worldbank.py || echo "failed=worldbank" >> "$GITHUB_OUTPUT"
       - name: Reconcile bonds against the CBK securities register
         if: ${{ !inputs.test_alert }}
         id: registry

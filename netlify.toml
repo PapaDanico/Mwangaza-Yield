@@ -89,3 +89,40 @@
     Content-Type = "text/markdown; charset=utf-8"
     Cache-Control = "public, max-age=900"
     Access-Control-Allow-Origin = "*"
+
+# SECURITY HEADERS — added 2026-08-07, and the asymmetry is the point.
+#
+# JiPange has carried this exact block for some time. Mwangaza, which is the
+# product that shows people money figures they may act on, had NO security
+# headers at all: no X-Frame-Options, no nosniff, no Referrer-Policy. Every
+# rule below was already agreed and already deployed on the sibling product;
+# only this file was missed. Two codebases by the same hand drifting apart on
+# something both had already decided is the ordinary way a gap like this opens.
+#
+# X-XSS-Protection IS DELIBERATELY ABSENT, AND ITS ABSENCE IS THE IMPROVEMENT.
+# It enabled a legacy browser XSS auditor no current browser ships — Chrome
+# removed it, Edge followed, Firefox never implemented it. Worse than inert
+# historically: the auditor guessed which parts of a response were reflected
+# input and neutralised them, and that guess was itself exploitable. Sending it
+# advertises a protection that does not exist, and a reviewer scanning the
+# header list ticks a box with nothing behind it.
+#
+# CONTENT-SECURITY-POLICY IS STILL NOT HERE, AND THAT REMAINS DELIBERATE.
+# Next.js emits inline scripts and Tailwind emits inline styles, so a correct
+# policy needs nonces threaded through the framework. A CSP that is wrong
+# breaks the site in production ONLY — the one environment where this app's
+# figures are the reason anybody visits. A starting policy of
+# `script-src 'self'` would block Next's own hydration and take the
+# calculators down while every test stayed green, which is the exact failure
+# mode this repository has spent its effort learning to avoid.
+#
+# So it stays an honest, documented gap in both SECURITY.md files rather than a
+# line added here to close a checklist item. Shipping the headers that ARE
+# correct does not wait on the one that needs real work.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"

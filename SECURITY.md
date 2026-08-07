@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Email **danmoi08@gmail.com** with `SECURITY` in the subject.
+Email **info@mwangazadigital.org** with `SECURITY` in the subject.
 
 Please include what you found, the steps to reproduce it, and what an attacker
 gets out of it. A proof of concept helps more than a scanner rating.

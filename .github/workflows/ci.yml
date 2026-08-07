@@ -232,6 +232,7 @@ jobs:
         run: |
           python discover_treasury.py --selftest
           python test_common.py
+          python test_cbk_parser.py
           python test_cbr_history.py
           python test_cpi_history.py
           python test_sources.py

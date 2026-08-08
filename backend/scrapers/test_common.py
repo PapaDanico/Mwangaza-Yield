@@ -176,13 +176,48 @@ def test_write_dataset_writes():
               "a temp file survived a successful write")
 
 
+def test_empty_refusal_is_catchable():
+    """The refusal that used to kill the caller's process.
+
+    write_dataset called sys.exit(1) on an empty scrape. The REFUSAL is right —
+    nothing extracted must not overwrite a good file — but a library function
+    terminating its caller could not be handled, could not be tested without
+    spawning a subprocess, and did not read like a possible exit at the call
+    site.
+
+    It raises EmptyDataset now, and every entry point catches it and exits 1
+    itself, so CI's contract is unchanged. This test is the thing that was not
+    previously possible: observing the refusal IN-PROCESS.
+    """
+    from importlib import reload
+
+    with tempfile.TemporaryDirectory() as d:
+        os.environ["MWANGAZA_DATA_DIR"] = d
+        import common
+        reload(common)
+
+        try:
+            common.write_dataset("probe", [])
+            failures.append("write_dataset accepted an empty scrape")
+        except SystemExit:
+            failures.append("write_dataset still calls sys.exit — it must raise EmptyDataset")
+        except common.EmptyDataset:
+            pass
+
+        # THE REFUSAL'S WHOLE PURPOSE: nothing was written.
+        written = [p.name for p in Path(d).iterdir()]
+        check(written == [], f"an empty scrape wrote files anyway: {written}")
+
+
 def main() -> int:
     test_issue_codes()
     test_write_dataset_writes()
+    test_empty_refusal_is_catchable()
     test_atomic_write_survives_a_kill()
     for f in failures:
         print(f"FAIL: {f}", file=sys.stderr)
-    print(f"common.py: issue codes, write round-trip, and a mid-write SIGKILL — "
+    print(f"common.py: issue codes, write round-trip, the empty-scrape refusal, "
+          f"and a mid-write SIGKILL — "
           f"{len(failures)} failures")
     return 1 if failures else 0
 

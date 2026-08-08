@@ -17,7 +17,7 @@ from datetime import date
 
 import requests
 
-from common import write_dataset
+from common import EmptyDataset, write_dataset
 
 BASE = "https://api.worldbank.org/v2/country/KE/indicator"
 
@@ -321,4 +321,7 @@ if __name__ == "__main__":
     print(f"[worldbank] fetching as of {date.today().isoformat()}", file=sys.stderr)
     records = scrape()
     refuse_if_collapsed(records)
-    write_dataset("context", records)
+    try:
+        write_dataset("context", records)
+    except EmptyDataset:
+        sys.exit(1)

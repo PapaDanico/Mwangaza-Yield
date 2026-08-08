@@ -10,7 +10,7 @@ import re
 import sys
 from datetime import datetime
 
-from common import write_dataset
+from common import EmptyDataset, write_dataset
 
 DATE_PATTERNS = {
     "offerOpenDate": r"(?:Period of Sale|Offer Opens?)[\s:]*?(\d{1,2}[/\s]\w+[/\s]\d{4})",
@@ -90,4 +90,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(__doc__)
         sys.exit(2)
-    write_dataset("auctions", [parse_prospectus(p) for p in sys.argv[1:]])
+    try:
+        write_dataset("auctions", [parse_prospectus(p) for p in sys.argv[1:]])
+    except EmptyDataset:
+        sys.exit(1)

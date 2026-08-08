@@ -1242,6 +1242,63 @@ async function main() {
     } else pass(`${route} server-renders ${text.length} characters`);
   }
 
+  /* ------------------------------------------------ the shared sale quote */
+  console.log('\na shared quote opens the sender\'s numbers');
+  {
+    /* /sell is the page most likely to be shown to a second person — an
+     * advisor, a spouse, the broker who gave the quote. A link carries the
+     * whole quote so they can change one number instead of reading nine down
+     * the phone.
+     *
+     * The ordering matters and is what this guards: the settlement field fills
+     * itself with TODAY in its own effect, and only fills a blank. A link that
+     * carries a settlement date must survive that. If the two effects are ever
+     * reordered, the shared date is silently replaced with today and the whole
+     * quote reprices. */
+    const link = '/sell/?isin=KE1000001493&face=750000&dirty=98.5&quotedYTM=13.2'
+      + '&commission=2000&levies=50&settlement=2026-09-01';
+    await page.goto(BASE + link, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(900);
+
+    const seeded = await page.evaluate(() => {
+      const out = {};
+      for (const i of document.querySelectorAll('input,select')) {
+        if (i.id) out[i.id] = i.value;
+      }
+      return out;
+    });
+    const expected = {
+      'sell-face': '750000',
+      'sell-dirty': '98.5',
+      'sell-date': '2026-09-01',
+      'sell-comm': '2000',
+    };
+    for (const [id, want] of Object.entries(expected)) {
+      if (seeded[id] !== want) {
+        fail(`shared quote: ${id} is ${JSON.stringify(seeded[id])}, expected ${JSON.stringify(want)}`
+          + (id === 'sell-date' ? ' — the settlement effect overwrote the shared date' : ''));
+      }
+    }
+    const sellText = await page.innerText('body');
+    if (!/Net proceeds/.test(sellText)) {
+      fail('shared quote: the page filled in but computed nothing');
+    }
+    if (!sellText.includes('Share this quote')) fail('shared quote: no way to share one back');
+
+    /* A link is trivially editable by whoever receives it. */
+    await page.goto(BASE + '/sell/?isin=<script>&face=-5&dirty=1e400&settlement=2026-02-31',
+      { waitUntil: 'networkidle' });
+    await page.waitForTimeout(700);
+    const tampered = await page.innerText('body');
+    if (/\bNaN\b|\bInfinity\b/.test(tampered)) {
+      fail('shared quote: a tampered link put NaN or Infinity on the page');
+    }
+    if (tampered.length < 400) fail('shared quote: a tampered link emptied the page');
+    if (!failures.some((f) => f.startsWith('shared quote'))) {
+      pass('a shared quote seeds every field, computes, and survives tampering');
+    }
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

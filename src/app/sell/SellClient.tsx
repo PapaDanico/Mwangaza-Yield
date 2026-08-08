@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { readQuoteParams, shareableQuoteUrl } from '@/lib/quote-link';
+import { APP_URL, shareText } from '@/lib/share';
 import { plural } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -50,6 +52,34 @@ export default function SellClient() {
   const [settlement, setSettlement] = useState('');
   useEffect(() => {
     setSettlement((current) => current || new Date().toISOString().slice(0, 10));
+  }, []);
+
+  /* A shared quote opens the SENDER's numbers.
+   *
+   * /sell is the page most likely to be shown to a second person — an advisor,
+   * a spouse, the broker who gave the quote — and it was the only one with no
+   * way to do that. Reading nine fields down the phone, or sending a
+   * screenshot nobody can recalculate from, was the alternative.
+   *
+   * Seeded once on mount. These are plain useState fields rather than the
+   * price book's persisted ones, so there is nothing to fight here: the
+   * recipient changes a number and it stays changed, which is the entire point
+   * of sending them the link.
+   *
+   * Ordered AFTER the settlement effect above deliberately — that one only
+   * fills a blank (`current || today`), so a settlement date carried by the
+   * link survives it rather than being overwritten with today. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const shared = readQuoteParams(window.location.search);
+    if (Object.keys(shared).length === 0) return;
+    if (shared.isin !== undefined) setIsin(shared.isin);
+    if (shared.face !== undefined) setFace(shared.face);
+    if (shared.dirty !== undefined) setDirty(String(shared.dirty));
+    if (shared.quotedYTM !== undefined) setQuotedYTM(String(shared.quotedYTM));
+    if (shared.commission !== undefined) setCommission(shared.commission);
+    if (shared.levies !== undefined) setLevies(shared.levies);
+    if (shared.settlement !== undefined) setSettlement(shared.settlement);
   }, []);
   const [dirty, setDirty] = useState('');
   const [quotedYTM, setQuotedYTM] = useState('');
@@ -195,6 +225,43 @@ export default function SellClient() {
                 + `${formatPct(analysis.effectiveSaleYield)}. To stand still, a taxable replacement `
                 + `must yield ${formatPct(analysis.breakEvenTaxableGrossYield)} gross.`}
             </LiveResult>
+
+            {/* Send the QUOTE, not a screenshot.
+              *
+              * The message carries the answer so it reads on its own in a chat,
+              * and the link carries the nine inputs behind it so the person
+              * receiving it can change one and see what happens. A screenshot
+              * does the first and none of the second, which is why this page
+              * was the one people photographed. */}
+            <button
+              type="button"
+              onClick={() => {
+                const link = shareableQuoteUrl(
+                  {
+                    isin: bond.isin,
+                    face,
+                    dirty: Number(dirty),
+                    quotedYTM: quotedYTM ? Number(quotedYTM) : undefined,
+                    commission,
+                    levies,
+                    settlement,
+                  },
+                  APP_URL
+                );
+                shareText(
+                  `*Sale quote — ${bond.issueCode}*\n\n`
+                    + `Face ${formatKES(face)} settling ${settlement}\n`
+                    + `Net proceeds ${formatKES(analysis.netProceedsKES)}\n`
+                    + `Effective sale yield ${formatPct(analysis.effectiveSaleYield)}\n`
+                    + `A taxable replacement must yield `
+                    + `${formatPct(analysis.breakEvenTaxableGrossYield)} gross to stand still\n\n`
+                    + `Open these numbers and change them → ${link}`
+                );
+              }}
+              className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-ink-line text-sm font-medium text-ink-soft"
+            >
+              Share this quote
+            </button>
 
             {analysis.quoteDisagrees && (
               <div className="rounded-xl border border-gold-500 bg-gold-100/60 p-3">

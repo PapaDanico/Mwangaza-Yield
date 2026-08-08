@@ -90,3 +90,60 @@ describe('a hostile storage never breaks the page', () => {
     expect(() => writePersisted('k', 'v')).not.toThrow();
   });
 });
+
+describe('a stored value of the wrong shape', () => {
+  /* `JSON.parse(raw) as T` is a CAST, NOT A VALIDATION, and the try/catch only
+   * ever sees text that is not JSON. A value of the wrong TYPE parses
+   * perfectly and sails past it wearing the T the cast promised.
+   *
+   * The docstring on that catch used to claim it handled "a value written by
+   * an older build" — the one case it could not see, because a build that
+   * changes a shape writes perfectly good JSON. */
+
+  it('does not hand an object to code expecting an array', () => {
+    store['mwangaza:ladder:chosen'] = JSON.stringify({ a: 1 });
+    // The ladder calls .length on this. An object has none, and the page the
+    // reader came back to would throw on an upgrade they never noticed.
+    expect(readPersisted<string[]>('ladder:chosen', [])).toEqual([]);
+  });
+
+  it('does not hand an array to code expecting an object', () => {
+    store['mwangaza:opts'] = JSON.stringify([1, 2, 3]);
+    expect(readPersisted('opts', { mode: 'auto' })).toEqual({ mode: 'auto' });
+  });
+
+  /* "3000000" + 1 is "30000001". A ladder built off string concatenation
+   * instead of arithmetic is worse than one that forgot the amount. */
+  it('does not hand a string to code expecting a number', () => {
+    store['mwangaza:ladder:amount'] = JSON.stringify('3000000');
+    expect(readPersisted('ladder:amount', 3_000_000)).toBe(3_000_000);
+  });
+
+  it('does not hand a scalar to code expecting a structure, or the reverse', () => {
+    store['mwangaza:ladder:chosen'] = JSON.stringify(5);
+    expect(readPersisted<string[]>('ladder:chosen', [])).toEqual([]);
+    store['mwangaza:ladder:rungs'] = JSON.stringify({});
+    expect(readPersisted('ladder:rungs', 4)).toBe(4);
+  });
+
+  /* Infinity does not survive JSON.stringify, but 1e400 is valid JSON and
+   * parses to Infinity — finite-looking to every `> 0` guard downstream. */
+  it('refuses a number that is not finite', () => {
+    store['mwangaza:ladder:amount'] = '1e400';
+    expect(readPersisted('ladder:amount', 3_000_000)).toBe(3_000_000);
+  });
+
+  it('refuses a stored null where a value is expected', () => {
+    store['mwangaza:ladder:chosen'] = JSON.stringify(null);
+    expect(readPersisted<string[]>('ladder:chosen', [])).toEqual([]);
+  });
+
+  /* The premise: a value of the RIGHT shape still comes back, or every
+   * assertion above passes for the wrong reason. */
+  it('still returns what the reader actually saved', () => {
+    store['mwangaza:ladder:chosen'] = JSON.stringify(['KE1', 'KE2']);
+    expect(readPersisted<string[]>('ladder:chosen', [])).toEqual(['KE1', 'KE2']);
+    store['mwangaza:ladder:amount'] = JSON.stringify(5_000_000);
+    expect(readPersisted('ladder:amount', 3_000_000)).toBe(5_000_000);
+  });
+});

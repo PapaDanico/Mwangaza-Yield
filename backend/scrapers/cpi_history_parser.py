@@ -49,7 +49,7 @@ from datetime import date
 import requests
 from bs4 import BeautifulSoup
 
-from common import write_dataset
+from common import EmptyDataset, write_dataset
 
 URL = "https://www.centralbank.go.ke/inflation-rates/"
 TIMEOUT = 60
@@ -272,4 +272,7 @@ def latest_macro_cpi() -> float | None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except EmptyDataset:
+        sys.exit(1)

@@ -125,10 +125,41 @@ def _write_json_atomic(path: Path, payload) -> None:
         raise
 
 
+class EmptyDataset(RuntimeError):
+    """A scrape produced nothing, so the existing file is kept.
+
+    RAISED RATHER THAN sys.exit(1), WHICH IS WHAT THIS USED TO DO.
+
+    The refusal itself is right and unchanged: a scrape that extracted nothing
+    must not overwrite a good file with an empty one. What was wrong is that a
+    LIBRARY function killed its caller's process.
+
+    Three things follow from that, and all three are why this is worth the
+    churn of touching six entry points:
+
+      It could not be tested in-process. test_common.py has to spawn a
+      subprocess to observe it — machinery that exists only because the
+      function exits instead of returning.
+
+      It could not be handled. A caller wanting to write two datasets, or to
+      log context, or to try a fallback source, had no way to; the decision
+      was taken out of its hands at the point of failure.
+
+      It was invisible at the call site. `write_dataset(...)` does not read as
+      "this may terminate the program", so the control flow of every scraper
+      depended on a fact none of them stated.
+
+    Every entry point now catches this and exits 1 itself, so the CI contract
+    — non-zero means the dataset was not refreshed — is EXACTLY as before.
+    That is the point: the behaviour is unchanged and the mechanism is one a
+    caller can see and a test can reach.
+    """
+
+
 def write_dataset(name: str, records: list) -> None:
     if not records:
         print(f"[{name}] no records extracted — keeping existing file", file=sys.stderr)
-        sys.exit(1)
+        raise EmptyDataset(name)
     path = DATA_DIR / f"{name}.json"
     _write_json_atomic(path, records)
     # Written second and separately: if this one is interrupted the dataset is

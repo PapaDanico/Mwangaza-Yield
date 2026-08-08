@@ -7,7 +7,7 @@ from datetime import date
 import requests
 from bs4 import BeautifulSoup
 
-from common import DATA_DIR, write_dataset
+from common import EmptyDataset, DATA_DIR, write_dataset
 from sources import (
     Attempt, Resolution,
     resolve, report,
@@ -359,4 +359,7 @@ def carry_forward(records: list, existing: list, resolutions=()) -> list:
 
 
 if __name__ == "__main__":
-    write_dataset("macro", scrape())
+    try:
+        write_dataset("macro", scrape())
+    except EmptyDataset:
+        sys.exit(1)

@@ -23,7 +23,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from common import DATA_DIR, write_dataset
+from common import EmptyDataset, DATA_DIR, write_dataset
 
 PRESS_URL = "https://www.centralbank.go.ke/press/"
 UA = {
@@ -194,4 +194,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except EmptyDataset:
+        sys.exit(1)

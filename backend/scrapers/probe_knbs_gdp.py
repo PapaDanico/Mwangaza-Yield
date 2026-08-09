@@ -78,7 +78,18 @@ def describe(label: str, url: str) -> str | None:
     resp, err = get(url)
     if err:
         print(f"   FAILED : {err}")
-        print("   verdict: unreachable FROM THIS RUNNER. That is the answer we came for.")
+        # "Unreachable" and "reachable but presenting an unverifiable chain" are
+        # different findings with different lifetimes: a missing intermediate
+        # certificate can be fixed by the publisher tomorrow, a network block
+        # cannot. Saying the wrong one closes a question that is still open.
+        if "SSL" in err or "CERTIFICATE" in err.upper():
+            print("   verdict: REACHABLE, but the TLS chain does not verify — almost")
+            print("            certainly a missing intermediate. Browsers paper over")
+            print("            this by fetching the issuer themselves; requests does")
+            print("            not, and we do not disable verification for financial")
+            print("            data. Re-run later: this is the publisher's to fix.")
+        else:
+            print("   verdict: unreachable FROM THIS RUNNER. That is a real finding.")
         return None
     ctype = resp.headers.get("content-type", "?")
     print(f"   status : {resp.status_code}")

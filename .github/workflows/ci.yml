@@ -473,6 +473,23 @@ jobs:
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
 
+      - name: Probe KNBS for quarterly GDP and its release calendar
+        # Asked here rather than from a development container for the reason
+        # this whole job exists: the sandbox 403s the CONNECT to knbs.or.ke, and
+        # fiscal-context.json records what happens when that is mistaken for a
+        # fact about the source — PDMO was written up as geo-blocked while
+        # answering 200 on three consecutive runs from a runner like this one.
+        #
+        # The release calendar is the real prize, and it is not the GDP figure.
+        # Every stale-data guard in this repo fires on a hand-set date; a guard
+        # that knew KNBS's own published schedule would stop being a guess.
+        #
+        # Bounded in the shell, not with timeout-minutes (#176), and last
+        # because it is the only step here that does not share a host with its
+        # neighbours.
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_knbs_gdp.py || echo "KNBS probe failed — see output above"
+
       - name: Dry-run the QEBR parser against the live document
         # DRY RUN: prints what it would extract and writes nothing. Proving
         # three figures can be read is a different decision from publishing

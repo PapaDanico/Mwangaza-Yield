@@ -30,7 +30,7 @@ const SOURCES: { name: string; url: string; status: Status; used: string; why: s
     url: 'https://www.knbs.or.ke/',
     status: 'reference',
     used: 'The origin of the CPI figure we show — but read from CBK, not from KNBS directly',
-    why: 'KNBS compiles the index; we take the number from CBK\u2019s own release because that is the copy we can fetch reliably. Our data file records the substitution against every reading, so the provenance is never guessed at.',
+    why: 'KNBS compiles the index; we take the number from CBK\u2019s own release, and the reason is specific rather than a matter of convenience. knbs.or.ke answers, but its TLS certificate chain does not verify \u2014 it serves no intermediate certificate, so a browser quietly fetches the missing link itself while any ordinary HTTP client refuses. We do not disable certificate verification to collect financial data, so we do not collect it from there. That is the publisher\u2019s to fix and we re-check it on every probe run rather than assuming it is permanent; it was still failing on 9 August 2026, on all six KNBS addresses we try, from a clean server with unrestricted internet access. Our data file records the substitution against every reading, so the provenance is never guessed at.',
   },
   {
     name: 'World Bank Open Data',

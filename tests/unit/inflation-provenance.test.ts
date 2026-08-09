@@ -103,3 +103,58 @@ function readMacro(): MacroIndicator[] {
   const path = new URL('../../public/data/macro.json', import.meta.url).pathname;
   return JSON.parse(readFileSync(path, 'utf8')) as MacroIndicator[];
 }
+
+describe('what /sources tells a reader about KNBS', () => {
+  const page = readFileSync(
+    join(process.cwd(), 'src/app/sources/page.tsx'),
+    'utf8'
+  );
+
+  /**
+   * The page used to say we read the CPI from CBK because that was "the copy we
+   * can fetch reliably". True, and evasive: it reads as a preference. The
+   * measured reason is narrower and far more checkable — knbs.or.ke answers,
+   * but serves no intermediate certificate, so the chain does not verify. A
+   * browser papers over that by fetching the missing link itself; requests
+   * refuses, and we do not turn verification off to collect financial data.
+   *
+   * That distinction matters to a reader deciding whether to trust the
+   * substitution. "We could not be bothered" and "the publisher's certificate
+   * is misconfigured and we will not disable verification" are different
+   * claims, and only one of them is ours to be judged on.
+   */
+  it('gives the specific reason, not a vague preference', () => {
+    expect(page).toMatch(/certificate chain does not verify|chain does not verify/);
+    expect(
+      page,
+      'the reason must name certificate verification, or it has been softened back to a preference'
+    ).toMatch(/verification/);
+  });
+
+  /* The one sentence that must never be quietly deleted: it is the promise
+   * that we did not take the easy route through --insecure. */
+  it('states that verification is not disabled to collect financial data', () => {
+    expect(page).toMatch(/do not disable certificate verification|not disable certificate verification/i);
+  });
+
+  /* A claim about a live third party needs a date, or a reader cannot tell
+   * whether it was checked this year or three years ago. KNBS may fix the
+   * chain tomorrow, at which point this paragraph becomes false — the date is
+   * what lets somebody notice. */
+  it('dates the last time the failure was actually observed', () => {
+    // Scoped to the KNBS entry, NOT the whole page. The first version of this
+    // matched any date anywhere in the file and passed happily against the old
+    // vague copy — a guard that survives the mutation it exists to catch is
+    // decoration. The World Bank entry alone carries enough prose to keep it
+    // green forever.
+    const entry = page.slice(
+      page.indexOf('Kenya National Bureau of Statistics'),
+      page.indexOf('World Bank Open Data')
+    );
+    expect(entry.length, 'failed to isolate the KNBS entry').toBeGreaterThan(200);
+    expect(
+      entry,
+      'an availability claim with no date cannot be audited or expired'
+    ).toMatch(/\d{1,2} [A-Z][a-z]+ 20\d\d/);
+  });
+});

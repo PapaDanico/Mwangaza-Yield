@@ -206,6 +206,37 @@ def latest_month(records: list) -> str | None:
     return max((r["date"][:7] for r in records), default=None)
 
 
+def missing_months(records: list) -> list:
+    """Which months between the oldest and newest row are absent?
+
+    MIN_ROWS is a VOLUME floor and this is a SHAPE check; they fail on
+    different things. A page that starts paginating server-side and serves 250
+    of 259 rows clears the floor comfortably while quietly losing nine months,
+    and a hole in the middle is worse than a short series: `realSeries` pairs
+    each reading with its CONTEMPORANEOUS CPI, so a missing month does not
+    announce itself as missing — it just stops answering for the readings that
+    needed it, on a page that otherwise looks complete.
+
+    The check is arithmetic, not a fetch. The span the rows themselves declare
+    has a known number of months in it; anything short of that is a hole.
+    """
+    keys = sorted(r["date"][:7] for r in records)
+    if not keys:
+        return []
+    present = set(keys)
+    fy, fm = (int(x) for x in keys[0].split("-"))
+    ly, lm = (int(x) for x in keys[-1].split("-"))
+    gaps, y, m = [], fy, fm
+    while (y, m) <= (ly, lm):
+        key = f"{y}-{m:02d}"
+        if key not in present:
+            gaps.append(key)
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+    return gaps
+
+
 def scrape() -> list:
     resp = requests.get(URL, headers=UA, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -219,8 +250,20 @@ def scrape() -> list:
             f"exactly like this."
         )
 
+    gaps = missing_months(records)
+    if gaps:
+        raise ValueError(
+            f"CPI history has {len(gaps)} missing month(s) between "
+            f"{records[0]['date'][:7]} and {records[-1]['date'][:7]}: "
+            f"{gaps[:12]}{' ...' if len(gaps) > 12 else ''}. Refusing to write a "
+            f"holed series — realSeries pairs each reading with its own month, "
+            f"so a gap silently stops answering rather than showing as absent. "
+            f"The likely cause is the table paginating server-side; the row "
+            f"count alone would not have caught it."
+        )
+
     print(f"Parsed {len(records)} monthly CPI rows, "
-          f"{records[0]['date']} to {records[-1]['date']}", file=sys.stderr)
+          f"{records[0]['date']} to {records[-1]['date']}, no gaps", file=sys.stderr)
     return records
 
 

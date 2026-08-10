@@ -236,6 +236,7 @@ jobs:
           python test_registry.py
           python test_cbr_history.py
           python test_cpi_history.py
+          python test_cpi_contiguity.py
           python test_sources.py
           python test_auction_results.py
           python test_calendar_parser.py
@@ -472,6 +473,38 @@ jobs:
         # (#176). Runs after the debt probe because they share a host.
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
+
+      - name: Probe whether the AfDB actually carries quarterly Kenyan GDP
+        # Connectivity was settled by the step above: all six AfDB URLs answer
+        # 200 and /api/1.0/meta/dataset returns 202 records for Kenya. That is
+        # not the same as carrying the series we want, and "the AfDB publishes
+        # Kenyan statistics" is not "the AfDB publishes Kenya's QUARTERLY GDP".
+        #
+        # It also re-asks the licence question. The CC BY 4.0 claim came from a
+        # search snippet and the markers were absent from the fetched HTML, so
+        # it is currently unverified — and republishing on an unread licence is
+        # the one failure here that would be ours rather than a publisher's.
+        #
+        # Bounded in the shell, not with timeout-minutes (#176).
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_afdb_coverage.py || echo "AfDB coverage probe failed — see output above"
+
+      - name: Probe KNBS for quarterly GDP and its release calendar
+        # Asked here rather than from a development container for the reason
+        # this whole job exists: the sandbox 403s the CONNECT to knbs.or.ke, and
+        # fiscal-context.json records what happens when that is mistaken for a
+        # fact about the source — PDMO was written up as geo-blocked while
+        # answering 200 on three consecutive runs from a runner like this one.
+        #
+        # The release calendar is the real prize, and it is not the GDP figure.
+        # Every stale-data guard in this repo fires on a hand-set date; a guard
+        # that knew KNBS's own published schedule would stop being a guess.
+        #
+        # Bounded in the shell, not with timeout-minutes (#176), and last
+        # because it is the only step here that does not share a host with its
+        # neighbours.
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_knbs_gdp.py || echo "KNBS probe failed — see output above"
 
       - name: Dry-run the QEBR parser against the live document
         # DRY RUN: prints what it would extract and writes nothing. Proving

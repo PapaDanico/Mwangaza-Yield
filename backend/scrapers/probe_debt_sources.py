@@ -219,6 +219,75 @@ def report_terms() -> None:
             print(f"   ... {len(hits) - 12} further matching sentences not shown")
 
 
+def report_afdb() -> None:
+    """The AfDB's Africa Information Highway — the only candidate so far whose
+    LICENCE is not the objection.
+
+    Why it is worth asking at all. Of the sources already probed, FRED bars
+    commercial redistribution and the IMF mixes outturns with forecasts to
+    2031, so both fail on terms or on honesty rather than on availability. The
+    AfDB's country portals state CC BY 4.0 — the same licence as the World Bank
+    series already in this pipeline — which would make republishing a question
+    of data quality alone.
+
+    Why the endpoints below are GUESSES, and are labelled as such. The AIH
+    portals are Knoema-hosted, and Knoema's REST shape is not documented by the
+    AfDB. So this tries several plausible paths and reports which, if any,
+    answer with JSON. A probe that assumed one shape and reported "AfDB is
+    unavailable" when it guessed wrong would be worse than no probe: it would
+    close a question it never actually asked.
+
+    It prints what came back. It does not decide. Kenya's portal carrying a
+    200 is not the same as Kenya's portal carrying quarterly GDP, and the
+    difference is exactly what this file exists to keep visible.
+    """
+    for name, url in (
+        ("Kenya country portal (root)", "https://kenya.opendataforafrica.org/"),
+        ("AIH data portal (root)", "https://dataportal.opendataforafrica.org/"),
+        ("Kenya portal — dataset metadata (guess)",
+         "https://kenya.opendataforafrica.org/api/1.0/meta/dataset"),
+        ("AIH portal — dataset metadata (guess)",
+         "https://dataportal.opendataforafrica.org/api/1.0/meta/dataset"),
+        ("Kenya portal — search for GDP (guess)",
+         "https://kenya.opendataforafrica.org/api/1.0/search?query=gross%20domestic%20product"),
+        ("AfDB statistics landing", "https://www.afdb.org/en/knowledge/statistics"),
+    ):
+        print(f"\n-- AfDB {name}")
+        print(f"   url    : {url}")
+        status, body, err = get(url)
+        if err:
+            print(f"   FAILED : {err}")
+            continue
+        print(f"   status : {status}")
+        if not body:
+            print("   body   : empty")
+            continue
+        print(f"   bytes  : {len(body)}")
+        stripped = body.lstrip()
+        if stripped[:1] in "[{":
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError:
+                print("   shape  : starts like JSON but does not parse")
+            else:
+                if isinstance(payload, list):
+                    print(f"   shape  : JSON array, {len(payload)} entries")
+                else:
+                    print(f"   shape  : JSON object, keys={list(payload)[:12]}")
+                print("   verdict: MACHINE-READABLE. This endpoint shape is the live one.")
+                continue
+        else:
+            print("   shape  : HTML (a portal page, not an API response)")
+        # The licence claim is the whole reason AfDB is on this list, so read it
+        # off the page rather than repeating it from memory.
+        low = body.lower()
+        for marker in ("creative commons", "cc-by", "cc by", "attribution 4.0", "licen"):
+            idx = low.find(marker)
+            if idx != -1:
+                print(f"   licence: ...{body[max(0, idx - 90): idx + 130].strip()!r}")
+                break
+
+
 def main() -> int:
     head("Does anybody serve Kenya's debt-to-GDP in a form software can parse?")
     print("Writes nothing. Reports what each candidate actually answers.")
@@ -242,7 +311,10 @@ def main() -> int:
     head("3. FRED, which redistributes the IMF series without a key")
     report_fred()
 
-    head("4. What the terms actually say about republishing")
+    head("4. The AfDB, whose licence is CC BY 4.0 rather than an objection")
+    report_afdb()
+
+    head("5. What the terms actually say about republishing")
     report_terms()
 
     head("Read this before wiring anything in")

@@ -74,7 +74,7 @@ export default function Footer() {
                 href={CBK_WHATSAPP_CHANNEL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3 py-1.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3.5 py-3.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
               >
                 <MessageCircle size={13} /> CBK on WhatsApp
               </a>
@@ -84,13 +84,13 @@ export default function Footer() {
                 href={PESA_SMART_CHANNEL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/50 px-3 py-1.5 text-xs font-medium text-gold-400 transition hover:bg-gold-500/10"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/50 px-3.5 py-3.5 text-xs font-medium text-gold-400 transition hover:bg-gold-500/10"
               >
                 <MessageCircle size={13} /> {PESA_SMART_NAME}
               </a>
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/25 px-3 py-1.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/25 px-3.5 py-3.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
               >
                 <Mail size={13} /> Contact us
               </a>
@@ -103,10 +103,19 @@ export default function Footer() {
                 <p className="font-display text-xs font-bold uppercase tracking-wider text-sand-50">
                   {col.heading}
                 </p>
-                <ul className="mt-3 space-y-2">
+                {/* Measured at 390px: these links were 16px tall on a 32px
+                    pitch, so a fingertip spanned one and a half of them and a
+                    tap in the 16px dead band did nothing at all. `block py-3`
+                    lifts each hit area to 44px without moving the text; the
+                    4px `space-y-1` keeps a boundary between them so a near-miss
+                    stays a miss rather than navigating somewhere unasked-for. */}
+                <ul className="mt-1 space-y-1">
                   {col.links.map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="text-sm text-sand-300/70 transition hover:text-gold-500">
+                      <Link
+                        href={l.href}
+                        className="block py-3 text-sm text-sand-300/70 transition hover:text-gold-500"
+                      >
                         {l.label}
                       </Link>
                     </li>

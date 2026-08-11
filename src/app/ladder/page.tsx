@@ -19,6 +19,7 @@ import IssuerIntent from '@/components/ladder/IssuerIntent';
 import ReinvestmentEvidence from '@/components/ladder/ReinvestmentEvidence';
 import ReportActions from '@/components/report/ReportActions';
 import LiveResult from '@/components/shared/LiveResult';
+import { inputCls } from '@/lib/field-styles';
 
 export default function LadderPage() {
   const bonds = useBondStore((s) => s.bonds);
@@ -120,9 +121,6 @@ export default function LadderPage() {
     }
     downloadICS(events, 'mwangaza-ladder.ics', 'Mwangaza Yield — Ladder');
   }
-
-  const inputCls =
-    'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
 
   return (
     <div className="space-y-5">
@@ -305,7 +303,7 @@ export default function LadderPage() {
                               id={`rung-${i}`}
                               value={r.bond.isin}
                               onChange={(e) => swapRung(i, e.target.value)}
-                              className="min-h-9 max-w-[11rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
+                              className="min-h-11 max-w-[11rem] rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
                             >
                               {selectable.map((b) => (
                                 <option key={b.isin} value={b.isin}>
@@ -322,7 +320,7 @@ export default function LadderPage() {
                                  to a scroll on every phone. 36 clears the WCAG
                                  2.5.8 minimum with room, on a control whose
                                  only job is destructive. */
-                              className="flex min-h-9 min-w-9 items-center justify-center rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-sand-200 hover:text-ink"
+                              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-1.5 text-ink-faint transition-colors hover:bg-sand-200 hover:text-ink"
                             >
                               <X size={14} />
                             </button>

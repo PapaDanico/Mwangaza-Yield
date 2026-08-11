@@ -12,6 +12,7 @@ import DataState from '@/components/shared/DataState';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
 import { benchmarkQuote } from '@/lib/quote-benchmark';
 import { cn } from '@/lib/utils';
+import { inputCls } from '@/lib/field-styles';
 
 /**
  * The price book.
@@ -111,9 +112,6 @@ export default function PricesClient() {
   }
 
   if (!bonds.length) return <DataState />;
-
-  const inputCls =
-    'min-h-11 w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2 text-sm text-ink outline-none focus:border-gold-500';
 
   return (
     <>

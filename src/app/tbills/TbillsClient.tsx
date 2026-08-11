@@ -10,6 +10,7 @@ import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import LiveResult from '@/components/shared/LiveResult';
+import { inputCls } from '@/lib/field-styles';
 
 export default function TbillsClient() {
   const tbills = useBondStore((s) => s.tbills);
@@ -37,9 +38,6 @@ export default function TbillsClient() {
   );
 
   if (!selected || !result || !rollover) return <DataState label="Treasury bill" />;
-
-  const inputCls =
-    'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
 
   return (
     <>

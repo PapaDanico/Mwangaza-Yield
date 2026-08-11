@@ -103,6 +103,31 @@ def main() -> None:
     check("an implausible rate is dropped", extract_decisions(
         '<table><tr><td>01/01/2020</td><td>Report on CBR at 250.00 pages</td></tr></table>'), [])
 
+    print("publisher filenames")
+    # CBK NAMED THE 9 JUNE 2026 RELEASE "...Meeting of June 9 2025.pdf".
+    #
+    # A 2026 decision citing a 2025 filename reads like a scraping bug. It is
+    # not: the day is right for 2026 (the 2025 MPC met on the 10th), the upload
+    # prefix differs from the June 2025 release's, and the rate recorded is the
+    # 8.75 hold rather than 2025's 9.75. It is the publisher's typo, and their
+    # URL is the only one that resolves.
+    #
+    # This is the guard against somebody "correcting" the year to agree with
+    # the date column, which would turn a working citation into a 404. It tests
+    # BEHAVIOUR — the href is taken verbatim — rather than pinning the exact
+    # string, so CBK renaming the file tomorrow does not fail the build.
+    mismatched = extract_decisions(
+        '<table><tr><td>09/06/2026</td>'
+        '<td><a href="/uploads/mpc_press_release/897442093_MPC Press Release '
+        '- Meeting of June 9 2025.pdf">The Committee retains the CBR at 8.75 pc</a></td>'
+        '</tr></table>'
+    )
+    check("a decision with a contradictory filename is still captured", len(mismatched), 1)
+    check("the publisher's filename is kept verbatim, year mismatch and all",
+          mismatched[0]["url"].endswith("Meeting of June 9 2025.pdf"), True)
+    check("the record's own date comes from the date column, not the filename",
+          mismatched[0]["date"], "2026-06-09")
+
     if failures:
         print(f"\n{len(failures)} FAILURE(S):", file=sys.stderr)
         for f in failures:

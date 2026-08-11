@@ -103,6 +103,29 @@ def extract_decisions(html: str) -> list:
             continue
 
         link = row.find("a", href=True)
+        # Taken VERBATIM from the page, and that is deliberate — including when
+        # the filename contradicts the meeting date.
+        #
+        # The 9 June 2026 decision links to a file CBK named
+        #
+        #     897442093_MPC Press Release - Meeting of June 9 2025.pdf
+        #
+        # A 2026 decision citing a 2025 filename reads like a scraping bug, and
+        # it is the kind of thing an audit flags and somebody then helpfully
+        # "corrects" to 2026. That would produce a 404: it is CBK's typo, not
+        # ours, and the URL is the only one that resolves.
+        #
+        # Three things settle whose mistake it is, none of which need the file
+        # to be opened. The DAY is right for 2026 and wrong for 2025 — the 2025
+        # MPC met on the 10th, not the 9th. The upload prefix (897442093) is
+        # distinct from the June 2025 release's (151253401), so this is a
+        # separate document rather than a stale link copied from the older row.
+        # And the rate recorded is 8.75 held, which continues the Feb-2026 cut;
+        # June 2025 was 9.75, a different rung entirely.
+        #
+        # So: never normalise, never "fix", never rewrite a year to agree with
+        # the date column. A citation that resolves is worth more than one that
+        # looks tidy, and the publisher's filenames are the publisher's.
         url = urljoin(PRESS_URL, link["href"]) if link else PRESS_URL
 
         # The page lists each MPC meeting in both an "all press" and an

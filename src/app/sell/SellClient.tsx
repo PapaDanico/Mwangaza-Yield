@@ -246,7 +246,7 @@ export default function SellClient() {
               <p className="rounded-xl border border-gold-300/60 bg-gold-50/40 p-3 text-xs leading-relaxed text-ink-muted">
                 <span className="font-semibold text-ink">
                   These percentages are annualised from{' '}
-                  {Math.round(analysis.yearsToMaturity * 365)} days of remaining life.
+                  {analysis.daysToMaturity} days of remaining life.
                 </span>{' '}
                 A short horizon makes them look enormous, and no bond or bill on
                 sale in Kenya pays anything like{' '}

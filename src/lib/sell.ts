@@ -101,8 +101,28 @@ export interface SaleAnalysis {
   breakEvenNetYield: number;
   breakEvenTaxableGrossYield: number;
   whtRateOnReplacement: number;
-  /** Years from settlement to maturity. Short residuals distort every yield below. */
-  yearsToMaturity: number;
+  /**
+   * CALENDAR days from settlement to maturity. Short residuals distort every
+   * yield below.
+   *
+   * Deliberately days and deliberately NOT `yearsToMaturityAt` from bid.ts,
+   * which divides by DAYS_IN_YEAR = 364 — the Kenyan day-count convention
+   * used for annualising a yield. This figure is not a yield input. It is
+   * how much life the bond has left, which the page prints to the reader as
+   * a number of days, and a calendar day is what that sentence means.
+   *
+   * It was a years float built on a hardcoded 365 until now: self-consistent,
+   * because the page multiplied by 365 to get the days back, but sitting
+   * eleven lines below this file's own `YEAR_DAYS = 364` with nothing saying
+   * which applied where. Two day-count bases in one file, one of them
+   * unexplained, is how a later reader "unifies" them and moves a number.
+   *
+   * Reusing 364 would have been worse than the duplicate, not better: it
+   * would have quietly made "62 days" mean 62 of something that is not a
+   * day. Keeping this integral in days removes the choice entirely — there
+   * is no year here to pick a length for.
+   */
+  daysToMaturity: number;
   /**
    * True when the yields above are annualised from LESS THAN A YEAR of
    * remaining life, and should not be read as a rate anybody could obtain.
@@ -321,9 +341,9 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   // Measured from settlement, not from today: a sheet dated last week must be
   // judged on the life the bond had THEN, or the caption contradicts the maths
   // it is captioning.
-  const yearsToMaturity = Math.max(
+  const daysToMaturity = Math.max(
     0,
-    (new Date(bond.maturityDate).getTime() - settlement.getTime()) / (365 * 86_400_000)
+    Math.round((new Date(bond.maturityDate).getTime() - settlement.getTime()) / 86_400_000)
   );
 
   // What a replacement has to deliver. For a tax-exempt bond the coupons you
@@ -362,8 +382,8 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
     netProceedsKES,
     chargesPer100,
     effectiveSaleYield,
-    yearsToMaturity,
-    annualisationIsExtrapolated: yearsToMaturity < 1,
+    daysToMaturity,
+    annualisationIsExtrapolated: daysToMaturity < 365,
     chargeDragPp,
     breakEvenNetYield,
     breakEvenTaxableGrossYield,

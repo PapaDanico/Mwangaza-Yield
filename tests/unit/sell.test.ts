@@ -211,7 +211,7 @@ describe('annualised yields on a nearly-matured bond', () => {
   it('flags a residual under a year as extrapolated', () => {
     const a = analyseSale(SHORT, QUOTE);
     expect(a.annualisationIsExtrapolated).toBe(true);
-    expect(Math.round(a.yearsToMaturity * 365)).toBe(62);
+    expect(a.daysToMaturity).toBe(62);
   });
 
   /* The long bond is the control. If this also flagged, the caption would
@@ -219,7 +219,7 @@ describe('annualised yields on a nearly-matured bond', () => {
   it('does not flag a bond with years left to run', () => {
     const a = analyseSale(IFB, QUOTE);
     expect(a.annualisationIsExtrapolated).toBe(false);
-    expect(a.yearsToMaturity).toBeGreaterThan(13);
+    expect(a.daysToMaturity).toBeGreaterThan(13 * 365);
   });
 
   /* Measured from SETTLEMENT, not from today. A sheet dated last month must be
@@ -228,7 +228,7 @@ describe('annualised yields on a nearly-matured bond', () => {
    * failure as the clock moves past the fixture. */
   it('measures the residual from the settlement date, not from now', () => {
     const later = analyseSale(SHORT, { ...QUOTE, settlementDate: '2026-09-01' });
-    expect(Math.round(later.yearsToMaturity * 365)).toBe(19);
+    expect(later.daysToMaturity).toBe(19);
   });
 
   /* THE PREMISE, and it was wrong on the first attempt — worth recording.

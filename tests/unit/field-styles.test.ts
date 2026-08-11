@@ -45,11 +45,30 @@ describe('form control styling', () => {
     // still served 36px selects: guarding the one file I had just fixed
     // caught nothing, because the bug was a class of bug, not a place.
     //
-    // Two floors are legitimate. `min-h-6` is 24px — WCAG 2.5.8 AA, and the
-    // two places using it are standalone links that say so in a comment.
-    // `min-h-11` is 44px, the target size, and 37 call sites already use it.
-    // Between them is the band nobody chooses on purpose: big enough to look
-    // like a button, small enough to miss.
+    // Two floors are legitimate, and they are NOT both requirements.
+    //
+    // 24px (`min-h-6`) is the actual conformance bar: WCAG 2.2 SC 2.5.8
+    // Target Size (Minimum), Level AA, "at least 24 by 24 CSS pixels" — and
+    // it carries two exceptions the spec states outright. Inline: a target
+    // inside a sentence, constrained by the line-height of the text around
+    // it. Spacing: undersized targets positioned so that 24px-diameter
+    // circles centred on each do not intersect. Either exception conforms.
+    //
+    // 44px (`min-h-11`) is SC 2.5.5 Target Size (Enhanced), Level **AAA**.
+    // It is this codebase's house choice, not a standard we are obliged to
+    // meet, and 37 call sites follow it.
+    //
+    // Worth stating because the misreading is easy and expensive. Our sister
+    // product's footer deliberately runs a 28px pitch, having reasoned in a
+    // comment that 24px circles on its old 22px pitch overlapped and 28px
+    // clears the spacing exception — correct at AA, and ~4px per link rather
+    // than the ~30 a 44px target costs a stacked mobile footer. Reading 44 as
+    // "the requirement" would turn that considered decision into a bug report
+    // and make somebody lengthen a conformant footer for no conformance gain.
+    // If you are here to align the two products, they are already both fine.
+    //
+    // Between 24 and 44 is the band nobody chooses on purpose: big enough to
+    // look like a button, small enough to miss, and clearing neither bar.
     const offenders: string[] = [];
     for (const file of tsxFiles(SRC)) {
       for (const m of readFileSync(file, 'utf8').matchAll(/\bmin-[hw]-(\d+)\b/g)) {

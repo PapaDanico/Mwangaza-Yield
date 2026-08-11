@@ -226,6 +226,40 @@ export default function SellClient() {
                 + `must yield ${formatPct(analysis.breakEvenTaxableGrossYield)} gross.`}
             </LiveResult>
 
+            {/* A yield annualised from under a year of remaining life is a
+              * rate nobody can go and buy.
+              *
+              * Found by driving the page: the default holding matures 62 days
+              * out, and a 98.5 dirty price with a full coupon still due gives
+              * an effective sale yield of 46.61% and a break-even of 51.79%
+              * gross. The arithmetic is right, and at that price the seller
+              * really is giving value away — the signal is worth keeping.
+              *
+              * The instruction is what breaks. "A taxable replacement must
+              * yield 51.79%" sends a reader after an instrument that does not
+              * exist: this market runs 8-16%, and anything inside a year is a
+              * Treasury bill near 9%. Someone who cannot find it may decide
+              * the sale was fine after all, which is the opposite of what the
+              * number was telling them.
+              *
+              * So the figures stay — they are true, and hiding a true number
+              * is its own dishonesty — and the caption redirects to the
+              * shilling amounts, which do not distort with the horizon. */}
+            {analysis.annualisationIsExtrapolated && (
+              <p className="rounded-xl border border-gold-300/60 bg-gold-50/40 p-3 text-xs leading-relaxed text-ink-muted">
+                <span className="font-semibold text-ink">
+                  These percentages are annualised from{' '}
+                  {Math.round(analysis.yearsToMaturity * 365)} days of remaining life.
+                </span>{' '}
+                A short horizon makes them look enormous, and no bond or bill on
+                sale in Kenya pays anything like{' '}
+                {formatPct(analysis.breakEvenTaxableGrossYield)} — anything maturing
+                inside a year is a Treasury bill nearer 9%. Read the shilling
+                figures below instead: they are what you actually gain or give up,
+                and they do not stretch with the horizon.
+              </p>
+            )}
+
             {/* Send the QUOTE, not a screenshot.
               *
               * The message carries the answer so it reads on its own in a chat,

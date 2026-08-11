@@ -101,6 +101,30 @@ export interface SaleAnalysis {
   breakEvenNetYield: number;
   breakEvenTaxableGrossYield: number;
   whtRateOnReplacement: number;
+  /** Years from settlement to maturity. Short residuals distort every yield below. */
+  yearsToMaturity: number;
+  /**
+   * True when the yields above are annualised from LESS THAN A YEAR of
+   * remaining life, and should not be read as a rate anybody could obtain.
+   *
+   * Driving the live page surfaced this: the default holding matures 62 days
+   * out, and a 98.5 dirty price with a full coupon still to come annualises to
+   * an effective sale yield of 46.61% and a break-even of 51.79% gross. The
+   * arithmetic is right — 46.61 / 0.9 = 51.79, and at that price the seller
+   * genuinely is giving value away.
+   *
+   * The CONCLUSION is not right. "A taxable replacement must yield 51.79%"
+   * asks the reader to find an instrument that does not exist: the Kenyan
+   * market runs 8-16%, and anything inside a year is a Treasury bill near 9%.
+   * Extrapolating a 62-day return to a full year produces a number with no
+   * counterpart, so a reader who acts on it goes looking for a bond nobody
+   * issues, and one who cannot find it may conclude the sale is fine.
+   *
+   * The figures are still published, because they are true and suppressing a
+   * true number is its own dishonesty. They are captioned instead, and the
+   * shilling amounts — which do not distort — are what the caption points at.
+   */
+  annualisationIsExtrapolated: boolean;
 
   /* ---- what you are giving up ---- */
   cashflows: CashflowRow[];
@@ -294,6 +318,14 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   // the other way round.
   const chargeDragPp = effectiveSaleYield - quotedEquivalentYield;
 
+  // Measured from settlement, not from today: a sheet dated last week must be
+  // judged on the life the bond had THEN, or the caption contradicts the maths
+  // it is captioning.
+  const yearsToMaturity = Math.max(
+    0,
+    (new Date(bond.maturityDate).getTime() - settlement.getTime()) / (365 * 86_400_000)
+  );
+
   // What a replacement has to deliver. For a tax-exempt bond the coupons you
   // are giving up arrive whole, so the honest bar is the NET yield — and a
   // taxable replacement has to gross that up to clear it.
@@ -330,6 +362,8 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
     netProceedsKES,
     chargesPer100,
     effectiveSaleYield,
+    yearsToMaturity,
+    annualisationIsExtrapolated: yearsToMaturity < 1,
     chargeDragPp,
     breakEvenNetYield,
     breakEvenTaxableGrossYield,

@@ -83,7 +83,7 @@ export default function BondPicker({
               id={`pick-${slotLabel}-${i}`}
               value={bond.isin}
               onChange={(e) => swap(i, e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
+              className="min-h-11 min-w-0 flex-1 rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm font-medium text-ink outline-none focus:border-gold-600"
             >
               {selectable.map((b) => (
                 <option key={b.isin} value={b.isin}>
@@ -114,7 +114,7 @@ export default function BondPicker({
           onChange={(e) => {
             if (e.target.value) add(e.target.value);
           }}
-          className="min-w-0 max-w-[14rem] flex-1 rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink outline-none focus:border-gold-600"
+          className="min-h-11 min-w-0 max-w-[14rem] flex-1 rounded-lg border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink outline-none focus:border-gold-600"
         >
           <option value="">Choose a bond…</option>
           {selectable

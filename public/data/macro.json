@@ -7,7 +7,7 @@
     "unit": "%",
     "source": "CBK MPC",
     "via": "cbk-home",
-    "lastChecked": "2026-08-10"
+    "lastChecked": "2026-08-11"
   },
   {
     "id": "fx-2026-08-10",
@@ -17,7 +17,7 @@
     "unit": "KES/USD",
     "source": "CBK indicative",
     "via": "cbk-home",
-    "lastChecked": "2026-08-10"
+    "lastChecked": "2026-08-11"
   },
   {
     "id": "cpi-2026-08-05",
@@ -29,7 +29,7 @@
     "fallback": true,
     "via": "cbk-home",
     "period": "2026-07",
-    "lastChecked": "2026-08-10"
+    "lastChecked": "2026-08-11"
   },
   {
     "id": "cpi-core-2026-07",

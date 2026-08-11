@@ -237,6 +237,7 @@ jobs:
           python test_cbr_history.py
           python test_cpi_history.py
           python test_cpi_contiguity.py
+          python test_freshness_budgets.py
           python test_sources.py
           python test_auction_results.py
           python test_calendar_parser.py

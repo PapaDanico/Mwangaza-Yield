@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-08-11T04:45:32.212660+00:00",
+  "checkedAt": "2026-08-11T16:15:21.519163+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -12,8 +12,8 @@
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-08-10",
-      "ageDays": 1,
+      "asOf": "2026-08-11",
+      "ageDays": 0,
       "budgetDays": 40,
       "stale": false
     },
@@ -36,8 +36,8 @@
     {
       "file": "cbr-history.json",
       "label": "CBR decision history",
-      "asOf": "2026-06-09",
-      "ageDays": 63,
+      "asOf": "2026-08-11",
+      "ageDays": 0,
       "budgetDays": 130,
       "stale": false
     },

@@ -1069,5 +1069,14 @@
     "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/897442093_MPC Press Release - Meeting of June 9 2025.pdf",
     "changeBps": 0,
     "move": "hold"
+  },
+  {
+    "id": "cbr-2026-08-11",
+    "date": "2026-08-11",
+    "rate": 8.75,
+    "title": "The Committee retains the CBR at 8.75 pc",
+    "url": "https://www.centralbank.go.ke/uploads/mpc_press_release/24069659_MPC Press Release - Meeting of August 11, 2026.pdf",
+    "changeBps": 0,
+    "move": "hold"
   }
 ]

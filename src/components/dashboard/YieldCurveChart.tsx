@@ -179,6 +179,63 @@ export default function YieldCurveChart() {
         </ResponsiveContainer>
       </div>
 
+      {/* THE PLOTTED POINTS, AS TEXT.
+       *
+       * Measured, not assumed: screen-reader users extract information 61.5%
+       * less accurately and spend 211% more time on web data visualisations
+       * than sighted users, and a THIRD of the charts sampled were not exposed
+       * to assistive technology at all (Sharif, Chintalapati, Wobbrock &
+       * Reinecke, ASSETS '21, n=72). Non-exposure is the dominant failure —
+       * not ambiguous colour, which this chart already handles by drawing the
+       * IFB series dashed rather than merely green.
+       *
+       * So the fix is not a better chart, it is the same numbers in a form a
+       * screen reader can navigate. Recharts emits an SVG of positioned paths;
+       * there is nothing in it to read.
+       *
+       * Two honesty notes. The ASSETS paper ran no "chart plus table" arm, so
+       * this remedy is an inference from where the failure sits, not a measured
+       * recovery — the claim that its participants asked for tables was checked
+       * and does not hold. And a <details> keeps the dashboard from doubling in
+       * height while leaving the table in the DOM and announced as a disclosure,
+       * which is exposure; `display: none` would not be.
+       *
+       * It is also plainly useful to sighted readers on a phone, where a
+       * 256px-tall chart of twenty-odd points is not readable either. */}
+      <details className="mt-4 rounded-xl border border-sand-300 bg-sand-100">
+        <summary className="cursor-pointer px-3 py-3 text-xs font-medium text-ink-soft">
+          Show these yields as a table
+        </summary>
+        <div className="overflow-x-auto px-3 pb-3">
+          <table className="min-w-full whitespace-nowrap text-left text-xs">
+            <caption className="sr-only">
+              Yield to maturity by tenor, for regular bonds before tax and for tax-free
+              infrastructure bonds. A dash means no bond of that tenor in that family.
+            </caption>
+            <thead>
+              <tr className="text-ink-faint">
+                <th scope="col" className="py-1.5 pr-4 font-semibold">Tenor</th>
+                <th scope="col" className="py-1.5 pr-4 font-semibold">Regular (before tax)</th>
+                <th scope="col" className="py-1.5 font-semibold">Infrastructure (tax-free)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((p) => (
+                <tr key={p.tenor} className="border-t border-sand-300/60 text-ink">
+                  <th scope="row" className="py-1.5 pr-4 font-normal">{p.tenor}-year</th>
+                  <td className="num py-1.5 pr-4">
+                    {p.fxd === undefined ? '—' : `${p.fxd.toFixed(2)}%`}
+                  </td>
+                  <td className="num py-1.5">
+                    {p.ifb === undefined ? '—' : `${p.ifb.toFixed(2)}%`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+
       {shape && (
         <div className="mt-4 rounded-xl border border-sand-300 bg-sand-100 p-3">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">

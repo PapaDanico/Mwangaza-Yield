@@ -21,6 +21,7 @@ import BondPicker from '@/components/shared/BondPicker';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
 import { yearsLabel } from '@/lib/years-label';
+import { inputCls } from '@/lib/field-styles';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
   fire: Flame,
@@ -30,9 +31,6 @@ const ICONS: Record<GoalKey, typeof Flame> = {
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-const inputCls =
-  'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (

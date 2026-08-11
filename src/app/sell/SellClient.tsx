@@ -15,6 +15,7 @@ import { track } from '@/lib/analytics';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import LiveResult from '@/components/shared/LiveResult';
+import { inputCls, labelCls } from '@/lib/field-styles';
 
 /**
  * The sell side.
@@ -130,10 +131,6 @@ export default function SellClient() {
   }, [analysis, bond, bonds, secondary, userPrices, settlement]);
 
   if (!bonds.length) return <DataState />;
-
-  const inputCls =
-    'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
-  const labelCls = 'mb-1 block text-sm font-medium text-ink-soft';
 
   return (
     <>

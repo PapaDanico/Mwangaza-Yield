@@ -14,6 +14,7 @@ import FollowChannel from '@/components/shared/FollowChannel';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
 import RealYieldCard from '@/components/shared/RealYieldCard';
+import { inputCls } from '@/lib/field-styles';
 
 /**
  * Tax status first, because it is what actually separates these bonds for a
@@ -126,9 +127,6 @@ export default function CalculatorClient() {
     isYieldPinned(gross) && isYieldPinned(net)
       ? 'not measurable at this price'
       : `${(bps / 100).toFixed(2)} pp`;
-
-  const inputCls =
-    'w-full rounded-xl border border-sand-400 bg-sand-50 px-3 py-2.5 text-sm text-ink outline-none focus:border-gold-500';
 
   // The <h1> and intro that used to sit here are now server-rendered by
   // page.tsx via ToolShell, so a crawler receives them. See ToolShell.

@@ -186,3 +186,74 @@ describe('verdict', () => {
     expect(verdict(a, IFB, null)).toMatch(/compare against that figure/);
   });
 });
+
+/**
+ * A yield annualised from under a year of remaining life is not a rate anyone
+ * can go and buy.
+ *
+ * Found by driving the live page rather than by reading the code. The sell
+ * page's default holding matures 62 days out; a 98.5 dirty price with a full
+ * coupon still due produced "You are really selling at 46.61%. To stand still,
+ * a taxable replacement must yield 51.79% gross."
+ *
+ * The arithmetic is correct — 46.61 / 0.9 = 51.79 — and the signal is real: at
+ * that price the seller is giving value away. The INSTRUCTION is what fails.
+ * No Kenyan instrument pays 51.79%; the market runs 8-16% and anything inside
+ * a year is a Treasury bill near 9%. A reader who goes looking and finds
+ * nothing may conclude the sale was fine, which inverts the warning.
+ *
+ * So the figures are still published and a caption carries the caveat. These
+ * assertions hold the flag that drives it.
+ */
+describe('annualised yields on a nearly-matured bond', () => {
+  const SHORT: Bond = { ...IFB, maturityDate: '2026-09-20' }; // 62 days from settlement
+
+  it('flags a residual under a year as extrapolated', () => {
+    const a = analyseSale(SHORT, QUOTE);
+    expect(a.annualisationIsExtrapolated).toBe(true);
+    expect(Math.round(a.yearsToMaturity * 365)).toBe(62);
+  });
+
+  /* The long bond is the control. If this also flagged, the caption would
+   * appear on every sale and stop meaning anything. */
+  it('does not flag a bond with years left to run', () => {
+    const a = analyseSale(IFB, QUOTE);
+    expect(a.annualisationIsExtrapolated).toBe(false);
+    expect(a.yearsToMaturity).toBeGreaterThan(13);
+  });
+
+  /* Measured from SETTLEMENT, not from today. A sheet dated last month must be
+   * judged on the life the bond had then, or the caption contradicts the
+   * figures it is captioning — and this test would otherwise drift into
+   * failure as the clock moves past the fixture. */
+  it('measures the residual from the settlement date, not from now', () => {
+    const later = analyseSale(SHORT, { ...QUOTE, settlementDate: '2026-09-01' });
+    expect(Math.round(later.yearsToMaturity * 365)).toBe(19);
+  });
+
+  /* THE PREMISE, and it was wrong on the first attempt — worth recording.
+   *
+   * This originally asserted the short bond yields something enormous, on the
+   * strength of the 46.61% seen on the live page. It failed: this fixture is a
+   * PREMIUM sheet (107.81), and paying a premium for 62 days of life yields
+   * almost nothing — 0.011%, not 46%.
+   *
+   * That is the same defect, not a counterexample. Annualising a two-month
+   * horizon distorts in BOTH directions: a discount explodes and a premium
+   * collapses, and "you are really selling at 0.01%" would mislead a reader
+   * exactly as badly. So the property to hold is the DISTORTION, not its sign.
+   *
+   * Identical price and charges, identical everything but remaining life: if
+   * the annualised figures barely moved, the caption would be guarding nothing.
+   */
+  it('distorts the annualised yield purely through the shortened horizon', () => {
+    const short = analyseSale(SHORT, QUOTE);
+    const long = analyseSale(IFB, QUOTE);
+    const ratio = long.effectiveSaleYield / Math.max(short.effectiveSaleYield, 1e-9);
+    expect(
+      ratio,
+      'the same sheet on a shorter bond must produce a materially different ' +
+        'annualised yield, or there is nothing for the caption to warn about'
+    ).toBeGreaterThan(50);
+  });
+});

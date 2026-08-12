@@ -42,7 +42,11 @@
     "p75": 17.9327,
     "high": 18.4607,
     "thin": false,
-    "windowDays": null
+    "windowDays": null,
+    "actualRate": 12.196,
+    "scoredOn": "2026-08-12",
+    "hitRange": false,
+    "hitMiddleHalf": false
   },
   {
     "issueCode": "IFB1/2021/018",
@@ -57,7 +61,11 @@
     "p75": 15.142425,
     "high": 17.7279,
     "thin": false,
-    "windowDays": null
+    "windowDays": null,
+    "actualRate": 12.6877,
+    "scoredOn": "2026-08-12",
+    "hitRange": false,
+    "hitMiddleHalf": false
   },
   {
     "issueCode": "IFB1/2021/021",
@@ -71,6 +79,10 @@
     "median": 14.399,
     "p75": 15.231225,
     "high": 17.7279,
-    "thin": false
+    "thin": false,
+    "actualRate": 13.052,
+    "scoredOn": "2026-08-12",
+    "hitRange": false,
+    "hitMiddleHalf": false
   }
 ]

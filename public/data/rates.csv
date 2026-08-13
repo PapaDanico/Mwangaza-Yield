@@ -1,5 +1,5 @@
 # Rates via Mwangaza Yield (mwangazayield.org)
-# Generated 2026-08-12T16:16:20.905382+00:00 | schema 1
+# Generated 2026-08-13T05:09:37.091123+00:00 | schema 1
 "# Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied."
 # T-BILLS: quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.
 "# BANDS: Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote."

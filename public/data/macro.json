@@ -10,10 +10,10 @@
     "lastChecked": "2026-08-13"
   },
   {
-    "id": "fx-2026-08-12",
+    "id": "fx-2026-08-13",
     "indicator": "FX_USD_KES",
-    "value": 129.28,
-    "date": "2026-08-12",
+    "value": 129.24,
+    "date": "2026-08-13",
     "unit": "KES/USD",
     "source": "CBK indicative",
     "via": "cbk-home",

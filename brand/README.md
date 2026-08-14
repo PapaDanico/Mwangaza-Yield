@@ -26,6 +26,52 @@ If it is ever wanted for `apple-touch-icon.png` (180px) or PWA install icons,
 that is the range it suits. Check it at the target size first — the point of
 the paragraph above is that this artwork has a floor.
 
+## The three lockups — `source-*.png` here, web copies in `public/brand/`
+
+Supplied 14 August 2026 after the sheet below was found to document three
+lockups that existed as no file. These are the originals, untouched. What the
+site can actually use lives in `public/brand/` as WebP.
+
+They needed work before they were usable, and the reasons are worth keeping:
+
+**No transparency.** All three arrived RGB with a baked backdrop — white behind
+the horizontal lockup and the mark, navy behind the inverse. The site's card
+surface is `#FDFBF5`, so a white-backed logo would have shown a faintly wrong
+rectangle: near enough to look intentional, far enough to look grubby. Each
+backdrop was flat (sampled across nine points, channel variance 0–2), so it
+keyed cleanly.
+
+**Mostly padding.** The lockups were 1536×1152 with the artwork occupying
+1204×346 — about 23% of the canvas — and not centred (378px above, 430px
+below). Dropped into a fixed-height box that renders the logo at roughly a
+quarter of the space it appears to occupy. Cropped to the artwork with 10px of
+breathing room.
+
+**Heavy.** 2.3MB across three PNGs. The WebP copies are 132KB for all three.
+That matters for the reader this project is for.
+
+Keyed with a dead-zone and a ramp rather than a hard threshold: a hard cut
+stair-steps edges that were anti-aliased against the backdrop, and the usual
+`255 - min(channel)` shortcut would have made the gold semi-transparent,
+because gold's blue channel is 28. Each result was composited back over the
+real surface it will sit on — cream for two, `#05172C` footer navy for the
+inverse — and checked for haloing.
+
+### Two things NOT decided here
+
+**The mark is a circle; the site ships a rounded square.** `public/logo.svg`
+and `public/favicon.svg` both draw `rect ... rx=112`. Both brand sheets, and
+`source-mark.png`, show a circle. The site is the outlier. Changing it is a
+visible identity change and is not made unilaterally.
+
+**The dot colour contradicts itself.** `source-mark.png` ends the curve in
+green. Both lockups — and `logo.svg` — end it in gold. One of the two is wrong
+and the brand does not say which, so nothing here guesses.
+
+The navy, at least, agrees: the mark samples `#051832` against the site's
+`#05172C`, the same colour within compression noise. An earlier reading of
+`#00122B` was the inverse lockup's *backdrop*, not the mark.
+
 ## `brand-sheet-2026-08.png`
 
 A specification, not an asset. It documents three lockups:

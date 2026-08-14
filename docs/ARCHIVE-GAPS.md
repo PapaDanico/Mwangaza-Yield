@@ -120,6 +120,15 @@ Scoring tap sales against their own field set takes complete records from
 their source cannot contain, and no amount of parser work would ever have
 closed that.
 
+> Those three figures are a measurement taken on the day this was written, not
+> a standing contract. The archive is appended to by a scheduled scrape twice a
+> day, so the counts move on their own — by 14 August 2026 it held 390 records
+> and 350 complete, still 90%. `tests/unit/tap-sale-schema.test.ts` used to
+> assert the totals exactly and duly went red the morning a refresh collected
+> three new IFB reopens, with nothing wrong. It now asserts the ninety percent
+> and that the counts only climb, which is the claim this section is actually
+> making.
+
 The eleven records are not really the point. The remaining forty are now a
 list of real defects rather than a mixture of defects and category errors, so
 the number is worth tuning against for the first time. Per-field coverage is

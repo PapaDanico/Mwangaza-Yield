@@ -73,15 +73,41 @@ describe('tap sales are scored against their own document type', () => {
     }
   });
 
-  it('moves the measured archive, and by the amount claimed', () => {
-    /* Asserted as a number rather than "greater than before", because a
-     * measurement quoted in a document and a measurement produced by the code
-     * are exactly the pair this project keeps finding drifted apart. If this
-     * fails, ARCHIVE-GAPS.md and the commit message are both out of date. */
+  it('holds the completeness the tap-sale fix bought, as the archive grows', () => {
+    /* This asserted `records === 387`, `complete === 347`, `completePct === 90`
+     * exactly, reasoning that a number quoted in a document and a number
+     * produced by code are the pair that drifts. The reasoning was right and
+     * the target was wrong.
+     *
+     * 387 was never an invariant. It was the size of the archive on the day
+     * ARCHIVE-GAPS.md was written, and the archive is APPENDED TO BY A
+     * SCHEDULED JOB — twice a day, unattended. On 14 August the refresh
+     * collected three IFB reopens from CBK, the count became 390, and main
+     * went red. Nothing had broken. The scraper had done exactly its job.
+     *
+     * A guard that fires on success is worse than no guard: it goes red on a
+     * schedule, someone learns the red is routine, and the day it means
+     * something nobody looks. The same trap as the CBR freshness budget, where
+     * tightening 130 days to 85 would have false-alarmed on a real 119-day gap.
+     *
+     * So what is asserted now is what the tap-sale work actually bought and
+     * what the document actually claims: NINETY PERCENT COMPLETE, and counts
+     * that only ever move up. If a future scrape lands records that cannot be
+     * scored, the percentage falls and this fires — which is the regression
+     * worth catching. If the percentage climbs, raise the floor.
+     *
+     * The bare numbers in ARCHIVE-GAPS.md stay as they are. They are a dated
+     * account of one measurement, not a live contract, and the document reads
+     * as history. */
     const q = assessArchive(ARCHIVE);
-    expect(q.records).toBe(387);
-    expect(q.complete).toBe(347);
-    expect(q.completePct).toBe(90);
+
+    expect(q.records, 'the archive should only ever grow').toBeGreaterThanOrEqual(387);
+    expect(q.complete, 'complete records should only ever grow').toBeGreaterThanOrEqual(347);
+    expect(
+      q.completePct,
+      'completeness fell below the 90% the tap-sale schema fix established — ' +
+        'a scrape has landed records that cannot be scored against their own field set'
+    ).toBeGreaterThanOrEqual(90);
   });
 
   it('never counts a tap sale as usable for a cover ratio', () => {

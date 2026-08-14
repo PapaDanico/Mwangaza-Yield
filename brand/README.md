@@ -57,16 +57,46 @@ because gold's blue channel is 28. Each result was composited back over the
 real surface it will sit on — cream for two, `#05172C` footer navy for the
 inverse — and checked for haloing.
 
-### Two things NOT decided here
+### Two questions this raised, and how they were settled
 
-**The mark is a circle; the site ships a rounded square.** `public/logo.svg`
-and `public/favicon.svg` both draw `rect ... rx=112`. Both brand sheets, and
-`source-mark.png`, show a circle. The site is the outlier. Changing it is a
-visible identity change and is not made unilaterally.
+Both were put to the owner and decided on 14 August 2026. Recorded here because
+each will look like an inconsistency to the next person, and the answer in both
+cases is that it is deliberate.
 
-**The dot colour contradicts itself.** `source-mark.png` ends the curve in
-green. Both lockups — and `logo.svg` — end it in gold. One of the two is wrong
-and the brand does not say which, so nothing here guesses.
+**Circle versus rounded square — the site keeps the rounded square.**
+
+`public/logo.svg` and `public/favicon.svg` draw `rect ... rx=112`, while both
+brand sheets and `source-mark.png` show a circle. The site is the odd one out,
+and it stays that way on purpose.
+
+The reason is how icons are consumed rather than how they look in isolation.
+iOS and Android apply their OWN mask to whatever they are given — a squircle,
+or an adaptive shape the user's launcher picks. Supply a circle and the
+platform masks a circle inside its own outline: a small disc, visibly inset,
+floating on a background nobody chose. A full-bleed rounded square masks
+correctly everywhere. It also carries about 27% more area at the same bounding
+box, which is the whole argument at 16px.
+
+So the circle is not rejected — it is the badge, for standalone use at sizes
+where a disc reads as a disc. `public/brand/mark.webp` is that. The rounded
+square is the icon source. Two shapes, two jobs, and this paragraph exists so
+that is not mistaken for drift.
+
+**Green versus gold dot — gold.**
+
+`source-mark.png` and `app-icon-3d-500.png` end the curve in green; both
+lockups and `logo.svg` end it in gold. Gold wins on three counts, and the third
+is the one that decides it:
+
+1. It is the majority of the supplied artwork — both lockups use it.
+2. It is what already ships, so the answer costs nothing to implement.
+3. **Green is already load-bearing elsewhere in this product.** On the yield
+   curve, `#059669` is the infrastructure-bond series — the tax-free one. A
+   green dot in the mark would put that signal in the one element that appears
+   on every page, quietly implying a meaning the logo does not have.
+
+Neither answer changes a shipped file. That is the point: the site was already
+correct, and what was missing was the larger-format artwork it never had.
 
 The navy, at least, agrees: the mark samples `#051832` against the site's
 `#05172C`, the same colour within compression noise. An earlier reading of

@@ -1,11 +1,16 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { ArrowDownRight, ArrowUpRight, ExternalLink, Minus } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+
+/* Deferred: see RateCyclePlot. The placeholder holds the chart's height so
+   the decisions list below it does not jump when the plot arrives. */
+const RateCyclePlot = dynamic(() => import('./RateCyclePlot'), {
+  ssr: false,
+  loading: () => <div className="h-52" aria-hidden="true" />,
+});
 import { analyseCycle, recentDecisions, describeCycle, whatItMeans, phaseLabel, monthYear } from '@/lib/rate-cycle';
 import { cn } from '@/lib/utils';
 import Term from '@/components/shared/Term';
@@ -113,37 +118,7 @@ export default function RateCycle() {
       </div>
 
       <div className="h-52">
-        <ResponsiveContainer>
-          <LineChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#E3D8BE" strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="label" tick={{ fill: '#8B8676', fontSize: 11 }} stroke="#CBBD9C"
-              minTickGap={28}
-            />
-            <YAxis
-              tick={{ fill: '#8B8676', fontSize: 11 }} stroke="#CBBD9C"
-              tickFormatter={(v) => `${Number(v).toFixed(1)}%`} width={52} domain={['auto', 'auto']}
-            />
-            <Tooltip
-              contentStyle={{ background: '#FDFBF5', border: '1px solid #E3D8BE', borderRadius: 12, color: '#0A192F' }}
-              labelStyle={{ color: '#8B8676' }}
-              formatter={(v: number) => [`${v.toFixed(2)}%`, 'Central Bank Rate']}
-              labelFormatter={(l, p) => p?.[0]?.payload?.date ?? l}
-            />
-            <ReferenceLine
-              y={cycle.current} stroke="#CBBD9C" strokeDasharray="4 4"
-            />
-            {/* A step line, because the rate genuinely holds flat between
-                meetings — a smooth curve would imply movement that never
-                happened. */}
-            <Line
-              type="stepAfter" dataKey="rate" stroke="#D97706" strokeWidth={2.5}
-              dot={{ r: 3, fill: '#D97706', strokeWidth: 0 }}
-              activeDot={{ r: 6, stroke: '#FDFBF5', strokeWidth: 2 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <RateCyclePlot series={series} current={cycle.current} />
       </div>
 
       <p className="mt-2 text-[11px] text-ink-faint">

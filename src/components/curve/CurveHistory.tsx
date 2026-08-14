@@ -11,11 +11,16 @@
  */
 
 import { useMemo, useState } from 'react';
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+
+/* Deferred: see CurveHistoryPlot. The placeholder holds the chart's height so
+   the table below it does not jump when the plot arrives. */
+const CurveHistoryPlot = dynamic(() => import('./CurveHistoryPlot'), {
+  ssr: false,
+  loading: () => <div className="h-80 w-full" aria-hidden="true" />,
+});
 import { curveRows, curveToCSV, curveContext, TENOR_BUCKETS, CURVE_MIN_BUCKETS } from '@/lib/yield-curve';
 import { annualInflation, realCurveRows, partialYearNote } from '@/lib/real-curve';
 import DataState from '@/components/shared/DataState';
@@ -139,33 +144,7 @@ export default function CurveHistory() {
       )}
 
       <div className="h-80 w-full">
-        <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -12 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7e0d3" />
-            <XAxis dataKey="tenor" tick={{ fontSize: 11 }} />
-            <YAxis
-              tick={{ fontSize: 11 }}
-              domain={['dataMin - 1', 'dataMax + 1']}
-              tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-            />
-            <Tooltip
-              formatter={(v: number, name: string) => [`${v.toFixed(2)}%`, name]}
-              labelFormatter={(l: string) => `${l} tenor`}
-            />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            {shown.map((row, i) => (
-              <Line
-                key={row.year}
-                type="monotone"
-                dataKey={String(row.year)}
-                stroke={COLOURS[i % COLOURS.length]}
-                strokeWidth={row.year === last ? 2.5 : 1.5}
-                dot={{ r: 2 }}
-                connectNulls
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
+        <CurveHistoryPlot data={data} shown={shown} last={last} colours={COLOURS} />
       </div>
 
       <p className="mt-3 text-sm text-ink-soft">

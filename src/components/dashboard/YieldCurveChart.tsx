@@ -1,12 +1,19 @@
 'use client';
 
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { useBondStore } from '@/stores/bondStore';
 import Term from '@/components/shared/Term';
 import type { Bond } from '@/types/bond';
 import DataState from '@/components/shared/DataState';
+
+/* Deferred so Recharts (~101KB gzipped) leaves the first-load bundle. The
+   placeholder reserves the chart's exact height, so nothing below it moves
+   when the plot arrives — a deferred chart that shifts the page is a worse
+   trade than the bytes it saved. */
+const YieldCurvePlot = dynamic(() => import('./YieldCurvePlot'), {
+  ssr: false,
+  loading: () => <div className="h-64" aria-hidden="true" />,
+});
 
 export default function YieldCurveChart() {
   const bonds = useBondStore((s) => s.bonds);
@@ -140,43 +147,7 @@ export default function YieldCurveChart() {
         </p>
       )}
       <div className="h-64">
-        <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#E3D8BE" strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="tenor" type="number" domain={['dataMin', 'dataMax']}
-              tick={{ fill: '#8B8676', fontSize: 12 }} stroke="#CBBD9C"
-              tickFormatter={(t) => `${t}y`}
-            />
-            <YAxis
-              tick={{ fill: '#8B8676', fontSize: 12 }} stroke="#CBBD9C"
-              tickFormatter={(v) => `${Number(v).toFixed(1)}%`} width={60} domain={['auto', 'auto']}
-            />
-            <Tooltip
-              contentStyle={{ background: '#FDFBF5', border: '1px solid #E3D8BE', borderRadius: 12, color: '#0A192F' }}
-              labelStyle={{ color: '#8B8676' }}
-              formatter={(v: number, name) => [`${v.toFixed(2)}%`, name]}
-              labelFormatter={(t) => `${t}-year bond`}
-            />
-            <Legend
-              formatter={(v) => <span style={{ color: '#31445F', fontSize: 12 }}>{v}</span>}
-              iconType="plainline"
-            />
-            <Line
-              name="Regular bonds (before tax)" type="monotone" dataKey="fxd" stroke="#D97706" strokeWidth={2.5}
-              dot={{ r: 4, fill: '#D97706', strokeWidth: 0 }}
-              activeDot={{ r: 6, stroke: '#FDFBF5', strokeWidth: 2 }}
-              connectNulls
-            />
-            <Line
-              name="Infrastructure bonds (tax-free)" type="monotone" dataKey="ifb" stroke="#059669" strokeWidth={2}
-              strokeDasharray="6 4"
-              dot={{ r: 4, fill: '#059669', strokeWidth: 0 }}
-              activeDot={{ r: 6, stroke: '#FDFBF5', strokeWidth: 2 }}
-              connectNulls
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <YieldCurvePlot data={data} />
       </div>
 
       {/* THE PLOTTED POINTS, AS TEXT.

@@ -40,17 +40,41 @@ describe('chart text equivalents', () => {
     expect(chartFiles.length).toBeGreaterThanOrEqual(4);
   });
 
+  /** A table, list or definition list — any of them counts as the numbers in text. */
+  const hasTextEquivalent = (src: string) =>
+    /<table[\s>]/.test(src) || /<ul[\s>]/.test(src) || /<dl[\s>]/.test(src);
+
   it.each(chartFiles.map((f) => [f.slice(SRC.length + 1), f]))(
-    '%s renders its plotted values as text, not only as SVG',
+    '%s has its plotted values in text, here or in the component that renders it',
     (_label, file) => {
       const src = readFileSync(file, 'utf8');
-      const hasText = /<table[\s>]/.test(src) || /<ul[\s>]/.test(src) || /<dl[\s>]/.test(src);
+      if (hasTextEquivalent(src)) return;
+
+      /* The equivalent may live one level up, and since Recharts was deferred
+       * it usually does. Each chart is now a `*Plot` file holding only the
+       * drawing, dynamically imported by a parent that keeps the table or list
+       * — deliberately, so the text stays in the page's own chunk instead of
+       * waiting on the chart bundle.
+       *
+       * This test asserted the equivalent sat in the SAME file, and went red on
+       * all four plots the moment they were split. It was right that something
+       * had changed and wrong about what the rule was: the requirement is that
+       * a reader can get the numbers as text, not that a particular file
+       * contains them. So it now follows the import. */
+      const base = file.split('/').pop()!.replace('.tsx', '');
+      const importers = tsxFiles(SRC).filter(
+        (f) => f !== file && new RegExp(`['"./]${base}['"]`).test(readFileSync(f, 'utf8'))
+      );
+      const covered = importers.filter((f) => hasTextEquivalent(readFileSync(f, 'utf8')));
+
       expect(
-        hasText,
-        'this component plots data with Recharts but renders no table or list of ' +
-          'the same values. Recharts output is positioned SVG paths — a screen ' +
-          'reader gets nothing from it. Add the numbers as text.'
-      ).toBe(true);
+        covered.length,
+        `${base} plots data with Recharts and renders no table or list. Recharts ` +
+          `output is positioned SVG paths — a screen reader gets nothing from it. ` +
+          `Neither does any of the ${importers.length} component(s) that render it: ` +
+          `${importers.map((f) => f.slice(SRC.length + 1)).join(', ') || 'none found'}. ` +
+          `Put the numbers in text, here or there.`
+      ).toBeGreaterThan(0);
     }
   );
 

@@ -1,11 +1,16 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import { ArrowDownRight, ArrowUpRight, ExternalLink, Minus } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
+
+/* Deferred: see AuctionHistoryPlot. The placeholder holds the chart's height
+   so the text below it does not jump when the plot arrives. */
+const AuctionHistoryPlot = dynamic(() => import('./AuctionHistoryPlot'), {
+  ssr: false,
+  loading: () => <div className="h-44" aria-hidden="true" />,
+});
 import { historyFor, summarise, describeHistory, readAgainstOwnRange, monthYear } from '@/lib/auction-history';
 import { cn } from '@/lib/utils';
 import Term from '@/components/shared/Term';
@@ -72,32 +77,7 @@ export default function AuctionHistory({ issueCode }: { issueCode: string }) {
       </div>
 
       <div className="h-44">
-        <ResponsiveContainer>
-          <LineChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke="#E3D8BE" strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="label" tick={{ fill: '#8B8676', fontSize: 11 }} stroke="#CBBD9C" minTickGap={24} />
-            <YAxis
-              tick={{ fill: '#8B8676', fontSize: 11 }} stroke="#CBBD9C"
-              tickFormatter={(v) => `${Number(v).toFixed(1)}%`} width={52} domain={['auto', 'auto']}
-            />
-            <Tooltip
-              contentStyle={{ background: '#FDFBF5', border: '1px solid #E3D8BE', borderRadius: 12, color: '#0A192F' }}
-              labelStyle={{ color: '#8B8676' }}
-              formatter={(v: number) => [`${v.toFixed(2)}%`, 'Auction cleared at']}
-              labelFormatter={(l, p) => p?.[0]?.payload?.date ?? l}
-            />
-            <ReferenceLine y={history.latest.rate} stroke="#CBBD9C" strokeDasharray="4 4" />
-            {/* Straight segments, not a curve: between two auctions nothing was
-                measured, so a smooth line would draw prices that were never
-                observed. */}
-            <Line
-              type="linear" dataKey="rate" stroke="#0F766E" strokeWidth={2.5}
-              dot={{ r: 3, fill: '#0F766E', strokeWidth: 0 }}
-              activeDot={{ r: 6, stroke: '#FDFBF5', strokeWidth: 2 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <AuctionHistoryPlot series={series} latestRate={history.latest.rate} />
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{describeHistory(history)}</p>

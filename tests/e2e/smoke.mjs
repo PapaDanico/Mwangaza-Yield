@@ -25,6 +25,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import zlibSync from 'node:zlib';
+import { RAGGED_RULE, RAGGED_CASES } from './ragged-rule.mjs';
 import { join, extname } from 'node:path';
 
 /* Read from the exporter's own module rather than restated here.
@@ -1382,7 +1383,7 @@ async function main() {
          metrics, not network silence. */
       await page.goto(BASE + route, { waitUntil: 'load' });
       await settled(page);
-      const found = await page.evaluate(() => {
+      const found = await page.evaluate((RULE) => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
         /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
@@ -1421,63 +1422,25 @@ async function main() {
 
         /* Buttons stacked one per line must agree on width. Whether they are
            stacked is decided by geometry, not by a breakpoint, so this keeps
-           holding when copy length moves where the wrap happens. */
+           holding when copy length moves where the wrap happens.
+
+           THE RULE ITSELF LIVES IN ragged-rule.mjs, and is evaluated here
+           rather than restated. It used to be written out inline, which meant
+           the cases that pin it could only ever test a COPY — and a case
+           passing against a copy says nothing about what the sweep runs. Both
+           of this rule's bugs were found by accident on the real site, never
+           by the sweep going green, because a sweep only exercises the shapes
+           the site happens to contain today. */
+        const ragged = eval(RULE);
         for (const wrap of document.querySelectorAll('div,nav,section,form')) {
-          /* A BUTTON, NOT MERELY A LINK THAT IS TALL ENOUGH.
-             Matching every A over 32px caught the footer's link column —
-             "CBK on WhatsApp" / "Pesa Smart KE" / "Contact us" at
-             149/132/110px, on all 22 routes at 768px. Those are plain text
-             links in a nav list, and ragged left-aligned text is what a list
-             of links is SUPPOSED to look like; forcing them to a common width
-             would be the defect, not the fix.
-             What makes the ragged-stack shape wrong is that the items are
-             chips or buttons: they carry a visible background or border, so
-             their right edges are drawn and a mismatch reads as unfinished. A
-             bare text link draws no edge and has nothing to align. That is the
-             discriminator, rather than exempting <footer> by name — the same
-             text links misbehave identically outside a footer, and the same
-             pills need catching inside one. */
-          /* ROWS COME FROM ALL CHILDREN, NOT FROM THE PAINTED ONES.
-             Filtering first and then asking "is each item alone on its line"
-             invents stacks: /ladder/ renders [Download PDF] then
-             [Save image + Print], which is flush, but Print draws no border,
-             so dropping it left Download PDF and Save image looking like a
-             ragged 358/180 two-item stack. The row structure is a fact about
-             the layout; the painted test is about which mismatches are worth
-             reporting. They have to happen in that order. */
-          const all = [...wrap.children].filter((e) => {
-            const r = e.getBoundingClientRect();
-            return r.height >= 8 && getComputedStyle(e).display !== 'none';
-          });
-          const rowOf = new Map();
-          for (const e of all) {
-            const t = Math.round(e.getBoundingClientRect().top);
-            rowOf.set(t, (rowOf.get(t) || 0) + 1);
+          const widths = ragged(wrap);
+          if (widths) {
+            const first = [...wrap.children].find((e) => e.tagName === 'A' || e.tagName === 'BUTTON');
+            out.ragged.push(`${widths}px — "${(first?.textContent || '').trim().slice(0, 24)}"`);
           }
-          const kids = [...wrap.children].filter((e) => {
-            if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
-            const r = e.getBoundingClientRect();
-            if (r.height < 32 || r.width <= 40) return false;
-            const cs = getComputedStyle(e);
-            if (cs.display === 'none') return false;
-            const painted =
-              (cs.backgroundColor && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) ||
-              (parseFloat(cs.borderTopWidth) > 0 && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.borderTopColor));
-            return painted;
-          });
-          if (kids.length < 2) continue;
-          /* Only controls that are genuinely ALONE on their line — counted
-             against every sibling, painted or not. */
-          const lone = kids.filter((k) => rowOf.get(Math.round(k.getBoundingClientRect().top)) === 1);
-          if (lone.length < 2) continue;
-          const boxes = lone.map((k) => k.getBoundingClientRect());
-          if (!boxes.every((b, i) => i === 0 || b.top >= boxes[i - 1].bottom - 2)) continue;
-          const widths = boxes.map((b) => Math.round(b.width));
-          const spread = Math.max(...widths) - Math.min(...widths);
-          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(lone[0].textContent || '').trim().slice(0, 24)}"`);
         }
         return out;
-      });
+      }, RAGGED_RULE);
 
       const at = `${route} @${vp.width}px`;
       if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px`);
@@ -1488,6 +1451,44 @@ async function main() {
     await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('layout:'))) {
       pass(`no sideways scroll, no clipped text, no ragged button stacks (${SWEPT_ROUTES.length} routes x ${VIEWPORTS.length} viewports)`);
+    }
+  }
+
+  /* -------------------------------------------- the ragged rule, as cases */
+  /* THE SWEEP ABOVE PASSES WHETHER THIS RULE IS RIGHT OR DELETED.
+   *
+   * It runs against the real site, so it only exercises the shapes the site
+   * happens to contain today. When no page has a ragged stack — which is the
+   * goal — a broken rule and a working one produce the same green line.
+   *
+   * Both of this rule's bugs prove the gap is not theoretical. Each was found
+   * by accident while looking at something else, and neither would have been
+   * caught by the sweep passing: the footer link column flagged as ragged
+   * buttons, and the phantom 358/180 stack invented by filtering children
+   * before reading rows.
+   *
+   * So the rule is also stated as cases on synthetic markup, where each shape
+   * is present whether or not the site contains it. These run the SAME string
+   * the sweep evaluates, not a copy — a case passing against a copy would say
+   * nothing about what ships. The cases are shared verbatim with the sister
+   * project, so changing the rule in one repo now fails here rather than
+   * silently diverging from the other. That drift is what left one of these
+   * guards blind in the first place. */
+  console.log('\nragged-stack rule');
+  {
+    const raggedBefore = failures.length;
+    for (const c of RAGGED_CASES) {
+      await page.setContent(`<body style="margin:0">${c.html}</body>`);
+      const got = await page.evaluate(
+        (RULE) => eval(RULE)(document.getElementById('w')),
+        RAGGED_RULE
+      );
+      if (got !== c.expected) {
+        fail(`ragged rule: ${c.name} — expected ${c.expected === null ? 'no flag' : c.expected}, got ${got === null ? 'no flag' : got}`);
+      }
+    }
+    if (failures.length === raggedBefore) {
+      pass(`the ragged-stack rule holds on all ${RAGGED_CASES.length} cases, including the two it once got wrong`);
     }
   }
 

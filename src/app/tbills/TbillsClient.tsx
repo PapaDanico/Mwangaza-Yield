@@ -11,10 +11,30 @@ import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import LiveResult from '@/components/shared/LiveResult';
 import { inputCls } from '@/lib/field-styles';
+import type { MacroIndicator, TBill } from '@/types/bond';
 
-export default function TbillsClient() {
-  const tbills = useBondStore((s) => s.tbills);
-  const macro = useBondStore((s) => s.macro);
+/**
+ * The store is empty during the build, so without a seed this component
+ * pre-rendered as a 256px skeleton and then replaced it with ~1551px of real
+ * content on hydration — every word below it jumping down the page, for a CLS
+ * of 0.3567 against Google's 0.10.
+ *
+ * The seed is the same `public/data/*.json` the store fetches at runtime, read
+ * at build time by the server component above. Live data still wins the moment
+ * it arrives: these are fallbacks for the render before the store is loaded,
+ * not a second source of truth.
+ */
+export default function TbillsClient({
+  seedTbills = [],
+  seedMacro = [],
+}: {
+  seedTbills?: TBill[];
+  seedMacro?: MacroIndicator[];
+}) {
+  const storeTbills = useBondStore((s) => s.tbills);
+  const storeMacro = useBondStore((s) => s.macro);
+  const tbills = storeTbills.length ? storeTbills : seedTbills;
+  const macro = storeMacro.length ? storeMacro : seedMacro;
   const [amount, setAmount] = useState(500_000);
   const [tenor, setTenor] = useState<number | null>(null);
   const [rolloverMonths, setRolloverMonths] = useState(12);

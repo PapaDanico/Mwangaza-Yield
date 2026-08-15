@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import ToolShell from '@/components/shared/ToolShell';
 import TbillsClient from './TbillsClient';
+/* Read at build time from the very files the client store fetches at runtime,
+   so the pre-rendered page shows the real rates instead of a skeleton. The
+   store still overwrites them the moment it loads; see TbillsClient. */
+import seedTbills from '../../../public/data/tbills.json';
+import seedMacro from '../../../public/data/macro.json';
+import type { MacroIndicator, TBill } from '@/types/bond';
 
 export default function Page() {
   return (
@@ -59,7 +65,7 @@ export default function Page() {
         </>
       }
     >
-      <TbillsClient />
+      <TbillsClient seedTbills={seedTbills as TBill[]} seedMacro={seedMacro as MacroIndicator[]} />
     </ToolShell>
   );
 }

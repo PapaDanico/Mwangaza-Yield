@@ -1601,26 +1601,25 @@ async function main() {
   console.log('\nlayout shift');
   {
     await page.setViewportSize({ width: 390, height: 844 });
-    /* Google's "good" threshold, and one route that does not meet it.
+    /* Google's "good" threshold, and every route now meets it.
      *
-     * /tbills/ measures 0.3567. That is a real defect, not a quirk of the
-     * check: the page grows 2953px to 4504px on hydration, because its rate
-     * cards and calculator are client-rendered and everything below them is
-     * shoved down when they arrive.
+     * /tbills/ used to measure 0.3567 — the page grew 2953px to 4504px on
+     * hydration — and was carried here as a per-route ceiling rather than
+     * excluded, on the argument that a page which is bad today must at least
+     * not get worse.
      *
-     * It is recorded as a baseline rather than fixed, and rather than dropped
-     * from the list, because both alternatives lie. Excluding the route would
-     * let the page get worse unnoticed; raising the shared budget to 0.36
-     * would tell every other route it may triple. A per-route ceiling says
-     * exactly what is true — this page is bad today and must not get worse.
+     * It is now 0, because the cause was found rather than guessed at. The
+     * page pre-rendered a 256px DataState skeleton and replaced it with the
+     * real calculator on hydration; seeding the component from the same JSON
+     * the store fetches makes the build render the real thing. See
+     * src/app/tbills/page.tsx.
      *
-     * The fix is server-rendering that content, or reserving its height. A
-     * min-height was tried and reverted: reserving 1551px of blank space on
-     * first paint trades a shift for a page that looks broken, which is not an
-     * improvement, and reserving the 107px rate-card grid alone did nothing
-     * because it is not where the height comes from. */
+     * KNOWN is deliberately left in place and empty. The self-expiry rule
+     * below — a listed route scoring within budget FAILS until its entry is
+     * removed — is what forced this comment to be rewritten instead of a
+     * stale 0.36 allowance quietly becoming a floor. */
     const BUDGET = 0.10;
-    const KNOWN = { '/tbills/': 0.36 };
+    const KNOWN = {};
     for (const route of ['/', '/dashboard/', '/auctions/', '/ladder/', '/tbills/', '/portfolio/']) {
       /* Navigate first, then observe with buffered:true so entries that fired
          between load and the observer being created are still counted. */

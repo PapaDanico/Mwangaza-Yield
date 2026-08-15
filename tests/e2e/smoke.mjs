@@ -1299,6 +1299,71 @@ async function main() {
     }
   }
 
+  /* ------------------------------------------------------------- layout */
+  /* WHAT A SOURCE SCAN CANNOT SEE.
+   *
+   * Two layout defects shipped this month and both were invisible to the unit
+   * suite by construction, because both are about what a clamp or a wrap DOES
+   * at a width rather than about which classes are written down.
+   *
+   *   - The auction banner clamped `issueCode · bondName` as one paragraph, so
+   *     the two fields shared a two-line budget spent in reading order. At
+   *     390px the card read "FXD1/2012/015 + bills →…" — an arrow pointing at
+   *     nothing, with the bond being switched INTO cut off.
+   *   - The sister repo's hero buttons were fixed for phones and reappeared
+   *     ragged at 1440px, where the column narrowed enough to wrap them.
+   *
+   * These run against ./out, which matters more than it sounds: the same scan
+   * pointed at the dev server reported 130px of horizontal overflow on all
+   * twelve routes, an artifact of unapplied CSS leaving a logo at its natural
+   * 512px. The production build overflows by zero. A layout check that does
+   * not run on built output invents defects. */
+  console.log('\nlayout');
+  {
+    const layoutRoutes = ['/', '/dashboard/', '/calculator/', '/ladder/', '/auctions/', '/tbills/'];
+    for (const route of layoutRoutes) {
+      await page.goto(BASE + route, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(600);
+      const found = await page.evaluate(() => {
+        const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
+
+        /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
+           purpose, so anything with a real height is the only interesting case. */
+        for (const e of document.querySelectorAll('p,h1,h2,h3,li,td,caption,label')) {
+          if (e.clientHeight < 8) continue;
+          if (e.scrollHeight > e.clientHeight + 2) {
+            out.clipped.push(`${e.tagName.toLowerCase()} shows ${e.clientHeight}px of ${e.scrollHeight}px: "${(e.textContent || '').trim().slice(0, 40)}"`);
+          }
+        }
+
+        /* Buttons stacked one per line must agree on width. Whether they are
+           stacked is decided by geometry, not by a breakpoint, so this keeps
+           holding when copy length moves where the wrap happens. */
+        for (const wrap of document.querySelectorAll('div,nav,section,form')) {
+          const kids = [...wrap.children].filter((e) => {
+            if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
+            const r = e.getBoundingClientRect();
+            return r.height >= 32 && r.width > 40 && getComputedStyle(e).display !== 'none';
+          });
+          if (kids.length < 2) continue;
+          const boxes = kids.map((k) => k.getBoundingClientRect());
+          if (!boxes.every((b, i) => i === 0 || b.top >= boxes[i - 1].bottom - 2)) continue;
+          const widths = boxes.map((b) => Math.round(b.width));
+          const spread = Math.max(...widths) - Math.min(...widths);
+          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(kids[0].textContent || '').trim().slice(0, 24)}"`);
+        }
+        return out;
+      });
+
+      if (found.over > 0) fail(`layout: ${route} scrolls sideways by ${found.over}px at 390px`);
+      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${route} ${c}`);
+      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${route} stacked buttons are ragged: ${r}`);
+    }
+    if (!failures.some((f) => f.startsWith('layout:'))) {
+      pass('no sideways scroll, no clipped text, no ragged button stacks at 390px');
+    }
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

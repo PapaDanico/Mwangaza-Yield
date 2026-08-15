@@ -1443,6 +1443,90 @@ async function main() {
     }
   }
 
+  /* ----------------------------------------------------------- contrast */
+  /* WCAG 1.4.3, MEASURED ON RENDERED TEXT.
+   *
+   * Two AA failures were found and fixed the day this was written — white on
+   * mint-600 at 3.77:1, and a net-proceeds figure at 4.46:1 against a 4.5
+   * floor — and nothing would have stopped them coming back. The sister
+   * project had twelve of the same kind. Committing the scan rather than
+   * throwing it away is the same argument that put the layout block above:
+   * a fix without a guard is a fix that reappears.
+   *
+   * The background is resolved by walking ancestors until something opaque,
+   * which is what the eye does. Text over a background image or gradient is
+   * skipped rather than guessed at — a wrong pass and a wrong fail are both
+   * worse than silence. Hover and focus states are not reachable in a static
+   * sweep and disabled controls are exempt under 1.4.3, so neither is checked;
+   * this is a contrast floor, not a complete accessibility audit. */
+  console.log('\ncontrast');
+  {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const route of layoutRoutes) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      const bad = await page.evaluate(() => {
+        const parse = (c) => {
+          const m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+          return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null;
+        };
+        const lum = ({ r, g, b }) => {
+          const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        };
+        const over = (fg, bg) => ({
+          r: fg.r * fg.a + bg.r * (1 - fg.a),
+          g: fg.g * fg.a + bg.g * (1 - fg.a),
+          b: fg.b * fg.a + bg.b * (1 - fg.a),
+          a: 1,
+        });
+        const ratio = (a, b) => {
+          const [hi, lo] = [lum(a), lum(b)].sort((m, n) => n - m);
+          return (hi + 0.05) / (lo + 0.05);
+        };
+        const out = [];
+        for (const el of document.querySelectorAll('*')) {
+          if (![...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim())) continue;
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+          const r = el.getBoundingClientRect();
+          /* The whole page, not just the fold: clipping at the first screenful
+             hid half the sister project's findings. */
+          if (r.width < 4 || r.height < 4) continue;
+          const fg = parse(cs.color);
+          if (!fg || fg.a === 0) continue;
+          let bg = null, node = el, onImage = false;
+          while (node) {
+            const ncs = getComputedStyle(node);
+            if (ncs.backgroundImage && ncs.backgroundImage !== 'none') { onImage = true; break; }
+            const c = parse(ncs.backgroundColor);
+            if (c && c.a === 1) { bg = c; break; }
+            if (c && c.a > 0) bg = bg ? over(c, bg) : c;
+            node = node.parentElement;
+          }
+          if (onImage || !bg) continue;
+          if (bg.a < 1) bg = over(bg, { r: 255, g: 255, b: 255, a: 1 });
+          const eff = fg.a < 1 ? over(fg, bg) : fg;
+          const size = parseFloat(cs.fontSize);
+          const bold = parseInt(cs.fontWeight, 10) >= 700;
+          const need = size >= 24 || (size >= 18.66 && bold) ? 3 : 4.5;
+          const got = ratio(eff, bg);
+          if (got < need - 0.01) {
+            out.push(`${Math.round(got * 100) / 100}:1 (needs ${need}) ${Math.round(size)}px `
+              + `${cs.color} on rgb(${Math.round(bg.r)},${Math.round(bg.g)},${Math.round(bg.b)}) `
+              + `— "${(el.textContent || '').trim().slice(0, 36)}"`);
+          }
+        }
+        return [...new Set(out)];
+      });
+      for (const c of bad.slice(0, 3)) fail(`contrast: ${route} ${c}`);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    if (!failures.some((f) => f.startsWith('contrast:'))) {
+      pass(`every text colour clears its WCAG AA floor (${layoutRoutes.length} routes)`);
+    }
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

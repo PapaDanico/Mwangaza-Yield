@@ -1330,9 +1330,31 @@ async function main() {
       '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
       '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
     ];
+    /* THREE VIEWPORTS, BECAUSE THE DEFECTS ARE NOT ALL ON PHONES.
+     *
+     * This swept 390px only — the width the rest of the suite runs at — which
+     * left the whole of tablet and desktop unchecked. That is not a
+     * theoretical gap: the sister project's ragged-button defect was fixed for
+     * phones and came back at 1440px, where a column narrowed enough to wrap
+     * two buttons into a stack, and it survived precisely because nothing
+     * looked above 390px.
+     *
+     * The viewport is restored to 390x844 at the end. Later checks in this
+     * file state that they run at the suite's phone width and would quietly
+     * start measuring a desktop layout otherwise. */
+    const VIEWPORTS = [
+      { name: 'phone', width: 390, height: 844 },
+      { name: 'tablet', width: 768, height: 1024 },
+      { name: 'desktop', width: 1440, height: 900 },
+    ];
+    for (const vp of VIEWPORTS) {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
     for (const route of layoutRoutes) {
-      await page.goto(BASE + route, { waitUntil: 'networkidle' });
-      await page.waitForTimeout(600);
+      /* `load` plus fonts.ready rather than `networkidle`: 22 routes across
+         three viewports is 66 loads, and what these checks read is font
+         metrics, not network silence. */
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
       const found = await page.evaluate(() => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
@@ -1374,10 +1396,30 @@ async function main() {
            stacked is decided by geometry, not by a breakpoint, so this keeps
            holding when copy length moves where the wrap happens. */
         for (const wrap of document.querySelectorAll('div,nav,section,form')) {
+          /* A BUTTON, NOT MERELY A LINK THAT IS TALL ENOUGH.
+             Matching every A over 32px caught the footer's link column —
+             "CBK on WhatsApp" / "Pesa Smart KE" / "Contact us" at
+             149/132/110px, on all 22 routes at 768px. Those are plain text
+             links in a nav list, and ragged left-aligned text is what a list
+             of links is SUPPOSED to look like; forcing them to a common width
+             would be the defect, not the fix.
+             What makes the ragged-stack shape wrong is that the items are
+             chips or buttons: they carry a visible background or border, so
+             their right edges are drawn and a mismatch reads as unfinished. A
+             bare text link draws no edge and has nothing to align. That is the
+             discriminator, rather than exempting <footer> by name — the same
+             text links misbehave identically outside a footer, and the same
+             pills need catching inside one. */
           const kids = [...wrap.children].filter((e) => {
             if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
             const r = e.getBoundingClientRect();
-            return r.height >= 32 && r.width > 40 && getComputedStyle(e).display !== 'none';
+            if (r.height < 32 || r.width <= 40) return false;
+            const cs = getComputedStyle(e);
+            if (cs.display === 'none') return false;
+            const painted =
+              (cs.backgroundColor && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) ||
+              (parseFloat(cs.borderTopWidth) > 0 && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.borderTopColor));
+            return painted;
           });
           if (kids.length < 2) continue;
           const boxes = kids.map((k) => k.getBoundingClientRect());
@@ -1389,12 +1431,15 @@ async function main() {
         return out;
       });
 
-      if (found.over > 0) fail(`layout: ${route} scrolls sideways by ${found.over}px at 390px`);
-      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${route} ${c}`);
-      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${route} stacked buttons are ragged: ${r}`);
+      const at = `${route} @${vp.width}px`;
+      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px`);
+      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${at} ${c}`);
+      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${at} stacked buttons are ragged: ${r}`);
     }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('layout:'))) {
-      pass('no sideways scroll, no clipped text, no ragged button stacks at 390px');
+      pass(`no sideways scroll, no clipped text, no ragged button stacks (${layoutRoutes.length} routes x ${VIEWPORTS.length} viewports)`);
     }
   }
 

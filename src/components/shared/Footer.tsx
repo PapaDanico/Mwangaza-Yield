@@ -136,7 +136,12 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-sand-300/15 pt-6">
-          <p className="text-xs leading-relaxed text-sand-300/50">
+          {/* /70, not /50. At half opacity over the navy footer this measured
+              3.99:1 against a 4.5 floor — and of everything on the page, the
+              line that says "not investment advice" is the worst one to make
+              hard to read. It sits below the fold, which is why a scan limited
+              to the first screenful never saw it. */}
+          <p className="text-xs leading-relaxed text-sand-300/70">
             Mwangaza Yield provides analytics for education only and is <strong>not investment
             advice</strong>, nor an offer to buy or sell securities. We are not affiliated with, or
             endorsed by, the Central Bank of Kenya, the Nairobi Securities Exchange or the Capital

@@ -111,6 +111,42 @@ const visibleGarbage = (page) => page.evaluate(() => {
   return out;
 });
 
+    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
+   reason for writing the check: a shared layout component goes wrong at
+   scale, and a sweep that samples is a sample. Generated from
+   `find src/app -name page.tsx`. */
+const SWEPT_ROUTES = [
+  '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
+  '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
+  '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
+  '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
+];
+
+
+/* WAIT FOR HYDRATION, NOT JUST FOR LOAD.
+ *
+ * These sweeps briefly used `load` plus document.fonts.ready, on the argument
+ * that what they measure is font metrics rather than network silence. That was
+ * right about fonts and wrong about React: `networkidle` had been incidentally
+ * waiting for hydration, and dropping it dropped the client-rendered half of
+ * every page. Measured on /ladder/ — 272 elements at load, 864 once hydrated,
+ * so 68% of the page was never scanned, and the guard sailed past a 3.77:1
+ * button it was written to catch.
+ *
+ * Polling until the element count holds steady is deterministic where a fixed
+ * sleep is a guess, and it costs a few hundred ms rather than waiting on
+ * whatever the network happens to be doing. */
+async function settled(page) {
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  let last = -1;
+  for (let i = 0; i < 40; i++) {
+    const n = await page.evaluate(() => document.querySelectorAll('*').length);
+    if (n === last) return;
+    last = n;
+    await page.waitForTimeout(120);
+  }
+}
+
 async function main() {
   const server = await startServer();
   const browser = await chromium.launch({ executablePath: EXECUTABLE, args: ['--no-sandbox'] });
@@ -1320,16 +1356,7 @@ async function main() {
    * not run on built output invents defects. */
   console.log('\nlayout');
   {
-    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
-       reason for writing the check: a shared layout component goes wrong at
-       scale, and a sweep that samples is a sample. Generated from
-       `find src/app -name page.tsx`. */
-    const layoutRoutes = [
-      '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
-      '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
-      '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
-      '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
-    ];
+    // routes hoisted above; see SWEPT_ROUTES
     /* THREE VIEWPORTS, BECAUSE THE DEFECTS ARE NOT ALL ON PHONES.
      *
      * This swept 390px only — the width the rest of the suite runs at — which
@@ -1349,12 +1376,12 @@ async function main() {
     ];
     for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    for (const route of layoutRoutes) {
+    for (const route of SWEPT_ROUTES) {
       /* `load` plus fonts.ready rather than `networkidle`: 22 routes across
          three viewports is 66 loads, and what these checks read is font
          metrics, not network silence. */
       await page.goto(BASE + route, { waitUntil: 'load' });
-      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      await settled(page);
       const found = await page.evaluate(() => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
@@ -1410,6 +1437,23 @@ async function main() {
              discriminator, rather than exempting <footer> by name — the same
              text links misbehave identically outside a footer, and the same
              pills need catching inside one. */
+          /* ROWS COME FROM ALL CHILDREN, NOT FROM THE PAINTED ONES.
+             Filtering first and then asking "is each item alone on its line"
+             invents stacks: /ladder/ renders [Download PDF] then
+             [Save image + Print], which is flush, but Print draws no border,
+             so dropping it left Download PDF and Save image looking like a
+             ragged 358/180 two-item stack. The row structure is a fact about
+             the layout; the painted test is about which mismatches are worth
+             reporting. They have to happen in that order. */
+          const all = [...wrap.children].filter((e) => {
+            const r = e.getBoundingClientRect();
+            return r.height >= 8 && getComputedStyle(e).display !== 'none';
+          });
+          const rowOf = new Map();
+          for (const e of all) {
+            const t = Math.round(e.getBoundingClientRect().top);
+            rowOf.set(t, (rowOf.get(t) || 0) + 1);
+          }
           const kids = [...wrap.children].filter((e) => {
             if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
             const r = e.getBoundingClientRect();
@@ -1422,11 +1466,15 @@ async function main() {
             return painted;
           });
           if (kids.length < 2) continue;
-          const boxes = kids.map((k) => k.getBoundingClientRect());
+          /* Only controls that are genuinely ALONE on their line — counted
+             against every sibling, painted or not. */
+          const lone = kids.filter((k) => rowOf.get(Math.round(k.getBoundingClientRect().top)) === 1);
+          if (lone.length < 2) continue;
+          const boxes = lone.map((k) => k.getBoundingClientRect());
           if (!boxes.every((b, i) => i === 0 || b.top >= boxes[i - 1].bottom - 2)) continue;
           const widths = boxes.map((b) => Math.round(b.width));
           const spread = Math.max(...widths) - Math.min(...widths);
-          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(kids[0].textContent || '').trim().slice(0, 24)}"`);
+          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(lone[0].textContent || '').trim().slice(0, 24)}"`);
         }
         return out;
       });
@@ -1439,7 +1487,91 @@ async function main() {
     }
     await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('layout:'))) {
-      pass(`no sideways scroll, no clipped text, no ragged button stacks (${layoutRoutes.length} routes x ${VIEWPORTS.length} viewports)`);
+      pass(`no sideways scroll, no clipped text, no ragged button stacks (${SWEPT_ROUTES.length} routes x ${VIEWPORTS.length} viewports)`);
+    }
+  }
+
+  /* ----------------------------------------------------------- contrast */
+  /* WCAG 1.4.3, MEASURED ON RENDERED TEXT.
+   *
+   * Two AA failures were found and fixed the day this was written — white on
+   * mint-600 at 3.77:1, and a net-proceeds figure at 4.46:1 against a 4.5
+   * floor — and nothing would have stopped them coming back. The sister
+   * project had twelve of the same kind. Committing the scan rather than
+   * throwing it away is the same argument that put the layout block above:
+   * a fix without a guard is a fix that reappears.
+   *
+   * The background is resolved by walking ancestors until something opaque,
+   * which is what the eye does. Text over a background image or gradient is
+   * skipped rather than guessed at — a wrong pass and a wrong fail are both
+   * worse than silence. Hover and focus states are not reachable in a static
+   * sweep and disabled controls are exempt under 1.4.3, so neither is checked;
+   * this is a contrast floor, not a complete accessibility audit. */
+  console.log('\ncontrast');
+  {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    for (const route of SWEPT_ROUTES) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await settled(page);
+      const bad = await page.evaluate(() => {
+        const parse = (c) => {
+          const m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+          return m ? { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] } : null;
+        };
+        const lum = ({ r, g, b }) => {
+          const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+          return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+        };
+        const over = (fg, bg) => ({
+          r: fg.r * fg.a + bg.r * (1 - fg.a),
+          g: fg.g * fg.a + bg.g * (1 - fg.a),
+          b: fg.b * fg.a + bg.b * (1 - fg.a),
+          a: 1,
+        });
+        const ratio = (a, b) => {
+          const [hi, lo] = [lum(a), lum(b)].sort((m, n) => n - m);
+          return (hi + 0.05) / (lo + 0.05);
+        };
+        const out = [];
+        for (const el of document.querySelectorAll('*')) {
+          if (![...el.childNodes].some((n) => n.nodeType === 3 && n.nodeValue.trim())) continue;
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') continue;
+          const r = el.getBoundingClientRect();
+          /* The whole page, not just the fold: clipping at the first screenful
+             hid half the sister project's findings. */
+          if (r.width < 4 || r.height < 4) continue;
+          const fg = parse(cs.color);
+          if (!fg || fg.a === 0) continue;
+          let bg = null, node = el, onImage = false;
+          while (node) {
+            const ncs = getComputedStyle(node);
+            if (ncs.backgroundImage && ncs.backgroundImage !== 'none') { onImage = true; break; }
+            const c = parse(ncs.backgroundColor);
+            if (c && c.a === 1) { bg = c; break; }
+            if (c && c.a > 0) bg = bg ? over(c, bg) : c;
+            node = node.parentElement;
+          }
+          if (onImage || !bg) continue;
+          if (bg.a < 1) bg = over(bg, { r: 255, g: 255, b: 255, a: 1 });
+          const eff = fg.a < 1 ? over(fg, bg) : fg;
+          const size = parseFloat(cs.fontSize);
+          const bold = parseInt(cs.fontWeight, 10) >= 700;
+          const need = size >= 24 || (size >= 18.66 && bold) ? 3 : 4.5;
+          const got = ratio(eff, bg);
+          if (got < need - 0.01) {
+            out.push(`${Math.round(got * 100) / 100}:1 (needs ${need}) ${Math.round(size)}px `
+              + `${cs.color} on rgb(${Math.round(bg.r)},${Math.round(bg.g)},${Math.round(bg.b)}) `
+              + `— "${(el.textContent || '').trim().slice(0, 36)}"`);
+          }
+        }
+        return [...new Set(out)];
+      });
+      for (const c of bad.slice(0, 3)) fail(`contrast: ${route} ${c}`);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    if (!failures.some((f) => f.startsWith('contrast:'))) {
+      pass(`every text colour clears its WCAG AA floor (${SWEPT_ROUTES.length} routes)`);
     }
   }
 

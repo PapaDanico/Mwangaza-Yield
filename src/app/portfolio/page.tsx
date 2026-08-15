@@ -242,7 +242,7 @@ export default function PortfolioPage() {
                   formatPortfolioSummary(totals, enriched.length, APP_URL)
                 )
               }
-              className="flex items-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700"
+              className="flex items-center gap-1.5 rounded-xl bg-mint-700 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-800"
             >
               <Share2 size={15} /> Share
             </button>

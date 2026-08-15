@@ -39,7 +39,18 @@ export default function CurveHistoryPlot({
           formatter={(v: number, name: string) => [`${v.toFixed(2)}%`, name]}
           labelFormatter={(l: string) => `${l} tenor`}
         />
-        <Legend wrapperStyle={{ fontSize: 11 }} />
+        {/* THE SWATCH CARRIES THE COLOUR, THE TEXT CARRIES THE LABEL.
+            Recharts colours legend text to match its series, which put the
+            three lightest years of the ramp on near-white at 1.43:1, 2.05:1
+            and 2.48:1 — a year label nobody can read is not a legend entry.
+            Darkening the ramp itself would flatten the light-to-dark ordering
+            that makes recent years the most saturated, so the line keeps its
+            colour and only the text is forced to ink. The swatch beside each
+            label still does the identifying, which is what it is for. */}
+        <Legend
+          wrapperStyle={{ fontSize: 11 }}
+          formatter={(value) => <span style={{ color: '#2A2118' }}>{value}</span>}
+        />
         {shown.map((row, i) => (
           <Line
             key={row.year}

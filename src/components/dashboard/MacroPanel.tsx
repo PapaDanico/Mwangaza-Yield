@@ -4,6 +4,7 @@ import { useBondStore } from '@/stores/bondStore';
 import Reserve from '@/components/shared/Reserve';
 import { indicatorAge, indicatorStaleNote, vintageLabel } from '@/lib/indicator-freshness';
 import { cn } from '@/lib/utils';
+import { COLUMNS, HEADLINE } from '@/lib/macro-headline';
 
 const LABELS: Record<string, string> = {
   CBR: 'Central Bank Rate',
@@ -27,17 +28,6 @@ const SHORT_LABELS: Record<string, string> = {
   GDP: 'GDP',
 };
 
-/**
- * The three headline indicators, and only those.
- *
- * The core and non-core CPI splits live in macro.json beside the headline, but
- * they do not belong here: this is a three-across grid on a 390px screen, and
- * a fourth and fifth card would either overflow or shrink every label past
- * legibility. They are a comparison rather than a reading anyway — the point
- * is the GAP between them — so InflationSplit tells that story instead.
- */
-const HEADLINE: string[] = ['CBR', 'CPI', 'FX_USD_KES', 'GDP'];
-
 export default function MacroPanel() {
   const all = useBondStore((s) => s.macro);
   const macro = all.filter((m) => HEADLINE.includes(m.indicator));
@@ -57,7 +47,7 @@ export default function MacroPanel() {
    * the reader can judge it rather than decode a warning colour. */ 
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <div className={cn('grid gap-2 sm:gap-3', COLUMNS[macro.length] ?? 'grid-cols-3')}>
       {macro.map((m) => {
         const age = indicatorAge(m.indicator, m.date);
         const note = indicatorStaleNote(age);
@@ -66,16 +56,23 @@ export default function MacroPanel() {
           key={m.id}
           className={cn('card p-3 sm:p-4', note && 'border-gold-600/50 bg-gold-500/[0.06]')}
         >
-          <p className="truncate text-[11px] text-ink-faint sm:text-xs">
+          {/* Every type step in this card used to stop at `sm:`. Measured at
+              1440px the three cards are 365px wide and their content fills
+              30-42% of that — not because the layout is wrong but because a
+              card sized for desktop is printing text sized for a 640px
+              breakpoint. The figure is the reason the card exists, so it
+              scales with the card rather than being stranded at 20px in a
+              365px box. */}
+          <p className="truncate text-[11px] text-ink-faint sm:text-xs lg:text-sm">
             <span className="sm:hidden">{SHORT_LABELS[m.indicator] ?? m.indicator}</span>
             <span className="hidden sm:inline">{LABELS[m.indicator] ?? m.indicator}</span>
           </p>
           {/* The unit wraps under the figure on narrow screens rather than
               pushing the card wider: "129.5 KES/USD" does not fit a third of a
               360px row, and overflowed the page by 3px. */}
-          <p className="num mt-1 text-base font-bold text-ink sm:text-xl">
+          <p className="num mt-1 text-base font-bold text-ink sm:text-xl lg:text-3xl">
             {m.value}
-            <span className="ml-1 inline-block text-xs font-normal text-ink-muted sm:text-sm">{m.unit}</span>
+            <span className="ml-1 inline-block text-xs font-normal text-ink-muted sm:text-sm lg:text-base">{m.unit}</span>
           </p>
           {/* The date is shown on EVERY screen size now. It used to be
               sm:block only, which hid it on exactly the devices most of this

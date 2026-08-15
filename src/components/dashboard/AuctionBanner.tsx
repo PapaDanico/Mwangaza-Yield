@@ -64,8 +64,11 @@ export default function AuctionBanner() {
             scarcest, the field that is mostly restatement is the one that goes:
             its bond code is in the line above it and its amount is in the line
             below it, so on a phone it was earning its 19px twice over. */}
-        <p className="font-display font-semibold leading-snug text-ink [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
-          {next.issueCode} · {next.bondName}
+        <p className="font-display font-semibold leading-snug text-ink [overflow-wrap:anywhere]">
+          {next.issueCode}
+        </p>
+        <p className="hidden font-display text-sm font-medium leading-snug text-ink-muted sm:[display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:1] overflow-hidden">
+          {next.bondName}
         </p>
         <p className="text-sm text-ink-muted">
           {(next.amountOfferedKES ?? 0) > 0 ? `${formatCompactKES(next.amountOfferedKES)} on offer · ` : ''}

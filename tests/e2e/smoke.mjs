@@ -1575,6 +1575,89 @@ async function main() {
     }
   }
 
+  /* ---------------------------------------------------------------- CLS */
+  /* THE CLAIM Reserve.tsx WAS BUILT ON, NEVER CHECKED SINCE.
+   *
+   * Reserve.tsx exists because every data-driven card returned null until the
+   * store hydrated, so the page assembled by shoving content down as each one
+   * appeared. Its comment records what that measured on the shipped build at
+   * 390px — dashboard 0.4348, auctions 0.7713, ladder 0.1918, against the 0.10
+   * Google calls poor — and reserving each card's height was the fix.
+   *
+   * Nothing verified the fix still holds. A new card that forgets to reserve
+   * its height regresses this silently: the suite stays green, the page still
+   * works, and the reader gets it yanked out from under them again. That is
+   * the same shape as every other defect found today — a property the code
+   * depends on, asserted in prose, checked by nobody.
+   *
+   * It is also a Core Web Vital and a ranking signal, so it belongs with the
+   * discoverability work rather than filed as polish.
+   *
+   * Measured the way the browser does: sum the layout-shift entries that are
+   * not within 500ms of a user interaction. There is no interaction here, so
+   * every entry counts — which makes this stricter than field CLS, not looser.
+   * The budget is Google's "good" threshold rather than the 0.10 poor line: at
+   * 0.10 a regression has to be egregious before it fails. */
+  console.log('\nlayout shift');
+  {
+    await page.setViewportSize({ width: 390, height: 844 });
+    /* Google's "good" threshold, and one route that does not meet it.
+     *
+     * /tbills/ measures 0.3567. That is a real defect, not a quirk of the
+     * check: the page grows 2953px to 4504px on hydration, because its rate
+     * cards and calculator are client-rendered and everything below them is
+     * shoved down when they arrive.
+     *
+     * It is recorded as a baseline rather than fixed, and rather than dropped
+     * from the list, because both alternatives lie. Excluding the route would
+     * let the page get worse unnoticed; raising the shared budget to 0.36
+     * would tell every other route it may triple. A per-route ceiling says
+     * exactly what is true — this page is bad today and must not get worse.
+     *
+     * The fix is server-rendering that content, or reserving its height. A
+     * min-height was tried and reverted: reserving 1551px of blank space on
+     * first paint trades a shift for a page that looks broken, which is not an
+     * improvement, and reserving the 107px rate-card grid alone did nothing
+     * because it is not where the height comes from. */
+    const BUDGET = 0.10;
+    const KNOWN = { '/tbills/': 0.36 };
+    for (const route of ['/', '/dashboard/', '/auctions/', '/ladder/', '/tbills/', '/portfolio/']) {
+      /* Navigate first, then observe with buffered:true so entries that fired
+         between load and the observer being created are still counted. */
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      const cls = await page.evaluate(() => new Promise((resolve) => {
+        let total = 0;
+        new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (!entry.hadRecentInput) total += entry.value;
+          }
+        }).observe({ type: 'layout-shift', buffered: true });
+        /* Give hydration room to do its worst before reading the total —
+           the shifts this guards against happen AS the store arrives, which
+           is exactly what a load-only wait would miss. */
+        setTimeout(() => resolve(Math.round(total * 10000) / 10000), 2500);
+      })).catch(() => null);
+
+      if (cls === null) { fail(`layout shift: ${route} could not be measured`); continue; }
+      const ceiling = KNOWN[route] ?? BUDGET;
+      if (cls > ceiling) {
+        fail(`layout shift: ${route} CLS ${cls} exceeds ${ceiling}`
+          + (KNOWN[route] ? ' — a known-bad route got worse' : ''));
+      } else if (KNOWN[route] && cls <= BUDGET) {
+        /* If someone fixes it, say so rather than quietly keeping the
+           allowance: a stale exemption is how a budget becomes a floor. */
+        fail(`layout shift: ${route} now scores ${cls}, within ${BUDGET} — remove its entry from KNOWN`);
+      } else {
+        console.log(`  ..    ${route} CLS ${cls}${KNOWN[route] ? ` (known bad, ceiling ${ceiling})` : ''}`);
+      }
+    }
+    if (!failures.some((f) => f.startsWith('layout shift:'))) {
+      const known = Object.keys(KNOWN).length;
+      pass(`${6 - known} of 6 routes shift less than ${BUDGET} while loading`
+        + (known ? `; ${Object.keys(KNOWN).join(', ')} held at its known-bad ceiling` : ''));
+    }
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

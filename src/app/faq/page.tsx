@@ -201,7 +201,10 @@ export default function FaqPage() {
       {FAQS.map(({ q, a }) => (
         <details key={q} className="group rounded-xl border border-sand-300 bg-sand-50 p-4 open:border-gold-500/60">
           <summary className="cursor-pointer list-none font-display font-semibold text-ink marker:content-none">
-            <span className="mr-2 text-gold-600 transition group-open:rotate-90 inline-block">›</span>
+            {/* gold-700, not gold-600: this glyph rotates to show open/closed, so
+                it carries state rather than decoration, and at 3.08:1 it was
+                under the 4.5 floor for 14px text. */}
+            <span className="mr-2 text-gold-700 transition group-open:rotate-90 inline-block">›</span>
             {q}
           </summary>
           {/*

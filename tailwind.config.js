@@ -50,7 +50,11 @@ module.exports = {
           700: '#B45309',
           800: '#92400E',
         },
-        mint: { 500: '#10B981', 600: '#059669', 700: '#047857' },
+        /* 800 added for contrast, not for palette symmetry: white on mint-600
+           measures 3.77:1 and mint-700 text on a mint-tinted card measures
+           4.46:1, both under the 4.5:1 WCAG 1.4.3 AA floor for normal text.
+           Continues the same emerald ramp the other three come from. */
+        mint: { 500: '#10B981', 600: '#059669', 700: '#047857', 800: '#065F46' },
       },
       fontFamily: {
         display: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],

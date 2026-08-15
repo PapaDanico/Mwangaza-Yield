@@ -149,7 +149,7 @@ export default function LadderPage() {
               onClick={() =>
                 shareText(formatLadderSummary(plan, APP_URL))
               }
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-600 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-700 sm:flex-none"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-700 px-3 py-2 text-sm font-semibold text-white hover:bg-mint-800 sm:flex-none"
             >
               <Share2 size={15} /> Share
             </button>

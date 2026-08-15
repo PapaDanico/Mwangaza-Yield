@@ -1320,7 +1320,16 @@ async function main() {
    * not run on built output invents defects. */
   console.log('\nlayout');
   {
-    const layoutRoutes = ['/', '/dashboard/', '/calculator/', '/ladder/', '/auctions/', '/tbills/'];
+    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
+       reason for writing the check: a shared layout component goes wrong at
+       scale, and a sweep that samples is a sample. Generated from
+       `find src/app -name page.tsx`. */
+    const layoutRoutes = [
+      '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
+      '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
+      '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
+      '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
+    ];
     for (const route of layoutRoutes) {
       await page.goto(BASE + route, { waitUntil: 'networkidle' });
       await page.waitForTimeout(600);

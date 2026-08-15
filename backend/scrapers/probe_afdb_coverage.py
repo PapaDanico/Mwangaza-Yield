@@ -71,7 +71,87 @@ def text_of(record) -> str:
     return json.dumps(record, default=str).lower()
 
 
+def licence_pages_check() -> None:
+    head("LICENCE (A). The licence, read from the pages that actually govern it")
+    # The previous run of this probe ended with "read the terms in a browser
+    # and record where". This is the where. Two candidates, because the Kenya
+    # portal is Knoema-hosted for the AfDB and either could carry the notice:
+    # the AfDB's own data portal terms, and the Kenya portal's terms page.
+    #
+    # A search summary asserts these say CC BY 4.0 with the attribution format
+    # "The African Development Bank: Dataset name: Dataset link". A search
+    # summary is not a licence. This fetches the pages and looks for the
+    # markers, so the answer in the log comes from the publisher.
+    #
+    # Absence of a marker is NOT permission. If these render client-side too,
+    # the verdict stays UNVERIFIED and someone has to ask the AfDB directly.
+    licence_pages = (
+        "https://projectsportal.afdb.org/dataportal/home/termsConditions",
+        "https://kenya.opendataforafrica.org/termsofuse",
+        "https://dataportal.opendataforafrica.org/termsofuse",
+    )
+    MARKERS = (
+        "creativecommons.org/licenses/by/4.0",
+        "creative commons attribution 4.0",
+        "cc-by 4.0",
+        "cc by 4.0",
+    )
+    confirmed_on = []
+    unreachable = []
+    read_without_markers = []
+    for url in licence_pages:
+        resp, err = get(url)
+        if err or resp is None:
+            print(f"  {url}\n    unreachable: {err}")
+            unreachable.append(url)
+            continue
+        body = (resp.text or "").lower()
+        hits = [m for m in MARKERS if m in body]
+        attribution = "dataset name: dataset link" in body
+        print(f"  {url}\n    HTTP {resp.status_code}, {len(body)} chars"
+              f", CC BY markers: {hits or 'none'}"
+              f", attribution format present: {attribution}")
+        if resp.status_code == 200 and hits:
+            confirmed_on.append(url)
+        elif resp.status_code == 200:
+            read_without_markers.append(url)
+        else:
+            unreachable.append(url)
+
+    if confirmed_on:
+        print("\nverdict: CC BY 4.0 CONFIRMED from the publisher's own page(s):")
+        for u in confirmed_on:
+            print(f"         {u}")
+        print("         Record this URL and the date in lib/provenance.ts before")
+        print("         republishing anything — the licence is a claim we make too.")
+    elif read_without_markers:
+        print("\nverdict: UNVERIFIED — pages were READ and carry no CC BY marker:")
+        for u in read_without_markers:
+            print(f"         {u}")
+        print("         Either they render terms client-side like the portal HTML,")
+        print("         or the wording differs from what a search summary claimed.")
+        print("         Do not republish on this basis.")
+    else:
+        print("\nverdict: NOT ANSWERED — no terms page could be fetched at all.")
+        print("         This says nothing about the AfDB's licence. It is a fact")
+        print("         about this run's network, and the two must not be confused:")
+        print("         fiscal-context.json records PDMO being written up as")
+        print("         geo-blocked while it answered 200 on three consecutive runs")
+        print("         from a CI runner. Re-run this job where egress is real.")
+        for u in unreachable:
+            print(f"         unreached: {u}")
+
+
 def main() -> int:
+    # The licence question lives on different hosts from the coverage
+    # question, so it is asked FIRST and unconditionally. It used to sit at
+    # step 4, behind three early returns: one 403 on the Knoema host and the
+    # licence answer — the one that actually gates republishing — was never
+    # printed at all. That is the same "one hung host away from never being
+    # read" failure the workflow guards against between jobs, reproduced
+    # inside a single script.
+    licence_pages_check()
+
     head("1. What does the Kenya portal's dataset list actually contain?")
     resp, err = get(KENYA_META)
     if err:
@@ -145,7 +225,7 @@ def main() -> int:
         print("         series does not already give us, and the World Bank is")
         print("         first-hand-ish where this is a copy of a copy.")
 
-    head("4. The licence, read from the API rather than a search snippet")
+    head("4b. The licence, read from the API rather than a search snippet")
     # The HTML pages hid it (client-side rendering). If the metadata carries a
     # licence or attribution field, that is the authoritative place to find it.
     licence_keys = set()

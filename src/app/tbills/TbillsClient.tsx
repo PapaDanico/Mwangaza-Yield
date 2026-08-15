@@ -171,7 +171,7 @@ export default function TbillsClient() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-ink-muted">You receive in {selected.tenorDays} days</span>
-              <span className="num font-semibold text-mint-700">{formatKES(result.netProceedsKES)}</span>
+              <span className="num font-semibold text-mint-800">{formatKES(result.netProceedsKES)}</span>
             </div>
           </div>
         </div>

@@ -125,6 +125,81 @@ def report_imf() -> None:
     print(f"   licence: see https://www.imf.org/external/terms.htm — check before republishing.")
 
 
+def report_imf_catalogue() -> None:
+    """WHAT ELSE the IMF carries for Kenya, not just the one debt ratio.
+
+    `report_imf` above asks a closed question — does GGXWDG_NGDP have a KEN
+    series — and answers it well. It cannot tell us what we are not already
+    asking for, and the sovereign panel needs denominators and fiscal
+    aggregates that we currently have no permitted machine-readable source for.
+
+    So this enumerates. It reads the DataMapper indicator catalogue, then checks
+    Kenya coverage for the handful of series this project would actually use,
+    and reports the LAST year of each so a reader can see immediately whether
+    they are being offered an outturn or a forecast.
+
+    It writes nothing and decides nothing. Coverage is not permission: the IMF
+    terms still gate republication, and every value at or beyond the current
+    year is a projection whatever the catalogue says.
+    """
+    catalogue = "https://www.imf.org/external/datamapper/api/v1/indicators"
+    print(f"\n-- IMF DataMapper indicator catalogue")
+    print(f"   url    : {catalogue}")
+    status, body, err = get(catalogue)
+    if err:
+        print(f"   FAILED : {err}")
+        print("   NOTE   : a fact about this run's egress, not about the IMF.")
+        return
+    print(f"   status : {status}")
+    if status != 200 or not body:
+        print(f"   body   : {(body or '')[:300]}")
+        return
+    try:
+        indicators = (json.loads(body) or {}).get("indicators", {})
+    except json.JSONDecodeError:
+        print(f"   body   : not JSON — {body[:300]}")
+        return
+    print(f"   count  : {len(indicators)} indicators published")
+
+    # Chosen because each one fills a hole the panel currently papers over,
+    # not because they are interesting. Debt-to-GDP is deliberately absent —
+    # report_imf already owns it.
+    WANTED = {
+        "NGDP_RPCH": "real GDP growth (the denominator's rate of change)",
+        "PCPIPCH": "inflation, average consumer prices",
+        "GGR_NGDP": "general government revenue, % of GDP",
+        "GGX_NGDP": "general government expenditure, % of GDP",
+        "GGXCNL_NGDP": "fiscal balance, % of GDP",
+        "BCA_NGDPD": "current account balance, % of GDP",
+    }
+    for code, why in WANTED.items():
+        known = code in indicators
+        url = f"https://www.imf.org/external/datamapper/api/v1/{code}/KEN"
+        status, body, err = get(url)
+        line = f"   {code:12} {'in catalogue' if known else 'NOT in catalogue'}"
+        if err or status != 200 or not body:
+            print(f"{line} — fetch failed ({err or status})")
+            continue
+        try:
+            series = ((json.loads(body).get("values", {}) or {}).get(code, {}) or {}).get("KEN")
+        except json.JSONDecodeError:
+            print(f"{line} — not JSON")
+            continue
+        if not series:
+            print(f"{line} — no KEN series")
+            continue
+        years = sorted(series.keys())
+        print(f"{line} — KEN {years[0]}..{years[-1]}, last = {series[years[-1]]}")
+        print(f"                {why}")
+
+    print("\n   NOTE   : the DataMapper mixes outturns and projections without")
+    print("            flagging which is which. Any year at or beyond the current")
+    print("            one is a forecast, and a forecast printed beside measured")
+    print("            figures is the dishonest kind of accurate.")
+    print("   licence: https://www.imf.org/external/terms.htm gates all of this.")
+    print("            Coverage is not permission and this probe checks only coverage.")
+
+
 def report_fred() -> None:
     """FRED redistributes the IMF series; its CSV endpoint needs no key."""
     url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=KENGGXWDGG01GDPPT"
@@ -307,6 +382,9 @@ def main() -> int:
 
     head("2. The IMF, which is what Kenyan coverage is quoting")
     report_imf()
+
+    head("2b. What else the IMF carries for Kenya")
+    report_imf_catalogue()
 
     head("3. FRED, which redistributes the IMF series without a key")
     report_fred()

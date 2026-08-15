@@ -1330,9 +1330,31 @@ async function main() {
       '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
       '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
     ];
+    /* THREE VIEWPORTS, BECAUSE THE DEFECTS ARE NOT ALL ON PHONES.
+     *
+     * This swept 390px only — the width the rest of the suite runs at — which
+     * left the whole of tablet and desktop unchecked. That is not a
+     * theoretical gap: the sister project's ragged-button defect was fixed for
+     * phones and came back at 1440px, where a column narrowed enough to wrap
+     * two buttons into a stack, and it survived precisely because nothing
+     * looked above 390px.
+     *
+     * The viewport is restored to 390x844 at the end. Later checks in this
+     * file state that they run at the suite's phone width and would quietly
+     * start measuring a desktop layout otherwise. */
+    const VIEWPORTS = [
+      { name: 'phone', width: 390, height: 844 },
+      { name: 'tablet', width: 768, height: 1024 },
+      { name: 'desktop', width: 1440, height: 900 },
+    ];
+    for (const vp of VIEWPORTS) {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
     for (const route of layoutRoutes) {
-      await page.goto(BASE + route, { waitUntil: 'networkidle' });
-      await page.waitForTimeout(600);
+      /* `load` plus fonts.ready rather than `networkidle`: 22 routes across
+         three viewports is 66 loads, and what these checks read is font
+         metrics, not network silence. */
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await page.evaluate(() => document.fonts.ready.then(() => undefined));
       const found = await page.evaluate(() => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
@@ -1389,12 +1411,15 @@ async function main() {
         return out;
       });
 
-      if (found.over > 0) fail(`layout: ${route} scrolls sideways by ${found.over}px at 390px`);
-      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${route} ${c}`);
-      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${route} stacked buttons are ragged: ${r}`);
+      const at = `${route} @${vp.width}px`;
+      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px`);
+      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${at} ${c}`);
+      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${at} stacked buttons are ragged: ${r}`);
     }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('layout:'))) {
-      pass('no sideways scroll, no clipped text, no ragged button stacks at 390px');
+      pass(`no sideways scroll, no clipped text, no ragged button stacks (${layoutRoutes.length} routes x ${VIEWPORTS.length} viewports)`);
     }
   }
 

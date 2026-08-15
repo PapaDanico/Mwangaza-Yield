@@ -1437,6 +1437,23 @@ async function main() {
              discriminator, rather than exempting <footer> by name — the same
              text links misbehave identically outside a footer, and the same
              pills need catching inside one. */
+          /* ROWS COME FROM ALL CHILDREN, NOT FROM THE PAINTED ONES.
+             Filtering first and then asking "is each item alone on its line"
+             invents stacks: /ladder/ renders [Download PDF] then
+             [Save image + Print], which is flush, but Print draws no border,
+             so dropping it left Download PDF and Save image looking like a
+             ragged 358/180 two-item stack. The row structure is a fact about
+             the layout; the painted test is about which mismatches are worth
+             reporting. They have to happen in that order. */
+          const all = [...wrap.children].filter((e) => {
+            const r = e.getBoundingClientRect();
+            return r.height >= 8 && getComputedStyle(e).display !== 'none';
+          });
+          const rowOf = new Map();
+          for (const e of all) {
+            const t = Math.round(e.getBoundingClientRect().top);
+            rowOf.set(t, (rowOf.get(t) || 0) + 1);
+          }
           const kids = [...wrap.children].filter((e) => {
             if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
             const r = e.getBoundingClientRect();
@@ -1449,11 +1466,15 @@ async function main() {
             return painted;
           });
           if (kids.length < 2) continue;
-          const boxes = kids.map((k) => k.getBoundingClientRect());
+          /* Only controls that are genuinely ALONE on their line — counted
+             against every sibling, painted or not. */
+          const lone = kids.filter((k) => rowOf.get(Math.round(k.getBoundingClientRect().top)) === 1);
+          if (lone.length < 2) continue;
+          const boxes = lone.map((k) => k.getBoundingClientRect());
           if (!boxes.every((b, i) => i === 0 || b.top >= boxes[i - 1].bottom - 2)) continue;
           const widths = boxes.map((b) => Math.round(b.width));
           const spread = Math.max(...widths) - Math.min(...widths);
-          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(kids[0].textContent || '').trim().slice(0, 24)}"`);
+          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(lone[0].textContent || '').trim().slice(0, 24)}"`);
         }
         return out;
       });

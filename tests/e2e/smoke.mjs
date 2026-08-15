@@ -1342,7 +1342,19 @@ async function main() {
         for (const e of document.querySelectorAll('p,h1,h2,h3,li,td,caption,label')) {
           if (e.clientHeight < 8) continue;
           const cs = getComputedStyle(e);
-          if (cs.webkitLineClamp !== 'none') continue;
+          /* CLAMPED ELEMENTS ARE NOT EXEMPT, AND EXEMPTING THEM MADE THIS
+             CHECK DECORATION.
+             A `continue` on webkitLineClamp !== 'none' was briefly here,
+             carried over from the sister project where it reads as obviously
+             right: a deliberate clamp on a description is a decision, not a
+             bug. But the defect this check was written for IS a clamped
+             element — the auction banner hiding 132px of its identifier under
+             line-clamp:2 — so the exemption skipped the one thing it had to
+             see. The mutation run went green with the defect restored, which
+             is the only reason it was noticed.
+             A clamp says how much is shown. It does not say the amount hidden
+             is acceptable. The half-line rule below judges that for clamped
+             and unclamped text alike. */
           const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) || 16;
           if (e.scrollHeight - e.clientHeight > line * 0.5) {
             out.clipped.push(`${e.tagName.toLowerCase()} shows ${e.clientHeight}px of ${e.scrollHeight}px: "${(e.textContent || '').trim().slice(0, 40)}"`);

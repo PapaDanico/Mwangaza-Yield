@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   // resolves against this. Pointing it at the Netlify subdomain would keep
   // serving link previews from an address we no longer publish.
   metadataBase: new URL(APP_URL),
+  /* Self-referencing canonical, resolved per route against metadataBase.
+     Verified against built HTML rather than assumed: if './' resolved to the
+     site root instead of the current path it would point every page at the
+     homepage, which is worse than having no canonical at all. */
+  alternates: { canonical: './' },
   title: 'Mwangaza Yield — Government bonds, made plain',
   description:
     'When you lend to Kenya, know what you earn. See what a government bond really pays after tax, in plain language, before you commit a shilling. Free, private, works offline.',

@@ -1328,10 +1328,23 @@ async function main() {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
         /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
-           purpose, so anything with a real height is the only interesting case. */
+           purpose, so anything with a real height is the only interesting case.
+
+           The shortfall must exceed half a line before it counts. At +2px this
+           check passed here only by luck: the same rule run against the sister
+           project flagged nine headline figures, every one of them
+           `leading-none`, where line-height equals font-size while the font's
+           ascent plus descent does not. scrollHeight reports the font's
+           metrics, so a 48px box reports 53px and not one pixel of ink is
+           missing. That overshoot is always a fraction of a line; losing a line
+           of text never is. The banner defect below hid 132px against a 22px
+           line and clears this bar six times over. */
         for (const e of document.querySelectorAll('p,h1,h2,h3,li,td,caption,label')) {
           if (e.clientHeight < 8) continue;
-          if (e.scrollHeight > e.clientHeight + 2) {
+          const cs = getComputedStyle(e);
+          if (cs.webkitLineClamp !== 'none') continue;
+          const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) || 16;
+          if (e.scrollHeight - e.clientHeight > line * 0.5) {
             out.clipped.push(`${e.tagName.toLowerCase()} shows ${e.clientHeight}px of ${e.scrollHeight}px: "${(e.textContent || '').trim().slice(0, 40)}"`);
           }
         }

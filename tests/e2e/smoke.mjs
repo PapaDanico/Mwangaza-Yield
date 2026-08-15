@@ -111,6 +111,17 @@ const visibleGarbage = (page) => page.evaluate(() => {
   return out;
 });
 
+    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
+   reason for writing the check: a shared layout component goes wrong at
+   scale, and a sweep that samples is a sample. Generated from
+   `find src/app -name page.tsx`. */
+const SWEPT_ROUTES = [
+  '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
+  '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
+  '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
+  '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
+];
+
 async function main() {
   const server = await startServer();
   const browser = await chromium.launch({ executablePath: EXECUTABLE, args: ['--no-sandbox'] });
@@ -1320,16 +1331,7 @@ async function main() {
    * not run on built output invents defects. */
   console.log('\nlayout');
   {
-    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
-       reason for writing the check: a shared layout component goes wrong at
-       scale, and a sweep that samples is a sample. Generated from
-       `find src/app -name page.tsx`. */
-    const layoutRoutes = [
-      '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
-      '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
-      '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
-      '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
-    ];
+    // routes hoisted above; see SWEPT_ROUTES
     /* THREE VIEWPORTS, BECAUSE THE DEFECTS ARE NOT ALL ON PHONES.
      *
      * This swept 390px only — the width the rest of the suite runs at — which
@@ -1349,7 +1351,7 @@ async function main() {
     ];
     for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    for (const route of layoutRoutes) {
+    for (const route of SWEPT_ROUTES) {
       /* `load` plus fonts.ready rather than `networkidle`: 22 routes across
          three viewports is 66 loads, and what these checks read is font
          metrics, not network silence. */
@@ -1439,7 +1441,7 @@ async function main() {
     }
     await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('layout:'))) {
-      pass(`no sideways scroll, no clipped text, no ragged button stacks (${layoutRoutes.length} routes x ${VIEWPORTS.length} viewports)`);
+      pass(`no sideways scroll, no clipped text, no ragged button stacks (${SWEPT_ROUTES.length} routes x ${VIEWPORTS.length} viewports)`);
     }
   }
 
@@ -1462,7 +1464,7 @@ async function main() {
   console.log('\ncontrast');
   {
     await page.setViewportSize({ width: 1440, height: 900 });
-    for (const route of layoutRoutes) {
+    for (const route of SWEPT_ROUTES) {
       await page.goto(BASE + route, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready.then(() => undefined));
       const bad = await page.evaluate(() => {
@@ -1523,7 +1525,7 @@ async function main() {
     }
     await page.setViewportSize({ width: 390, height: 844 });
     if (!failures.some((f) => f.startsWith('contrast:'))) {
-      pass(`every text colour clears its WCAG AA floor (${layoutRoutes.length} routes)`);
+      pass(`every text colour clears its WCAG AA floor (${SWEPT_ROUTES.length} routes)`);
     }
   }
 

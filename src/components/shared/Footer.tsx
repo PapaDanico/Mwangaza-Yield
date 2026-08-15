@@ -69,12 +69,21 @@ export default function Footer() {
               A free, private tool that shows what Kenyan government bonds really pay once tax is
               taken off — so an ordinary saver can decide with the same clarity a bank does.
             </p>
+            {/* `grow` so this row finishes flush however it wraps.
+                These three are bordered chips, not text links: at 768px on a
+                machine whose fonts run slightly wider they stop sharing lines
+                and stack one per row at 149/132/110px, with three drawn right
+                edges in three different places. Locally they split 1-then-2
+                and looked fine, which is exactly why this needed measuring on
+                another machine rather than eyeballing.
+                `grow` states the rule without a breakpoint: a chip alone on
+                its line fills it, chips that share one finish flush. */}
             <div className="mt-5 flex flex-wrap gap-2">
               <a
                 href={CBK_WHATSAPP_CHANNEL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-mint-600/50 px-3.5 py-3.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
+                className="inline-flex grow items-center gap-1.5 rounded-lg border border-mint-600/50 px-3.5 py-3.5 text-xs font-medium text-mint-500 transition hover:bg-mint-600/10"
               >
                 <MessageCircle size={13} /> CBK on WhatsApp
               </a>
@@ -84,13 +93,13 @@ export default function Footer() {
                 href={PESA_SMART_CHANNEL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-500/50 px-3.5 py-3.5 text-xs font-medium text-gold-400 transition hover:bg-gold-500/10"
+                className="inline-flex grow items-center gap-1.5 rounded-lg border border-gold-500/50 px-3.5 py-3.5 text-xs font-medium text-gold-400 transition hover:bg-gold-500/10"
               >
                 <MessageCircle size={13} /> {PESA_SMART_NAME}
               </a>
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-sand-300/25 px-3.5 py-3.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
+                className="inline-flex grow items-center gap-1.5 rounded-lg border border-sand-300/25 px-3.5 py-3.5 text-xs font-medium text-sand-300/80 transition hover:bg-sand-50/5 hover:text-sand-50"
               >
                 <Mail size={13} /> Contact us
               </a>

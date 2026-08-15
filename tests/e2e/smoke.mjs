@@ -122,6 +122,31 @@ const SWEPT_ROUTES = [
   '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
 ];
 
+
+/* WAIT FOR HYDRATION, NOT JUST FOR LOAD.
+ *
+ * These sweeps briefly used `load` plus document.fonts.ready, on the argument
+ * that what they measure is font metrics rather than network silence. That was
+ * right about fonts and wrong about React: `networkidle` had been incidentally
+ * waiting for hydration, and dropping it dropped the client-rendered half of
+ * every page. Measured on /ladder/ — 272 elements at load, 864 once hydrated,
+ * so 68% of the page was never scanned, and the guard sailed past a 3.77:1
+ * button it was written to catch.
+ *
+ * Polling until the element count holds steady is deterministic where a fixed
+ * sleep is a guess, and it costs a few hundred ms rather than waiting on
+ * whatever the network happens to be doing. */
+async function settled(page) {
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  let last = -1;
+  for (let i = 0; i < 40; i++) {
+    const n = await page.evaluate(() => document.querySelectorAll('*').length);
+    if (n === last) return;
+    last = n;
+    await page.waitForTimeout(120);
+  }
+}
+
 async function main() {
   const server = await startServer();
   const browser = await chromium.launch({ executablePath: EXECUTABLE, args: ['--no-sandbox'] });
@@ -1356,7 +1381,7 @@ async function main() {
          three viewports is 66 loads, and what these checks read is font
          metrics, not network silence. */
       await page.goto(BASE + route, { waitUntil: 'load' });
-      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      await settled(page);
       const found = await page.evaluate(() => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
 
@@ -1466,7 +1491,7 @@ async function main() {
     await page.setViewportSize({ width: 1440, height: 900 });
     for (const route of SWEPT_ROUTES) {
       await page.goto(BASE + route, { waitUntil: 'load' });
-      await page.evaluate(() => document.fonts.ready.then(() => undefined));
+      await settled(page);
       const bad = await page.evaluate(() => {
         const parse = (c) => {
           const m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);

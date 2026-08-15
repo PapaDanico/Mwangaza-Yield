@@ -49,16 +49,22 @@ export default function LandingPage() {
             the people whose money it is. So we show it: what a bond pays <em>after tax</em>, in
             plain language, before you commit a single shilling.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          {/* Stacked buttons match each other's width; side-by-side ones do not.
+              Measured at 390px, these wrapped to their own content widths — 189px
+              above 158px — leaving a ragged right edge and a 31px step between two
+              choices that carry equal weight. A phone has one column, so a button
+              that stops short of it reads as unfinished rather than as emphasis.
+              Full width below sm:, intrinsic width once they sit in a row. */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/dashboard/"
-              className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3 font-display text-sm font-semibold text-sand-50 shadow-card transition hover:bg-ink-soft"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 font-display text-sm font-semibold text-sand-50 shadow-card transition hover:bg-ink-soft sm:w-auto"
             >
               See today&apos;s rates <ArrowRight size={16} />
             </Link>
             <Link
               href="/goals/"
-              className="inline-flex items-center gap-2 rounded-xl border border-sand-400 bg-sand-50 px-6 py-3 font-display text-sm font-semibold text-ink transition hover:border-gold-500"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-sand-400 bg-sand-50 px-6 py-3 font-display text-sm font-semibold text-ink transition hover:border-gold-500 sm:w-auto"
             >
               Start with a goal
             </Link>

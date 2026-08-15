@@ -1396,10 +1396,30 @@ async function main() {
            stacked is decided by geometry, not by a breakpoint, so this keeps
            holding when copy length moves where the wrap happens. */
         for (const wrap of document.querySelectorAll('div,nav,section,form')) {
+          /* A BUTTON, NOT MERELY A LINK THAT IS TALL ENOUGH.
+             Matching every A over 32px caught the footer's link column —
+             "CBK on WhatsApp" / "Pesa Smart KE" / "Contact us" at
+             149/132/110px, on all 22 routes at 768px. Those are plain text
+             links in a nav list, and ragged left-aligned text is what a list
+             of links is SUPPOSED to look like; forcing them to a common width
+             would be the defect, not the fix.
+             What makes the ragged-stack shape wrong is that the items are
+             chips or buttons: they carry a visible background or border, so
+             their right edges are drawn and a mismatch reads as unfinished. A
+             bare text link draws no edge and has nothing to align. That is the
+             discriminator, rather than exempting <footer> by name — the same
+             text links misbehave identically outside a footer, and the same
+             pills need catching inside one. */
           const kids = [...wrap.children].filter((e) => {
             if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
             const r = e.getBoundingClientRect();
-            return r.height >= 32 && r.width > 40 && getComputedStyle(e).display !== 'none';
+            if (r.height < 32 || r.width <= 40) return false;
+            const cs = getComputedStyle(e);
+            if (cs.display === 'none') return false;
+            const painted =
+              (cs.backgroundColor && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor)) ||
+              (parseFloat(cs.borderTopWidth) > 0 && !/rgba\(0, 0, 0, 0\)|transparent/.test(cs.borderTopColor));
+            return painted;
           });
           if (kids.length < 2) continue;
           const boxes = kids.map((k) => k.getBoundingClientRect());

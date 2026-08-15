@@ -19,12 +19,19 @@ import { join } from 'node:path';
  *
  * WHY THIS IS A SOURCE SCAN
  *
- * The rendering is the thing that broke, and this repo has no browser test
- * runner — tests/e2e holds one smoke script. A scan cannot prove the text fits,
- * but it can hold the decision that made it fit: the identifier is rendered
- * alone, and it is not clamped or truncated. Both mutations that reintroduce
- * the defect — merging the fields back together, or putting a clamp back on the
- * code — fail here. It is deliberately narrow about what it claims.
+ * It said here that the repo has no browser test runner. That was wrong.
+ * tests/e2e/smoke.mjs drives real Chromium against the built ./out at 390px and
+ * runs in CI as `npm run test:e2e` — the exact width and the exact artefact
+ * this defect needed — and the claim was made without looking. The rendering
+ * assertion now lives there, under `layout`, where it can measure what a source
+ * file cannot: whether the text actually fits.
+ *
+ * This file is kept because the two guards fail on different mutations. The
+ * smoke check fails when the identifier is clipped BY TODAY'S DATA; a shorter
+ * issue code would slip past it while leaving the same latent bug for the next
+ * switch auction. This one fails whenever the fields are merged or a clamp is
+ * put back on the code, regardless of what the data happens to be. Neither
+ * subsumes the other, and the cheap one is not the one that proves it renders.
  */
 const SRC = join(process.cwd(), 'src/components/dashboard/AuctionBanner.tsx');
 

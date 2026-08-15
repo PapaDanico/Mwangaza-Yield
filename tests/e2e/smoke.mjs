@@ -1299,6 +1299,105 @@ async function main() {
     }
   }
 
+  /* ------------------------------------------------------------- layout */
+  /* WHAT A SOURCE SCAN CANNOT SEE.
+   *
+   * Two layout defects shipped this month and both were invisible to the unit
+   * suite by construction, because both are about what a clamp or a wrap DOES
+   * at a width rather than about which classes are written down.
+   *
+   *   - The auction banner clamped `issueCode · bondName` as one paragraph, so
+   *     the two fields shared a two-line budget spent in reading order. At
+   *     390px the card read "FXD1/2012/015 + bills →…" — an arrow pointing at
+   *     nothing, with the bond being switched INTO cut off.
+   *   - The sister repo's hero buttons were fixed for phones and reappeared
+   *     ragged at 1440px, where the column narrowed enough to wrap them.
+   *
+   * These run against ./out, which matters more than it sounds: the same scan
+   * pointed at the dev server reported 130px of horizontal overflow on all
+   * twelve routes, an artifact of unapplied CSS leaving a logo at its natural
+   * 512px. The production build overflows by zero. A layout check that does
+   * not run on built output invents defects. */
+  console.log('\nlayout');
+  {
+    /* EVERY ROUTE, NOT A SAMPLE. This was six routes, which contradicted the
+       reason for writing the check: a shared layout component goes wrong at
+       scale, and a sweep that samples is a sample. Generated from
+       `find src/app -name page.tsx`. */
+    const layoutRoutes = [
+      '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
+      '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
+      '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
+      '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
+    ];
+    for (const route of layoutRoutes) {
+      await page.goto(BASE + route, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(600);
+      const found = await page.evaluate(() => {
+        const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
+
+        /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
+           purpose, so anything with a real height is the only interesting case.
+
+           The shortfall must exceed half a line before it counts. At +2px this
+           check passed here only by luck: the same rule run against the sister
+           project flagged nine headline figures, every one of them
+           `leading-none`, where line-height equals font-size while the font's
+           ascent plus descent does not. scrollHeight reports the font's
+           metrics, so a 48px box reports 53px and not one pixel of ink is
+           missing. That overshoot is always a fraction of a line; losing a line
+           of text never is. The banner defect below hid 132px against a 22px
+           line and clears this bar six times over. */
+        for (const e of document.querySelectorAll('p,h1,h2,h3,li,td,caption,label')) {
+          if (e.clientHeight < 8) continue;
+          const cs = getComputedStyle(e);
+          /* CLAMPED ELEMENTS ARE NOT EXEMPT, AND EXEMPTING THEM MADE THIS
+             CHECK DECORATION.
+             A `continue` on webkitLineClamp !== 'none' was briefly here,
+             carried over from the sister project where it reads as obviously
+             right: a deliberate clamp on a description is a decision, not a
+             bug. But the defect this check was written for IS a clamped
+             element — the auction banner hiding 132px of its identifier under
+             line-clamp:2 — so the exemption skipped the one thing it had to
+             see. The mutation run went green with the defect restored, which
+             is the only reason it was noticed.
+             A clamp says how much is shown. It does not say the amount hidden
+             is acceptable. The half-line rule below judges that for clamped
+             and unclamped text alike. */
+          const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) || 16;
+          if (e.scrollHeight - e.clientHeight > line * 0.5) {
+            out.clipped.push(`${e.tagName.toLowerCase()} shows ${e.clientHeight}px of ${e.scrollHeight}px: "${(e.textContent || '').trim().slice(0, 40)}"`);
+          }
+        }
+
+        /* Buttons stacked one per line must agree on width. Whether they are
+           stacked is decided by geometry, not by a breakpoint, so this keeps
+           holding when copy length moves where the wrap happens. */
+        for (const wrap of document.querySelectorAll('div,nav,section,form')) {
+          const kids = [...wrap.children].filter((e) => {
+            if (e.tagName !== 'A' && e.tagName !== 'BUTTON') return false;
+            const r = e.getBoundingClientRect();
+            return r.height >= 32 && r.width > 40 && getComputedStyle(e).display !== 'none';
+          });
+          if (kids.length < 2) continue;
+          const boxes = kids.map((k) => k.getBoundingClientRect());
+          if (!boxes.every((b, i) => i === 0 || b.top >= boxes[i - 1].bottom - 2)) continue;
+          const widths = boxes.map((b) => Math.round(b.width));
+          const spread = Math.max(...widths) - Math.min(...widths);
+          if (spread > 2) out.ragged.push(`${widths.join('/')}px — "${(kids[0].textContent || '').trim().slice(0, 24)}"`);
+        }
+        return out;
+      });
+
+      if (found.over > 0) fail(`layout: ${route} scrolls sideways by ${found.over}px at 390px`);
+      for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${route} ${c}`);
+      for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${route} stacked buttons are ragged: ${r}`);
+    }
+    if (!failures.some((f) => f.startsWith('layout:'))) {
+      pass('no sideways scroll, no clipped text, no ragged button stacks at 390px');
+    }
+  }
+
   /* --------------------------------------------------------- page errors */
   console.log('\nconsole');
   if (errors.length) {

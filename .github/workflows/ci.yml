@@ -253,6 +253,7 @@ jobs:
           python test_afdb_licence.py
           python test_unreachable.py
           python test_tls_chain.py
+          python test_indexnow.py
           # Must come last: it asserts every file above is actually invoked.
           python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE
@@ -477,6 +478,22 @@ jobs:
         # (#176). Runs after the debt probe because they share a host.
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
+
+      - name: Tell Bing and Yandex the data changed (IndexNow)
+        # Runs on the scheduled/refresh path only, after the data commit, so
+        # what gets announced is a deploy that has actually happened.
+        #
+        # No account, no OAuth, no secret: IndexNow verifies by fetching a key
+        # published at the site root, which is why that key lives in the
+        # repository in public/. Google withdrew its sitemap ping endpoint in
+        # June 2023 and offers no equivalent keyless route, so Google discovery
+        # rests on the Sitemap: line in robots.txt, which is already there.
+        #
+        # Never gates: a search engine not hearing about a refresh costs a day
+        # of crawl latency, and is not a reason to fail a data pipeline.
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        working-directory: backend/scrapers
+        run: timeout -k 20s 120s python indexnow.py || echo "indexnow failed — see output above"
 
       - name: Probe CBK for a machine-readable T-bill rate history
         # The app has NO Treasury bill history: tbills.json holds three rows and

@@ -95,10 +95,39 @@ node scripts/build-rates-feed.mjs
 cd backend/scrapers && python healthcheck.py --publish
 ```
 
+Each of those prints one line on a source it cannot reach — `[cbr-history]
+source unreachable: ProxyError: ...` — and exits 1. A **traceback** means
+something other than the network went wrong, and is worth reading rather than
+retrying. Three of them used to print a traceback either way; that is why the
+distinction is now reliable.
+
 `healthcheck.py --publish` is what writes `public/data/freshness.json`. Skip it
 and the per-dataset ages stay frozen at their previous values while the figures
 around them change — the site would then under-report staleness, which is worse
 than not refreshing at all.
+
+### These commands WRITE, even when they fail
+
+Running any of them mutates `public/data/` in place. That is the point when the
+network is up, and a trap when it is not: a scraper that reaches nothing still
+carries the previous value forward and still stamps `meta.json` with the time
+it ran.
+
+Dry-running this sequence from a container with no egress bumped
+`generatedAt` from `2026-08-15` to `2026-08-16` while fetching nothing. Commit
+that and the site is told the pipeline ran today — which **suppresses the
+staleness notice** described above, on data that is exactly as old as it was.
+The banner would go quiet at the moment it was most needed.
+
+So check what actually changed before staging, and throw away a failed run:
+
+```bash
+git diff --stat public/data/          # what did this run really touch?
+git diff public/data/meta.json        # did generatedAt move without new data?
+git checkout -- public/data/          # discard a run that fetched nothing
+```
+
+Only keep `public/data/` from a run whose scrapers reached their sources.
 
 ### Before committing
 

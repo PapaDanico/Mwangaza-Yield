@@ -251,6 +251,7 @@ jobs:
           python test_qebr.py
           python test_qebr_parser.py
           python test_afdb_licence.py
+          python test_unreachable.py
           # Must come last: it asserts every file above is actually invoked.
           python test_ci_runs_every_test.py
       # Every other check in this repository asks whether a source is REACHABLE

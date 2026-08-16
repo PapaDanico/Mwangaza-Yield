@@ -3,7 +3,13 @@ node_modules/
 out/
 *.tsbuildinfo
 next-env.d.ts
-.env*.local
+# Every env file, not only the .local variants. The previous pattern
+# `.env*.local` left a plain `.env` — the name the Next.js docs use, and the
+# one a person types first — tracked. That was survivable while this repo was
+# private and is not now.
+.env
+.env.*
+!.env.example
 __pycache__/
 healthcheck-report.txt
 archive-integrity.txt

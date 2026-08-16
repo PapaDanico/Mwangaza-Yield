@@ -478,6 +478,24 @@ jobs:
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
 
+      - name: Probe CBK for a machine-readable T-bill rate history
+        # The app has NO Treasury bill history: tbills.json holds three rows and
+        # is written by no scraper. The known route is ~250 weekly results PDFs,
+        # each needing the column-geometry parsing auction_results.py does for
+        # bonds — weeks of work and a permanent maintenance surface.
+        #
+        # Research turned up a live CSV on CBK's own site,
+        # /uploads/interest_rates/..._Central Bank Rates.csv, which proves the
+        # statistics tables have a CSV export materialising static files under
+        # /uploads/<slug>/. If the T-bill tables export the same way, the whole
+        # PDF path collapses into one HTTP GET.
+        #
+        # This probe cannot be run from a development container — CBK is behind
+        # an egress policy denial there — so CI is the only place the question
+        # can be answered. Read-only, writes nothing, never gates.
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_tbill_rates.py || echo "T-bill rate probe failed — see output above"
+
       - name: Probe whether the AfDB actually carries quarterly Kenyan GDP
         # Connectivity was settled by the step above: all six AfDB URLs answer
         # 200 and /api/1.0/meta/dataset returns 202 records for Kenya. That is

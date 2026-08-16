@@ -9,6 +9,7 @@
     "lint": "next lint --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "verify": "npm run typecheck && npm run lint && npm run test",
     "test:e2e": "node tests/e2e/smoke.mjs",
     "verify:csp": "node scripts/verify-csp.mjs",
     "build:engine": "node scripts/build-engine.mjs",

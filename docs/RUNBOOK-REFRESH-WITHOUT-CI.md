@@ -104,8 +104,15 @@ than not refreshing at all.
 
 ```bash
 cd backend/scrapers && python healthcheck.py    # no --publish: reports only
-cd ../.. && npx vitest run && npx tsc --noEmit && npm run build
+cd ../.. && npm run verify && npm run build
 ```
+
+`npm run verify` is typecheck, lint and unit tests in that order, and the order
+is the point. `next build` does not typecheck anything under `tests/`, and
+vitest transpiles without checking types, so a type error in a test file passes
+both and reaches `main` — which is exactly how it did. Running the three
+separately also invites running one of them before the last edit and reading
+its result as though it covered what shipped.
 
 Then commit `public/data/` and push to `main`. Netlify redeploys on push, which
 is the same path the `refresh-data` job uses — it commits to `main` and lets the

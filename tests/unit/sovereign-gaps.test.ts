@@ -24,6 +24,7 @@ const indicator = (label: string): ContextIndicator => ({
   source: 'World Bank Open Data (CC BY 4.0)',
   sourceUrl: 'https://data.worldbank.org',
   note: 'a note',
+  sentiment: 'good',
 });
 
 /** The seven that actually arrive, as context.json holds them today. */

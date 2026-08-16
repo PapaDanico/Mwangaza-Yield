@@ -48,13 +48,6 @@ const ALLOWED: Record<string, string> = {
     'scripts/engine-smoke.mjs and scripts/build-rates-feed.mjs, which package it for ' +
     'external licensees. It is deliberately independent of the app so a licensee ' +
     'takes the arithmetic without the UI.',
-  'src/lib/auction-review.ts':
-    'The monthly auction review. Held back deliberately — see the file header. Its ' +
-    'gate is now checkable rather than prose: archiveIsPublishable() reports whether ' +
-    'every usable row is at the current parser version, because a median taken ' +
-    'mid-rebuild mixes two parsers output. That gate now PASSES, so this entry is ' +
-    'the remaining work, not a permanent exemption: publish the review and delete ' +
-    'this line.',
 };
 
 function walk(dir: string): string[] {

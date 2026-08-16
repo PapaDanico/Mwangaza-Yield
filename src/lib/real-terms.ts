@@ -37,6 +37,19 @@ export interface RealTerms {
   /** The CPI y/y print used, and when it was published. */
   inflationPct: number;
   inflationAsOf: string;
+  /**
+   * WHERE THE FIGURE WAS READ FROM, WHICH IS NOT ALWAYS WHO PUBLISHED IT.
+   *
+   * provenance.ts states the rule this exists to keep: the CPI originates with
+   * KNBS but is READ FROM CBK, because KNBS is not reliably reachable, and
+   * "crediting KNBS implies we fetched it. We did not."
+   *
+   * /tbills/ credited KNBS anyway — the string was hard-coded in the JSX while
+   * macro.json recorded `source: "CBK"` against the very reading being shown.
+   * Carrying the source with the number is what stops the two drifting apart
+   * again.
+   */
+  inflationSource: string;
   /** What is left after inflation, by the Fisher relation. */
   realPct: number;
   /** True when the rate does not keep pace with prices. */
@@ -69,6 +82,7 @@ export function realTerms(netPct: number, macro: MacroIndicator[]): RealTerms | 
     netPct,
     inflationPct: reading.rate,
     inflationAsOf: reading.asOf,
+    inflationSource: reading.source,
     realPct,
     losesToInflation: realPct < 0,
   };

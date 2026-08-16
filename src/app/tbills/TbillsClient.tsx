@@ -130,8 +130,12 @@ export default function TbillsClient({
           <Info size={18} className="mt-0.5 shrink-0 text-ink-soft" aria-hidden="true" />
           <p className="text-sm leading-relaxed text-ink-soft">
             <span className="font-semibold text-ink">And prices rose too.</span>{' '}
-            With inflation at <span className="num">{formatPct(real.inflationPct)}</span> (KNBS,{' '}
-            {real.inflationAsOf}), the {selected.tenorDays}-day bill&apos;s{' '}
+            {/* The source is read from the reading, not written here. This line
+                said "KNBS" while macro.json recorded the print as read from
+                CBK — the exact substitution provenance.ts warns about, on the
+                page most likely to be quoted. */}
+            With inflation at <span className="num">{formatPct(real.inflationPct)}</span> (
+            {real.inflationSource}, {real.inflationAsOf}), the {selected.tenorDays}-day bill&apos;s{' '}
             <span className="num">{formatPct(real.netPct)}</span> net leaves{' '}
             <span
               className={`num font-semibold ${real.losesToInflation ? 'text-red-600' : 'text-mint-700'}`}

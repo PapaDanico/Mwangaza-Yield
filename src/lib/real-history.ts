@@ -98,8 +98,16 @@ export interface RealReading {
 
 const DAY = 86_400_000;
 
-/** The CPI print in force on `date`: the most recent one at or before it. */
-function cpiInForce(date: string, cpi: CpiPoint[]): CpiPoint | null {
+/**
+ * The CPI print in force on `date`: the most recent one at or before it.
+ *
+ * Exported because `sovereign-record.ts` asks the same question of bond
+ * auctions, and the pairing rule — never reach forward, never reach further
+ * back than `MAX_CPI_GAP_DAYS` — is the part that has to stay identical
+ * between the two. Two copies of it would drift, and the drift would show up
+ * as two surfaces disagreeing about the same month.
+ */
+export function cpiInForce(date: string, cpi: CpiPoint[]): CpiPoint | null {
   const t = Date.parse(date);
   let best: CpiPoint | null = null;
   for (const point of cpi) {

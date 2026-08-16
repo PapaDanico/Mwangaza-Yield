@@ -652,6 +652,16 @@ jobs:
       # The calendar must refresh BEFORE the ledger runs: the ledger records a
       # forecast only for a future auction with named bonds, and this is what
       # names them. Ordering is the whole point — see refresh_calendar.py.
+      # The QEBR carries three of the sovereign panel's ratios QUARTERLY, where
+      # the World Bank's Kenya series are annual and lag their reference year.
+      # It writes its OWN file; lib/sovereign-merge.ts shows whichever row is
+      # fresher. Merging on disk would break both scrapers' completeness guards,
+      # which count what came back against what their own file already holds.
+      - name: Refresh the sovereign ratios the Treasury publishes quarterly
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
+        id: qebr
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python qebr_parser.py --write || echo "failed=qebr" >> "$GITHUB_OUTPUT"
       - name: Refresh the auction calendar from CBK prospectuses
         if: ${{ !inputs.test_alert && !inputs.test_recovery }}
         id: calendar
@@ -798,6 +808,7 @@ jobs:
               '${{ steps.worldbank.outputs.failed }}',
               '${{ steps.registry.outputs.failed }}',
               '${{ steps.auctions.outputs.failed }}',
+              '${{ steps.qebr.outputs.failed }}',
               '${{ steps.calendar.outputs.failed }}',
               '${{ steps.expand.outputs.failed }}',
               '${{ steps.cbr.outputs.failed }}',

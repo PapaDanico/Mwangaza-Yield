@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Bond, AuctionSchedule, AuctionPrint, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
 import { db, type CpiPoint } from '@/lib/db';
+import { mergeSovereign } from '@/lib/sovereign-merge';
 
 interface BondState {
   bonds: Bond[];
@@ -65,7 +66,15 @@ export const useBondStore = create<BondState>((set) => ({
       // break market data. A missing history hides one panel; a rejected
       // Promise.all would blank the whole dashboard.
       const [context, cbrHistory, auctionResults, cpiHistory] = await Promise.all([
-        loadJSON<ContextIndicator[]>('/data/context.json').catch(() => []),
+        // Two files, merged for display rather than on disk: each scraper's
+        // completeness guard counts its own source, and a merged file would
+        // make a normal World Bank run look like a collapse. See
+        // lib/sovereign-merge.ts. Missing qebr-context.json is the ordinary
+        // case until the pipeline has written one, so it falls back to [].
+        Promise.all([
+          loadJSON<ContextIndicator[]>('/data/context.json').catch(() => []),
+          loadJSON<ContextIndicator[]>('/data/qebr-context.json').catch(() => []),
+        ]).then(([wb, qebr]) => mergeSovereign(wb, qebr)),
         loadJSON<RateDecision[]>('/data/cbr-history.json').catch(() => []),
         loadJSON<AuctionPrint[]>('/data/auction-results.json').catch(() => []),
         loadJSON<CpiPoint[]>('/data/cpi-history.json').catch(() => []),

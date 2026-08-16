@@ -4,3 +4,11 @@ openpyxl
 requests
 lxml
 beautifulsoup4
+# tls_chain.py completes a server's certificate chain by following the AIA
+# caIssuers pointer, which is how KNBS becomes readable without ever disabling
+# verification. cryptography parses the certificate; certifi supplies the CA
+# bundle the intermediate is appended to. pdfplumber pulls cryptography in
+# transitively today, but a transitive dependency is not a declared one — and
+# this is the module where a silent version change would be least welcome.
+cryptography
+certifi

@@ -65,6 +65,8 @@ from io import BytesIO
 
 import requests
 
+from common import write_dataset
+
 TIMEOUT = 45
 UA = {"User-Agent": "mwangaza-yield/1.0 (+https://mwangazayield.org)"}
 
@@ -256,6 +258,27 @@ def reporting_period(text: str) -> str | None:
     return None
 
 
+# Sentiment thresholds are COPIED FROM worldbank.py deliberately, not chosen
+# here. These three labels also arrive from the World Bank, and the panel shows
+# whichever is fresher — so the same metric judged by a different threshold
+# depending on which source won that day would be a verdict that changed with
+# the weather. If a threshold is ever revised, revise both.
+SENTIMENT_RULES = {
+    "GDP growth": (5.0, "higher"),
+    "Reserves (import cover)": (4.0, "higher"),
+    "Current account / GDP": (-5.0, "higher"),
+}
+
+
+def sentiment_for(value: float, rule) -> str:
+    """'good' | 'caution' | 'watch', identical to the World Bank scraper's."""
+    if not rule:
+        return "watch"
+    threshold, direction = rule
+    ok = value >= threshold if direction == "higher" else value <= threshold
+    return "good" if ok else "caution"
+
+
 INDICATORS = [
     ("qebr-gdp-growth", "GDP growth", gdp_growth, "% y/y",
      "Whether the economy behind the borrowing is still expanding. Growth is "
@@ -288,6 +311,7 @@ def extract(text: str, period: str | None = None) -> list:
             "source": SOURCE,
             "sourceUrl": INDEX,
             "note": note,
+            "sentiment": sentiment_for(value, SENTIMENT_RULES.get(label)),
         })
     return out
 
@@ -348,6 +372,23 @@ def main() -> int:
         print(f"  {lbl:26}    NOT FOUND — refusing rather than guessing")
     print("\nInterest / government revenue      REFUSED BY DESIGN — the matches "
           "are FOREIGN interest and a revenue SHORTFALL, not totals.")
+
+    # --write turns the dry run into the pipeline step. The default stays a dry
+    # run so probe-debt-sources keeps behaving exactly as it did.
+    #
+    # ITS OWN FILE, NOT MERGED INTO context.json
+    # ------------------------------------------
+    # Both scrapers guard themselves by counting what came back against what
+    # the existing file holds. Merging two sources into one file breaks that
+    # arithmetic in a way neither can see: a World Bank run returning its
+    # normal seven, judged against a merged file of ten, would refuse forever.
+    # So each source owns a file and lib/sovereign-merge.ts decides which row
+    # a reader sees.
+    if "--write" in sys.argv:
+        if not records:
+            print("[qebr] nothing extracted — keeping the existing file", file=sys.stderr)
+            return 1
+        write_dataset("qebr-context", records)
 
     # --diagnose: print the raw text behind the two open questions.
     #

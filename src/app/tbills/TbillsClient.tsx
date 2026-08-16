@@ -11,6 +11,7 @@ import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import LiveResult from '@/components/shared/LiveResult';
 import { inputCls } from '@/lib/field-styles';
+import { nextAuctionLabel } from '@/lib/auction-schedule';
 import type { MacroIndicator, TBill } from '@/types/bond';
 
 /**
@@ -129,8 +130,12 @@ export default function TbillsClient({
           <Info size={18} className="mt-0.5 shrink-0 text-ink-soft" aria-hidden="true" />
           <p className="text-sm leading-relaxed text-ink-soft">
             <span className="font-semibold text-ink">And prices rose too.</span>{' '}
-            With inflation at <span className="num">{formatPct(real.inflationPct)}</span> (KNBS,{' '}
-            {real.inflationAsOf}), the {selected.tenorDays}-day bill&apos;s{' '}
+            {/* The source is read from the reading, not written here. This line
+                said "KNBS" while macro.json recorded the print as read from
+                CBK — the exact substitution provenance.ts warns about, on the
+                page most likely to be quoted. */}
+            With inflation at <span className="num">{formatPct(real.inflationPct)}</span> (
+            {real.inflationSource}, {real.inflationAsOf}), the {selected.tenorDays}-day bill&apos;s{' '}
             <span className="num">{formatPct(real.netPct)}</span> net leaves{' '}
             <span
               className={`num font-semibold ${real.losesToInflation ? 'text-red-600' : 'text-mint-700'}`}
@@ -175,9 +180,18 @@ export default function TbillsClient({
                 </button>
               ))}
             </div>
+            {/* The next-auction date is only printed while it is still in the
+                future. On 16 Aug 2026 this line read "next auction 2026-08-06"
+                — ten days gone — because the row was scraped from the 30 July
+                auction and two weekly auctions passed without a refresh. A
+                stale rate is a disclosed inaccuracy; a past date labelled
+                "next" is simply wrong. See lib/auction-schedule.ts for why the
+                real date is not computed instead. */}
             <p className="mt-2 text-xs text-ink-faint">
-              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of Ksh 50,000 ·
-              next auction {selected.nextAuctionDate}
+              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of Ksh 50,000
+              {nextAuctionLabel(selected.nextAuctionDate)
+                ? ` · next auction ${nextAuctionLabel(selected.nextAuctionDate)}`
+                : ' · auctioned weekly on Thursdays; our next-auction date is out of date'}
             </p>
           </div>
 

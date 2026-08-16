@@ -44,6 +44,8 @@ import sys
 
 import requests
 
+import tls_chain
+
 TIMEOUT = 30
 UA = {"User-Agent": "mwangaza-yield-probe/1.0 (+https://mwangazayield.org)"}
 
@@ -66,7 +68,16 @@ def head(title: str) -> None:
 def get(url: str):
     """Fetch, returning (response, error). Never raises."""
     try:
-        return requests.get(url, timeout=TIMEOUT, headers=UA), None
+        # tls_chain.get, not requests.get: KNBS serves its leaf certificate
+        # WITHOUT the intermediate that links it to a trusted root, so a plain
+        # request dies with "unable to get local issuer certificate". This
+        # follows the AIA pointer in KNBS's own certificate, fetches the
+        # missing intermediate and retries against a COMPLETED bundle.
+        #
+        # Verification is never disabled. If the chain still cannot be built
+        # the original SSLError is raised, and this probe reports it — a source
+        # we cannot authenticate is a source we do not publish.
+        return tls_chain.get(url, timeout=TIMEOUT, headers=UA), None
     except Exception as exc:  # noqa: BLE001 — the exception IS the finding
         return None, f"{type(exc).__name__}: {exc}"
 

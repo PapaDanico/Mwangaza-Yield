@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { CheckCircle2, MinusCircle, XCircle, ExternalLink } from 'lucide-react';
 import Prose from '@/components/shared/Prose';
+import { LICENCES, KNOWN_EXPOSURES } from '@/lib/licences';
 import ArchiveCoverage from '@/components/sources/ArchiveCoverage';
 import ArchiveDownload from '@/components/sources/ArchiveDownload';
 
@@ -247,15 +248,100 @@ export default function SourcesPage() {
         <a href="/support/">we can talk about it</a>.
       </p>
 
-      <h2>Attribution</h2>
+      <h2>Attribution, and what we are actually permitted to republish</h2>
       <p>
-        World Bank Open Data is used under{' '}
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
-          CC BY 4.0 <ExternalLink size={11} className="inline" />
-        </a>
-        . CBK, KNBS and National Treasury materials remain the property of their publishers and are
-        used for information with attribution. No Nairobi Securities Exchange data is used,
-        stored or republished anywhere in this application.
+        &ldquo;It is government data, so it is public&rdquo; is <strong>not true in Kenya</strong>.
+        There is no local equivalent of the American rule that puts government works in the public
+        domain: the Copyright Act No. 12 of 2001 gives works made under a government commission
+        fifty years of copyright, and the Statistics Act No. 4 of 2006 gives the Bureau a mandate
+        to <em>publish</em>, which is not a grant of reuse rights to anyone else. So each source
+        below was checked individually, and the sentence its own terms use is quoted rather than
+        summarised.
+      </p>
+      <p>
+        This table is generated from the same registry the build enforces. Every figure this site
+        publishes must resolve to a source marked <em>permitted</em> here, or the build fails —
+        so this page cannot drift from what the app actually does.
+      </p>
+      <div className="not-prose my-4 overflow-x-auto">
+        {/* Fixed layout with explicit widths. Auto layout sized the middle
+            column to the longest verdict string and crushed the quotes into a
+            column too narrow to read, which defeats the point of quoting them
+            rather than summarising. */}
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[18%]" />
+            <col className="w-[24%]" />
+            <col className="w-[58%]" />
+          </colgroup>
+          <thead>
+            <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
+              <th className="pb-1 pr-3 font-medium">Source</th>
+              <th className="pb-1 pr-3 font-medium">May we republish?</th>
+              <th className="pb-1 font-medium">On whose words</th>
+            </tr>
+          </thead>
+          <tbody>
+            {LICENCES.map((l) => (
+              <tr key={l.id} className="border-t border-sand-200 align-top">
+                <td className="py-1.5 pr-3 text-ink">{l.id}</td>
+                <td className="py-1.5 pr-3">
+                  <span
+                    className={
+                      l.verdict === 'permitted' ? 'text-mint-700' : 'text-ink-soft'
+                    }
+                  >
+                    {l.verdict === 'permitted' ? `Yes — ${l.licence}` : 'No'}
+                  </span>
+                </td>
+                <td className="py-1.5 text-ink-soft">
+                  <span className="italic">&ldquo;{l.terms}&rdquo;</span>
+                  {l.termsUrl && (
+                    <>
+                      {' '}
+                      <a
+                        href={l.termsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1 whitespace-nowrap"
+                      >
+                        terms <ExternalLink size={11} className="inline" />
+                      </a>
+                    </>
+                  )}
+                  <span className="block text-[11px] text-ink-faint">
+                    checked {l.checkedOn}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The uncomfortable one is KNBS, which originates Kenya&rsquo;s inflation figures and is the
+        one source here that reserves its rights. Where we show a KNBS-originated number, we read
+        and cite it from CBK, which republishes the same figures under a notice that does grant
+        reproduction. That is not a workaround — it is citing the publisher whose terms we can
+        actually satisfy.
+      </p>
+      {KNOWN_EXPOSURES.length > 0 && (
+        <p>
+          We are not there yet on everything. {KNOWN_EXPOSURES.length === 1 ? 'One figure' : `${KNOWN_EXPOSURES.length} figures`} on
+          this site {KNOWN_EXPOSURES.length === 1 ? 'is' : 'are'} still cited to a source we cannot
+          show permission for, and rather than quietly relabelling{' '}
+          {KNOWN_EXPOSURES.length === 1 ? 'it' : 'them'} we are naming{' '}
+          {KNOWN_EXPOSURES.length === 1 ? 'it' : 'them'} here:{' '}
+          {KNOWN_EXPOSURES.map((e) => e.source).join('; ')}. Swapping the citation for one we have
+          not verified would trade a licensing problem for a false attribution, which is worse. The
+          build fails if{' '}
+          {KNOWN_EXPOSURES.length === 1 ? 'it is' : 'they are'} still here after{' '}
+          {KNOWN_EXPOSURES.map((e) => e.resolveBy).join(', ')}.
+        </p>
+      )}
+      <p>
+        No Nairobi Securities Exchange data is used, stored or republished anywhere in this
+        application, and a test fails the build on any reference to it.
       </p>
     </Prose>
   );

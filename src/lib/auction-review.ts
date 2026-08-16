@@ -97,6 +97,67 @@ import type { AuctionPrint } from '@/types/bond';
  */
 export const PLAUSIBLE_COVER: [number, number] = [0.1, 10];
 
+/**
+ * The parser version the archive must be uniform at before any figure here is
+ * fit to publish.
+ *
+ * Mirrors PARSER_VERSION in backend/scrapers/auction_results.py. Records are
+ * never re-derived once written, so a bump makes older rows stale until the
+ * next run re-reads them — and a median taken mid-rebuild mixes two parsers'
+ * output, which is exactly the mistake the header of this file records.
+ */
+export const REQUIRED_PARSER_VERSION = 14;
+
+/**
+ * Whether the archive is uniform enough for these figures to be published.
+ *
+ * WHY THIS IS CODE AND NOT A SENTENCE
+ * -----------------------------------
+ * The gate used to live only in this file's header — "stays unpublished until
+ * the archive is fully re-read at the current parser version" — and a prose
+ * gate has two failure modes. It cannot be checked automatically, so nobody
+ * notices when it clears; and it cannot be checked at all, so nobody notices
+ * when it CANNOT clear.
+ *
+ * The second is what actually happened. Three records sat at parser versions 5
+ * and 7 against 387 at 14, and they are not stragglers waiting their turn:
+ * their sourceUrl points at `/images/docs/Treasury Bond Results/`, the legacy
+ * 2016-era path that DATA-SOURCES.md §15 records as stale. The incremental
+ * parser walks the LIVE listing under `/uploads/`, so it will never encounter
+ * those three files again. They can never be re-read, so a gate demanding
+ * uniformity across every row would have blocked this module permanently while
+ * looking like it was waiting for something.
+ *
+ * So the requirement is stated as what it actually needs to be: every row that
+ * this module could USE must be current. An undated row contributes to no
+ * month and is excluded from every figure here anyway — demanding it be
+ * re-parsed is demanding a rebuild that changes no output.
+ */
+export function archiveIsPublishable(prints: AuctionPrint[]): {
+  ok: boolean;
+  usable: number;
+  stale: number;
+  /** Rows excluded as unusable regardless of version, for the count to add up. */
+  unusable: number;
+} {
+  let usable = 0;
+  let stale = 0;
+  let unusable = 0;
+  for (const p of prints) {
+    // Undated rows reach no month, so their parser version cannot affect any
+    // figure this module produces.
+    if (!p.auctionDate) {
+      unusable += 1;
+      continue;
+    }
+    usable += 1;
+    if ((p as { parserVersion?: number }).parserVersion !== REQUIRED_PARSER_VERSION) {
+      stale += 1;
+    }
+  }
+  return { ok: usable > 0 && stale === 0, usable, stale, unusable };
+}
+
 export interface AuctionRow {
   date: string;
   issueCodes: string[];

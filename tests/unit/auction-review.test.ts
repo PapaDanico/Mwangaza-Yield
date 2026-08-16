@@ -7,6 +7,8 @@ import {
   buildMonthlyReview,
   evidenceLine,
   monthLabel,
+  archiveIsPublishable,
+  REQUIRED_PARSER_VERSION,
 } from '../../src/lib/auction-review';
 import type { AuctionPrint } from '../../src/types/bond';
 
@@ -390,5 +392,73 @@ describe('a switch auction produces no cover ratio', () => {
     const row = buildMonthlyReview(primary, '2026-04').rows[0];
     expect(row.kind).toBe('primary');
     expect(row.bidToCover).toBeCloseTo(0.128, 3);
+  });
+});
+
+/**
+ * The publication gate, which used to be a sentence.
+ *
+ * The header of auction-review.ts said the module "stays unpublished until the
+ * archive is fully re-read at the current parser version". That is a real
+ * requirement — a median taken mid-rebuild mixes two parsers' output — and as
+ * prose it had two failure modes: nobody notices when it clears, and nobody
+ * notices when it CANNOT clear.
+ *
+ * The second is what happened. Three rows sat at parser versions 5 and 7
+ * against 387 at 14, and they were not stragglers. Their sourceUrl points at
+ * /images/docs/Treasury Bond Results/, the legacy 2016-era path §15 of
+ * DATA-SOURCES.md records as stale. The incremental parser walks the LIVE
+ * listing under /uploads/, so it will never meet those files again. A gate
+ * demanding uniformity across every row would have blocked this module forever
+ * while looking like it was waiting for something.
+ */
+describe('archiveIsPublishable', () => {
+  const row = (over: Record<string, unknown> = {}) =>
+    ({
+      issueCode: 'FXD1/2022/010',
+      auctionDate: '2022-06-15',
+      parserVersion: REQUIRED_PARSER_VERSION,
+      ...over,
+    }) as never;
+
+  it('passes only when every USABLE row is at the current version', () => {
+    expect(archiveIsPublishable([row(), row()]).ok).toBe(true);
+    expect(archiveIsPublishable([row(), row({ parserVersion: 7 })]).ok).toBe(false);
+  });
+
+  it('ignores undated rows, which reach no month and change no figure', () => {
+    // This is the whole point. Demanding these be re-parsed demands a rebuild
+    // that alters no output, from files that no longer exist.
+    const r = archiveIsPublishable([
+      row(),
+      row({ auctionDate: null, parserVersion: 5 }),
+      row({ auctionDate: null, parserVersion: 7 }),
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.usable).toBe(1);
+    expect(r.unusable).toBe(2);
+    expect(r.stale).toBe(0);
+  });
+
+  it('refuses an empty archive rather than calling it uniform', () => {
+    // Vacuous truth is the wrong answer here: nothing to publish is not the
+    // same as ready to publish.
+    expect(archiveIsPublishable([]).ok).toBe(false);
+  });
+
+  it('counts every row exactly once, so the evidence adds up', () => {
+    const rows = [row(), row({ parserVersion: 7 }), row({ auctionDate: null })];
+    const r = archiveIsPublishable(rows);
+    expect(r.usable + r.unusable).toBe(rows.length);
+    expect(r.stale).toBeLessThanOrEqual(r.usable);
+  });
+
+  it('reports the SHIPPED archive as publishable, and says so with numbers', () => {
+    // 377 usable rows, all at v14, 13 undated, when this was written. If this
+    // ever goes false the review must not be published from that archive.
+    const r = archiveIsPublishable(archive as never);
+    expect(r.stale).toBe(0);
+    expect(r.usable).toBeGreaterThan(300);
+    expect(r.ok).toBe(true);
   });
 });

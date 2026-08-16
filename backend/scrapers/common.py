@@ -170,3 +170,25 @@ def write_dataset(name: str, records: list) -> None:
         "note": "Auto-refreshed by backend/scrapers via CI.",
     })
     print(f"[{name}] wrote {len(records)} records to {path}")
+
+
+def unreachable(tag: str, exc: BaseException) -> int:
+    """Report a source we could not reach, in one line, and give CI its code.
+
+    Three scrapers — auction results, CBR history, CPI history — let a
+    connection error escape `main()` and printed a bare traceback. Five others
+    already caught it and said something like "listing unreachable: ProxyError".
+    Both exit non-zero, so CI could not tell the difference and nothing was
+    broken by it.
+
+    A person can tell the difference, and the runbook for refreshing this data
+    by hand asks them to note which scrapers failed. A stack trace does not
+    distinguish "the network is down" from "this script is broken", and the
+    reasonable response to those is not the same. That mattered the moment the
+    refresh had to be runnable outside CI.
+
+    It returns the exit code rather than calling sys.exit itself, so the caller
+    keeps the `sys.exit(...)` visible at the point it happens.
+    """
+    print(f"[{tag}] source unreachable: {exc.__class__.__name__}: {exc}", file=sys.stderr)
+    return 1

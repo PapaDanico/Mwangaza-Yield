@@ -39,7 +39,7 @@ from urllib.parse import unquote, urljoin
 import requests
 from bs4 import BeautifulSoup
 
-from common import EmptyDataset, DATA_DIR, normalise_issue_code, write_dataset
+from common import EmptyDataset, unreachable, DATA_DIR, normalise_issue_code, write_dataset
 
 LISTING = "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/"
 UA = {
@@ -1573,3 +1573,5 @@ if __name__ == "__main__":
     except EmptyDataset:
         # The refusal already printed why; the exit code is the CI contract.
         sys.exit(1)
+    except requests.exceptions.RequestException as exc:
+        sys.exit(unreachable("auction-results", exc))

@@ -11,6 +11,7 @@ import { BidAssistant } from '@/components/auctions/BidAssistant';
 import TrackRecord from '@/components/auctions/TrackRecord';
 import DemandRecord from '@/components/auctions/DemandRecord';
 import RealRecord from '@/components/auctions/RealRecord';
+import MonthlyReview from '@/components/auctions/MonthlyReview';
 import Reserve from '@/components/shared/Reserve';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -194,6 +195,8 @@ export default function AuctionsPage() {
           );
         })}
       </div>
+
+      <MonthlyReview />
 
       <RealRecord />
 

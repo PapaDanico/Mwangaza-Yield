@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronDown, ExternalLink } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
+import { sovereignGaps } from '@/lib/sovereign-gaps';
 import Reserve from '@/components/shared/Reserve';
 import {
   SOVEREIGN_RATINGS,
@@ -24,6 +25,7 @@ const SENTIMENT: Record<string, { dot: string; label: string }> = {
  */
 export default function SovereignContext() {
   const context = useBondStore((s) => s.context);
+  const gaps = sovereignGaps(context);
   const [open, setOpen] = useState<string | null>(null);
   if (!context.length) return <Reserve height={180} />;
 
@@ -128,6 +130,25 @@ export default function SovereignContext() {
           );
         })}
       </div>
+
+      {/* WHAT WE ASK FOR AND CANNOT GET.
+          The panel above renders whatever arrived, which makes a permanently
+          missing indicator look like one nobody thought of. Debt to GDP is the
+          measure a reader checks first when asking whether a borrower can pay,
+          and it is the one that never arrives — so its absence is stated
+          rather than left to be noticed.
+          Computed from what is present, so it disappears by itself the day the
+          figure starts arriving. */}
+      {gaps.map((g) => (
+        <div key={g.label} className="mt-4 rounded-xl border border-sand-300 bg-sand-50 p-3">
+          <p className="text-xs font-medium text-ink">
+            {g.label} is not shown here
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+            {g.why} {g.where}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

@@ -77,7 +77,43 @@ INDICATORS = [
      "What repayment costs measured against what the country earns abroad, which "
      "is the source of the currency it is repaid in.",
      (25.0, "lower")),
+    # The one absolute on this list, and deliberately so.
+    #
+    # Every other row is a ratio, which is the right shape for a judgement —
+    # 27% of exports going to debt service means something on its own. A stock
+    # does not: "Kenya owes $X" is only interpretable against the size of the
+    # economy, and THAT ratio is exactly what this app refuses to publish,
+    # because the figures in circulation span 62% to 71.6% depending on which
+    # debt measure and which GDP vintage is used, and a number we cannot label
+    # is not one we put beside measurements.
+    #
+    # It earns its place anyway. The ratios above are all denominated in
+    # something that also moves, so a reader cannot tell a falling ratio caused
+    # by less borrowing from one caused by faster growth or a rebased GDP. The
+    # stock moves for one reason only. Shown beside the ratios it says which of
+    # the two is happening, which is the question the ratios raise and cannot
+    # answer.
+    #
+    # Sentiment is None on purpose: a stock has no threshold. It grows with the
+    # economy and a "good/bad" verdict on it would be inventing a judgement the
+    # figure cannot support.
+    ("DT.DOD.DECT.CD", "External debt stock", "US$ bn",
+     "The total owed abroad, in dollars rather than as a share of anything. The "
+     "ratios above move when the economy grows or is rebased, not only when "
+     "borrowing changes; this moves only when the borrowing does. Read them "
+     "together — a ratio falling while this rises means the economy outgrew the "
+     "debt, not that less is owed.",
+     None),
 ]
+
+# Indicators the World Bank reports as an absolute amount, and what to divide
+# by so a person can hold the result in their head.
+#
+# Everything else here is a percentage and needs no scaling. External debt
+# stock comes back in current US dollars, so the raw figure is eleven digits;
+# rendered beside its unit in the sovereign panel that is not a number a reader
+# can read, it is a wall.
+DIVISOR = {"DT.DOD.DECT.CD": 1e9}
 
 TIMEOUT = 60
 
@@ -266,7 +302,7 @@ def scrape(budget_seconds: float = BUDGET_SECONDS) -> list:
         if not obs:
             print(f"[worldbank] {code}: no observation", file=sys.stderr)
             continue
-        value = round(obs["value"], 2)
+        value = round(obs["value"] / DIVISOR.get(code, 1), 2)
         records.append({
             "id": f"wb-{code.lower().replace('.', '-')}",
             "label": label,

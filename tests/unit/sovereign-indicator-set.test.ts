@@ -44,14 +44,73 @@ const EXPECTED = [
  */
 const KNOWN_ABSENT = ['wb-gc-dod-totl-gd-zs']; // Government debt / GDP
 
+/**
+ * Asked for, and its first observation has not landed yet.
+ *
+ * The set assertion below is exact equality, deliberately — an indicator
+ * cannot appear or vanish without somebody editing this file. That is the
+ * right property and it has an awkward consequence: adding an indicator to
+ * worldbank.py and adding its id here CANNOT happen in the same green commit,
+ * because context.json is only rewritten by a scheduled refresh. Whichever
+ * order you choose, main is red until the other half lands.
+ *
+ * Going red for a day is not a small cost here. The refresh commits data on a
+ * schedule, so the failure arrives unattended, on a commit nobody is watching,
+ * and a suite that is expected to be red is a suite nobody reads.
+ *
+ * So an incoming indicator is tolerated in EITHER state — present or absent —
+ * and only until its deadline. After that this fails, because an indicator
+ * that never arrived is not "incoming", it is a code the World Bank does not
+ * answer for and belongs in KNOWN_ABSENT with the /sources copy to match.
+ * The "somebody must look" property survives: you still cannot add one without
+ * editing this file, and you cannot leave it half-added forever.
+ */
+const EXPECTED_INCOMING: { id: string; label: string; arrivesBy: string }[] = [
+  {
+    id: 'wb-dt-dod-dect-cd',
+    label: 'External debt stock',
+    // Two scheduled refreshes' grace. The cron is '17 3,15 * * 1-6', so a
+    // fortnight is many chances to land and short enough that a code the API
+    // silently ignores cannot masquerade as pending.
+    arrivesBy: '2026-08-31',
+  },
+];
+
 describe('the sovereign indicator set is what we think it is', () => {
   it('ships a real file', () => {
     expect(context.length).toBeGreaterThan(3);
   });
 
   it('ships exactly the indicators we have accounted for', () => {
-    const ids = context.map((i) => i.id).sort();
+    const incoming = new Set(EXPECTED_INCOMING.map((i) => i.id));
+    const ids = context
+      .map((i) => i.id)
+      .filter((id) => !incoming.has(id))
+      .sort();
     expect(ids).toEqual([...EXPECTED].sort());
+  });
+
+  it('does not let an incoming indicator stay incoming forever', () => {
+    // A code the World Bank never answers for would otherwise sit here
+    // indefinitely, exempt from the exact-set check it exists to defer.
+    const today = new Date().toISOString().slice(0, 10);
+    const overdue = EXPECTED_INCOMING.filter(
+      (i) => i.arrivesBy < today && !context.some((c) => c.id === i.id)
+    ).map(
+      (i) =>
+        `${i.id} (${i.label}) was due by ${i.arrivesBy} and has not arrived — ` +
+        'move it to KNOWN_ABSENT and fix the /sources copy, or find out why the fetch fails.'
+    );
+    expect(overdue).toEqual([]);
+  });
+
+  it('promotes an incoming indicator once it has actually landed', () => {
+    // Arrived means accounted for. Leaving it on the incoming list would keep
+    // it permanently exempt from the exact-set assertion.
+    const landed = EXPECTED_INCOMING.filter((i) =>
+      context.some((c) => c.id === i.id)
+    ).map((i) => `${i.id} has landed — move it from EXPECTED_INCOMING to EXPECTED.`);
+    expect(landed).toEqual([]);
   });
 
   it('does not ship the one the World Bank has no data for', () => {
@@ -120,7 +179,14 @@ describe('the sources page does not contradict the data', () => {
       scraper.indexOf('TIMEOUT = 60'),
     );
     const codes = block.match(/^\s*\("[A-Z]{2}\.[A-Z0-9.]+",/gm) ?? [];
-    expect(codes.length).toBe(context.length + KNOWN_ABSENT.length);
+    // Plus anything asked for whose first observation has not landed yet:
+    // the page's count is of what we ASK for, which includes those.
+    const pending = EXPECTED_INCOMING.filter(
+      (i) => !context.some((c) => c.id === i.id)
+    );
+    expect(codes.length).toBe(
+      context.length + KNOWN_ABSENT.length + pending.length
+    );
     const word = WORDS[codes.length];
     expect(word, `no word for ${codes.length} codes`).toBeTruthy();
     expect(sources).toMatch(new RegExp(`for ${word.toLowerCase()} indicators`));

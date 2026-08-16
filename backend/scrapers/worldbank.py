@@ -11,13 +11,15 @@ Why this source, when most of the others on the list are unusable:
 The indicators chosen are the ones that tell a BOND investor whether the
 borrower is good for the money — not general development statistics.
 """
+import json
 import sys
 import time
 from datetime import date
+from pathlib import Path
 
 import requests
 
-from common import EmptyDataset, write_dataset
+from common import DATA_DIR, EmptyDataset, write_dataset
 
 BASE = "https://api.worldbank.org/v2/country/KE/indicator"
 
@@ -296,7 +298,22 @@ def scrape(budget_seconds: float = BUDGET_SECONDS) -> list:
     return records
 
 
-def refuse_if_collapsed(records: list) -> None:
+def existing_indicator_count() -> int:
+    """How many indicators the file we are about to replace already holds.
+
+    Returns 0 when there is no readable file, which makes the first ever run —
+    and a corrupted file — fall through to the fixed floor rather than block.
+    """
+    try:
+        with open(Path(DATA_DIR) / "context.json", encoding="utf-8") as fh:
+            existing = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return 0
+    rows = existing if isinstance(existing, list) else existing.get("indicators", [])
+    return len(rows) if isinstance(rows, list) else 0
+
+
+def refuse_if_collapsed(records: list, existing: int | None = None) -> None:
     """Exit non-zero rather than publish a fraction of the picture.
 
     Keeping the previous file is the right failure here: it is complete and
@@ -304,9 +321,38 @@ def refuse_if_collapsed(records: list) -> None:
     non-zero exit is what the CI step's `|| echo "failed=worldbank"` reads, so
     this is also what turns a silent collapse into the pipeline alert that a
     reader-facing gap deserves.
+
+    TWO FLOORS, BECAUSE A FIXED ONE CANNOT SEE A REGRESSION
+    -------------------------------------------------------
+    This function promised to refuse "to overwrite a fuller file with a partial
+    one" while only ever comparing against MIN_INDICATORS. On 2026-08-16 the
+    World Bank returned six of eight — one short of the seven that had been
+    arriving — and six is exactly the floor, so it wrote. `Reserves (import
+    cover)` disappeared from the sovereign panel, every other value was
+    byte-identical, and the refresh gained nothing whatsoever. main went red on
+    three tests that check the shipped set against what the page claims.
+
+    So the count we already have is the second floor. A run that comes back
+    with fewer indicators than the file it would replace is a regression
+    whatever the absolute number is, and the previous file is better.
+
+    If the World Bank ever withdraws an indicator permanently this will refuse
+    on every run — correctly, and loudly. The fix then is to remove the code
+    from INDICATORS, which is a decision a person should make rather than a
+    silent overwrite.
     """
-    if len(records) >= MIN_INDICATORS:
+    if len(records) >= MIN_INDICATORS and (existing is None or len(records) >= existing):
         return
+    if existing is not None and MIN_INDICATORS <= len(records) < existing:
+        got = ", ".join(r["label"] for r in records) or "nothing"
+        print(
+            f"[worldbank] {len(records)} indicators came back but context.json already "
+            f"holds {existing} — refusing to overwrite a fuller file with a smaller one. "
+            f"Got: {got}. If an indicator has been withdrawn for good, remove its code "
+            "from INDICATORS; do not let a quiet run decide it.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     got = ", ".join(r["label"] for r in records) or "nothing"
     print(
         f"[worldbank] only {len(records)} of {len(INDICATORS)} indicators came back "
@@ -320,7 +366,7 @@ def refuse_if_collapsed(records: list) -> None:
 if __name__ == "__main__":
     print(f"[worldbank] fetching as of {date.today().isoformat()}", file=sys.stderr)
     records = scrape()
-    refuse_if_collapsed(records)
+    refuse_if_collapsed(records, existing_indicator_count())
     try:
         write_dataset("context", records)
     except EmptyDataset:

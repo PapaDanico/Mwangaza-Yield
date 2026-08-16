@@ -295,6 +295,39 @@ def budget_can_actually_reach_success() -> None:
                 f"the shell kills the scraper before it can stop itself")
 
 
+def absolute_indicators_are_scaled_for_a_human() -> None:
+    """An absolute figure must arrive at a scale a person can read.
+
+    Every other indicator here is a percentage. External debt stock is the one
+    absolute, and the World Bank serves it in current US dollars — an eleven
+    digit number. SovereignContext renders the value verbatim beside its unit,
+    so without the divisor a reader meets `42130000000 US$ bn`: not a figure,
+    a wall, and wrong by a factor of a billion against its own unit.
+
+    The divisor is one `.get()` away from being dropped in a refactor and
+    nothing else in this suite would notice, because the value would still be a
+    rounded number of the right type from a successful fetch.
+    """
+    print("\nabsolute indicators are scaled for a human")
+    for code in wb.DIVISOR:
+        listed = [row for row in wb.INDICATORS if row[0] == code]
+        check(f"{code} is actually asked for", len(listed), 1)
+        if not listed:
+            continue
+        # A divisor of a billion and a unit that does not name billions is the
+        # same lie told the other way round.
+        check(f"{code} unit names the scale", "bn" in listed[0][2], True)
+
+    # A realistic Kenyan external debt stock, in the units the API serves.
+    raw = 42_130_000_000.0
+    scaled = round(raw / wb.DIVISOR["DT.DOD.DECT.CD"], 2)
+    check("a real stock becomes a readable number", scaled, 42.13)
+    check("and stays under four digits", scaled < 1000, True)
+
+    # A percentage must pass through untouched.
+    check("percentages are not scaled", wb.DIVISOR.get("NY.GDP.MKTP.KD.ZG", 1), 1)
+
+
 def main():
     print("the self-imposed budget")
     test_budget_stops_before_the_ci_bound_does()
@@ -343,8 +376,16 @@ def main():
     for rec in records:
         for field in required:
             check(f"{rec['label']} has {field}", field in rec and rec[field] not in (None, ""), True)
-        check(f"{rec['label']} value is rounded", rec["value"], 12.35)
+        # Scaled indicators do not land on the raw stub value, and that is the
+        # point: External debt stock comes back from the API in current US
+        # dollars, so it is divided before rounding. Computing the expectation
+        # from DIVISOR keeps this a test of the rounding rather than a test
+        # that nothing is ever scaled.
+        code = rec["id"].removeprefix("wb-").replace("-", ".").upper()
+        expected = round(12.345 / wb.DIVISOR.get(code, 1), 2)
+        check(f"{rec['label']} value is rounded", rec["value"], expected)
 
+    absolute_indicators_are_scaled_for_a_human()
     collapse_guard()
     falls_back_to_a_second_query_shape()
     identifies_itself()

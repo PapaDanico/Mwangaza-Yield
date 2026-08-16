@@ -68,12 +68,40 @@ TIMEOUT = 30
 PUBLIC_DIR = Path(__file__).resolve().parents[2] / "public"
 KEY_RE = re.compile(r"^[0-9a-f]{8,128}\.txt$")
 
-# Routes whose content moves with every data refresh. These are the ones worth
-# telling a search engine about on a schedule.
-DATA_ROUTES = [
-    "/", "/dashboard/", "/tbills/", "/prices/", "/calculator/",
-    "/auctions/", "/yield-curve/", "/ladder/", "/sell/", "/sources/", "/feed/",
-]
+SITEMAP_URL = f"{ORIGIN}/sitemap.xml"
+
+
+def routes_from_sitemap() -> list[str]:
+    """Every <loc> in the LIVE sitemap, or [] if it cannot be read.
+
+    NOT a list kept here. The sister repository's first version of this file
+    hand-listed its routes and five of the eight were wrong — pages renamed
+    since, and two that never existed — which would have asked Bing to index
+    five 404s, invisibly. Mwangaza's list happened to be correct, and "happened
+    to be" is the problem: a hand-kept list of routes drifts the moment a page
+    is renamed, and nothing fails when it does.
+
+    sitemap.xml is generated from the app's own routes, already excludes /404
+    for the reasons documented there, and is published. Reading it is one more
+    request on a path already making one, and it cannot drift from the site
+    because the site produces it.
+    """
+    try:
+        resp = requests.get(SITEMAP_URL, timeout=TIMEOUT)
+    except requests.RequestException as exc:
+        unreachable("indexnow sitemap", exc)
+        return []
+    if resp.status_code != 200:
+        print(f"[indexnow] {SITEMAP_URL} answered {resp.status_code}", file=sys.stderr)
+        return []
+    locs = [m.strip() for m in re.findall(r"<loc>([^<]+)</loc>", resp.text)]
+    # A mixed-host list is rejected outright by IndexNow rather than having the
+    # strays ignored, so anything not ours is dropped and counted.
+    ours = [u for u in locs if u.startswith(ORIGIN)]
+    if len(ours) != len(locs):
+        print(f"[indexnow] {len(locs) - len(ours)} sitemap entries were off-origin "
+              "and dropped", file=sys.stderr)
+    return list(dict.fromkeys(ours))
 
 
 def key_file() -> Path | None:
@@ -155,7 +183,12 @@ def main() -> int:
         return 1
     if not key_is_live(key):
         return 0
-    return submit(key, [f"{ORIGIN}{r}" for r in DATA_ROUTES])
+    urls = routes_from_sitemap()
+    if not urls:
+        print("[indexnow] no routes read from the sitemap — not submitting",
+              file=sys.stderr)
+        return 0
+    return submit(key, urls)
 
 
 if __name__ == "__main__":

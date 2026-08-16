@@ -29,6 +29,16 @@ def check(cond: bool, msg: str) -> None:
         FAILURES.append(msg)
 
 
+SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://mwangazayield.org/</loc></url>
+  <url><loc>https://mwangazayield.org/tbills/</loc></url>
+  <url><loc>https://mwangazayield.org/auctions/</loc></url>
+  <url><loc>https://mwangazayield.org/tbills/</loc></url>
+  <url><loc>https://example.com/not-ours</loc></url>
+</urlset>"""
+
+
 class FakeResp:
     def __init__(self, status=200, text=""):
         self.status_code = status
@@ -52,7 +62,7 @@ def test_does_not_submit_before_the_key_is_live() -> None:
     """The one that matters most."""
     sent = []
     real_get, real_post = indexnow.requests.get, indexnow.requests.post
-    indexnow.requests.get = lambda *a, **k: FakeResp(404)
+    indexnow.requests.get = lambda url, *a, **k: FakeResp(404)
     indexnow.requests.post = lambda *a, **k: sent.append(a) or FakeResp(200)
     try:
         code = indexnow.main()
@@ -65,7 +75,7 @@ def test_does_not_submit_before_the_key_is_live() -> None:
 def test_does_not_submit_when_the_key_file_holds_the_wrong_key() -> None:
     sent = []
     real_get, real_post = indexnow.requests.get, indexnow.requests.post
-    indexnow.requests.get = lambda *a, **k: FakeResp(200, "some other value")
+    indexnow.requests.get = lambda url, *a, **k: FakeResp(200, "some other value")
     indexnow.requests.post = lambda *a, **k: sent.append(a) or FakeResp(200)
     try:
         indexnow.main()
@@ -81,7 +91,9 @@ def test_submits_once_the_key_verifies() -> None:
     key = path.read_text().strip()
     captured = {}
     real_get, real_post = indexnow.requests.get, indexnow.requests.post
-    indexnow.requests.get = lambda *a, **k: FakeResp(200, key)
+    indexnow.requests.get = lambda url, *a, **k: (
+        FakeResp(200, SITEMAP) if "sitemap" in url else FakeResp(200, key)
+    )
 
     def fake_post(url, json=None, **k):
         captured["url"] = url
@@ -117,7 +129,9 @@ def test_a_rejected_submission_is_reported_not_swallowed() -> None:
         return
     key = path.read_text().strip()
     real_get, real_post = indexnow.requests.get, indexnow.requests.post
-    indexnow.requests.get = lambda *a, **k: FakeResp(200, key)
+    indexnow.requests.get = lambda url, *a, **k: (
+        FakeResp(200, SITEMAP) if "sitemap" in url else FakeResp(200, key)
+    )
     indexnow.requests.post = lambda *a, **k: FakeResp(422, "key mismatch")
     try:
         code = indexnow.main()
@@ -135,6 +149,47 @@ def test_the_key_is_not_treated_as_a_secret() -> None:
     src = Path(indexnow.__file__).read_text()
     check("PUBLIC BY DESIGN" in src,
           "the module must state that the key is public, so nobody hides it")
+
+
+def test_routes_come_from_the_sitemap_not_a_list_here() -> None:
+    """A hand-kept route list drifts the moment a page is renamed.
+
+    The sister repository's first version hand-listed eight routes and five
+    were wrong — pages renamed since, and two that never existed. Submitting
+    those asks a search engine to index 404s, and nothing fails when it
+    happens. This list happened to be correct, and "happened to be" is exactly
+    the property worth removing.
+    """
+    real_get = indexnow.requests.get
+    indexnow.requests.get = lambda url, *a, **k: FakeResp(200, SITEMAP)
+    try:
+        urls = indexnow.routes_from_sitemap()
+    finally:
+        indexnow.requests.get = real_get
+    check(all(u.startswith(indexnow.ORIGIN) for u in urls),
+          "off-origin entries must be dropped; IndexNow rejects a mixed-host list")
+    check(len(set(urls)) == len(urls), "duplicate <loc> entries must collapse")
+    check(f"{indexnow.ORIGIN}/tbills/" in urls, "our own routes must survive")
+    check(not any("example.com" in u for u in urls), "example.com must not be submitted")
+
+
+def test_does_not_submit_when_the_sitemap_cannot_be_read() -> None:
+    path = indexnow.key_file()
+    if path is None:
+        return
+    key = path.read_text().strip()
+    sent = []
+    real_get, real_post = indexnow.requests.get, indexnow.requests.post
+    indexnow.requests.get = lambda url, *a, **k: (
+        FakeResp(500) if "sitemap" in url else FakeResp(200, key)
+    )
+    indexnow.requests.post = lambda *a, **k: sent.append(a) or FakeResp(200)
+    try:
+        code = indexnow.main()
+    finally:
+        indexnow.requests.get, indexnow.requests.post = real_get, real_post
+    check(not sent, "a sitemap we cannot read is not a list to announce")
+    check(code == 0, "an unreadable sitemap is not a hard error")
 
 
 def main() -> int:

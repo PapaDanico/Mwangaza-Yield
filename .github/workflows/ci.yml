@@ -479,40 +479,6 @@ jobs:
         working-directory: backend/scrapers
         run: timeout -k 20s 240s python probe_qebr.py || echo "QEBR probe failed — see output above"
 
-      - name: Tell Bing and Yandex the data changed (IndexNow)
-        # Runs on the scheduled/refresh path only, after the data commit, so
-        # what gets announced is a deploy that has actually happened.
-        #
-        # No account, no OAuth, no secret: IndexNow verifies by fetching a key
-        # published at the site root, which is why that key lives in the
-        # repository in public/. Google withdrew its sitemap ping endpoint in
-        # June 2023 and offers no equivalent keyless route, so Google discovery
-        # rests on the Sitemap: line in robots.txt, which is already there.
-        #
-        # Never gates: a search engine not hearing about a refresh costs a day
-        # of crawl latency, and is not a reason to fail a data pipeline.
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        working-directory: backend/scrapers
-        run: timeout -k 20s 120s python indexnow.py || echo "indexnow failed — see output above"
-
-      - name: Probe CBK for a machine-readable T-bill rate history
-        # The app has NO Treasury bill history: tbills.json holds three rows and
-        # is written by no scraper. The known route is ~250 weekly results PDFs,
-        # each needing the column-geometry parsing auction_results.py does for
-        # bonds — weeks of work and a permanent maintenance surface.
-        #
-        # Research turned up a live CSV on CBK's own site,
-        # /uploads/interest_rates/..._Central Bank Rates.csv, which proves the
-        # statistics tables have a CSV export materialising static files under
-        # /uploads/<slug>/. If the T-bill tables export the same way, the whole
-        # PDF path collapses into one HTTP GET.
-        #
-        # This probe cannot be run from a development container — CBK is behind
-        # an egress policy denial there — so CI is the only place the question
-        # can be answered. Read-only, writes nothing, never gates.
-        working-directory: backend/scrapers
-        run: timeout -k 20s 240s python probe_tbill_rates.py || echo "T-bill rate probe failed — see output above"
-
       - name: Probe whether the AfDB actually carries quarterly Kenyan GDP
         # Connectivity was settled by the step above: all six AfDB URLs answer
         # 200 and /api/1.0/meta/dataset returns 202 records for Kenya. That is
@@ -736,6 +702,20 @@ jobs:
         working-directory: backend/scrapers
         run: python healthcheck.py --publish
 
+      - name: Probe CBK for a machine-readable T-bill rate history
+        # MOVED HERE FROM probe-debt-sources, which is workflow_dispatch ONLY.
+        # It sat in that job for a day and never ran once — a diagnostic that
+        # answers no question is precisely the thing it was written to replace.
+        #
+        # The app has NO Treasury bill history. The known route is ~250 weekly
+        # PDFs; CBK's own /uploads/interest_rates/..._Central Bank Rates.csv
+        # proves the statistics tables export CSV, so if the T-bill tables do
+        # too, the whole path collapses into one HTTP GET. Read-only, writes
+        # nothing, never gates.
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
+        working-directory: backend/scrapers
+        run: timeout -k 20s 240s python probe_tbill_rates.py || echo "T-bill rate probe failed — see output above"
+
       - name: Commit updated data
         if: ${{ !cancelled() && !inputs.test_alert && !inputs.test_recovery }}
         run: |
@@ -772,6 +752,19 @@ jobs:
             }
           done
           git push
+
+      - name: Tell Bing and Yandex the data changed (IndexNow)
+        # ALSO MOVED FROM probe-debt-sources. Its own `if:` named the schedule
+        # event, which read as correct and was not: a step condition cannot
+        # rescue a step from a job that never starts.
+        #
+        # Placed after the commit so what is announced is a deploy that is
+        # actually going to happen. No account, no OAuth, no secret — IndexNow
+        # verifies by fetching a key published at the site root. Never gates: a
+        # search engine not hearing about a refresh costs a day of latency.
+        if: ${{ !inputs.test_alert && !inputs.test_recovery }}
+        working-directory: backend/scrapers
+        run: timeout -k 20s 120s python indexnow.py || echo "indexnow failed — see output above"
 
       - name: Check data freshness
         id: health

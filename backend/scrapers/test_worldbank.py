@@ -209,6 +209,18 @@ def test_budget_stops_before_the_ci_bound_does():
     """
     import re
     from pathlib import Path
+    # Reaching the FLOOR is the minimum bar. Reaching every indicator is what a
+    # complete refresh needs, and a budget that cannot is one slow morning away
+    # from refusing to write at all.
+    full = len(wb.INDICATORS) * len(wb.QUERY_SHAPES) * wb.TIMEOUT
+    covers_all = wb.BUDGET_SECONDS >= full
+    check("budget can reach EVERY indicator, not just the floor", covers_all, True)
+    if not covers_all:
+        failures.append(
+            f"BUDGET_SECONDS={wb.BUDGET_SECONDS} but all {len(wb.INDICATORS)} "
+            f"indicators cost up to {full}s — adding an indicator without raising "
+            f"the budget is how the 2026-08-17 failure happened")
+
     ci = (Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml").read_text()
     m = re.search(r"timeout -k \d+s (\d+)s python worldbank\.py", ci)
     check("ci.yml bounds worldbank.py in the shell", bool(m), True)
@@ -273,14 +285,27 @@ def budget_can_actually_reach_success() -> None:
     shell kills the process while it is still inside its own budget, the
     self-stop never runs and #176 returns wearing a different costume.
     """
-    need = wb.MIN_INDICATORS * wb.TIMEOUT
+    # THE QUERY SHAPES ARE PART OF THE COST.
+    #
+    # This computed MIN_INDICATORS x TIMEOUT and so shared the exact blind spot
+    # of the budget it was checking: latest_value() tries EVERY shape in
+    # QUERY_SHAPES before giving up, so one unresponsive indicator costs
+    # len(QUERY_SHAPES) x TIMEOUT. Both sides of the comparison ignored the
+    # retries, so the test agreed with the bug.
+    #
+    # It went live on 2026-08-17: nine indicators against a 540s budget that
+    # assumed one request each, the World Bank was slow, the run spent the whole
+    # budget without reaching MIN_INDICATORS, and the newly added external debt
+    # stock never arrived.
+    need = wb.MIN_INDICATORS * len(wb.QUERY_SHAPES) * wb.TIMEOUT
     ok = wb.BUDGET_SECONDS >= need
     check("budget can reach MIN_INDICATORS", ok, True)
     if not ok:
         failures.append(
             f"BUDGET_SECONDS={wb.BUDGET_SECONDS} but reaching MIN_INDICATORS="
-            f"{wb.MIN_INDICATORS} costs up to {need}s — the scraper can only "
-            f"ever stop short and be recorded as failed")
+            f"{wb.MIN_INDICATORS} costs up to {need}s ({wb.MIN_INDICATORS} "
+            f"indicators x {len(wb.QUERY_SHAPES)} query shapes x {wb.TIMEOUT}s) "
+            f"— the scraper can only ever stop short and be recorded as failed")
 
     ci = (Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml").read_text()
     m = re.search(r"timeout -k \d+s (\d+)s python worldbank\.py", ci)

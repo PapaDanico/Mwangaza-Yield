@@ -115,7 +115,7 @@ INDICATORS = [
 # can read, it is a wall.
 DIVISOR = {"DT.DOD.DECT.CD": 1e9}
 
-TIMEOUT = 60
+TIMEOUT = 30
 
 # Identify ourselves rather than arriving as "python-requests/2.x".
 #
@@ -278,7 +278,25 @@ def sentiment_for(value: float, rule) -> str:
 # every other scraper (the process stops ITSELF, and the shell bound is the
 # backstop for a hang, not the normal path). test_worldbank.py asserts the
 # relationship so this cannot silently drift back.
-BUDGET_SECONDS = float(len(INDICATORS)) * TIMEOUT
+# THE QUERY SHAPES ARE PART OF THE COST, AND THIS FORGOT THEM.
+#
+# The comment above says it plainly — "up to three query shapes each" — and
+# then the arithmetic multiplied indicators by TIMEOUT alone. latest_value()
+# tries EVERY shape in QUERY_SHAPES before giving up, so one unresponsive
+# indicator costs len(QUERY_SHAPES) x TIMEOUT, not TIMEOUT.
+#
+# That was survivable at eight indicators and stopped being survivable at nine.
+# On 2026-08-17 the World Bank was slow, the run spent its entire 540s budget
+# without reaching MIN_INDICATORS, refuse_if_collapsed() correctly kept the
+# existing file, and the step recorded `failed=worldbank`. The external debt
+# stock added the day before never arrived, and the cause was not that
+# indicator — it was that the budget had never counted the retries.
+#
+# TIMEOUT drops to 30s in the same change. The World Bank normally answers in
+# under a second; 30s is already extravagant, and halving it is what lets the
+# full worst case fit inside a bound the daily job can afford. A slow API now
+# costs 60s per indicator instead of 120s, so all nine can still be attempted.
+BUDGET_SECONDS = float(len(INDICATORS) * len(QUERY_SHAPES)) * TIMEOUT
 
 
 def scrape(budget_seconds: float = BUDGET_SECONDS) -> list:

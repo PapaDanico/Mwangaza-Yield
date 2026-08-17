@@ -16,8 +16,11 @@ fixes it. The failures worth guarding are the ones that keep repeating:
 
 So most of this asserts that nothing was sent.
 """
+import re
 import sys
 from pathlib import Path
+
+import yaml
 
 import indexnow
 
@@ -190,6 +193,52 @@ def test_does_not_submit_when_the_sitemap_cannot_be_read() -> None:
         indexnow.requests.get, indexnow.requests.post = real_get, real_post
     check(not sent, "a sitemap we cannot read is not a list to announce")
     check(code == 0, "an unreadable sitemap is not a hard error")
+
+
+def test_it_is_wired_into_a_job_that_actually_runs() -> None:
+    """A step in a job that never starts is a step that never runs.
+
+    This shipped inside `probe-debt-sources`, which is `workflow_dispatch`
+    only. The step carried its own `if: github.event_name == 'schedule'`, which
+    read as correct and was not — a step condition cannot rescue a step from a
+    job that never starts. It sat there for a day and never executed once,
+    alongside probe_tbill_rates.py which had the same problem for the same
+    reason: both were inserted by anchoring on a neighbouring step's NAME
+    without checking which job owned it.
+
+    Nothing failed. The workflow was valid, CI was green, and the only symptom
+    was silence — which is the exact failure shape this repository keeps
+    finding in itself.
+
+    So the wiring is asserted rather than eyeballed: parse ci.yml, find the job
+    that owns each script, and require that job to run on a schedule.
+    """
+    ci_path = Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml"
+    workflow = yaml.safe_load(ci_path.read_text())
+
+    for script in ("indexnow.py", "probe_tbill_rates.py"):
+        owners = [
+            (job, cfg)
+            for job, cfg in workflow["jobs"].items()
+            # `python indexnow.py`, not `python test_indexnow.py` — the test
+            # file contains the module's name as a substring and would
+            # otherwise count the test job as a caller.
+            if any(
+                re.search(rf"python {re.escape(script)}\b", step.get("run") or "")
+                for step in cfg.get("steps", [])
+            )
+        ]
+        check(len(owners) == 1, f"{script} should be wired into exactly one job, got {len(owners)}")
+        if not owners:
+            continue
+        job_name, cfg = owners[0]
+        # `if` absent means the job always runs, which qualifies.
+        condition = str(cfg.get("if", "always"))
+        check(
+            "schedule" in condition or condition == "always",
+            f"{script} lives in job '{job_name}' whose condition is "
+            f"{condition!r} — it will never run on the daily refresh",
+        )
 
 
 def main() -> int:

@@ -35,6 +35,7 @@ const EXPECTED = [
   'wb-gc-xpn-intp-rv-zs', // Interest / government revenue
   'wb-dt-dod-dect-gn-zs', // External debt / GNI
   'wb-dt-tds-dect-ex-zs', // Debt service / exports
+  'wb-dt-dod-dect-cd', // External debt stock (US$ bn) — landed 2026-08-17
 ] as const;
 
 /**
@@ -66,14 +67,13 @@ const KNOWN_ABSENT = ['wb-gc-dod-totl-gd-zs']; // Government debt / GDP
  * editing this file, and you cannot leave it half-added forever.
  */
 const EXPECTED_INCOMING: { id: string; label: string; arrivesBy: string }[] = [
-  {
-    id: 'wb-dt-dod-dect-cd',
-    label: 'External debt stock',
-    // Two scheduled refreshes' grace. The cron is '17 3,15 * * 1-6', so a
-    // fortnight is many chances to land and short enough that a code the API
-    // silently ignores cannot masquerade as pending.
-    arrivesBy: '2026-08-31',
-  },
+  // Empty, and that is the healthy state. wb-dt-dod-dect-cd sat here from
+  // 2026-08-16 until it landed on 2026-08-17 — one refresh later than
+  // intended, because the first attempt died on a budget that had never
+  // counted the World Bank's query-shape retries. The mechanism did its job:
+  // main stayed green through the gap, and the "promote it once it lands"
+  // assertion is what put it in EXPECTED above rather than leaving it
+  // permanently exempt from the exact-set check.
 ];
 
 describe('the sovereign indicator set is what we think it is', () => {

@@ -731,7 +731,14 @@ jobs:
           # Nothing caught it because the refresh job does not run the unit
           # tests, and the test that compares the two only sees a checkout. A
           # correct check, never pointed at the artifact after it changed.
+          # The probe's finding travels WITH the data it was gathered beside.
+          # Its first run answered into a CI log that turned out to be
+          # unreadable after the fact — the alert step embeds a long inline
+          # script, so a log tail lands in that blob rather than on the probe's
+          # output. A diagnostic whose answer cannot be recovered has not
+          # answered anything.
           git add public/data/*.json public/data/*.csv
+          git add backend/scrapers/tbill-probe-report.txt
           git diff --cached --quiet && exit 0
           git commit -m "chore(data): daily refresh $(date -u +%F)"
           # This job spends up to ten minutes reading PDFs before it gets here,

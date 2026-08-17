@@ -53,6 +53,7 @@ prints what it received rather than concluding from a status code.
 """
 import re
 import sys
+from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
@@ -123,6 +124,30 @@ TERMS_RE = re.compile(r"terms|copyright|disclaimer|privacy|conditions", re.I)
 TENOR_RE = re.compile(r"\b(91|182|364)[\s-]*day", re.I)
 
 
+# What the probe concluded, accumulated so it can be WRITTEN rather than only
+# printed.
+#
+# The first run of this probe answered its question into a CI log, and the log
+# turned out to be effectively unreadable after the fact: the alert step embeds
+# a long inline script, so a tail of the job log lands inside that blob rather
+# than on the probe's output. Two attempts to read the finding retrieved
+# nothing but the alert's source.
+#
+# A diagnostic whose answer cannot be recovered has not answered anything. So
+# the finding is written to a file the refresh commits, next to
+# healthcheck-report.txt and archive-integrity.txt, which is how every other
+# durable report in this pipeline already works. Anyone — including a session
+# with no access to Actions logs at all — can then read it out of the
+# repository.
+FINDINGS: list[str] = []
+
+
+def record(line: str) -> None:
+    """Print for the live log, and keep for the committed report."""
+    print(line)
+    FINDINGS.append(line)
+
+
 def probe(label: str, url: str) -> None:
     print(f"\n=== {label} ===\n  {url}")
     try:
@@ -132,10 +157,11 @@ def probe(label: str, url: str) -> None:
         # back to the PDFs for the wrong reason.
         r = tls_chain.get(url, headers=UA, timeout=TIMEOUT)
     except requests.RequestException as exc:
+        record(f"[{label}] UNREACHABLE: {exc.__class__.__name__}")
         unreachable(label, exc)
         return
 
-    print(f"  HTTP {r.status_code}, {len(r.content)} bytes")
+    record(f"[{label}] HTTP {r.status_code}, {len(r.content)} bytes")
     if r.status_code != 200:
         return
 
@@ -148,13 +174,13 @@ def probe(label: str, url: str) -> None:
         if DATA_HREF_RE.search(href):
             downloads.append((href, " ".join(a.get_text().split())[:60]))
     if downloads:
-        print(f"  >>> {len(downloads)} MACHINE-READABLE DOWNLOAD(S):")
+        record(f"[{label}] {len(downloads)} MACHINE-READABLE DOWNLOAD(S):")
         for href, text in downloads[:20]:
-            print(f"      {href}")
+            record(f"[{label}]     {href}")
             if text:
-                print(f"        link text: {text}")
+                record(f"[{label}]       link text: {text}")
     else:
-        print("  no .csv/.xlsx/.xls links in the served HTML")
+        record(f"[{label}] no .csv/.xlsx/.xls links in the served HTML")
 
     # A DataTables grid with export buttons builds the file client-side, so the
     # absence of a link above does not mean the absence of an export. Say so
@@ -164,7 +190,7 @@ def probe(label: str, url: str) -> None:
               "client-side, so a missing link above is not a 'no'")
     ajax = AJAX_RE.search(r.text)
     if ajax:
-        print(f"  >>> AJAX SOURCE DECLARED: {ajax.group(1)[:160]}")
+        record(f"[{label}] AJAX SOURCE DECLARED: {ajax.group(1)[:160]}")
 
     # --- is the series itself in the HTML? --------------------------------
     tables = soup.find_all("table")
@@ -181,8 +207,9 @@ def probe(label: str, url: str) -> None:
     if tenors:
         print(f"  tenors named in the page: {', '.join(tenors)}")
         if len(tenors) == 3 and tables:
-            print("  >>> all three tenors AND a table in the served HTML — "
-                  "pandas.read_html would take this even with no CSV export")
+            record(f"[{label}] all three tenors AND {len(tables)} table(s) in the "
+                   "served HTML — pandas.read_html would take this even with no "
+                   "CSV export")
 
     # --- the half it would be easy to skip --------------------------------
     terms = [
@@ -200,6 +227,9 @@ def main() -> int:
     print("Read-only. Writes nothing, gates nothing, never fails CI.")
     for label, url in PAGES:
         probe(label, url)
+    Path("tbill-probe-report.txt").write_text("\n".join(FINDINGS) + "\n")
+    print(f"\n[probe] wrote {len(FINDINGS)} findings to tbill-probe-report.txt")
+
     print(
         "\nWhat to do with this output:\n"
         "  * A .csv/.xlsx URL under /uploads/ is the ingest endpoint — lift it\n"

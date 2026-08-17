@@ -1,5 +1,5 @@
 # Rates via Mwangaza Yield (mwangazayield.org)
-# Generated 2026-08-17T04:18:26.864354+00:00 | schema 1
+# Generated 2026-08-17T15:48:19.280161+00:00 | schema 1
 "# Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied."
 # T-BILLS: quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.
 "# BANDS: Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote."
@@ -18,4 +18,4 @@ macro,centralBankRate,,,,,8.75,,,,,,2026-08-11,CBK
 macro,inflation,,,,,6.49,,,,,,2026-08-05,CBK
 macro,inflationCore,,,,,3.2,,,,,,2026-07-31,"KNBS Consumer Price Indices and Inflation Rates, July 2026"
 macro,inflationNonCore,,,,,15,,,,,,2026-07-31,"KNBS Consumer Price Indices and Inflation Rates, July 2026"
-macro,usdKes,,,,,129.23,,,,,,2026-08-14,CBK indicative
+macro,usdKes,,,,,129.34,,,,,,2026-08-17,CBK indicative

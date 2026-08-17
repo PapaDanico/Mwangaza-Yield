@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-08-17T04:19:37.122813+00:00",
+  "checkedAt": "2026-08-17T15:49:22.780123+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -12,8 +12,8 @@
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-08-14",
-      "ageDays": 3,
+      "asOf": "2026-08-17",
+      "ageDays": 0,
       "budgetDays": 40,
       "stale": false
     },

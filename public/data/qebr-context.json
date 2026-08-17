@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "id": "qebr-gdp-growth",
+    "label": "GDP growth",
+    "value": 4.6,
+    "unit": "% y/y",
+    "asOf": "2026-03-31",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "Whether the economy behind the borrowing is still expanding. Growth is what eventually pays debt down without new borrowing.",
+    "sentiment": "caution"
+  },
+  {
+    "id": "qebr-import-cover",
+    "label": "Reserves (import cover)",
+    "value": 5.7,
+    "unit": "months",
+    "asOf": "2026-03-31",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing.",
+    "sentiment": "good"
+  },
+  {
+    "id": "qebr-current-account",
+    "label": "Current account / GDP",
+    "value": -3.0,
+    "unit": "% of GDP",
+    "asOf": "2026-03-31",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "What the country earns abroad against what it spends there. A persistent deficit has to be financed, and financing it is what borrowing is for.",
+    "sentiment": "good"
+  }
+]

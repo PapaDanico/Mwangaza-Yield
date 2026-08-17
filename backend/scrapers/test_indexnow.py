@@ -20,6 +20,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 import indexnow
 
 FAILURES: list = []
@@ -211,8 +213,6 @@ def test_it_is_wired_into_a_job_that_actually_runs() -> None:
     So the wiring is asserted rather than eyeballed: parse ci.yml, find the job
     that owns each script, and require that job to run on a schedule.
     """
-    import yaml
-
     ci_path = Path(__file__).parents[2] / ".github" / "workflows" / "ci.yml"
     workflow = yaml.safe_load(ci_path.read_text())
 

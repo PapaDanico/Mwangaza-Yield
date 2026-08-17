@@ -12,3 +12,16 @@ beautifulsoup4
 # this is the module where a silent version change would be least welcome.
 cryptography
 certifi
+
+# test_indexnow.py asserts that indexnow.py and probe_tbill_rates.py sit in a
+# ci.yml job that actually runs on a schedule. Both had been inserted into a
+# workflow_dispatch-only job and neither had executed once — the workflow was
+# valid, CI was green, and the only symptom was silence.
+#
+# Declared rather than assumed. The first version of that test imported yaml
+# inside the function and passed locally because this container happens to have
+# PyYAML; the runner did not, and the test that exists to catch a silent
+# miswiring failed loudly on its own import. Three other tests read ci.yml by
+# regex, which is fine for grepping one command line and is not fine for
+# answering "which job owns this step".
+PyYAML

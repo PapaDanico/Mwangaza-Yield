@@ -141,6 +141,12 @@ TENOR_RE = re.compile(r"\b(91|182|364)[\s-]*day", re.I)
 # repository.
 FINDINGS: list[str] = []
 
+# Every machine-readable file the pages turned out to link to, so their SHAPE
+# can be reported too. A URL alone is not enough to write a parser against —
+# the first report found the FX history CSV and the commercial-bank-rates CSV
+# and said nothing about their columns, which is one more run wasted.
+DISCOVERED: list[tuple[str, str]] = []
+
 
 def record(line: str) -> None:
     """Print for the live log, and keep for the committed report."""
@@ -179,6 +185,7 @@ def probe(label: str, url: str) -> None:
             record(f"[{label}]     {href}")
             if text:
                 record(f"[{label}]       link text: {text}")
+            DISCOVERED.append((label, href))
     else:
         record(f"[{label}] no .csv/.xlsx/.xls links in the served HTML")
 
@@ -186,26 +193,42 @@ def probe(label: str, url: str) -> None:
     # absence of a link above does not mean the absence of an export. Say so
     # rather than letting a reader conclude "PDF only".
     if DT_RE.search(r.text):
-        print("  DataTables present — an export button may build a file "
-              "client-side, so a missing link above is not a 'no'")
+        record(f"[{label}] DataTables present — an export button may build a "
+               "file client-side, so a missing link above is not a 'no'")
     ajax = AJAX_RE.search(r.text)
     if ajax:
         record(f"[{label}] AJAX SOURCE DECLARED: {ajax.group(1)[:160]}")
 
-    # --- is the series itself in the HTML? --------------------------------
+    # --- is the series itself in the HTML, and WHAT SHAPE IS IT? ----------
+    #
+    # The headers are the point, and the first version of this probe printed
+    # them instead of recording them. That report said "all three tenors AND 8
+    # tables" for the results listing — enough to know pandas.read_html is
+    # viable, and NOT enough to write a parser, because nothing durable said
+    # what the columns were. A probe that answers "yes there is a table" and
+    # not "here is its shape" sends the next person back for another run.
     tables = soup.find_all("table")
-    print(f"  tables in served HTML: {len(tables)}")
-    for i, table in enumerate(tables[:3], 1):
+    record(f"[{label}] tables in served HTML: {len(tables)}")
+    for i, table in enumerate(tables[:6], 1):
         rows = table.find_all("tr")
         head = " | ".join(
-            " ".join(c.get_text().split())[:22]
+            " ".join(c.get_text().split())[:24]
             for c in (rows[0].find_all(["th", "td"]) if rows else [])
         )
-        print(f"    table {i}: {len(rows)} rows | header: {head[:150]}")
+        # The first DATA row matters as much as the header: a header can look
+        # right while the cells underneath are links, images or empty.
+        first = " | ".join(
+            " ".join(c.get_text().split())[:24]
+            for c in (rows[1].find_all(["th", "td"]) if len(rows) > 1 else [])
+        )
+        record(f"[{label}]   table {i}: {len(rows)} rows")
+        record(f"[{label}]     header: {head[:200]}")
+        if first:
+            record(f"[{label}]     row 1:  {first[:200]}")
 
     tenors = sorted(set(m.group(1) for m in TENOR_RE.finditer(r.text)))
     if tenors:
-        print(f"  tenors named in the page: {', '.join(tenors)}")
+        record(f"[{label}] tenors named: {', '.join(tenors)}")
         if len(tenors) == 3 and tables:
             record(f"[{label}] all three tenors AND {len(tables)} table(s) in the "
                    "served HTML — pandas.read_html would take this even with no "
@@ -218,8 +241,43 @@ def probe(label: str, url: str) -> None:
         if TERMS_RE.search(a.get_text()) or TERMS_RE.search(a["href"])
     ]
     if terms:
-        print(f"  terms/copyright links (LICENCE IS UNSETTLED — read these): "
-              f"{sorted(set(terms))[:4]}")
+        record(f"[{label}] terms/copyright links (LICENCE UNSETTLED): "
+               f"{sorted(set(terms))[:4]}")
+
+
+def shape_of(label: str, url: str) -> None:
+    """The first lines of a discovered file, so a parser can be written to it.
+
+    A URL is a finding; a URL plus its header row is an actionable finding. The
+    previous report named two CSVs and an XLSX and described none of them, so
+    the only way to learn their columns was to run again.
+
+    Only the first few kilobytes are read. These files can be large — the FX
+    history covers every trading day since 2003 — and the columns are all in
+    the first line.
+    """
+    record(f"[shape] {url}")
+    try:
+        r = tls_chain.get(url, headers=UA, timeout=TIMEOUT, stream=True)
+    except requests.RequestException as exc:
+        record(f"[shape]   UNREACHABLE: {exc.__class__.__name__}")
+        return
+    if r.status_code != 200:
+        record(f"[shape]   HTTP {r.status_code}")
+        return
+    if url.lower().endswith((".xlsx", ".xls")):
+        # openpyxl is a dependency already; reading a spreadsheet's header is
+        # not worth streaming gymnastics, so this reports size only and leaves
+        # the columns to whoever writes that parser.
+        record(f"[shape]   spreadsheet, {len(r.content)} bytes "
+               "(columns not read — open it to see them)")
+        return
+    head = r.raw.read(4096, decode_content=True).decode("utf-8", "replace")
+    lines = [ln for ln in head.splitlines() if ln.strip()][:4]
+    for i, ln in enumerate(lines):
+        record(f"[shape]   line {i}: {ln[:220]}")
+    if not lines:
+        record("[shape]   empty")
 
 
 def main() -> int:
@@ -227,6 +285,12 @@ def main() -> int:
     print("Read-only. Writes nothing, gates nothing, never fails CI.")
     for label, url in PAGES:
         probe(label, url)
+    if DISCOVERED:
+        record("")
+        record(f"--- shape of the {len(DISCOVERED)} machine-readable file(s) found ---")
+        for label, href in DISCOVERED:
+            shape_of(label, href)
+
     Path("tbill-probe-report.txt").write_text("\n".join(FINDINGS) + "\n")
     print(f"\n[probe] wrote {len(FINDINGS)} findings to tbill-probe-report.txt")
 

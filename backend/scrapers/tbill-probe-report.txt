@@ -1,28 +1,81 @@
 [Treasury Bills Average Rates] HTTP 200, 68603 bytes
 [Treasury Bills Average Rates] no .csv/.xlsx/.xls links in the served HTML
+[Treasury Bills Average Rates] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Treasury Bills Average Rates] tables in served HTML: 1
+[Treasury Bills Average Rates]   table 1: 12 rows
+[Treasury Bills Average Rates]     header: Issue Date | Issue Number | Tenor | Maturity Date | Average Interest Rate | MarketAverageRate
+[Treasury Bills Average Rates]     row 1:  Issue Date | Issue Number | Tenor | Maturity Date | Average Interest Rate | MarketAverageRate
 [Interest Rates (statistics)] HTTP 200, 64395 bytes
 [Interest Rates (statistics)] 2 MACHINE-READABLE DOWNLOAD(S):
 [Interest Rates (statistics)]     https://www.centralbank.go.ke/uploads/interest_rates/537280676_Commercial banks Weighted Average Rates.csv
 [Interest Rates (statistics)]       link text: Commercial Bank Rates
 [Interest Rates (statistics)]     https://www.centralbank.go.ke/uploads/interest_rates/44072767_Central Bank Rates_with Heads.csv
 [Interest Rates (statistics)]       link text: Central Bank Rates
+[Interest Rates (statistics)] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Interest Rates (statistics)] tables in served HTML: 1
+[Interest Rates (statistics)]   table 1: 4 rows
+[Interest Rates (statistics)]     header: Title
+[Interest Rates (statistics)]     row 1:  Title
 [Central Bank Rates] HTTP 200, 182676 bytes
 [Central Bank Rates] no .csv/.xlsx/.xls links in the served HTML
+[Central Bank Rates] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Central Bank Rates] tables in served HTML: 1
+[Central Bank Rates]   table 1: 303 rows
+[Central Bank Rates]     header: Year | Month | Repo | Reverse Repo | Interbank Rate | 91-Day T-bill | 182-Day T-bill | 364-Day T-bill | Cash Reserve Requirement | Central Bank Rate
+[Central Bank Rates]     row 1:  Year | Month | Repo | Reverse Repo | Interbank Rate | 91-Day T-bill | 182-Day T-bill | 364-Day T-bill | Cash Reserve Requirement | Central Bank Rate
+[Central Bank Rates] tenors named: 182, 364, 91
 [Central Bank Rates] all three tenors AND 1 table(s) in the served HTML — pandas.read_html would take this even with no CSV export
 [Statistics index] HTTP 200, 47709 bytes
 [Statistics index] no .csv/.xlsx/.xls links in the served HTML
+[Statistics index] tables in served HTML: 0
 [T-bill results (LIVE listing)] HTTP 200, 1942947 bytes
 [T-bill results (LIVE listing)] no .csv/.xlsx/.xls links in the served HTML
+[T-bill results (LIVE listing)] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[T-bill results (LIVE listing)] tables in served HTML: 8
+[T-bill results (LIVE listing)]   table 1: 31 rows
+[T-bill results (LIVE listing)]     header: Value Date | On Offer | Maturing
+[T-bill results (LIVE listing)]     row 1:  Value Date | On Offer | Maturing
+[T-bill results (LIVE listing)]   table 2: 797 rows
+[T-bill results (LIVE listing)]     header: 91-Day Results
+[T-bill results (LIVE listing)]     row 1:  91-Day Results
+[T-bill results (LIVE listing)]   table 3: 778 rows
+[T-bill results (LIVE listing)]     header: 182-Day Results
+[T-bill results (LIVE listing)]     row 1:  182-Day Results
+[T-bill results (LIVE listing)]   table 4: 729 rows
+[T-bill results (LIVE listing)]     header: 364-Day Results
+[T-bill results (LIVE listing)]     row 1:  364-Day Results
+[T-bill results (LIVE listing)]   table 5: 12 rows
+[T-bill results (LIVE listing)]     header: Issue Date | Issue No | Tenor | Weighted Average Rate
+[T-bill results (LIVE listing)]     row 1:  Issue Date | Issue No | Tenor | Weighted Average Rate
+[T-bill results (LIVE listing)]   table 6: 4512 rows
+[T-bill results (LIVE listing)]     header: Deal Date | Transaction Type | Security No | Face Value | Settlement Amount | DTM | Price
+[T-bill results (LIVE listing)]     row 1:  Deal Date | Transaction Type | Security No | Face Value | Settlement Amount | DTM | Price
+[T-bill results (LIVE listing)] tenors named: 182, 364, 91
 [T-bill results (LIVE listing)] all three tenors AND 8 table(s) in the served HTML — pandas.read_html would take this even with no CSV export
 [Diaspora remittances] HTTP 200, 138329 bytes
 [Diaspora remittances] 1 MACHINE-READABLE DOWNLOAD(S):
 [Diaspora remittances]     https://www.centralbank.go.ke/wp-content/uploads/2026/05/April2026.xlsx
 [Diaspora remittances]       link text: Remittances by Source (‘000 USD Equivalent)
+[Diaspora remittances] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Diaspora remittances] tables in served HTML: 1
+[Diaspora remittances]   table 1: 273 rows
+[Diaspora remittances]     header: Year | Month | North America | Europe | Rest of World | Total Remittances (USD '
+[Diaspora remittances]     row 1:  Year | Month | North America | Europe | Rest of World | Total Remittances (USD '
 [Interbank rates] HTTP 200, 66502 bytes
 [Interbank rates] no .csv/.xlsx/.xls links in the served HTML
+[Interbank rates] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Interbank rates] tables in served HTML: 1
+[Interbank rates]   table 1: 12 rows
+[Interbank rates]     header: Date | Rate
+[Interbank rates]     row 1:  Date | Rate
 [Commercial bank rates] HTTP 200, 67906 bytes
 [Commercial bank rates] no .csv/.xlsx/.xls links in the served HTML
-[Daily indicative FX rates] HTTP 200, 74015 bytes
+[Commercial bank rates] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Commercial bank rates] tables in served HTML: 1
+[Commercial bank rates]   table 1: 12 rows
+[Commercial bank rates]     header: Year | Month | Deposit | Savings | Lending | Overdraft
+[Commercial bank rates]     row 1:  Year | Month | Deposit | Savings | Lending | Overdraft
+[Daily indicative FX rates] HTTP 200, 74007 bytes
 [Daily indicative FX rates] 14 MACHINE-READABLE DOWNLOAD(S):
 [Daily indicative FX rates]     https://www.centralbank.go.ke/uploads/fx_rates/historical_data.csv
 [Daily indicative FX rates]       link text: Download All Historical Rates
@@ -52,3 +105,92 @@
 [Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2009
 [Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2010.csv
 [Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2010
+[Daily indicative FX rates] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
+[Daily indicative FX rates] tables in served HTML: 1
+[Daily indicative FX rates]   table 1: 12 rows
+[Daily indicative FX rates]     header: Date | Currency | Mean | Buy | Sell
+[Daily indicative FX rates]     row 1:  Date | Currency | Mean | Buy | Sell
+
+--- shape of the 17 machine-readable file(s) found ---
+[shape] https://www.centralbank.go.ke/uploads/interest_rates/537280676_Commercial banks Weighted Average Rates.csv
+[shape]   line 0: ,,COMMERCIAL BANKS' WEIGHTED AVERAGE INTEREST RATES (%) 1/,,,
+[shape]   line 1: YEAR,MONTH,Deposit,Savings,Lending ,Overdraft 
+[shape]   line 2: 1991,JUL,13.5,12.97,16.71,16.15
+[shape]   line 3: ,AUG,13.59,13.24,16.42,13.79
+[shape] https://www.centralbank.go.ke/uploads/interest_rates/44072767_Central Bank Rates_with Heads.csv
+[shape]   line 0: ,,CENTRAL BANK RATES,,,,,,,
+[shape]   line 1: YEAR,MONTH,Repo,Reverse Repo,Interbank Rate,91-Day Tbill,182-days Tbill,364-days Tbill,Cash Reserve Requirement,Central Bank Rate
+[shape]   line 2: 1991,Jul,                 -  ,                 -  ,,17.14,                 -  ,                 -  ,                 -  ,                 -  
+[shape]   line 3: ,Aug,                 -  ,                 -  ,,16.7,                 -  ,                 -  ,                 -  ,                 -  
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2026/05/April2026.xlsx
+[shape]   spreadsheet, 73622 bytes (columns not read — open it to see them)
+[shape] https://www.centralbank.go.ke/uploads/fx_rates/historical_data.csv
+[shape]   line 0: 11/10/2016,AE DIRHAM,27.5747,27.5449,27.6046
+[shape]   line 1: 11/10/2016,SA RAND,7.3196,7.3087,7.3305
+[shape]   line 2: 11/10/2016,CAN $,76.6902,76.606,76.7744
+[shape]   line 3: 11/10/2016,AE DIRHAM,27.5747,27.5449,27.6046
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2011.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 03/01/2011,US DOLLAR,80.7961,80.7239,80.8683
+[shape]   line 2: 03/01/2011,STG POUND,125.644,125.519,125.77
+[shape]   line 3: 03/01/2011,EURO,107.435,107.307,107.564
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2012.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 03/01/2012,US DOLLAR,85.0906,84.9639,85.2172
+[shape]   line 2: 03/01/2012,STG POUND,132.355,132.142,132.568
+[shape]   line 3: 03/01/2012,EURO,110.401,110.222,110.58
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2013.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2013,US DOLLAR,86.0769,85.9789,86.175
+[shape]   line 2: 02/01/2013,STG POUND,140.509,140.3541,140.6641
+[shape]   line 3: 02/01/2013,EURO,114.214,114.079,114.3483
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2014.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2014,US DOLLAR,86.4167,86.3222,86.5111
+[shape]   line 2: 02/01/2014,STG POUND,142.7242,142.5506,142.8978
+[shape]   line 3: 02/01/2014,EURO,118.8009,118.6617,118.9401
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2015.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2015,US DOLLAR,90.7031,90.6239,90.7822
+[shape]   line 2: 02/01/2015,STG POUND,140.9997,140.8611,141.1383
+[shape]   line 3: 02/01/2015,EURO,109.3914,109.2844,109.4983
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2003.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 12/09/2003,US DOLLAR,84.1483,84.0539,84.2428
+[shape]   line 2: 12/09/2003,NOR KRONER,12.6759,12.6602,12.6916
+[shape]   line 3: 12/09/2003,DAN KRONER,14.5142,14.4982,14.5301
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2004.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 12/09/2004,CHINESE YUAN,86.8547,86.7433,86.966
+[shape]   line 2: 12/09/2004,SAUDI RIYAL,67.314,67.2187,67.4093
+[shape]   line 3: 12/09/2004,AUSTRALIAN $,22.4838,22.4576,22.5099
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2005.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 03/01/2005,STG POUND,150.375,150.16,150.59
+[shape]   line 2: 03/01/2005,US DOLLAR,78.9278,78.8278,79.0278
+[shape]   line 3: 03/01/2005,EURO,106.134,105.988,106.281
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2006.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 03/01/2006,STG POUND,125.236,125.048,125.424
+[shape]   line 2: 03/01/2006,EURO,86.1214,85.9781,86.2647
+[shape]   line 3: 03/01/2006,SA RAND,11.417,11.3631,11.4709
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2007.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2007,NOR KRONER,11.2161,11.202,11.2302
+[shape]   line 2: 02/01/2007,HONGKONG $,8.9459,8.937,8.9548
+[shape]   line 3: 02/01/2007,DAN KRONER,12.3558,12.3407,12.371
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2008.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2008,KES/USHS,26.7509,26.6389,26.8629
+[shape]   line 2: 02/01/2008,NOR KRONER,11.6336,11.6171,11.65
+[shape]   line 3: 02/01/2008,DAN KRONER,12.4607,12.444,12.4774
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2009.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 02/01/2009,US DOLLAR,78.2678,78.1944,78.3411
+[shape]   line 2: 02/01/2009,STG POUND,114.704,114.602,114.807
+[shape]   line 3: 02/01/2009,EURO,108.536,108.429,108.643
+[shape] https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2010.csv
+[shape]   line 0: Date,Currency,Mean,Buy,Sell
+[shape]   line 1: 04/01/2010,US DOLLAR,75.8406,75.7378,75.9433
+[shape]   line 2: 04/01/2010,STG POUND,122.143,121.96,122.326
+[shape]   line 3: 04/01/2010,EURO,108.498,108.341,108.656

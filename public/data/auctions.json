@@ -26,7 +26,7 @@
     "auctionDate": "2026-08-12",
     "settlementDate": "2026-08-17",
     "amountOfferedKES": null,
-    "status": "closed",
+    "status": "settled",
     "bondName": "16-Year Infrastructure Bond (re-open)",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/618766331_AUGUST 2026 IFB1-2019-016, IFB1-2021-018 AND IFB1-2021-021 DATED  17-08-2026--.pdf"
   },
@@ -42,7 +42,7 @@
     "auctionDate": "2026-08-12",
     "settlementDate": "2026-08-17",
     "amountOfferedKES": null,
-    "status": "closed",
+    "status": "settled",
     "bondName": "18-Year Infrastructure Bond (re-open)",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/618766331_AUGUST 2026 IFB1-2019-016, IFB1-2021-018 AND IFB1-2021-021 DATED  17-08-2026--.pdf"
   },
@@ -58,7 +58,7 @@
     "auctionDate": "2026-08-12",
     "settlementDate": "2026-08-17",
     "amountOfferedKES": null,
-    "status": "closed",
+    "status": "settled",
     "bondName": "21-Year Infrastructure Bond (re-open)",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/618766331_AUGUST 2026 IFB1-2019-016, IFB1-2021-018 AND IFB1-2021-021 DATED  17-08-2026--.pdf"
   },

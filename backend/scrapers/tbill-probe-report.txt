@@ -1,0 +1,54 @@
+[Treasury Bills Average Rates] HTTP 200, 68603 bytes
+[Treasury Bills Average Rates] no .csv/.xlsx/.xls links in the served HTML
+[Interest Rates (statistics)] HTTP 200, 64395 bytes
+[Interest Rates (statistics)] 2 MACHINE-READABLE DOWNLOAD(S):
+[Interest Rates (statistics)]     https://www.centralbank.go.ke/uploads/interest_rates/537280676_Commercial banks Weighted Average Rates.csv
+[Interest Rates (statistics)]       link text: Commercial Bank Rates
+[Interest Rates (statistics)]     https://www.centralbank.go.ke/uploads/interest_rates/44072767_Central Bank Rates_with Heads.csv
+[Interest Rates (statistics)]       link text: Central Bank Rates
+[Central Bank Rates] HTTP 200, 182676 bytes
+[Central Bank Rates] no .csv/.xlsx/.xls links in the served HTML
+[Central Bank Rates] all three tenors AND 1 table(s) in the served HTML — pandas.read_html would take this even with no CSV export
+[Statistics index] HTTP 200, 47709 bytes
+[Statistics index] no .csv/.xlsx/.xls links in the served HTML
+[T-bill results (LIVE listing)] HTTP 200, 1942947 bytes
+[T-bill results (LIVE listing)] no .csv/.xlsx/.xls links in the served HTML
+[T-bill results (LIVE listing)] all three tenors AND 8 table(s) in the served HTML — pandas.read_html would take this even with no CSV export
+[Diaspora remittances] HTTP 200, 138329 bytes
+[Diaspora remittances] 1 MACHINE-READABLE DOWNLOAD(S):
+[Diaspora remittances]     https://www.centralbank.go.ke/wp-content/uploads/2026/05/April2026.xlsx
+[Diaspora remittances]       link text: Remittances by Source (‘000 USD Equivalent)
+[Interbank rates] HTTP 200, 66502 bytes
+[Interbank rates] no .csv/.xlsx/.xls links in the served HTML
+[Commercial bank rates] HTTP 200, 67906 bytes
+[Commercial bank rates] no .csv/.xlsx/.xls links in the served HTML
+[Daily indicative FX rates] HTTP 200, 74015 bytes
+[Daily indicative FX rates] 14 MACHINE-READABLE DOWNLOAD(S):
+[Daily indicative FX rates]     https://www.centralbank.go.ke/uploads/fx_rates/historical_data.csv
+[Daily indicative FX rates]       link text: Download All Historical Rates
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2011.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2011
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2012.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2012
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2013.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2013
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2014.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2014
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2015.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2015
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2003.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2003
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2004.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2004
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2005.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2005
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2006.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2006
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2007.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2007
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2008.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2008
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2009.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2009
+[Daily indicative FX rates]     https://www.centralbank.go.ke/wp-content/uploads/2016/11/Key-CBK-Indicative-Exchange-Rates-2010.csv
+[Daily indicative FX rates]       link text: CBK Indicative Exchange Rates 2010

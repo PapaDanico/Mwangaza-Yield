@@ -776,3 +776,60 @@ as `cbr_history_parser.py` does.
 | Auction capture (#5) | blocked | **reachable** |
 | Exact coupon dates (#1) | "2016 only" — WRONG | re-probe against the live listing |
 | Day-count convention (#2) | not stated | still not stated; test behaviour instead |
+
+## 16. The T-bill history is reachable without PDFs — and three other CSVs turned up (2026-08-18)
+
+`probe_tbill_rates.py` ran for the first time on 2026-08-17 and its findings are
+committed at `backend/scrapers/tbill-probe-report.txt`, so nothing below has to
+be taken on trust.
+
+### The answer to the T-bill question
+
+| Page | Bytes | CSV link? | Tables in served HTML |
+|---|---|---|---|
+| Treasury Bills Average Rates | 68,603 | no | **none reported** |
+| T-bill results (LIVE listing) | 1,942,947 | no | **8, with all three tenors** |
+| Interest Rates (statistics) | 64,395 | **2** | — |
+| Central Bank Rates | 182,676 | no | 1, with all three tenors |
+| Statistics index | 47,709 | no | — |
+
+**No CSV export exists for the Treasury bill series.** The hypothesis that
+started this probe — that `/uploads/interest_rates/…_Central Bank Rates.csv`
+implied a matching T-bill export — is **refuted**. Two CSVs live under that
+slug and neither is the bill series.
+
+**But the PDFs are not the only route either.** The live results listing serves
+**1.9 MB with eight tables and all three tenors in the HTML**, so
+`pandas.read_html` reaches it without a browser and without parsing a single
+PDF. That is the route for roadmap item #28.
+
+The Average Rates page — the one that *sounds* like the right page — reported
+no table. It is most likely assembled client-side. **The page with the obvious
+name is not the page with the data**, which is the same lesson as §15 in a
+different costume.
+
+### What else the probe found, unlooked-for
+
+These were included because the run was happening anyway and each GET was free:
+
+- **`/uploads/fx_rates/historical_data.csv`** — link text *"Download All
+  Historical Rates"*. Every trading day CBK has published, in one file. The app
+  currently shows FX from a World Bank figure with a 2024 vintage.
+- **`/uploads/interest_rates/537280676_Commercial banks Weighted Average Rates.csv`**
+  — the lending-rate comparator: what the same shilling costs to borrow, beside
+  what it earns lent to the government.
+- **`/wp-content/uploads/2026/05/April2026.xlsx`** — remittances by source.
+  Note the dated path: this URL changes every month, so a scraper must find the
+  link from the page rather than hard-code it.
+- Thirteen per-year FX CSVs from 2003–2015, superseded by the "all historical"
+  file above.
+- **Interbank rates: no CSV, no table.** The one candidate that did not pan out.
+
+### What is still not settled
+
+The **licence**. The probe reports each page's terms links precisely because
+this is the half that is easy to skip. No site-wide CBK terms of use has been
+found; only the Quarterly Economic Review carries an explicit reproduction
+grant, which is what `src/lib/licences.ts` quotes. Redistributing a CBK *table*
+rests on that same notice, and that inference should be checked before any of
+the above is published rather than after.

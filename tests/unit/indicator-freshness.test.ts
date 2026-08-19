@@ -39,7 +39,7 @@ describe('indicatorAge', () => {
   });
 
   it('gives an unlisted indicator the conservative default, not exemption', () => {
-    const a = indicatorAge('GDP', daysAgo(DEFAULT_BUDGET_DAYS + 5), NOW)!;
+    const a = indicatorAge('UNKNOWN_INDICATOR', daysAgo(DEFAULT_BUDGET_DAYS + 5), NOW)!;
     expect(a.budgetDays).toBe(DEFAULT_BUDGET_DAYS);
     expect(a.stale).toBe(true);
   });

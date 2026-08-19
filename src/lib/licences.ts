@@ -109,6 +109,17 @@ export const LICENCES: Licence[] = [
     checkedOn: '2026-08-16',
   },
   {
+    id: 'Kenya Revenue Authority',
+    verdict: 'permitted',
+    licence: 'Reproduction without restriction, attribution required',
+    terms:
+      'Information contained in this publication may be reproduced without ' +
+      'restriction provided due acknowledgement is made of the source.',
+    termsUrl: 'https://www.kra.go.ke/annual-revenue-performance-fy-2025-2026',
+    attribution: 'Kenya Revenue Authority (KRA)',
+    checkedOn: '2026-08-19',
+  },
+  {
     id: 'CBK',
     verdict: 'permitted',
     licence: 'Reproduction without restrictions, attribution required',
@@ -270,5 +281,16 @@ export const KNOWN_EXPOSURES: KnownExposure[] = [
       'change the label: an unverified attribution is a worse defect than an ' +
       'unlicensed one.',
     resolveBy: '2026-11-16',
+  },
+  {
+    source: 'KNBS, Economic Survey 2026',
+    file: 'public/data/qebr-context.json',
+    remedy:
+      'Employment and informal-sector figures originate from the KNBS Economic ' +
+      'Survey, which KNBS publishes but does not licence for redistribution. ' +
+      'Re-derive from the World Bank Employment in informal employment series ' +
+      '(SL.ISV.IFRM.ZS) or from CBK publications that republish the headline ' +
+      'employment number under their own reproduction grant.',
+    resolveBy: '2027-04-30',
   },
 ];

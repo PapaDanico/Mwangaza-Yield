@@ -122,5 +122,16 @@
     "unit": "%",
     "source": "National Treasury",
     "lastChecked": "2026-08-18"
+  },
+  {
+    "id": "gdp-2025",
+    "indicator": "GDP",
+    "value": 4.63,
+    "date": "2026-04-30",
+    "unit": "% y/y",
+    "source": "World Bank Open Data (CC BY 4.0)",
+    "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
+    "period": "2025",
+    "lastChecked": "2026-08-19"
   }
 ]

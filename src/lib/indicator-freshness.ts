@@ -39,6 +39,7 @@ export const INDICATOR_BUDGETS: Record<string, IndicatorBudget> = {
   CPI_CORE: { days: 45, cadence: 'released monthly' },
   CPI_NONCORE: { days: 45, cadence: 'released monthly' },
   CBR: { days: 130, cadence: 'set at MPC meetings, roughly every two months' },
+  GDP: { days: 400, cadence: 'KNBS Economic Survey published annually' },
 };
 
 /**

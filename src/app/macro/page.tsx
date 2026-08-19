@@ -252,6 +252,11 @@ export default function MacroPage() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        <ul className="sr-only">
+          {cbrSeries.slice(-8).map((p) => (
+            <li key={p.date}>{p.date}: CBR {p.rate.toFixed(2)}%</li>
+          ))}
+        </ul>
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Current CBR</p>
@@ -306,6 +311,11 @@ export default function MacroPage() {
             </LineChart>
           </ResponsiveContainer>
         </div>
+        <ul className="sr-only">
+          {debtSeries.slice(-6).map((p) => (
+            <li key={p.date}>{p.date}: Debt to GDP {p.value.toFixed(1)}%</li>
+          ))}
+        </ul>
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
           <div className={`rounded-xl border p-3 ${debt.debtToGDP > 70 ? 'border-red-300 bg-red-500/[0.06]' : debt.debtToGDP > 55 ? 'border-gold-400 bg-gold-500/[0.06]' : 'border-sand-300'}`}>
             <p className="text-xs text-ink-muted">Debt / GDP</p>

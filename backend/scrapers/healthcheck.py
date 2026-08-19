@@ -240,6 +240,9 @@ PER_INDICATOR_BUDGETS = {
     # The MPC meets roughly every two months and the rate often does not move;
     # a tighter budget would alarm on the Bank doing nothing, which is not news.
     "CBR": (130, "MPC meets ~every 2 months"),
+    # The KNBS Economic Survey is published once a year, typically in April.
+    # A 400-day budget covers the gap between annual publications with headroom.
+    "GDP": (400, "KNBS Economic Survey published annually"),
 }
 
 

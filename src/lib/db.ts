@@ -31,6 +31,14 @@ export interface AlertDelivery {
   seen: boolean;    // false until the reader opens the alerts page
 }
 
+export interface BondAlertRule {
+  id: string;
+  isin: string;
+  kind: 'reopen' | 'yield-threshold';
+  threshold?: number;
+  createdAt: string;
+}
+
 class MwangazaDB extends Dexie {
   bonds!: Table<Bond, string>;
   auctions!: Table<AuctionSchedule, string>;
@@ -60,6 +68,7 @@ class MwangazaDB extends Dexie {
    * still be downloaded.
    */
   receipts!: Table<Receipt, string>;
+  bondAlerts!: Table<BondAlertRule, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -112,6 +121,9 @@ class MwangazaDB extends Dexie {
     // listing and cleanup.
     this.version(11).stores({
       receipts: 'id, timestamp, kind',
+    });
+    this.version(12).stores({
+      bondAlerts: 'id, isin, kind, createdAt',
     });
   }
 }

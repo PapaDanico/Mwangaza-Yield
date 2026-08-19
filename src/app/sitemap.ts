@@ -5,12 +5,12 @@ const BASE = 'https://mwangazayield.org';
 
 const DATA_DRIVEN = [
   '/', '/dashboard', '/auctions', '/yield-curve', '/tbills',
-  '/calculator', '/ladder', '/goals', '/portfolio', '/sell', '/feed', '/receipts',
+  '/calculator', '/ladder', '/goals', '/portfolio', '/sell', '/feed', '/receipts', '/macro',
 ];
 
 const STATIC = [
   '/about', '/learn', '/glossary', '/faq', '/sources', '/licensing',
-  '/support', '/alerts', '/prices', '/privacy', '/terms', '/disclaimer',
+  '/support', '/alerts', '/prices', '/privacy', '/terms', '/disclaimer', '/offline',
 ];
 
 export const dynamic = 'force-static';

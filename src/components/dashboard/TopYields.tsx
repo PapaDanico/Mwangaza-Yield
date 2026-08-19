@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
@@ -9,6 +10,7 @@ import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
 import Reserve from '@/components/shared/Reserve';
 import ratesFeed from '../../../public/data/rates.json';
 import type { Bond } from '@/types/bond';
+import BondDetailCard from '@/components/BondDetailCard';
 
 interface Ranked {
   bond: Bond;
@@ -51,7 +53,9 @@ function currentBenchmark(): { rate: number; asOf: string } | null {
 export default function TopYields() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
+  const prints = useBondStore((s) => s.auctionResults);
   const userPrices = usePriceStore((s) => s.userPrices);
+  const [selected, setSelected] = useState<Bond | null>(null);
   // Holds the space rather than popping in. See Reserve for the measurement.
   if (!bonds.length) return <Reserve height={196} />;
 
@@ -89,9 +93,8 @@ export default function TopYields() {
           tax-free against taxable, at a glance. */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {tiles.map(({ bond, netYTM, price, isPar, label, Icon, accent }) => (
-          <Link
+          <div
             key={bond.isin}
-            href="/calculator/"
             className="card group relative overflow-hidden p-3 transition hover:border-gold-500 sm:p-4"
           >
             <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-faint sm:gap-2 sm:text-xs">
@@ -116,7 +119,15 @@ export default function TopYields() {
                 Last auctioned {bond.ytmAsOf} at {bond.ytmGross?.toFixed(2)}% gross
               </p>
             )}
-          </Link>
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => setSelected(bond)} className="text-xs font-semibold text-gold-700 hover:underline">
+                View details
+              </button>
+              <Link href="/calculator/" className="text-xs text-ink-muted hover:underline">
+                Calculate
+              </Link>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -131,6 +142,13 @@ export default function TopYields() {
           pay on money at face value.
         </p>
       )}
+      <BondDetailCard
+        bond={selected}
+        related={bonds.filter((b) => b.taxExempt === selected?.taxExempt && b.isin !== selected?.isin)}
+        prints={prints}
+        open={Boolean(selected)}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }

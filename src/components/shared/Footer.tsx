@@ -21,6 +21,7 @@ const COLUMNS = [
     heading: 'Market',
     links: [
       { href: '/dashboard/', label: 'Dashboard' },
+      { href: '/macro/', label: 'Economic Context' },
       { href: '/tbills/', label: 'Treasury Bills' },
       { href: '/auctions/', label: 'Auction Radar' },
       { href: '/yield-curve/', label: 'Yield curve history' },

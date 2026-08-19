@@ -147,6 +147,19 @@ export default function PwaDiagnosticsPage() {
         status: manifestLink ? 'ok' : 'warn',
       });
 
+      // --- Last sync times
+      try {
+        const metaRes = await fetch('/data/meta.json', { cache: 'no-store' });
+        const meta = await metaRes.json();
+        out.push({
+          label: 'Last dataset sync',
+          value: String(meta?.generatedAt ?? 'unknown'),
+          status: 'info',
+        });
+      } catch {
+        out.push({ label: 'Last dataset sync', value: 'Unavailable', status: 'warn' });
+      }
+
       setRows(out);
     })();
   }, [refreshKey]);

@@ -83,9 +83,11 @@ def scrape() -> list:
             rec["period"] = period
         records.append(rec)
 
-    return carry_forward(
+    merged = carry_forward(
         date_by_observation(records, existing), existing, (fx, cbr, cpi),
     )
+    merged.extend(load_macro_context(existing))
+    return merged
 
 
 # How far a figure may move from the last value we trusted before we refuse it.
@@ -257,6 +259,25 @@ def read_existing() -> list:
         return json.loads(path.read_text())
     except (json.JSONDecodeError, OSError):
         return []
+
+
+def load_macro_context(existing: list) -> list:
+    path = DATA_DIR / "macro-context.json"
+    if not path.exists():
+        return [
+            r for r in existing
+            if isinstance(r, dict)
+            and r.get("indicator") in {
+                "DEBT_TO_GDP", "DEBT_SERVICE_TO_REVENUE", "INTEREST_TO_REVENUE",
+                "DOMESTIC_DEBT_SHARE", "EXTERNAL_DEBT_SHARE", "REVENUE_TO_GDP",
+                "US10Y", "US_FED_FUNDS", "EM_BOND_YIELD",
+            }
+        ]
+    try:
+        rows = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return []
+    return rows if isinstance(rows, list) else []
 
 
 def date_by_observation(records: list, existing: list) -> list:

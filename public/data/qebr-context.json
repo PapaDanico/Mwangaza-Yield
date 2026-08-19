@@ -13,12 +13,12 @@
   {
     "id": "qebr-import-cover",
     "label": "Reserves (import cover)",
-    "value": 6.3,
+    "value": 5.7,
     "unit": "months",
-    "asOf": "2026-08-10",
-    "source": "CBK Weekly Bulletin, August 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/",
-    "note": "How many months of imports the reserves would cover. Well above the 4-month statutory floor and trending higher — a buffer that reduces near-term external financing risk.",
+    "asOf": "2026-03-31",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing.",
     "sentiment": "good"
   },
   {
@@ -31,60 +31,5 @@
     "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
     "note": "What the country earns abroad against what it spends there. A persistent deficit has to be financed, and financing it is what borrowing is for.",
     "sentiment": "good"
-  },
-  {
-    "id": "qebr-fiscal-deficit",
-    "label": "Fiscal deficit / GDP",
-    "value": -6.4,
-    "unit": "% of GDP",
-    "asOf": "2026-06-30",
-    "source": "National Treasury, FY 2025/26 Budget Outturn",
-    "sourceUrl": "https://www.treasury.go.ke/",
-    "note": "How much the government spent beyond what it collected. Every shilling of deficit becomes new borrowing, raising the stock of debt that bond holders lend into.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "qebr-tax-revenue-gdp",
-    "label": "Tax revenue / GDP",
-    "value": 14.2,
-    "unit": "%",
-    "asOf": "2026-06-30",
-    "source": "Kenya Revenue Authority, Annual Revenue Performance FY 2025/26",
-    "sourceUrl": "https://www.kra.go.ke/annual-revenue-performance-fy-2025-2026",
-    "note": "The share of national output the government actually collects in tax. Kenya's medium-term target is 20%. At 14%, every budget requires substantial borrowing to close the gap.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "qebr-debt-service-rev",
-    "label": "Debt service / ordinary revenue",
-    "value": 69.0,
-    "unit": "%",
-    "asOf": "2025-06-30",
-    "source": "National Treasury, FY 2024/25 Budget Outturn",
-    "sourceUrl": "https://www.treasury.go.ke/",
-    "note": "Of every shilling collected in tax, about 69 cents went to debt service in FY 2024/25 before a single service was funded. This is the tightest measure of fiscal space — it deteriorates long before anything is missed.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "qebr-informal-sector",
-    "label": "Informal sector employment share",
-    "value": 83.8,
-    "unit": "%",
-    "asOf": "2026-04-30",
-    "source": "KNBS, Economic Survey 2026",
-    "sourceUrl": "https://www.knbs.or.ke/reports/2026-economic-survey/",
-    "note": "The share of jobs in the informal sector. At 83.8%, most Kenyans are outside the formal tax net — directly constraining revenue-to-GDP and the government's ability to close deficits without borrowing.",
-    "sentiment": "caution"
-  },
-  {
-    "id": "qebr-net-domestic-borrowing",
-    "label": "Net domestic borrowing",
-    "value": 947.8,
-    "unit": "KES bn",
-    "asOf": "2026-03-31",
-    "source": "National Treasury, Parliamentary Budget Office Supplementary I Estimates FY 2025/26",
-    "sourceUrl": "https://parliament.go.ke/the-national-assembly/budget-office/about-PBO",
-    "note": "How much the government borrowed from the domestic market in FY 2025/26 — revised up from the original KSh 624.7bn. Domestic issuance at this volume competes directly with private borrowers for available funds.",
-    "sentiment": "caution"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "lastSuccessfulScrape": "2026-08-19T09:55:00.000000+00:00",
+  "lastSuccessfulScrape": "2026-08-19T15:49:06.097921+00:00",
   "datasets": {
     "bonds": {
       "file": "bonds.json",
@@ -12,14 +12,39 @@
       "recordCount": 391
     },
     "macro": {
-      "file": "macro.json",
-      "lastUpdated": "2026-08-18T15:52:39.994858+00:00",
-      "recordCount": 14
+      "lastUpdated": "2026-08-19T15:47:42.840647+00:00",
+      "recordCount": 22,
+      "file": "macro.json"
     },
     "prices": {
       "file": "secondary.json",
       "lastUpdated": "2026-08-18T15:52:39.994858+00:00",
       "recordCount": 0
+    },
+    "context": {
+      "lastUpdated": "2026-08-19T15:47:43.902540+00:00",
+      "recordCount": 8,
+      "file": "context.json"
+    },
+    "auction-results": {
+      "lastUpdated": "2026-08-19T15:48:47.299901+00:00",
+      "recordCount": 390,
+      "file": "auction-results.json"
+    },
+    "cbr-history": {
+      "lastUpdated": "2026-08-19T15:48:47.646704+00:00",
+      "recordCount": 120,
+      "file": "cbr-history.json"
+    },
+    "cpi-history": {
+      "lastUpdated": "2026-08-19T15:48:47.939599+00:00",
+      "recordCount": 259,
+      "file": "cpi-history.json"
+    },
+    "qebr-context": {
+      "lastUpdated": "2026-08-19T15:49:06.097921+00:00",
+      "recordCount": 3,
+      "file": "qebr-context.json"
     }
   }
 }

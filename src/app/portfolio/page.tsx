@@ -63,7 +63,7 @@ export default function PortfolioPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[]; fromCustody?: boolean } | null>(null);
   const [showRiskMetrics, setShowRiskMetrics] = useState(true);
-  const [portfolioView, setPortfolioView] = useState<'waterfall' | 'calendar' | 'list'>('waterfall');
+  const [portfolioView, setPortfolioView] = useState<'waterfall' | 'calendar' | 'list'>('list');
   const [waterfallMonths, setWaterfallMonths] = useState<12 | 24 | 36 | 60>(12);
   const [reinvestmentRate, setReinvestmentRate] = useState<number | null>(null);
 
@@ -417,7 +417,7 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
               <div>
                 <h2 className="mb-1 font-semibold text-ink">Portfolio Views</h2>
                 <p className="text-xs text-ink-muted">
-                  Switch between waterfall, calendar, and the detailed holdings list. Waterfall opens first.
+                  Switch between waterfall, calendar, and the detailed holdings list.
                 </p>
               </div>
               <div className="flex rounded-xl border border-sand-300 bg-sand-50 p-1">

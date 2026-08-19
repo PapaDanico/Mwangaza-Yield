@@ -71,7 +71,14 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
-            <DataStatus />
+            {/* DataStatus is hidden at md (768px) so the header row fits within the
+                viewport. The Navbar comment states the budget is the wordmark + seven
+                nav labels + four icon buttons at 768px; DataStatus is a fifth icon that
+                pushes the total ~29px past the right edge. It becomes visible at lg
+                (1024px) where there is room to spare. */}
+            <div className="hidden lg:block">
+              <DataStatus />
+            </div>
             {/* Command palette trigger — gives power users a visual entry point
                 alongside the Cmd+K shortcut. */}
             <button

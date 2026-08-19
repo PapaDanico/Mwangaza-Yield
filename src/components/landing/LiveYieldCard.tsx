@@ -63,7 +63,7 @@ export default function LiveYieldCard() {
       {atPar && (
         <p className="mt-1.5 text-[11px] leading-snug text-ink-faint">
           Priced at par 100 — a placeholder, not the market. Enter the price you are quoted in the{' '}
-          <a href="/calculator" className="underline">
+          <a href="/calculator/" className="underline">
             calculator
           </a>
           .

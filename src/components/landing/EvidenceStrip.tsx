@@ -1,7 +1,7 @@
 import bondsData from '../../../public/data/bonds.json';
 import auctionsData from '../../../public/data/auction-results.json';
 import cbrData from '../../../public/data/cbr-history.json';
-import { computeBondInvestment } from '@/lib/financial-engine';
+import { computeBondInvestment, formatKES } from '@/lib/financial-engine';
 import type { Bond, AuctionPrint, RateDecision } from '@/types/bond';
 
 /**
@@ -54,7 +54,7 @@ function stats() {
   };
 }
 
-const kes = (n: number) => `Ksh ${n.toLocaleString('en-KE')}`;
+const kes = formatKES;
 
 export default function EvidenceStrip() {
   const s = stats();

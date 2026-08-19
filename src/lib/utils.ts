@@ -37,6 +37,14 @@ export function daysUntil(iso: string): number {
 const CURRENCY_PREFIX = formatKES(0).replace(/[\d.,\s]+$/, '');
 
 /**
+ * The currency label used in form input hints — derived from the canonical
+ * formatter so it stays in sync if the prefix ever changes.
+ *
+ * Usage: `Face value (${CURRENCY_LABEL})`
+ */
+export const CURRENCY_LABEL = CURRENCY_PREFIX;
+
+/**
  * A compact shilling figure, or an em dash when there is no figure.
  *
  * The absent case is not defensive tidiness. `Math.round(null)` is 0, so an

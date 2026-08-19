@@ -9,7 +9,7 @@ import { usePriceStore } from '@/stores/priceStore';
 import { useCommunityPriceStore, selectCommunityPrice } from '@/stores/communityPriceStore';
 import { resolvePrice, MIN_PRICE, MAX_PRICE, isPlausiblePrice } from '@/lib/prices';
 import {
-  computeBondInvestment, formatPct, isYieldPinned, YTM_CEILING,
+  computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING,
 } from '@/lib/financial-engine';
 import { PRICE_SOURCES, computeFairValueSpread, type PriceSource } from '@/lib/communityPrice';
 import DataState from '@/components/shared/DataState';
@@ -309,13 +309,13 @@ export default function PricesClient() {
                     <span className="flex items-center gap-1">
                       <Users size={11} className="text-ink-faint" />
                       <strong className="text-ink">Median quoted price:</strong>{' '}
-                      <span className="num font-semibold text-ink">Ksh {cp.median.toFixed(2)}</span>
+                      <span className="num font-semibold text-ink">{formatKES(cp.median, 2)}</span>
                     </span>
                     <span>
                       Range:{' '}
-                      <span className="num">Ksh {cp.min.toFixed(2)}</span>
+                      <span className="num">{formatKES(cp.min, 2)}</span>
                       {' \u2013 '}
-                      <span className="num">Ksh {cp.max.toFixed(2)}</span>
+                      <span className="num">{formatKES(cp.max, 2)}</span>
                     </span>
                     {info.source !== 'par' && (() => {
                       const spread = computeFairValueSpread(bond.isin, cp.median, info.price);

@@ -130,7 +130,7 @@ function buildBondInvestmentReceipt(
     { label: 'ISIN', value: bond.isin },
     { label: 'Coupon rate', value: formatPct(bond.couponRate), source: 'bonds.json' },
     { label: 'Maturity date', value: bond.maturityDate, source: 'bonds.json' },
-    { label: 'Face value (Ksh)', value: formatKES(faceValueKES), source: 'User input' },
+    { label: 'Face value', value: formatKES(faceValueKES), source: 'User input' },
     { label: 'Clean price per 100', value: cleanPrice.toFixed(4), source: priceSource },
     { label: 'Settlement date', value: settlementDate, source: 'Computed (today)' },
     { label: 'Withholding tax rate', value: taxLabel, source: 'Income Tax Act §7A' },

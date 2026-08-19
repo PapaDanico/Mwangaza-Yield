@@ -8,6 +8,7 @@ import {
   evidenceLine,
 } from '@/lib/auction-review';
 import Explain from '@/components/shared/Explain';
+import { formatCompactKES } from '@/lib/utils';
 
 const PRINTS = auctionsData as unknown as AuctionPrint[];
 
@@ -52,7 +53,6 @@ export default function MonthlyReview() {
   if (!r.auctionCount) return null;
 
   const x = (v: number) => `${v.toFixed(2)}x`;
-  const bn = (m: number) => `${(m / 1000).toFixed(1)}bn`;
 
   // Only say "above"/"below" when there is a prior median to compare against.
   // One month beside nothing is a number, not a comparison.
@@ -74,12 +74,12 @@ export default function MonthlyReview() {
         {r.totalOfferedKESM !== undefined && (
           <>
             The Treasury offered{' '}
-            <strong className="tabular-nums">Ksh {bn(r.totalOfferedKESM)}</strong>
+            <strong className="tabular-nums">{formatCompactKES(r.totalOfferedKESM * 1_000_000)}</strong>
             {r.totalAcceptedKESM !== undefined && (
               <>
                 {' '}and took{' '}
                 <strong className="tabular-nums">
-                  Ksh {bn(r.totalAcceptedKESM)}
+                  {formatCompactKES(r.totalAcceptedKESM * 1_000_000)}
                 </strong>
                 {r.uptakePct !== undefined && (
                   <> — {r.uptakePct.toFixed(0)}% of the amount advertised</>

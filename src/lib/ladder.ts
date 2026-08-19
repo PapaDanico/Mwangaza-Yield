@@ -5,6 +5,7 @@
 import type { Bond, SecondaryTrade } from '@/types/bond';
 import {
   computeBondInvestment,
+  formatKES,
   getCouponDates,
   type InvestmentResult,
 } from './financial-engine';
@@ -113,14 +114,14 @@ export function ladderEmptyReason(params: {
    * and showed a table of zeroes instead, which is how this whole function
    * came to exist. */
   if (!(params.amountKES > 0)) {
-    return `Enter the amount you want to invest — at least Ksh ${needed.toLocaleString('en-KE')} for ${params.rungs} rungs.`;
+    return `Enter the amount you want to invest — at least ${formatKES(needed)} for ${params.rungs} rungs.`;
   }
   if (params.amountKES < needed) {
     return (
-      `Ksh ${params.amountKES.toLocaleString('en-KE')} split ${params.rungs} ways is ` +
-      `Ksh ${Math.floor(params.amountKES / params.rungs).toLocaleString('en-KE')} a rung, ` +
-      `below the Ksh ${STEP.toLocaleString('en-KE')} step bonds are issued in. ` +
-      `Use fewer rungs, or invest at least Ksh ${needed.toLocaleString('en-KE')}.`
+      `${formatKES(params.amountKES)} split ${params.rungs} ways is ` +
+      `${formatKES(Math.floor(params.amountKES / params.rungs))} a rung, ` +
+      `below the ${formatKES(STEP)} step bonds are issued in. ` +
+      `Use fewer rungs, or invest at least ${formatKES(needed)}.`
     );
   }
   return (

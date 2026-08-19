@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { readQuoteParams, shareableQuoteUrl } from '@/lib/quote-link';
 import { APP_URL, shareText } from '@/lib/share';
-import { plural } from '@/lib/utils';
+import { plural, CURRENCY_LABEL } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
@@ -156,7 +156,7 @@ export default function SellClient() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="sell-face" className={labelCls}>Face value (Ksh)</label>
+              <label htmlFor="sell-face" className={labelCls}>Face value ({CURRENCY_LABEL})</label>
               <input id="sell-face" type="number" inputMode="numeric" value={face}
                 onChange={(e) => setFace(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>
@@ -178,12 +178,12 @@ export default function SellClient() {
                 onChange={(e) => setQuotedYTM(e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="sell-comm" className={labelCls}>Commission (Ksh)</label>
+              <label htmlFor="sell-comm" className={labelCls}>Commission ({CURRENCY_LABEL})</label>
               <input id="sell-comm" type="number" inputMode="numeric" value={commission}
                 onChange={(e) => setCommission(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="sell-levy" className={labelCls}>CMA / NSE / CDSC levies (Ksh)</label>
+              <label htmlFor="sell-levy" className={labelCls}>CMA / NSE / CDSC levies ({CURRENCY_LABEL})</label>
               <input id="sell-levy" type="number" step="0.01" inputMode="decimal" value={levies}
                 onChange={(e) => setLevies(Math.max(0, Number(e.target.value)))} className={inputCls} />
             </div>

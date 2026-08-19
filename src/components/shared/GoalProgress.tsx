@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Plus, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { formatKES } from '@/lib/financial-engine';
-import { formatCompactKES, nonNegativeNumber, plural } from '@/lib/utils';
+import { formatCompactKES, nonNegativeNumber, plural, CURRENCY_LABEL } from '@/lib/utils';
 import { buildProgress, projectPot, monthsBetween, type ProgressStatus } from '@/lib/progress';
 import { withCheckpoint, withoutCheckpoint, type SavedPlan } from '@/lib/plans';
 
@@ -198,7 +198,7 @@ export default function GoalProgress({
           </div>
           <div className="min-w-0 flex-[1.4]">
             <label htmlFor="cp-amount" className="mb-1 block text-xs font-medium text-ink-soft">
-              What it is worth (Ksh)
+              What it is worth ({CURRENCY_LABEL})
             </label>
             <input
               id="cp-amount" type="number" min={0} step={10_000}

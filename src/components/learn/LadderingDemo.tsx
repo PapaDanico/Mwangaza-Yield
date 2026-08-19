@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { inputCls } from '@/lib/field-styles';
@@ -129,7 +127,27 @@ export default function LadderingDemo() {
       </div>
 
       <div className="rounded-2xl border border-sand-300 bg-sand-50 p-4 text-sm leading-relaxed text-ink-soft">
-        Each bar includes annual coupons from bonds still alive, plus principal when a bond matures. Green bars meet your target; red bars show a year where income may need support from cash reserves or reinvestment.
+        Each bar includes annual coupons from bonds still alive, plus principal when a bond matures. Green bars meet your target; red bars show a year where income may need support from cash reserves or a longer ladder.
+      </div>
+
+      <div className="rounded-2xl border border-sand-300 bg-white p-4 text-sm text-ink-soft">
+        <h3 className="mb-3 font-semibold text-ink">Plotted cash flows by year</h3>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-sand-300 text-xs uppercase tracking-wide text-ink-muted">
+              <th className="py-2">Year</th>
+              <th className="py-2 text-right">Cash flow</th>
+            </tr>
+          </thead>
+          <tbody>
+            {chartData.map((row) => (
+              <tr key={row.year} className="border-b border-sand-300/60 last:border-0">
+                <td className="py-2 text-ink">{row.year}</td>
+                <td className="py-2 text-right font-mono text-ink">{formatKES.format(row.cashFlow)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {allYearsMeetTarget && (

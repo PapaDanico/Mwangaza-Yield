@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import OfflineBadge from './OfflineBadge';
@@ -70,6 +70,18 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
+            {/* Command palette trigger — gives power users a visual entry point
+                alongside the Cmd+K shortcut. */}
+            <button
+              onClick={() => document.dispatchEvent(new CustomEvent('mwangaza:palette'))}
+              aria-label="Open command palette (⌘K)"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-ink-muted transition-colors hover:bg-sand-200 hover:text-ink lg:px-3"
+            >
+              <Search size={18} />
+              <kbd className="hidden rounded border border-sand-300 px-1.5 py-0.5 font-mono text-[10px] text-ink-faint lg:block">
+                ⌘K
+              </kbd>
+            </button>
             {/* Selling is decided once and cannot be undone, so it earns a
                 place on every page — but not 40px of a 360px tab row. Same
                 reasoning as the price book and Alerts that follow. */}

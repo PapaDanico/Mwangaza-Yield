@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import InteractiveModules from './InteractiveModules';
 
 export const metadata: Metadata = {
   title: 'Tutorials — Mwangaza Yield',
@@ -302,17 +303,21 @@ export default function LearnPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">Tutorials</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">Learn</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
-          From your first Ksh 50,000 to a full ladder
+          Bonds, made plain
         </h1>
         <p className="mt-2 text-lg text-ink-muted">
-          Eight short lessons on how Kenyan government securities really work — written for people
-          investing their own money, not for exam candidates.
+          Interactive modules and short lessons on how Kenyan government securities really work —
+          written for people investing their own money, not exam candidates.
         </p>
       </div>
 
+      {/* Interactive modules — lazy-loaded client components */}
+      <InteractiveModules />
+
       <div className="space-y-4">
+        <h2 className="font-display text-lg font-bold text-ink">Ten short lessons</h2>
         {LESSONS.map((l) => (
           <article key={l.n} className="card">
             <div className="flex items-baseline gap-3">

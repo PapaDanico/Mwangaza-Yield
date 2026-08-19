@@ -10,6 +10,10 @@ import Footer from '@/components/shared/Footer';
 import StaleDataNotice from '@/components/shared/StaleDataNotice';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
+import JourneyBar from '@/components/shared/JourneyBar';
+import Breadcrumb from '@/components/shared/Breadcrumb';
+import UpdateBanner from '@/components/shared/UpdateBanner';
+import { CommandPaletteProvider } from '@/components/CommandPalette';
 import { APP_URL } from '@/lib/share';
 
 export const metadata: Metadata = {
@@ -71,25 +75,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
-        <Navbar />
-        {/* min-h keeps the footer where it lands.
-            Every short page — T-Bills, Calculator, Goals, Prices — measured
-            0.5201 CLS at 390px, and the shifting element was the FOOTER on all
-            four. Nothing was wrong with those pages: their content grows on
-            hydration, the document gets taller, and a footer that had been
-            sitting high on a short document drops half a viewport.
-            Reserving a viewport's worth of main means the footer starts below
-            the fold and stays there. */}
-        {/* Above <main>, so it is read before the figures it qualifies rather
-            than after them. Renders nothing in the ordinary case. */}
-        <StaleDataNotice />
-        <main
-          id="main"
-          className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"
-        >
-          {children}
-        </main>
-        <Footer />
+        <CommandPaletteProvider>
+          <Navbar />
+          <JourneyBar />
+          <Breadcrumb />
+          {/* min-h keeps the footer where it lands.
+              Every short page — T-Bills, Calculator, Goals, Prices — measured
+              0.5201 CLS at 390px, and the shifting element was the FOOTER on all
+              four. Nothing was wrong with those pages: their content grows on
+              hydration, the document gets taller, and a footer that had been
+              sitting high on a short document drops half a viewport.
+              Reserving a viewport's worth of main means the footer starts below
+              the fold and stays there. */}
+          {/* Above <main>, so it is read before the figures it qualifies rather
+              than after them. Renders nothing in the ordinary case. */}
+          <StaleDataNotice />
+          <main
+            id="main"
+            className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"
+          >
+            {children}
+          </main>
+          <Footer />
+          <UpdateBanner />
+        </CommandPaletteProvider>
       </body>
     </html>
   );

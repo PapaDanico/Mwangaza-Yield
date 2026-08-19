@@ -1,14 +1,29 @@
 {
   "name": "Mwangaza Yield — Kenyan Bond Intelligence",
   "short_name": "Mwangaza",
-  "description": "Tax-adjusted yield analytics, auction radar and portfolio tracking for Kenyan bond investors.",
+  "description": "Tax-adjusted yield analytics for Kenyan government bonds. Portfolio tracking, auction radar, price book, and offline-first. Free and private.",
   "start_url": "/dashboard/",
   "display": "standalone",
   "background_color": "#F7F2E7",
   "theme_color": "#F7F2E7",
+  "categories": ["finance", "productivity"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/og.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "label": "Mwangaza Yield — yield analytics and portfolio dashboard"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Calculator", "short_name": "Calc", "url": "/calculator/", "description": "Net yield calculator" },
+    { "name": "Portfolio", "short_name": "Portfolio", "url": "/portfolio/", "description": "Your bond portfolio" },
+    { "name": "Auctions", "short_name": "Auctions", "url": "/auctions/", "description": "CBK auction radar" }
+  ],
+  "prefer_related_applications": false
 }

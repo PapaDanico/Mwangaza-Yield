@@ -13,6 +13,8 @@ import DemandRecord from '@/components/auctions/DemandRecord';
 import RealRecord from '@/components/auctions/RealRecord';
 import MonthlyReview from '@/components/auctions/MonthlyReview';
 import Reserve from '@/components/shared/Reserve';
+import BondDetailCard from '@/components/BondDetailCard';
+import type { Bond } from '@/types/bond';
 
 const STATUS_STYLES: Record<string, string> = {
   open: 'bg-mint-500/15 text-mint-700',
@@ -35,6 +37,7 @@ export default function AuctionsPage() {
   const auctionResults = useBondStore((s) => s.auctionResults);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [selectedBond, setSelectedBond] = useState<Bond | null>(null);
 
   const effective = auctions.map((a) => ({ ...a, status: effectiveAuctionStatus(a) }));
 
@@ -160,7 +163,9 @@ export default function AuctionsPage() {
                         {legs.map((l) => (
                           <tr key={l.id} className="border-t border-sand-200">
                             <td className="py-1.5 text-ink">
-                              {l.issueCode}
+                              <button onClick={() => setSelectedBond(bonds.find((b) => b.issueCode === l.issueCode) ?? null)} className="font-medium text-ink hover:text-gold-700">
+                                {l.issueCode}
+                              </button>
                               <span className="block text-[11px] text-ink-faint">{l.bondName}</span>
                             </td>
                             <td className="py-1.5 text-right tabular-nums text-ink-soft">
@@ -203,6 +208,13 @@ export default function AuctionsPage() {
       <DemandRecord />
 
       <TrackRecord />
+      <BondDetailCard
+        bond={selectedBond}
+        related={bonds.filter((b) => b.taxExempt === selectedBond?.taxExempt && b.isin !== selectedBond?.isin)}
+        prints={auctionResults}
+        open={Boolean(selectedBond)}
+        onClose={() => setSelectedBond(null)}
+      />
 
       <a
         href={CBK_WHATSAPP_CHANNEL}

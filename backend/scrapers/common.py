@@ -169,6 +169,22 @@ def write_dataset(name: str, records: list) -> None:
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "note": "Auto-refreshed by backend/scrapers via CI.",
     })
+    manifest_path = DATA_DIR / "data-manifest.json"
+    now_iso = datetime.now(timezone.utc).isoformat()
+    try:
+        manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    except (json.JSONDecodeError, OSError):
+        manifest = {}
+    datasets = manifest.get("datasets") if isinstance(manifest.get("datasets"), dict) else {}
+    datasets[name] = {
+        "lastUpdated": now_iso,
+        "recordCount": len(records),
+        "file": f"{name}.json",
+    }
+    _write_json_atomic(manifest_path, {
+        "lastSuccessfulScrape": now_iso,
+        "datasets": datasets,
+    })
     print(f"[{name}] wrote {len(records)} records to {path}")
 
 

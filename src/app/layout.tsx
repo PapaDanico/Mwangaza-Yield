@@ -13,6 +13,8 @@ import Analytics from '@/components/shared/Analytics';
 import JourneyBar from '@/components/shared/JourneyBar';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import UpdateBanner from '@/components/shared/UpdateBanner';
+import DataProvenanceFooter from '@/components/shared/DataProvenanceFooter';
+import DataOfflineBanner from '@/components/shared/DataOfflineBanner';
 import { CommandPaletteProvider } from '@/components/CommandPalette';
 import { APP_URL } from '@/lib/share';
 
@@ -90,12 +92,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Above <main>, so it is read before the figures it qualifies rather
               than after them. Renders nothing in the ordinary case. */}
           <StaleDataNotice />
+          <DataOfflineBanner />
           <main
             id="main"
             className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"
           >
             {children}
           </main>
+          <DataProvenanceFooter />
           <Footer />
           <UpdateBanner />
         </CommandPaletteProvider>

@@ -1,32 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip,
   XAxis, YAxis, BarChart, Bar, CartesianGrid,
 } from 'recharts';
 import { useBondStore } from '@/stores/bondStore';
 import {
-  computeDebtSustainabilityIndicators,
-  computeKenyaSpread,
-  computeRealRate,
-  computeTermPremium,
   sustainabilitySignal,
   trendArrow,
 } from '@/lib/macro-context';
 import { yearsToMaturityAt } from '@/lib/bid';
 import SovereignContext from '@/components/dashboard/SovereignContext';
-
-function latest(m: ReturnType<typeof useBondStore.getState>['macro'], indicator: string): number {
-  return [...m]
-    .filter((x) => x.indicator === indicator)
-    .sort((a, b) => b.date.localeCompare(a.date))[0]?.value ?? 0;
-}
-
-function previous(m: ReturnType<typeof useBondStore.getState>['macro'], indicator: string): number {
-  const sorted = [...m].filter((x) => x.indicator === indicator).sort((a, b) => b.date.localeCompare(a.date));
-  return sorted[1]?.value ?? sorted[0]?.value ?? 0;
-}
+import { usePersistedState } from '@/lib/persisted';
+import { buildMacroSummary } from '@/lib/macro-summary';
 
 function mpcSentiment(title?: string): 'hawkish' | 'dovish' | 'neutral' {
   const t = (title || '').toLowerCase();
@@ -104,27 +91,25 @@ export default function MacroPage() {
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
 
-  const [expectedDecision, setExpectedDecision] = useState('');
-
-  const cbr = latest(macro, 'CBR');
-  const cpi = latest(macro, 'CPI');
-  const fx = latest(macro, 'FX_USD_KES');
-  const us10y = latest(macro, 'US10Y');
-  const fed = latest(macro, 'US_FED_FUNDS');
-  const em = latest(macro, 'EM_BOND_YIELD');
-  const longYield = bonds.reduce((max, b) => Math.max(max, b.ytmGross || 0), 0);
-  const shortYield = tbills[0]?.discountRate ?? 0;
-
-  const prevCbr = previous(macro, 'CBR');
-  const prevCpi = previous(macro, 'CPI');
-  const prevDebt = previous(macro, 'DEBT_TO_GDP');
-
-  const realRate = computeRealRate(cbr, cpi);
-  const prevRealRate = computeRealRate(prevCbr, prevCpi);
-  const termPremium = computeTermPremium(longYield, shortYield);
-  const kenyaSpread = computeKenyaSpread(em || longYield, us10y || fed);
-
-  const debt = computeDebtSustainabilityIndicators(macro);
+  const [expectedDecision, setExpectedDecision] = usePersistedState('macro:expected-decision', '');
+  const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
+  const {
+    cbr,
+    cpi,
+    fx,
+    fed,
+    em,
+    debt,
+    prevCbr,
+    prevCpi,
+    prevDebt,
+    realRate,
+    prevRealRate,
+    termPremium,
+    kenyaSpread,
+    shortBenchmark,
+    longBenchmark,
+  } = summary;
   const sustainability = sustainabilitySignal(debt.debtToGDP, debt.debtServiceRatio);
 
   const cbrSeries = useMemo(
@@ -281,7 +266,7 @@ export default function MacroPage() {
             </p>
             <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
           </div>
-          <div className={`rounded-xl border p-3 ${realRate > 0 ? 'border-mint-400 bg-mint-500/[0.06]' : 'border-red-300 bg-red-500/[0.06]'}`}>
+          <div className={`rounded-xl border p-3 ${realRate > 0 ? 'border-mint-300 bg-mint-500/[0.06]' : 'border-red-300 bg-red-500/[0.06]'}`}>
             <p className="text-xs text-ink-muted">Real rate (CBR − CPI)</p>
             <p className={`num mt-1 text-xl font-bold ${realRate > 0 ? 'text-mint-700' : 'text-red-600'}`}>
               {realRate > 0 ? '+' : ''}{realRate.toFixed(2)}%
@@ -394,11 +379,11 @@ export default function MacroPage() {
             <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">{curve.note}</p>
             <div className="mt-2 border-t border-sand-200 pt-2">
               <p className="text-[11px] text-ink-faint">
-                <span className="font-medium text-ink-soft">Long bond yield:</span>{' '}
-                <span className="num">{longYield.toFixed(2)}%</span>
+                <span className="font-medium text-ink-soft">{longBenchmark?.label ?? 'Long bond yield'}:</span>{' '}
+                <span className="num">{(longBenchmark?.value ?? 0).toFixed(2)}%</span>
                 {'  ·  '}
-                <span className="font-medium text-ink-soft">91-day T-bill:</span>{' '}
-                <span className="num">{shortYield.toFixed(2)}%</span>
+                <span className="font-medium text-ink-soft">{shortBenchmark?.label ?? 'Short bill'}:</span>{' '}
+                <span className="num">{(shortBenchmark?.value ?? 0).toFixed(2)}%</span>
               </p>
             </div>
           </div>
@@ -456,7 +441,7 @@ export default function MacroPage() {
         />
         {expectedDecision && (
           <p className="mt-2 text-[11px] leading-snug text-ink-faint">
-            Your view is saved locally and will appear here on your next visit.
+            Your view is saved on this device and will appear here on your next visit.
           </p>
         )}
       </section>

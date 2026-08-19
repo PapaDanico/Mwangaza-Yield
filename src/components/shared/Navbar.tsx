@@ -2,21 +2,30 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
+import { MOBILE_NAV_ROUTES, PRIMARY_NAV_ROUTES } from '@/lib/routes';
 import OfflineBadge from './OfflineBadge';
 import DataStatus from './DataStatus';
 
-const links = [
-  { href: '/dashboard/', label: 'Dashboard', Icon: LayoutDashboard },
-  { href: '/goals/', label: 'Goals', Icon: Target },
-  { href: '/tbills/', label: 'T-Bills', Icon: Receipt },
-  { href: '/ladder/', label: 'Ladder', Icon: Layers },
-  { href: '/calculator/', label: 'Calculator', Icon: Calculator },
-  { href: '/auctions/', label: 'Auctions', Icon: Radar },
-  { href: '/portfolio/', label: 'Portfolio', Icon: Briefcase },
-];
+const ICONS: Record<string, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  goals: Target,
+  tbills: Receipt,
+  ladder: Layers,
+  calculator: Calculator,
+  auctions: Radar,
+  portfolio: Briefcase,
+};
+
+function iconForRoute(id: string): LucideIcon {
+  const Icon = ICONS[id];
+  if (!Icon && process.env.NODE_ENV !== 'production') {
+    console.warn(`Missing navbar icon for route "${id}"`);
+  }
+  return Icon ?? ArrowRight;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -48,7 +57,7 @@ export default function Navbar() {
               "fit" by hyphenating T-Bills into two lines instead of showing
               its width problem honestly. */}
           <nav className="ml-1 hidden gap-0.5 md:flex lg:ml-8 lg:gap-1">
-            {links.map(({ href, label }) => (
+            {PRIMARY_NAV_ROUTES.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -130,22 +139,25 @@ export default function Navbar() {
 
       {/* Mobile bottom nav */}
       <nav className="no-print fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand-300 bg-sand-50/95 py-2 backdrop-blur md:hidden">
-        {links.filter((l) => l.href !== '/calculator/').map(({ href, label, Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              // Seven tabs at px-3 need 469px; a 360px Android screen is common and
-              // the row pushed the whole page into a sideways scroll. Sharing the
-              // width evenly keeps every label readable without truncation.
-              'flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1 text-[11px] font-medium',
-              isActive(href) ? 'text-gold-700' : 'text-ink-muted'
-            )}
-          >
-            <Icon size={20} />
-            {label}
-          </Link>
-        ))}
+        {MOBILE_NAV_ROUTES.map(({ href, id, label }) => {
+          const Icon = iconForRoute(id);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                // Seven tabs at px-3 need 469px; a 360px Android screen is common and
+                // the row pushed the whole page into a sideways scroll. Sharing the
+                // width evenly keeps every label readable without truncation.
+                'flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1 text-[11px] font-medium',
+                isActive(href) ? 'text-gold-700' : 'text-ink-muted'
+              )}
+            >
+              <Icon size={20} />
+              {label}
+            </Link>
+          );
+        })}
       </nav>
     </>
   );

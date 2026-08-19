@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Target, Calculator, Radar, Briefcase,
   Layers, Tag, ArrowRight, Search, BookOpen, TrendingUp,
-  Receipt, FileText, Zap,
+  Receipt, FileText, Zap, Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBondStore } from '@/stores/bondStore';
 import { cmdKey } from '@/lib/shortcuts';
+import { COMMAND_PALETTE_ROUTES } from '@/lib/routes';
 
 interface CommandItem {
   id: string;
@@ -50,17 +51,28 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
     [router, onClose],
   );
 
-  const navItems: CommandItem[] = [
-    { id: 'dashboard', label: 'Go to Dashboard', shortcut: 'G D', category: 'Navigation', icon: <LayoutDashboard size={15} />, action: () => navigate('/dashboard/') },
-    { id: 'calculator', label: 'Go to Calculator', shortcut: 'G C', category: 'Navigation', icon: <Calculator size={15} />, action: () => navigate('/calculator/') },
-    { id: 'portfolio', label: 'Go to Portfolio', shortcut: 'G P', category: 'Navigation', icon: <Briefcase size={15} />, action: () => navigate('/portfolio/') },
-    { id: 'auctions', label: 'Go to Auctions', shortcut: 'G A', category: 'Navigation', icon: <Radar size={15} />, action: () => navigate('/auctions/') },
-    { id: 'goals', label: 'Go to Goals', shortcut: 'G G', category: 'Navigation', icon: <Target size={15} />, action: () => navigate('/goals/') },
-    { id: 'ladder', label: 'Go to Ladder', category: 'Navigation', icon: <Layers size={15} />, action: () => navigate('/ladder/') },
-    { id: 'prices', label: 'Go to Price Book', shortcut: 'G I', category: 'Navigation', icon: <Tag size={15} />, action: () => navigate('/prices/') },
-    { id: 'learn', label: 'Go to Learn', shortcut: 'G L', category: 'Navigation', icon: <BookOpen size={15} />, action: () => navigate('/learn/') },
-    { id: 'yield-curve', label: 'Go to Yield Curve', category: 'Navigation', icon: <TrendingUp size={15} />, action: () => navigate('/yield-curve/') },
-  ];
+  const navIcons = {
+    dashboard: <LayoutDashboard size={15} />,
+    calculator: <Calculator size={15} />,
+    portfolio: <Briefcase size={15} />,
+    auctions: <Radar size={15} />,
+    goals: <Target size={15} />,
+    ladder: <Layers size={15} />,
+    prices: <Tag size={15} />,
+    learn: <BookOpen size={15} />,
+    'yield-curve': <TrendingUp size={15} />,
+    tbills: <Receipt size={15} />,
+    macro: <Globe size={15} />,
+  } as const;
+
+  const navItems: CommandItem[] = COMMAND_PALETTE_ROUTES.map((route) => ({
+    id: route.id,
+    label: `Go to ${route.commandLabel ?? route.label}`,
+    shortcut: route.shortcutKeys?.join(' '),
+    category: 'Navigation',
+    icon: navIcons[route.id as keyof typeof navIcons] ?? <ArrowRight size={15} />,
+    action: () => navigate(route.href),
+  }));
 
   const actionItems: CommandItem[] = [
     { id: 'receipt-history', label: 'View Receipt History', description: 'All calculation receipts', category: 'Actions', icon: <FileText size={15} />, action: () => navigate('/receipts/') },

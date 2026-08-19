@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision } from '@/types/bond';
+import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, SecondaryTrade, TBill, RateDecision, ContextIndicator } from '@/types/bond';
 import type { SavedPlan } from './plans';
 import type { AlertRule } from './alerts';
 import type { UserPrice } from './prices';
@@ -46,6 +46,7 @@ class MwangazaDB extends Dexie {
   macro!: Table<MacroIndicator, string>;
   secondary!: Table<SecondaryTrade, [string, string]>;
   tbills!: Table<TBill, string>;
+  context!: Table<ContextIndicator, string>;
   plans!: Table<SavedPlan, string>;
   cbrHistory!: Table<RateDecision, string>;
   auctionResults!: Table<AuctionPrint, string>;
@@ -124,6 +125,9 @@ class MwangazaDB extends Dexie {
     });
     this.version(12).stores({
       bondAlerts: 'id, isin, kind, createdAt',
+    });
+    this.version(13).stores({
+      context: 'id, label, asOf',
     });
   }
 }

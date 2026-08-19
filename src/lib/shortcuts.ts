@@ -7,6 +7,8 @@
  * in this file is React — the hooks live in components, the data lives here.
  */
 
+import { NAVIGATION_SHORTCUT_ROUTES } from './routes';
+
 export interface ShortcutDef {
   /** Keys to display in the help modal, e.g. ['Cmd', 'K'] or ['G', 'D']. */
   keys: string[];
@@ -18,13 +20,16 @@ export interface ShortcutDef {
 export const SHORTCUTS: Record<string, ShortcutDef> = {
   'palette':          { keys: ['Cmd', 'K'], description: 'Open command palette', category: 'tools' },
   'help':             { keys: ['?'], description: 'Show keyboard shortcuts', category: 'tools' },
-  'nav:dashboard':    { keys: ['G', 'D'], description: 'Go to Dashboard', category: 'navigation' },
-  'nav:calculator':   { keys: ['G', 'C'], description: 'Go to Calculator', category: 'navigation' },
-  'nav:portfolio':    { keys: ['G', 'P'], description: 'Go to Portfolio', category: 'navigation' },
-  'nav:auctions':     { keys: ['G', 'A'], description: 'Go to Auctions', category: 'navigation' },
-  'nav:goals':        { keys: ['G', 'G'], description: 'Go to Goals', category: 'navigation' },
-  'nav:prices':       { keys: ['G', 'I'], description: 'Go to Price Book', category: 'navigation' },
-  'nav:learn':        { keys: ['G', 'L'], description: 'Go to Learn', category: 'navigation' },
+  ...Object.fromEntries(
+    NAVIGATION_SHORTCUT_ROUTES.map((route) => [
+      `nav:${route.id}`,
+      {
+        keys: route.shortcutKeys ?? [],
+        description: `Go to ${route.commandLabel ?? route.label}`,
+        category: 'navigation' as const,
+      },
+    ])
+  ),
   'action:receipt':   { keys: ['R'], description: 'Generate receipt for current result', category: 'actions' },
   'escape':           { keys: ['Esc'], description: 'Close modal / palette', category: 'tools' },
 };

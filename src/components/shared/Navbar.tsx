@@ -71,7 +71,7 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
-            <DataStatus />
+            <span className="hidden lg:contents"><DataStatus /></span>
             {/* Command palette trigger — gives power users a visual entry point
                 alongside the Cmd+K shortcut. */}
             <button

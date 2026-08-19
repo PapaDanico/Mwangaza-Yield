@@ -46,7 +46,7 @@ export default function ReceiptsPage() {
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-ink">Receipt History</h1>
-          <p className="mt-1 max-w-[56ch] text-sm leading-relaxed text-ink-muted">
+          <p className="mt-1 max-w-[56ch] text-sm leading-relaxed text-ink-soft">
             Calculation receipts generated in this browser. Stored locally — never uploaded.
           </p>
         </div>

@@ -12,7 +12,7 @@ const MODULES = [
   {
     id: 'yield-curve',
     title: 'Yield Curve Playground',
-    desc: 'Drag yield points and watch bond prices respond in real time.',
+    desc: 'Drag yield points and watch bond prices respond as the curve changes.',
     badge: 'Start here',
     badgeClass: 'bg-mint-500/15 text-mint-700',
     Component: YieldCurvePlayground,

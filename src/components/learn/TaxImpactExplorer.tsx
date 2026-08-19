@@ -167,6 +167,32 @@ export default function TaxImpactExplorer() {
         </p>
       </div>
 
+      <div className="rounded-2xl border border-sand-300 bg-white p-4 text-sm text-ink-soft">
+        <h3 className="mb-3 font-semibold text-ink">Plotted tax breakdown</h3>
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-sand-300 text-xs uppercase tracking-wide text-ink-muted">
+              <th className="py-2">Category</th>
+              <th className="py-2 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-sand-300/60">
+              <td className="py-2 text-ink">You keep</td>
+              <td className="py-2 text-right font-mono text-ink">{formatKES.format(metrics.net)}</td>
+            </tr>
+            <tr className="border-b border-sand-300/60">
+              <td className="py-2 text-ink">Withholding tax</td>
+              <td className="py-2 text-right font-mono text-ink">{formatKES.format(metrics.tax)}</td>
+            </tr>
+            <tr>
+              <td className="py-2 text-ink">Tax saved vs 15% FXD</td>
+              <td className="py-2 text-right font-mono text-ink">{formatKES.format(metrics.taxAdvantageVsShortFxd)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       {taxableBeatsLowerIfb && (
         <div className={cn('rounded-2xl border p-4 text-sm leading-relaxed', 'border-gold-400 bg-gold-50 text-ink-soft')}>
           <span className="font-semibold text-ink">Tax-free isn&apos;t always best.</span>{' '}

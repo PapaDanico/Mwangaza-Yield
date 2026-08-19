@@ -1,18 +1,3 @@
-/**
- * Calculation Receipt — a verifiable audit trail for any computed figure.
- *
- * A receipt records every input, every data source consulted, the formula
- * used, and a SHA-256 hash of the inputs so the user or their advisor can
- * verify that the figures have not changed. It is a trust artefact, not a
- * ledger entry — nothing here is uploaded.
- *
- * SHA-256 is computed via the Web Crypto API (async, works offline in all
- * modern browsers). On platforms where SubtleCrypto is unavailable (e.g. Node
- * without the crypto module, non-secure HTTP) the hash falls back to a
- * deterministic djb2 hex string that is prefixed "djb2:" so readers know it
- * is not a SHA-256.
- */
-
 import type { Bond } from '@/types/bond';
 import type { InvestmentResult } from './financial-engine';
 import { formatKES, formatPct } from './financial-engine';
@@ -128,16 +113,11 @@ async function sha256Hex(payload: string): Promise<string> {
 
 function uuid(): string {
   if (typeof crypto?.randomUUID === 'function') return crypto.randomUUID();
-  // Fallback for older environments
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
-
-// ---------------------------------------------------------------------------
-// Context → Receipt builders
-// ---------------------------------------------------------------------------
 
 function buildBondInvestmentReceipt(
   ctx: BondInvestmentContext,
@@ -150,7 +130,7 @@ function buildBondInvestmentReceipt(
     { label: 'ISIN', value: bond.isin },
     { label: 'Coupon rate', value: formatPct(bond.couponRate), source: 'bonds.json' },
     { label: 'Maturity date', value: bond.maturityDate, source: 'bonds.json' },
-    { label: 'Face value (KES)', value: formatKES(faceValueKES), source: 'User input' },
+    { label: 'Face value (Ksh)', value: formatKES(faceValueKES), source: 'User input' },
     { label: 'Clean price per 100', value: cleanPrice.toFixed(4), source: priceSource },
     { label: 'Settlement date', value: settlementDate, source: 'Computed (today)' },
     { label: 'Withholding tax rate', value: taxLabel, source: 'Income Tax Act §7A' },
@@ -214,14 +194,6 @@ function buildPortfolioReceipt(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-/**
- * Generate a receipt for a calculation. Async because SHA-256 hashing via
- * Web Crypto is asynchronous.
- */
 export async function generateReceipt(ctx: CalculationContext): Promise<Receipt> {
   const partial =
     ctx.kind === 'bond-investment'
@@ -239,7 +211,6 @@ export async function generateReceipt(ctx: CalculationContext): Promise<Receipt>
   };
 }
 
-/** Render a receipt as human-readable Markdown suitable for WhatsApp or email. */
 export function receiptToMarkdown(r: Receipt): string {
   const lines: string[] = [
     `# Calculation Receipt`,
@@ -279,7 +250,6 @@ export function receiptToMarkdown(r: Receipt): string {
   return lines.join('\n');
 }
 
-/** Render a receipt as a pretty-printed JSON string for download. */
 export function receiptToJSON(r: Receipt): string {
   return JSON.stringify(r, null, 2);
 }

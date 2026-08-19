@@ -18,6 +18,20 @@
       "sizes": "1200x630",
       "type": "image/png",
       "label": "Mwangaza Yield — yield analytics and portfolio dashboard"
+    },
+    {
+      "src": "/og.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Mobile experience",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/og.png",
+      "sizes": "1366x768",
+      "type": "image/png",
+      "label": "Desktop experience",
+      "form_factor": "wide"
     }
   ],
   "shortcuts": [

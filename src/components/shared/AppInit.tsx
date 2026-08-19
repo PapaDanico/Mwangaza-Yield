@@ -31,8 +31,25 @@ export default function AppInit() {
     })().catch(() => {});
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js').then(async () => {
+        const ready = await navigator.serviceWorker.ready;
+        if ('periodicSync' in ready) {
+          try {
+            // @ts-expect-error Periodic Background Sync is not in TS DOM lib yet.
+            await ready.periodicSync.register('macro-refresh', { minInterval: 6 * 60 * 60 * 1000 });
+          } catch {
+            // Not supported or denied.
+          }
+        }
+      }).catch(() => {});
     }
+
+    ['/','/calculator/','/portfolio/'].forEach((href) => {
+      const l = document.createElement('link');
+      l.rel = 'prefetch';
+      l.href = href;
+      document.head.appendChild(l);
+    });
   }, [fetchData, loadPortfolio, loadPrices, loadAlerts, refreshAlerts, loadCommunityPrices]);
 
   return null;

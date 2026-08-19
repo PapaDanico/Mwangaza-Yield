@@ -6,6 +6,7 @@ import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt,
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import OfflineBadge from './OfflineBadge';
+import DataStatus from './DataStatus';
 
 const links = [
   { href: '/dashboard/', label: 'Dashboard', Icon: LayoutDashboard },
@@ -70,6 +71,7 @@ export default function Navbar() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <OfflineBadge />
+            <DataStatus />
             {/* Command palette trigger — gives power users a visual entry point
                 alongside the Cmd+K shortcut. */}
             <button

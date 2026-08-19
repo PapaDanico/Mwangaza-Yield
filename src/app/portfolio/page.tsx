@@ -20,6 +20,7 @@ import { buildPortfolioPaymentSchedule, buildWaterfallSeries } from '@/lib/portf
 import type { Bond, Holding } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
+import IncomeStabilityDashboard from '@/components/portfolio/IncomeStabilityDashboard';
 
 const RiskMetricsDurationChart = dynamic(
   () => import('@/components/portfolio/RiskMetricsDurationChart'),
@@ -637,6 +638,8 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
               </p>
             </div>
           )}
+
+          <IncomeStabilityDashboard />
 
           <button onClick={clear} className="text-xs text-ink-faint underline-offset-2 hover:text-red-400 hover:underline">
             Clear all holdings

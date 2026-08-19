@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Calculator, Briefcase, Radar } from 'lucide-react';
+import { Calculator, Briefcase, Radar, Globe } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Rates, Curve and Auctions at a Glance — Mwangaza Yield',
@@ -16,11 +16,13 @@ import RateCycle from '@/components/dashboard/RateCycle';
 import MarketPulse from '@/components/dashboard/MarketPulse';
 import YieldInHistory from '@/components/dashboard/YieldInHistory';
 import InflationSplitCard from '@/components/dashboard/InflationSplit';
+import EconomicHealthSummary from '@/components/dashboard/EconomicHealthSummary';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
   { href: '/auctions/', title: 'What is on sale now', desc: 'Closing dates, official documents, how to bid', Icon: Radar },
   { href: '/portfolio/', title: 'What you already hold', desc: 'Track your bonds and when they pay — offline', Icon: Briefcase },
+  { href: '/macro/', title: 'Economic context', desc: 'Rates, debt, spillovers and policy context in one view', Icon: Globe },
 ];
 
 export default function DashboardPage() {
@@ -38,6 +40,7 @@ export default function DashboardPage() {
       <TopYields />
       <AuctionBanner />
       <MacroPanel />
+      <EconomicHealthSummary />
       <InflationSplitCard />
       <RateCycle />
       <YieldCurveChart />

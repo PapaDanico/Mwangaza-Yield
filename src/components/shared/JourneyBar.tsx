@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const STAGES = [
-  { label: 'Discover', routes: ['/dashboard/', '/learn/', '/'] },
+  { label: 'Discover', routes: ['/dashboard/', '/learn/'] },
   { label: 'Analyze', routes: ['/calculator/', '/auctions/', '/yield-curve/', '/tbills/'] },
   { label: 'Plan', routes: ['/goals/', '/ladder/'] },
   { label: 'Execute', routes: ['/prices/', '/sell/'] },

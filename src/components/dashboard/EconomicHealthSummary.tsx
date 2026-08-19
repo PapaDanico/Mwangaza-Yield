@@ -4,50 +4,31 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useBondStore } from '@/stores/bondStore';
 import {
-  computeDebtSustainabilityIndicators,
-  computeKenyaSpread,
-  computeRealRate,
-  computeTermPremium,
   trendArrow,
 } from '@/lib/macro-context';
-
-function latest(macro: ReturnType<typeof useBondStore.getState>['macro'], indicator: string): number {
-  return [...macro].filter((m) => m.indicator === indicator).sort((a, b) => b.date.localeCompare(a.date))[0]?.value ?? 0;
-}
-
-function previous(macro: ReturnType<typeof useBondStore.getState>['macro'], indicator: string): number {
-  return [...macro].filter((m) => m.indicator === indicator).sort((a, b) => b.date.localeCompare(a.date))[1]?.value ?? latest(macro, indicator);
-}
+import { buildMacroSummary } from '@/lib/macro-summary';
 
 export default function EconomicHealthSummary() {
   const macro = useBondStore((s) => s.macro);
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
   const auctions = useBondStore((s) => s.auctions);
-
-  const cbr = latest(macro, 'CBR');
-  const cpi = latest(macro, 'CPI');
-  const realRate = computeRealRate(cbr, cpi);
-
-  const debt = computeDebtSustainabilityIndicators(macro);
-  const longYield = bonds.reduce((max, b) => Math.max(max, b.ytmGross || 0), 0);
-  const shortYield = tbills[0]?.discountRate ?? 0;
-  const termPremium = computeTermPremium(longYield, shortYield);
-  const kenyaSpread = computeKenyaSpread(latest(macro, 'EM_BOND_YIELD') || longYield, latest(macro, 'US10Y') || latest(macro, 'US_FED_FUNDS'));
+  const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
+  const { realRate, prevRealRate, debt, prevDebt, termPremium, kenyaSpread } = summary;
 
   const metrics = useMemo(() => [
     {
       key: 'real',
       label: 'Real Rate',
       value: `${realRate.toFixed(2)}%`,
-      arrow: trendArrow(realRate, computeRealRate(previous(macro, 'CBR'), previous(macro, 'CPI'))),
+      arrow: trendArrow(realRate, prevRealRate),
       note: realRate > 0 ? 'Real rate is positive — favorable for bond investors.' : 'Real rate is negative — inflation is eroding nominal returns.',
     },
     {
       key: 'debt',
       label: 'Debt/GDP',
       value: `${debt.debtToGDP.toFixed(1)}%`,
-      arrow: trendArrow(debt.debtToGDP, previous(macro, 'DEBT_TO_GDP') || debt.debtToGDP),
+      arrow: trendArrow(debt.debtToGDP, prevDebt || debt.debtToGDP),
       note: debt.debtToGDP < 60 ? 'Debt burden is moderate against GDP.' : 'Debt burden remains elevated relative to GDP.',
     },
     {
@@ -64,7 +45,7 @@ export default function EconomicHealthSummary() {
       arrow: kenyaSpread >= 0 ? '▲' : '▼',
       note: kenyaSpread > 3 ? 'Kenya spread is wide versus global benchmarks.' : 'Kenya spread is relatively contained versus peers.',
     },
-  ], [realRate, debt.debtToGDP, termPremium, kenyaSpread, macro]);
+  ], [realRate, prevRealRate, debt.debtToGDP, prevDebt, termPremium, kenyaSpread]);
 
   const mpcCount = useBondStore((s) => s.cbrHistory.length);
 

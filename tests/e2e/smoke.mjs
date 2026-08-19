@@ -82,7 +82,7 @@ function startServer() {
 
 const ROUTES = [
   '/', '/dashboard/', '/goals/', '/tbills/', '/ladder/', '/calculator/',
-  '/auctions/', '/yield-curve/', '/portfolio/', '/prices/', '/sell/', '/alerts/', '/sources/', '/feed/',
+  '/auctions/', '/yield-curve/', '/portfolio/', '/prices/', '/sell/', '/alerts/', '/macro/', '/sources/', '/feed/',
   '/learn/', '/glossary/', '/faq/', '/about/', '/support/', '/terms/',
   '/privacy/', '/disclaimer/',
 ];
@@ -118,7 +118,7 @@ const visibleGarbage = (page) => page.evaluate(() => {
    `find src/app -name page.tsx`. */
 const SWEPT_ROUTES = [
   '/', '/about/', '/alerts/', '/auctions/', '/calculator/', '/dashboard/',
-  '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/',
+  '/disclaimer/', '/faq/', '/glossary/', '/goals/', '/ladder/', '/learn/', '/macro/',
   '/licensing/', '/portfolio/', '/prices/', '/privacy/', '/sell/',
   '/sources/', '/support/', '/tbills/', '/terms/', '/yield-curve/',
 ];

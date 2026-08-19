@@ -41,17 +41,18 @@ export const useBondStore = create<BondState>((set) => ({
   fetchData: async () => {
     // Offline-first: serve IndexedDB immediately, then refresh from network.
     try {
-      const [bonds, auctions, macro, secondary, tbills, cbrHistory, auctionResults, cpiHistory] = await Promise.all([
+      const [bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory] = await Promise.all([
         db.bonds.toArray(),
         db.auctions.toArray(),
         db.macro.toArray(),
         db.secondary.toArray(),
         db.tbills.toArray(),
+        db.context.toArray(),
         db.cbrHistory.toArray(),
         db.auctionResults.toArray(),
         db.cpiHistory.toArray(),
       ]);
-      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, cbrHistory, auctionResults, cpiHistory, loaded: true });
+      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory, loaded: true });
     } catch { /* IndexedDB unavailable (SSR/private mode) — fall through */ }
 
     try {
@@ -82,14 +83,15 @@ export const useBondStore = create<BondState>((set) => ({
       set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory, loaded: true, offline: false });
       // Replace, don't merge: retired issues must not linger from old datasets.
       await db
-        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.cbrHistory, db.auctionResults, db.cpiHistory], async () => {
-          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.cbrHistory.clear(), db.auctionResults.clear(), db.cpiHistory.clear()]);
+        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.context, db.cbrHistory, db.auctionResults, db.cpiHistory], async () => {
+          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.context.clear(), db.cbrHistory.clear(), db.auctionResults.clear(), db.cpiHistory.clear()]);
           await Promise.all([
             db.bonds.bulkPut(bonds),
             db.auctions.bulkPut(auctions),
             db.macro.bulkPut(macro),
             db.secondary.bulkPut(secondary),
             db.tbills.bulkPut(tbills),
+            db.context.bulkPut(context),
             db.cbrHistory.bulkPut(cbrHistory),
             db.cpiHistory.bulkPut(cpiHistory),
             db.auctionResults.bulkPut(auctionResults),

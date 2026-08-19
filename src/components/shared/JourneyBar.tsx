@@ -2,20 +2,17 @@
 
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-
-const STAGES = [
-  { label: 'Discover', routes: ['/dashboard/', '/learn/'] },
-  { label: 'Analyze', routes: ['/calculator/', '/auctions/', '/yield-curve/', '/tbills/'] },
-  { label: 'Plan', routes: ['/goals/', '/ladder/'] },
-  { label: 'Execute', routes: ['/prices/', '/sell/'] },
-  { label: 'Track', routes: ['/portfolio/', '/alerts/'] },
-] as const;
-
-type Stage = (typeof STAGES)[number];
+import { APP_ROUTES, JOURNEY_STAGES } from '@/lib/routes';
 
 function currentStageIndex(pathname: string): number {
-  for (let i = 0; i < STAGES.length; i++) {
-    if (STAGES[i]!.routes.some((r) => pathname.startsWith(r.replace(/\/$/, '')))) {
+  for (let i = 0; i < JOURNEY_STAGES.length; i++) {
+    if (
+      APP_ROUTES.some(
+        (route) =>
+          route.journeyStage === JOURNEY_STAGES[i]!.key &&
+          pathname.startsWith(route.href.replace(/\/$/, ''))
+      )
+    ) {
       return i;
     }
   }
@@ -37,12 +34,12 @@ export default function JourneyBar() {
   // Don't render on the root page or pages outside the journey map.
   if (activeIdx === -1) return null;
 
-  const pct = ((activeIdx + 1) / STAGES.length) * 100;
+  const pct = ((activeIdx + 1) / JOURNEY_STAGES.length) * 100;
 
   return (
     <div
       className="no-print border-b border-sand-200 bg-sand-100"
-      aria-label={`You are at the ${STAGES[activeIdx]!.label} stage`}
+      aria-label={`You are at the ${JOURNEY_STAGES[activeIdx]!.label} stage`}
     >
       {/* Progress stripe */}
       <div className="h-0.5 bg-sand-300">
@@ -52,13 +49,13 @@ export default function JourneyBar() {
           role="progressbar"
           aria-valuenow={activeIdx + 1}
           aria-valuemin={1}
-          aria-valuemax={STAGES.length}
+          aria-valuemax={JOURNEY_STAGES.length}
         />
       </div>
 
       {/* Stage labels — scrollable on xs so they are never invisible */}
       <ol className="mx-auto flex max-w-6xl items-center gap-x-4 overflow-x-auto px-4 py-1.5 scrollbar-none">
-        {STAGES.map((stage, i) => {
+        {JOURNEY_STAGES.map((stage, i) => {
           const isActive = i === activeIdx;
           const isPast = i < activeIdx;
           return (
@@ -76,7 +73,7 @@ export default function JourneyBar() {
               >
                 {stage.label}
               </span>
-              {i < STAGES.length - 1 && (
+              {i < JOURNEY_STAGES.length - 1 && (
                 <span className="text-[10px] text-ink-faint/50">›</span>
               )}
             </li>

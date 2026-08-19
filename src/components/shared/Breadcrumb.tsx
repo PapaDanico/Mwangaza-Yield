@@ -3,30 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
-
-const ROUTE_LABELS: Record<string, string> = {
-  '/dashboard/': 'Dashboard',
-  '/calculator/': 'Calculator',
-  '/portfolio/': 'Portfolio',
-  '/auctions/': 'Auctions',
-  '/goals/': 'Goals',
-  '/ladder/': 'Ladder',
-  '/prices/': 'Price Book',
-  '/learn/': 'Learn',
-  '/tbills/': 'T-Bills',
-  '/yield-curve/': 'Yield Curve',
-  '/alerts/': 'Alerts',
-  '/sell/': 'Sell Evaluator',
-  '/receipts/': 'Receipts',
-  '/_debug/pwa/': 'PWA Diagnostics',
-  '/privacy/': 'Privacy',
-  '/terms/': 'Terms',
-  '/disclaimer/': 'Disclaimer',
-  '/faq/': 'FAQ',
-  '/about/': 'About',
-  '/sources/': 'Sources',
-  '/glossary/': 'Glossary',
-};
+import { ROUTE_LABELS } from '@/lib/routes';
 
 interface Crumb {
   label: string;

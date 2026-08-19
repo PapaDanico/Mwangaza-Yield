@@ -1,22 +1,22 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
-import { Upload, Trash2, Download, CalendarPlus, Share2, CheckCircle2 } from 'lucide-react';
+import { Upload, Trash2, Download, Share2, CheckCircle2 } from 'lucide-react';
 import { APP_URL, formatPortfolioSummary, shareText } from '@/lib/share';
 import { useBondStore } from '@/stores/bondStore';
 import { usePortfolioStore } from '@/stores/portfolioStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
-import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
-import { downloadICS, type CalendarEvent } from '@/lib/ics';
+import { computeBondInvestment, formatKES, formatPct, getNextCouponDate } from '@/lib/financial-engine';
 import { paymentDay } from '@/lib/holidays';
 import {
   computeBondRiskMetrics,
   computePortfolioWeightedDuration,
   computePriceSensitivity,
 } from '@/lib/riskMetrics';
+import { buildPortfolioPaymentSchedule, buildWaterfallSeries } from '@/lib/portfolioCashFlows';
 import type { Bond, Holding } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
@@ -25,6 +25,14 @@ const RiskMetricsDurationChart = dynamic(
   () => import('@/components/portfolio/RiskMetricsDurationChart'),
   { ssr: false, loading: () => <div className="h-64" aria-hidden="true" /> },
 );
+const CashFlowWaterfall = dynamic(() => import('@/components/CashFlowWaterfall'), {
+  ssr: false,
+  loading: () => <div className="h-80" aria-hidden="true" />,
+});
+const CouponCalendarHeatmap = dynamic(() => import('@/components/CouponCalendarHeatmap'), {
+  ssr: false,
+  loading: () => <div className="h-80" aria-hidden="true" />,
+});
 
 /**
  * Find the bond a holding refers to.
@@ -54,6 +62,9 @@ export default function PortfolioPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[]; fromCustody?: boolean } | null>(null);
   const [showRiskMetrics, setShowRiskMetrics] = useState(true);
+  const [portfolioView, setPortfolioView] = useState<'waterfall' | 'calendar' | 'list'>('waterfall');
+  const [waterfallMonths, setWaterfallMonths] = useState<12 | 24 | 36 | 60>(12);
+  const [reinvestmentRate, setReinvestmentRate] = useState<number | null>(null);
 
   const enriched = useMemo(() => {
     return holdings.map((h) => {
@@ -158,29 +169,31 @@ export default function PortfolioPage() {
       excluded: enriched.filter((entry) => entry.bond).length - rows.length,
     };
   }, [enriched]);
+  const paymentSchedule = useMemo(
+    () => buildPortfolioPaymentSchedule(enriched, new Date()),
+    [enriched],
+  );
+  const maxReinvestmentRate = useMemo(
+    () => Math.max(
+      ...enriched
+        .map((entry) => (entry.market ?? entry.result)?.netYTM ?? 0)
+        .filter((value) => value > 0),
+      0,
+    ),
+    [enriched],
+  );
+  const effectiveReinvestmentRate = reinvestmentRate ?? totals.weightedNet;
+  const waterfallData = useMemo(
+    () => buildWaterfallSeries(paymentSchedule, waterfallMonths, effectiveReinvestmentRate, new Date()),
+    [effectiveReinvestmentRate, paymentSchedule, waterfallMonths],
+  );
 
-  // 12-month coupon calendar
-  const calendar = useMemo(() => {
-    const months: { label: string; total: number }[] = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const m = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      months.push({ label: m.toLocaleString('en-KE', { month: 'short', year: '2-digit' }), total: 0 });
-    }
-    for (const e of enriched) {
-      if (!e.bond || !e.result) continue;
-      let d = getNextCouponDate(e.bond, now);
-      while (d) {
-        const idx = (d.getFullYear() - now.getFullYear()) * 12 + (d.getMonth() - now.getMonth());
-        if (idx >= 12) break;
-        if (idx >= 0) months[idx].total += e.result.netCouponPerPeriodKES;
-        const next: Date | null = getNextCouponDate(e.bond, new Date(d.getTime() + 86_400_000));
-        if (!next || next.getTime() === d.getTime()) break;
-        d = next;
-      }
-    }
-    return months;
-  }, [enriched]);
+  useEffect(() => {
+    setReinvestmentRate((current) => {
+      if (current === null) return totals.weightedNet;
+      return Math.min(current, maxReinvestmentRate || totals.weightedNet);
+    });
+  }, [maxReinvestmentRate, totals.weightedNet]);
 
   function handleFile(file: File) {
     Papa.parse<Record<string, string>>(file, {
@@ -251,34 +264,6 @@ export default function PortfolioPage() {
     a.download = 'mwangaza-portfolio-template.csv';
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  const maxMonth = Math.max(...calendar.map((m) => m.total), 1);
-
-  function exportPayoutCalendar() {
-    const events: CalendarEvent[] = [];
-    for (const e of enriched) {
-      if (!e.bond || !e.result) continue;
-      const dates = getCouponDates(new Date(e.bond.issueDate), new Date(e.bond.maturityDate), e.bond.couponFrequencyPerYear || 2)
-        .filter((d) => d > new Date());
-      for (const d of dates) {
-        const iso = d.toISOString().slice(0, 10);
-        const isMaturity = iso === e.bond.maturityDate;
-        // Same treatment as the ladder export: the diary entry belongs on the
-        // day the cash moves, not the day the schedule names. Two exports of
-        // the same thing that disagree is worse than either one alone.
-        const pay = paymentDay(iso);
-        const amount = isMaturity
-          ? `Principal ${formatKES(e.holding.faceValueKES)} + final coupon ${formatKES(e.result.netCouponPerPeriodKES)} (net)`
-          : `Net coupon ${formatKES(e.result.netCouponPerPeriodKES)}`;
-        events.push({
-          date: pay.paid,
-          title: `${e.bond.issueCode} ${isMaturity ? 'matures' : 'coupon'}`,
-          description: pay.reason ? `${amount}. Scheduled ${iso} — ${pay.reason}.` : amount,
-        });
-      }
-    }
-    if (events.length) downloadICS(events, 'mwangaza-payouts.ics', 'Mwangaza Yield — Payouts');
   }
 
   return (
@@ -400,107 +385,32 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
         </div>
       ) : (
         <>
-          <div className="card overflow-x-auto p-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
-                  <th className="px-4 py-3">Bond</th>
-                  <th className="px-4 py-3 text-right">Face value</th>
-                  <th className="px-4 py-3 text-right">Price</th>
-                  <th className="px-4 py-3 text-right">Net yield<span className="ml-1 font-normal normal-case text-ink-faint">(locked)</span></th>
-                  <th className="px-4 py-3 text-right">At market</th>
-                  <th className="px-4 py-3 text-right">Next coupon</th>
-                  <th className="px-2 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {enriched.map(({ holding, bond, result, market, nextCoupon }) => (
-                  <tr key={holding.id} className="border-b border-sand-300/60 last:border-0">
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-ink">{holding.issueCode}</span>
-                      {!bond && <span className="ml-2 text-xs text-gold-700">unknown bond</span>}
-                      {risk.byHoldingId.get(holding.id) && (
-                        <div className="mt-1">
-                          <span className="inline-flex rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-800">
-                            Sensitivity: {risk.byHoldingId.get(holding.id)!.modifiedDuration.toFixed(2)} yrs
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="num px-4 py-3 text-right text-ink">{formatKES(holding.faceValueKES)}</td>
-                    <td className="num px-4 py-3 text-right text-ink-soft">
-                      {holding.costBasisKnown === false ? (
-                        <span className="text-ink-faint" title="Not in the custody export">
-                          not stated
-                        </span>
-                      ) : (
-                        holding.purchaseCleanPrice.toFixed(2)
-                      )}
-                    </td>
-                    <td className="num px-4 py-3 text-right text-gold-700">
-                      {holding.costBasisKnown === false ? (
-                        <span className="text-ink-faint">—</span>
-                      ) : result ? (
-                        formatPct(result.netYTM)
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="num px-4 py-3 text-right">
-                      {market ? (
-                        <span className={
-                          holding.costBasisKnown === false
-                            ? 'text-ink-soft'
-                            : market.netYTM >= (result?.netYTM ?? 0)
-                              ? 'text-mint-700'
-                              : 'text-ink-muted'
-                        }>
-                          {formatPct(market.netYTM)}
-                        </span>
-                      ) : (
-                        <span className="text-ink-faint">—</span>
-                      )}
-                    </td>
-                    {/* The date the money lands. A coupon falling on Mashujaa
-                        Day pays on the 21st, and this column is what somebody
-                        times a school fee against. The scheduled date is kept
-                        in the tooltip so it can be reconciled against the
-                        prospectus, which is what every yield here is computed
-                        from. */}
-                    <td className="num px-4 py-3 text-right text-ink-soft">
-                      {nextCoupon ? (() => {
-                        const pay = paymentDay(nextCoupon.toISOString().slice(0, 10));
-                        return pay.reason ? (
-                          <span title={`Scheduled ${pay.scheduled} — ${pay.reason}`}>
-                            {pay.paid}
-                            <span className="ml-1 text-gold-700" aria-hidden="true">*</span>
-                            <span className="sr-only"> (moved from {pay.scheduled}: {pay.reason})</span>
-                          </span>
-                        ) : (
-                          <>{pay.paid}</>
-                        );
-                      })() : '—'}
-                    </td>
-                    <td className="px-2 py-3">
-                      <button onClick={() => removeHolding(holding.id)} className="p-1 text-ink-faint hover:text-red-400">
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
-                  </tr>
+          <div className="card">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="mb-1 font-semibold text-ink">Portfolio Views</h2>
+                <p className="text-xs text-ink-muted">
+                  Switch between waterfall, calendar, and the detailed holdings list. Waterfall opens first.
+                </p>
+              </div>
+              <div className="flex rounded-xl border border-sand-300 bg-sand-50 p-1">
+                {([
+                  ['waterfall', 'Waterfall'],
+                  ['calendar', 'Calendar'],
+                  ['list', 'List'],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setPortfolioView(value)}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                      portfolioView === value ? 'bg-ink text-sand-50' : 'text-ink-soft'
+                    }`}
+                  >
+                    {label}
+                  </button>
                 ))}
-              </tbody>
-            </table>
-            {/* The asterisk needs a sentence, or it is just a mark. Rendered
-                unconditionally rather than only when a date has moved: the
-                column is a mix, and a legend that appears and disappears is
-                harder to trust than one that is always there. */}
-            <p className="border-t border-sand-300 px-4 py-3 text-xs text-ink-faint">
-              Next coupon is the day the money can move.{' '}
-              <span className="text-gold-700">*</span> marks a date shifted because the
-              scheduled day is a weekend or a Kenyan public holiday — hover for the
-              scheduled date. Yields and accrued interest are computed from the scheduled
-              dates, as the prospectus does.
-            </p>
+              </div>
+            </div>
           </div>
 
           <div className="card">
@@ -592,37 +502,115 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
             )}
           </div>
 
-          <div className="card">
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <h2 className="mb-1 font-semibold text-ink">Coupon Cash-Flow Calendar</h2>
-                <p className="text-xs text-ink-muted">Estimated net coupons over the next 12 months</p>
-              </div>
-              <button
-                onClick={exportPayoutCalendar}
-                className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
-              >
-                <CalendarPlus size={15} /> Add to calendar
-              </button>
+          {portfolioView === 'waterfall' && (
+            <CashFlowWaterfall
+              data={waterfallData}
+              months={waterfallMonths}
+              onMonthsChange={setWaterfallMonths}
+              reinvestmentRate={Math.min(effectiveReinvestmentRate, maxReinvestmentRate || effectiveReinvestmentRate)}
+              onReinvestmentRateChange={setReinvestmentRate}
+              maxReinvestmentRate={maxReinvestmentRate}
+            />
+          )}
+
+          {portfolioView === 'calendar' && (
+            <CouponCalendarHeatmap events={paymentSchedule} />
+          )}
+
+          {portfolioView === 'list' && (
+            <div className="card overflow-x-auto p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
+                    <th className="px-4 py-3">Bond</th>
+                    <th className="px-4 py-3 text-right">Face value</th>
+                    <th className="px-4 py-3 text-right">Price</th>
+                    <th className="px-4 py-3 text-right">Net yield<span className="ml-1 font-normal normal-case text-ink-faint">(locked)</span></th>
+                    <th className="px-4 py-3 text-right">At market</th>
+                    <th className="px-4 py-3 text-right">Next coupon</th>
+                    <th className="px-2 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {enriched.map(({ holding, bond, result, market, nextCoupon }) => (
+                    <tr key={holding.id} className="border-b border-sand-300/60 last:border-0">
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-ink">{holding.issueCode}</span>
+                        {!bond && <span className="ml-2 text-xs text-gold-700">unknown bond</span>}
+                        {risk.byHoldingId.get(holding.id) && (
+                          <div className="mt-1">
+                            <span className="inline-flex rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-800">
+                              Sensitivity: {risk.byHoldingId.get(holding.id)!.modifiedDuration.toFixed(2)} yrs
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="num px-4 py-3 text-right text-ink">{formatKES(holding.faceValueKES)}</td>
+                      <td className="num px-4 py-3 text-right text-ink-soft">
+                        {holding.costBasisKnown === false ? (
+                          <span className="text-ink-faint" title="Not in the custody export">
+                            not stated
+                          </span>
+                        ) : (
+                          holding.purchaseCleanPrice.toFixed(2)
+                        )}
+                      </td>
+                      <td className="num px-4 py-3 text-right text-gold-700">
+                        {holding.costBasisKnown === false ? (
+                          <span className="text-ink-faint">—</span>
+                        ) : result ? (
+                          formatPct(result.netYTM)
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="num px-4 py-3 text-right">
+                        {market ? (
+                          <span className={
+                            holding.costBasisKnown === false
+                              ? 'text-ink-soft'
+                              : market.netYTM >= (result?.netYTM ?? 0)
+                                ? 'text-mint-700'
+                                : 'text-ink-muted'
+                          }>
+                            {formatPct(market.netYTM)}
+                          </span>
+                        ) : (
+                          <span className="text-ink-faint">—</span>
+                        )}
+                      </td>
+                      <td className="num px-4 py-3 text-right text-ink-soft">
+                        {nextCoupon ? (() => {
+                          const pay = paymentDay(nextCoupon.toISOString().slice(0, 10));
+                          return pay.reason ? (
+                            <span title={`Scheduled ${pay.scheduled} — ${pay.reason}`}>
+                              {pay.paid}
+                              <span className="ml-1 text-gold-700" aria-hidden="true">*</span>
+                              <span className="sr-only"> (moved from {pay.scheduled}: {pay.reason})</span>
+                            </span>
+                          ) : (
+                            <>{pay.paid}</>
+                          );
+                        })() : '—'}
+                      </td>
+                      <td className="px-2 py-3">
+                        <button onClick={() => removeHolding(holding.id)} className="p-1 text-ink-faint hover:text-red-400">
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="border-t border-sand-300 px-4 py-3 text-xs text-ink-faint">
+                Next coupon is the day the money can move.{' '}
+                <span className="text-gold-700">*</span> marks a date shifted because the
+                scheduled day is a weekend or a Kenyan public holiday — hover for the
+                scheduled date. Yields and accrued interest are computed from the scheduled
+                dates, as the prospectus does.
+              </p>
             </div>
-            <div className="grid grid-cols-6 gap-2 md:grid-cols-12">
-              {calendar.map((m) => (
-                <div key={m.label} className="flex flex-col items-center gap-1">
-                  <div className="flex h-24 w-full items-end rounded-lg bg-sand-200 p-1">
-                    <div
-                      className="w-full rounded bg-gold-500"
-                      style={{ height: `${(m.total / maxMonth) * 100}%`, minHeight: m.total > 0 ? 4 : 0 }}
-                      title={formatKES(m.total)}
-                    />
-                  </div>
-                  <span className="text-[10px] text-ink-muted">{m.label}</span>
-                  <span className="num text-[10px] text-ink-soft">
-                    {m.total > 0 ? `${Math.round(m.total / 1000)}k` : '·'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           <button onClick={clear} className="text-xs text-ink-faint underline-offset-2 hover:text-red-400 hover:underline">
             Clear all holdings

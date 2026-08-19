@@ -4,7 +4,9 @@ import { db } from '@/lib/db';
 
 interface PortfolioState {
   holdings: Holding[];
+  loaded: boolean;
   load: () => Promise<void>;
+  /** Record or supersede one bond's price. Rejects implausible input. */
   addHoldings: (rows: Holding[]) => Promise<void>;
   removeHolding: (id: string) => Promise<void>;
   clear: () => Promise<void>;
@@ -12,8 +14,9 @@ interface PortfolioState {
 
 export const usePortfolioStore = create<PortfolioState>((set) => ({
   holdings: [],
+  loaded: false,
   load: async () => {
-    try { set({ holdings: await db.holdings.toArray() }); } catch { /* no IndexedDB */ }
+    try { set({ holdings: await db.holdings.toArray(), loaded: true }); } catch { set({ loaded: true }); /* no IndexedDB */ }
   },
   addHoldings: async (rows) => {
     await db.holdings.bulkPut(rows);

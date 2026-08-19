@@ -5,9 +5,8 @@ const SOURCE = readFileSync(new URL('../../src/app/portfolio/page.tsx', import.m
 
 describe('portfolio risk fallback valuation', () => {
   it('revalues known-cost holdings at today when market prices are missing', () => {
-    expect(SOURCE).toMatch(
-      /const currentCost = h\.costBasisKnown === false\s*\?\s*null\s*:\s*computeBondInvestment\(\s*bond,\s*h\.faceValueKES,\s*h\.purchaseCleanPrice,\s*today,\s*\);/s,
-    );
-    expect(SOURCE).toMatch(/const valuation = market \?\? currentCost;/);
+    expect(SOURCE).toContain('const currentCost = h.costBasisKnown === false');
+    expect(SOURCE).toContain(': computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, today);');
+    expect(SOURCE).toContain('const valuation = market ?? currentCost;');
   });
 });

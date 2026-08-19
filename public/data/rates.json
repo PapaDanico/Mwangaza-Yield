@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-18T15:52:39.994858+00:00",
+  "generatedAt": "2026-08-19T04:05:16.034133+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -54,7 +54,7 @@
       "value": 8.75,
       "unit": "%",
       "date": "2026-08-11",
-      "lastChecked": "2026-08-18",
+      "lastChecked": "2026-08-19",
       "source": "CBK",
       "fallback": false
     },
@@ -62,7 +62,7 @@
       "value": 6.49,
       "unit": "% y/y",
       "date": "2026-08-05",
-      "lastChecked": "2026-08-18",
+      "lastChecked": "2026-08-19",
       "source": "CBK",
       "fallback": true
     },
@@ -86,7 +86,7 @@
       "value": 129.48,
       "unit": "KES/USD",
       "date": "2026-08-18",
-      "lastChecked": "2026-08-18",
+      "lastChecked": "2026-08-19",
       "source": "CBK indicative",
       "fallback": false
     }
@@ -119,8 +119,8 @@
         "label": "7–12y",
         "fromYears": 7,
         "toYears": 12,
-        "auctions": 16,
-        "medianClearingRate": 12.811,
+        "auctions": 15,
+        "medianClearingRate": 12.652,
         "lowClearingRate": 11.589,
         "highClearingRate": 13.989,
         "latestAuctionDate": "2026-08-17"
@@ -129,8 +129,8 @@
         "label": "12–20y",
         "fromYears": 12,
         "toYears": 20,
-        "auctions": 22,
-        "medianClearingRate": 13.556,
+        "auctions": 21,
+        "medianClearingRate": 13.529,
         "lowClearingRate": 12.688,
         "highClearingRate": 14.864,
         "latestAuctionDate": "2026-08-17"
@@ -147,9 +147,9 @@
       }
     ],
     "demand": {
-      "auctions": 27,
-      "medianCoverRatio": 1.551,
-      "medianAcceptanceRate": 0.717
+      "auctions": 26,
+      "medianCoverRatio": 1.404,
+      "medianAcceptanceRate": 0.701
     }
   }
 }

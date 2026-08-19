@@ -10,6 +10,14 @@ type CalendarMode = 'month' | 'year';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
+function pad2(value: number) {
+  return String(value).padStart(2, '0');
+}
+
+export function formatCalendarDateKey(year: number, month: number, day: number) {
+  return `${year}-${pad2(month + 1)}-${pad2(day)}`;
+}
+
 function monthLabel(date: Date) {
   return date.toLocaleString('en-KE', { month: 'long', year: 'numeric' });
 }
@@ -104,8 +112,7 @@ export default function CouponCalendarHeatmap({ events }: { events: PortfolioPay
     const cells = Array.from({ length: 42 }, (_, index) => {
       const dayNumber = index - firstWeekday + 1;
       if (dayNumber < 1 || dayNumber > daysInMonth) return null;
-      const date = new Date(year, month, dayNumber);
-      const iso = date.toISOString().slice(0, 10);
+      const iso = formatCalendarDateKey(year, month, dayNumber);
       const dayEvents = eventsByDate.get(iso) ?? [];
       const total = dayEvents.reduce((sum, event) => sum + event.totalAmountKES, 0);
       const selected = selectedDates.has(iso);

@@ -67,9 +67,17 @@ export default function PortfolioPage() {
   const [reinvestmentRate, setReinvestmentRate] = useState<number | null>(null);
 
   const enriched = useMemo(() => {
+    const today = new Date();
     return holdings.map((h) => {
       const bond = matchBond(bonds, h);
-      if (!bond) return { holding: h, bond: null, result: null, market: null, nextCoupon: null };
+      if (!bond) return {
+        holding: h,
+        bond: null,
+        result: null,
+        currentCost: null,
+        market: null,
+        nextCoupon: null,
+      };
       // Locked-in economics from the price actually paid.
       //
       // When the cost basis is unknown — a custody export states what is held,
@@ -96,11 +104,14 @@ export default function PortfolioPage() {
       // "your bond is worth 100" is a claim about their money, and inventing it
       // would be worse than leaving the column blank.
       const priceInfo = resolvePrice(bond, secondary, userPrices);
+      const currentCost = h.costBasisKnown === false
+        ? null
+        : computeBondInvestment(bond, h.faceValueKES, h.purchaseCleanPrice, today);
       const market = priceInfo.source !== 'par'
-        ? computeBondInvestment(bond, h.faceValueKES, priceInfo.price, new Date())
+        ? computeBondInvestment(bond, h.faceValueKES, priceInfo.price, today)
         : null;
-      const nextCoupon = getNextCouponDate(bond, new Date());
-      return { holding: h, bond, result, market, nextCoupon };
+      const nextCoupon = getNextCouponDate(bond, today);
+      return { holding: h, bond, result, currentCost, market, nextCoupon };
     });
   }, [holdings, bonds, secondary, userPrices]);
 
@@ -125,9 +136,9 @@ export default function PortfolioPage() {
   const risk = useMemo(() => {
     const today = new Date();
     const rows = enriched.flatMap((entry) => {
-      const { bond, holding, market, result } = entry;
+      const { bond, holding, currentCost, market } = entry;
       if (!bond) return [];
-      const valuation = market ?? (holding.costBasisKnown === false ? null : result);
+      const valuation = market ?? currentCost;
       if (!valuation) return [];
       const metrics = computeBondRiskMetrics(bond, holding.faceValueKES, valuation.netYTM, today);
       if (!metrics.cashFlows.length) return [];

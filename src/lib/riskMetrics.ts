@@ -1,5 +1,5 @@
-import type { Bond } from '@/types/bond';
-import { determineWHTRate, getCouponDates } from '@/lib/financial-engine';
+import type { Bond } from '../types/bond';
+import { determineWHTRate, getCouponDates } from './financial-engine';
 
 const DAY_MS = 86_400_000;
 const DAYS_IN_YEAR = 365;

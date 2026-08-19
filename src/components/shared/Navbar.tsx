@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import { MOBILE_NAV_ROUTES, PRIMARY_NAV_ROUTES } from '@/lib/routes';
@@ -132,7 +132,7 @@ export default function Navbar() {
       {/* Mobile bottom nav */}
       <nav className="no-print fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand-300 bg-sand-50/95 py-2 backdrop-blur md:hidden">
         {MOBILE_NAV_ROUTES.map(({ href, id, label }) => {
-          const Icon = ICONS[id as keyof typeof ICONS];
+          const Icon = ICONS[id as keyof typeof ICONS] ?? ArrowRight;
           return (
             <Link
               key={href}

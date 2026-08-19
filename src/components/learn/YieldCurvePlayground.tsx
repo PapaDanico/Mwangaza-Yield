@@ -74,7 +74,7 @@ export default function YieldCurvePlayground() {
         ].map((slider) => (
           <label key={slider.label} className="rounded-2xl border border-sand-300 bg-sand-50 p-3">
             <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-              <span className="font-medium text-ink">{slider.label}</span>
+              <span className="font-medium text-ink">slider.label</span>
               <span className="font-mono text-gold-700">{slider.value.toFixed(1)}%</span>
             </div>
             <input
@@ -167,7 +167,7 @@ export default function YieldCurvePlayground() {
       </div>
 
       <p className="text-xs leading-relaxed text-ink-faint">
-        Example scale: a price of 95 means about {formatKES.format(950000)} for KES 1,000,000 face value.
+        Example scale: a price of 95 means about {formatKES.format(950000)} for Ksh 1,000,000 face value.
         The math is simplified, but the lesson is real: curve shape matters because discounting compounds over time.
       </p>
     </section>

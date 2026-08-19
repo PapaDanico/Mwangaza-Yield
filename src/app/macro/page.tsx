@@ -14,6 +14,7 @@ import {
   sustainabilitySignal,
   trendArrow,
 } from '@/lib/macro-context';
+import { yearsToMaturityAt } from '@/lib/bid';
 import SovereignContext from '@/components/dashboard/SovereignContext';
 
 function latest(m: ReturnType<typeof useBondStore.getState>['macro'], indicator: string): number {
@@ -160,14 +161,20 @@ export default function MacroPage() {
     ? Math.max(0, Math.ceil((upcomingMpc[0].getTime() - now.getTime()) / 86_400_000))
     : null;
 
-  const yieldCurveData = useMemo(
-    () => [...bonds]
-      .filter((b) => (b.ytmGross ?? 0) > 0)
-      .sort((a, b) => (a.residualMaturity ?? 0) - (b.residualMaturity ?? 0))
+  const yieldCurveData = useMemo(() => {
+    const asOf = new Date();
+
+    return bonds
+      .map((bond) => ({ bond, tenor: yearsToMaturityAt(bond, asOf) }))
+      .filter(({ bond, tenor }) => bond.ytmGross > 0 && tenor > 0)
+      .sort((a, b) => a.tenor - b.tenor)
       .slice(0, 12)
-      .map((b) => ({ label: b.issueCode.split('/').pop() ?? '', y: b.ytmGross, tenor: b.residualMaturity })),
-    [bonds],
-  );
+      .map(({ bond, tenor }) => ({
+        label: bond.issueCode.split('/').pop() ?? '',
+        y: bond.ytmGross,
+        tenor,
+      }));
+  }, [bonds]);
 
   const sentimentMeta: Record<string, { label: string; color: string; note: string }> = {
     hawkish: {
@@ -297,7 +304,7 @@ export default function MacroPage() {
       {/* ── Fiscal Health ── */}
       <section className="card">
         <h2 className="font-semibold text-ink">Fiscal Health</h2>
-        <p className="mt-0.5 text-xs text-ink-faint">Debt-to-GDP trajectory. The IMF's indicative ceiling for EMs is 55%; the yellow band marks the amber zone (55–70%).</p>
+        <p className="mt-0.5 text-xs text-ink-faint">Debt-to-GDP trajectory. The IMF&apos;s indicative ceiling for EMs is 55%; the yellow band marks the amber zone (55–70%).</p>
         <div className="mt-3 h-52">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={debtSeries}>

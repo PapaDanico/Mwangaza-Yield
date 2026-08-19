@@ -56,7 +56,7 @@ export default function LadderingDemo() {
           <article key={`bond-${index + 1}`} className="rounded-2xl border border-sand-300 bg-white p-3">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-semibold text-ink">Bond {index + 1}</h3>
-              <span className="rounded-full bg-sand-100 px-2 py-1 text-xs text-ink-soft">KES 250,000</span>
+              <span className="rounded-full bg-sand-100 px-2 py-1 text-xs text-ink-soft">Ksh 250,000</span>
             </div>
             <p className="mt-1 text-xs text-ink-faint">12% coupon · annual coupon {formatKES.format(annualCoupon)}</p>
             <label className="mt-3 block">
@@ -127,7 +127,7 @@ export default function LadderingDemo() {
       </div>
 
       <div className="rounded-2xl border border-sand-300 bg-sand-50 p-4 text-sm leading-relaxed text-ink-soft">
-        Each bar includes annual coupons from bonds still alive, plus principal when a bond matures. Green bars meet your target; red bars show a year where income may need support from cash reserves or a longer ladder.
+        Each bar includes annual coupons from bonds still alive, plus principal when a bond matures. Green bars meet your target; red bars show a year where income may need support from cash reserves.
       </div>
 
       <div className="rounded-2xl border border-sand-300 bg-white p-4 text-sm text-ink-soft">
@@ -142,7 +142,7 @@ export default function LadderingDemo() {
           <tbody>
             {chartData.map((row) => (
               <tr key={row.year} className="border-b border-sand-300/60 last:border-0">
-                <td className="py-2 text-ink">{row.year}</td>
+                <td className="py-2 text-ink">Year {row.year}</td>
                 <td className="py-2 text-right font-mono text-ink">{formatKES.format(row.cashFlow)}</td>
               </tr>
             ))}

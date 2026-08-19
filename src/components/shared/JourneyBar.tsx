@@ -56,13 +56,13 @@ export default function JourneyBar() {
         />
       </div>
 
-      {/* Stage labels — hidden on xs, visible from sm */}
-      <ol className="mx-auto hidden max-w-6xl items-center justify-between px-4 py-1.5 sm:flex">
+      {/* Stage labels — scrollable on xs so they are never invisible */}
+      <ol className="mx-auto flex max-w-6xl items-center gap-x-4 overflow-x-auto px-4 py-1.5 scrollbar-none">
         {STAGES.map((stage, i) => {
           const isActive = i === activeIdx;
           const isPast = i < activeIdx;
           return (
-            <li key={stage.label} className="flex items-center gap-1">
+            <li key={stage.label} className="flex shrink-0 items-center gap-1">
               <span
                 className={cn(
                   'text-[10px] font-medium tracking-wide',

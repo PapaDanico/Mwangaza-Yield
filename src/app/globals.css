@@ -65,6 +65,14 @@ summary {
   box-shadow: 0 0 0 2px theme('colors.sand.50');
 }
 
+/* Hide scrollbar on the journey bar while keeping it scrollable */
+.scrollbar-none {
+  scrollbar-width: none;   /* Firefox */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;           /* Chrome / Safari / Edge */
+}
+
 /* One-page printable report: hide the app chrome, reveal the report sheet. */
 .print-only {
   display: none;

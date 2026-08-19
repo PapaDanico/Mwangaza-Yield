@@ -309,13 +309,13 @@ export default function PricesClient() {
                     <span className="flex items-center gap-1">
                       <Users size={11} className="text-ink-faint" />
                       <strong className="text-ink">Median quoted price:</strong>{' '}
-                      <span className="num font-semibold text-ink">KES {cp.median.toFixed(2)}</span>
+                      <span className="num font-semibold text-ink">Ksh {cp.median.toFixed(2)}</span>
                     </span>
                     <span>
                       Range:{' '}
-                      <span className="num">KES {cp.min.toFixed(2)}</span>
+                      <span className="num">Ksh {cp.min.toFixed(2)}</span>
                       {' \u2013 '}
-                      <span className="num">KES {cp.max.toFixed(2)}</span>
+                      <span className="num">Ksh {cp.max.toFixed(2)}</span>
                     </span>
                     {info.source !== 'par' && (() => {
                       const spread = computeFairValueSpread(bond.isin, cp.median, info.price);
@@ -347,10 +347,10 @@ export default function PricesClient() {
                 </div>
               )}
 
-              {/*
+              { /*
                 Is this a good price?
                 Only for a price the reader actually recorded.
-              */}
+              */ }
               {info.source === 'user' && (() => {
                 const mark = benchmarkQuote(bond, info.price, auctionResults, bonds);
                 const tone =

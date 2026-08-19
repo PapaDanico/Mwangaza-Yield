@@ -1,5 +1,5 @@
 # Rates via Mwangaza Yield (mwangazayield.org)
-# Generated 2026-08-18T15:52:39.994858+00:00 | schema 1
+# Generated 2026-08-19T04:05:16.034133+00:00 | schema 1
 "# Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied."
 # T-BILLS: quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.
 "# BANDS: Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote."
@@ -11,8 +11,8 @@ tbill,182-day Treasury bill,182,,,8.9545,9.1555,7.7566,0.15,,,,2026-07-30,"CBK a
 tbill,364-day Treasury bill,364,,,9.0169,9.018,7.6651,0.15,,,,2026-07-30,"CBK auction, 30 Jul 2026"
 bondAuctionBand,Under 3y,,0,3,,,,,0,,,,CBK auction results
 bondAuctionBand,3–7y,,3,7,,12.782,,,3,12.457,12.808,2026-07-15,CBK auction results
-bondAuctionBand,7–12y,,7,12,,12.811,,,16,11.589,13.989,2026-08-17,CBK auction results
-bondAuctionBand,12–20y,,12,20,,13.556,,,22,12.688,14.864,2026-08-17,CBK auction results
+bondAuctionBand,7–12y,,7,12,,12.652,,,15,11.589,13.989,2026-08-17,CBK auction results
+bondAuctionBand,12–20y,,12,20,,13.529,,,21,12.688,14.864,2026-08-17,CBK auction results
 bondAuctionBand,20y+,,20,40,,13.756,,,8,12.949,14.617,2026-07-27,CBK auction results
 macro,centralBankRate,,,,,8.75,,,,,,2026-08-11,CBK
 macro,inflation,,,,,6.49,,,,,,2026-08-05,CBK

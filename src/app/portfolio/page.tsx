@@ -58,7 +58,7 @@ const CSV_TEMPLATE = 'issueCode,faceValueKES,purchaseDate,purchaseCleanPrice\nFX
 export default function PortfolioPage() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
-  const { holdings, addHoldings, removeHolding, clear } = usePortfolioStore();
+  const { holdings, addHoldings, removeHolding, clear, loaded: holdingsLoaded } = usePortfolioStore();
   const userPrices = usePriceStore((s) => s.userPrices);
   const fileRef = useRef<HTMLInputElement>(null);
   const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[]; fromCustody?: boolean } | null>(null);
@@ -201,6 +201,15 @@ export default function PortfolioPage() {
   );
 
   useEffect(() => {
+    if (holdingsLoaded && holdings.length > 0) {
+      setPortfolioView('list');
+    }
+    // Run once when the store finishes loading from IndexedDB so an existing
+    // portfolio lands on the holdings table rather than an empty waterfall.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [holdingsLoaded]);
+
+  useEffect(() => {
     setReinvestmentRate((current) => {
       if (current === null) return totals.weightedNet;
       return Math.min(current, maxReinvestmentRate || totals.weightedNet);
@@ -220,7 +229,10 @@ export default function PortfolioPage() {
             ...h,
             isin: h.isin || matchBond(bonds, h)?.isin || '',
           }));
-          if (imported.length) addHoldings(imported);
+          if (imported.length) {
+            addHoldings(imported);
+            setPortfolioView('list');
+          }
           setImportNote({
             ok: imported.length,
             skipped: parsed.rejected.length,
@@ -258,7 +270,10 @@ export default function PortfolioPage() {
             purchaseDate: r.purchaseDate?.trim() || new Date().toISOString().slice(0, 10),
             purchaseCleanPrice: Number(r.purchaseCleanPrice) || 100,
           }));
-        if (rows.length) addHoldings(rows);
+        if (rows.length) {
+          addHoldings(rows);
+          setPortfolioView('list');
+        }
         // Tell the user what actually landed — a silent import hides typos.
         setImportNote({
           ok: rows.length,

@@ -28,7 +28,7 @@
 [Statistics index] HTTP 200, 47709 bytes
 [Statistics index] no .csv/.xlsx/.xls links in the served HTML
 [Statistics index] tables in served HTML: 0
-[T-bill results (LIVE listing)] HTTP 200, 1942947 bytes
+[T-bill results (LIVE listing)] HTTP 200, 1942943 bytes
 [T-bill results (LIVE listing)] no .csv/.xlsx/.xls links in the served HTML
 [T-bill results (LIVE listing)] DataTables present — an export button may build a file client-side, so a missing link above is not a 'no'
 [T-bill results (LIVE listing)] tables in served HTML: 8
@@ -75,7 +75,7 @@
 [Commercial bank rates]   table 1: 12 rows
 [Commercial bank rates]     header: Year | Month | Deposit | Savings | Lending | Overdraft
 [Commercial bank rates]     row 1:  Year | Month | Deposit | Savings | Lending | Overdraft
-[Daily indicative FX rates] HTTP 200, 74007 bytes
+[Daily indicative FX rates] HTTP 200, 74015 bytes
 [Daily indicative FX rates] 14 MACHINE-READABLE DOWNLOAD(S):
 [Daily indicative FX rates]     https://www.centralbank.go.ke/uploads/fx_rates/historical_data.csv
 [Daily indicative FX rates]       link text: Download All Historical Rates

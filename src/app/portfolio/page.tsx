@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { Upload, Trash2, Download, CalendarPlus, Share2, CheckCircle2 } from 'lucide-react';
@@ -11,9 +12,19 @@ import { resolvePrice } from '@/lib/prices';
 import { computeBondInvestment, formatKES, formatPct, getNextCouponDate, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { paymentDay } from '@/lib/holidays';
+import {
+  computeBondRiskMetrics,
+  computePortfolioWeightedDuration,
+  computePriceSensitivity,
+} from '@/lib/riskMetrics';
 import type { Bond, Holding } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
+
+const RiskMetricsDurationChart = dynamic(
+  () => import('@/components/portfolio/RiskMetricsDurationChart'),
+  { ssr: false, loading: () => <div className="h-64" aria-hidden="true" /> },
+);
 
 /**
  * Find the bond a holding refers to.
@@ -42,6 +53,7 @@ export default function PortfolioPage() {
   const userPrices = usePriceStore((s) => s.userPrices);
   const fileRef = useRef<HTMLInputElement>(null);
   const [importNote, setImportNote] = useState<{ ok: number; skipped: number; unknown: string[]; fromCustody?: boolean } | null>(null);
+  const [showRiskMetrics, setShowRiskMetrics] = useState(true);
 
   const enriched = useMemo(() => {
     return holdings.map((h) => {
@@ -97,6 +109,54 @@ export default function PortfolioPage() {
       : 0;
     const unpriced = valid.length - priced.length;
     return { cost, income, weightedNet, unpriced };
+  }, [enriched]);
+
+  const risk = useMemo(() => {
+    const today = new Date();
+    const rows = enriched.flatMap((entry) => {
+      const { bond, holding, market, result } = entry;
+      if (!bond) return [];
+      const valuation = market ?? (holding.costBasisKnown === false ? null : result);
+      if (!valuation) return [];
+      const metrics = computeBondRiskMetrics(bond, holding.faceValueKES, valuation.netYTM, today);
+      if (!metrics.cashFlows.length) return [];
+      return [{
+        holdingId: holding.id,
+        issueCode: holding.issueCode,
+        currentValue: valuation.settlementCostKES,
+        source: market ? 'market' : 'cost',
+        ...metrics,
+      }];
+    });
+
+    const currentValue = rows.reduce((sum, row) => sum + row.currentValue, 0);
+    const weightedMacaulay = computePortfolioWeightedDuration(
+      rows.map((row) => ({ marketValue: row.currentValue, duration: row.macaulayDuration })),
+    );
+    const weightedModified = computePortfolioWeightedDuration(
+      rows.map((row) => ({ marketValue: row.currentValue, duration: row.modifiedDuration })),
+    );
+    const portfolioConvexity = computePortfolioWeightedDuration(
+      rows.map((row) => ({ marketValue: row.currentValue, duration: row.convexity })),
+    );
+    const scenarios = [-2, -1, -0.5, 0.5, 1, 2].map((yieldChange) => ({
+      yieldChange,
+      impact: computePriceSensitivity(weightedModified, portfolioConvexity, yieldChange, currentValue),
+    }));
+
+    return {
+      rows,
+      byHoldingId: new Map(rows.map((row) => [row.holdingId, row])),
+      weightedMacaulay,
+      weightedModified,
+      portfolioConvexity,
+      currentValue,
+      scenarios,
+      chartData: [...rows]
+        .sort((a, b) => b.modifiedDuration - a.modifiedDuration)
+        .map((row) => ({ issueCode: row.issueCode, duration: row.modifiedDuration })),
+      excluded: enriched.filter((entry) => entry.bond).length - rows.length,
+    };
   }, [enriched]);
 
   // 12-month coupon calendar
@@ -359,6 +419,13 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
                     <td className="px-4 py-3">
                       <span className="font-medium text-ink">{holding.issueCode}</span>
                       {!bond && <span className="ml-2 text-xs text-gold-700">unknown bond</span>}
+                      {risk.byHoldingId.get(holding.id) && (
+                        <div className="mt-1">
+                          <span className="inline-flex rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-800">
+                            Sensitivity: {risk.byHoldingId.get(holding.id)!.modifiedDuration.toFixed(2)} yrs
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="num px-4 py-3 text-right text-ink">{formatKES(holding.faceValueKES)}</td>
                     <td className="num px-4 py-3 text-right text-ink-soft">
@@ -434,6 +501,95 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
               scheduled date. Yields and accrued interest are computed from the scheduled
               dates, as the prospectus does.
             </p>
+          </div>
+
+          <div className="card">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="mb-1 font-semibold text-ink">Risk Metrics</h2>
+                <p className="text-xs text-ink-muted">
+                  Duration and convexity from after-tax cash flows, using Actual/365 timing.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRiskMetrics((open) => !open)}
+                className="rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink-soft hover:border-ink-muted"
+              >
+                {showRiskMetrics ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
+            {showRiskMetrics && (
+              risk.rows.length > 0 ? (
+                <div className="space-y-5">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="rounded-2xl bg-sand-50 p-4">
+                      <p className="text-xs text-ink-muted">Weighted Macaulay duration</p>
+                      <p className="num mt-1 text-xl font-bold text-ink">{risk.weightedMacaulay.toFixed(2)} yrs</p>
+                    </div>
+                    <div className="rounded-2xl bg-sand-50 p-4">
+                      <p className="text-xs text-ink-muted">Weighted modified duration</p>
+                      <p className="num mt-1 text-xl font-bold text-gold-700">{risk.weightedModified.toFixed(2)} yrs</p>
+                    </div>
+                    <div className="rounded-2xl bg-sand-50 p-4">
+                      <p className="text-xs text-ink-muted">Portfolio convexity</p>
+                      <p className="num mt-1 text-xl font-bold text-mint-700">{risk.portfolioConvexity.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+                    <div className="overflow-x-auto rounded-2xl border border-sand-300">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
+                            <th className="px-4 py-3">Yield move</th>
+                            <th className="px-4 py-3 text-right">Value change</th>
+                            <th className="px-4 py-3 text-right">% change</th>
+                            <th className="px-4 py-3 text-right">Estimated value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {risk.scenarios.map(({ yieldChange, impact }) => (
+                            <tr key={yieldChange} className="border-b border-sand-300/60 last:border-0">
+                              <td className="num px-4 py-3 text-ink">
+                                {yieldChange > 0 ? '+' : ''}{Math.round(yieldChange * 100)}bp
+                              </td>
+                              <td className={`num px-4 py-3 text-right ${impact.priceChange <= 0 ? 'text-ink-soft' : 'text-mint-700'}`}>
+                                {formatKES(impact.priceChange)}
+                              </td>
+                              <td className="num px-4 py-3 text-right text-ink-soft">
+                                {formatPct(impact.percentChange)}
+                              </td>
+                              <td className="num px-4 py-3 text-right text-ink">
+                                {formatKES(impact.estimatedPrice)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-2 text-sm font-semibold text-ink">Individual bond durations</h3>
+                      <div className="h-64">
+                        <RiskMetricsDurationChart data={risk.chartData} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs leading-relaxed text-ink-faint">
+                    Based on today&apos;s recorded or resolved bond price where available, otherwise the known purchase price.
+                    {risk.excluded > 0 && (
+                      <> <span className="num">{risk.excluded}</span> holding{risk.excluded === 1 ? '' : 's'} excluded because no usable price or future cash flows were available.</>
+                    )}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-ink-soft">
+                  Add holdings with a usable price to see duration, convexity, and rate-shock impacts.
+                </p>
+              )
+            )}
           </div>
 
           <div className="card">

@@ -3,6 +3,8 @@ import type { Bond, AuctionSchedule, AuctionPrint, Holding, MacroIndicator, Seco
 import type { SavedPlan } from './plans';
 import type { AlertRule } from './alerts';
 import type { UserPrice } from './prices';
+import type { AnonymizedSubmission } from './communityPrice';
+import type { Receipt } from './receipt';
 
 /**
  * A monthly CPI print as `cpi-history.json` ships it.
@@ -44,6 +46,20 @@ class MwangazaDB extends Dexie {
   /** Prices the reader looked up themselves. Never synced, never transmitted. */
   userPrices!: Table<UserPrice, string>;
   cpiHistory!: Table<CpiPoint, string>;
+  /**
+   * Anonymized community price submissions. Keyed by auto-increment id so
+   * multiple submissions for the same bond accumulate rather than supersede.
+   * The ISIN index allows bulk reads per bond. Reader's own data only — never
+   * uploaded, never shared with a server.
+   */
+  communityPrices!: Table<AnonymizedSubmission & { id?: number }, number>;
+  /**
+   * Calculation receipts generated during this and previous sessions. Keyed
+   * by UUID so they accumulate. Session-scoped in spirit — the user can clear
+   * them — but persisted across reloads so a receipt generated yesterday can
+   * still be downloaded.
+   */
+  receipts!: Table<Receipt, string>;
 
   constructor() {
     super('mwangaza-yield');
@@ -86,6 +102,16 @@ class MwangazaDB extends Dexie {
     // replaced wholesale rather than accumulated.
     this.version(9).stores({
       cpiHistory: 'id, date',
+    });
+    // Anonymized community price submissions. Auto-increment primary key so
+    // entries accumulate; ISIN index for per-bond queries.
+    this.version(10).stores({
+      communityPrices: '++id, isin, date',
+    });
+    // Calculation receipts. UUID primary key; timestamp index for chronological
+    // listing and cleanup.
+    this.version(11).stores({
+      receipts: 'id, timestamp, kind',
     });
   }
 }

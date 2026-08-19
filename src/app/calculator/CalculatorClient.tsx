@@ -14,7 +14,10 @@ import FollowChannel from '@/components/shared/FollowChannel';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
 import RealYieldCard from '@/components/shared/RealYieldCard';
+import ReceiptModal from '@/components/shared/ReceiptModal';
 import { inputCls } from '@/lib/field-styles';
+import { generateReceipt, type Receipt, type BondInvestmentContext } from '@/lib/receipt';
+import { db } from '@/lib/db';
 
 /**
  * Tax status first, because it is what actually separates these bonds for a
@@ -56,6 +59,7 @@ export default function CalculatorClient() {
   // Cleared whenever the price moves, so the confirmation always refers to the
   // number currently on screen rather than the last one saved.
   const [saved, setSaved] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
 
   // bonds.json is ordered by maturity, so bonds[0] is whatever redeems SOONEST
   // — and defaulting to it meant every first-time visitor landed on the least
@@ -338,6 +342,41 @@ export default function CalculatorClient() {
               price on the remaining cash-flow schedule; net YTM taxes coupons at the WHT rate
               (principal redemption is untaxed).
             </p>
+            <button
+              onClick={async () => {
+                if (!result || !bond) return;
+                const ctx: BondInvestmentContext = {
+                  kind: 'bond-investment',
+                  bond: {
+                    isin: bond.isin,
+                    issueCode: bond.issueCode,
+                    couponRate: bond.couponRate,
+                    maturityDate: bond.maturityDate,
+                    taxExempt: bond.taxExempt,
+                    tenorYears: bond.tenorYears,
+                  },
+                  faceValueKES: amount,
+                  cleanPrice: price,
+                  priceSource: priceInfo?.source === 'user'
+                    ? `Your price (${priceInfo.asOfDate})`
+                    : priceInfo?.source === 'market'
+                      ? `Last trade (${priceInfo.asOfDate})`
+                      : 'Par placeholder',
+                  settlementDate: new Date().toISOString().slice(0, 10),
+                  result,
+                  dataSources: [
+                    { name: 'CBK Bonds Data', url: 'https://www.centralbank.go.ke/', lastUpdated: bond.ytmAsOf ?? null },
+                    { name: 'Mwangaza Yield bonds.json', url: 'https://mwangazayield.org/data/bonds.json', lastUpdated: null },
+                  ],
+                };
+                const r = await generateReceipt(ctx);
+                try { await db.receipts.put(r); } catch { /* non-critical */ }
+                setReceipt(r);
+              }}
+              className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-gold-700 underline-offset-2 hover:underline"
+            >
+              Generate calculation receipt
+            </button>
           </div>
         )}
       </div>
@@ -360,6 +399,8 @@ export default function CalculatorClient() {
       {/* Past the `if (!bond) return <DataState />` guard, so this only ever
         * follows a computed result. */}
       <FollowChannel what="Bond yields" />
+
+      {receipt && <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />}
     </>
   );
 }

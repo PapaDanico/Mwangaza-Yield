@@ -188,7 +188,7 @@ export default function TbillsClient({
                 "next" is simply wrong. See lib/auction-schedule.ts for why the
                 real date is not computed instead. */}
             <p className="mt-2 text-xs text-ink-faint">
-              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of Ksh 50,000
+              Minimum {formatKES(selected.minInvestmentKES)}, then multiples of {formatKES(50_000)}
               {nextAuctionLabel(selected.nextAuctionDate)
                 ? ` · next auction ${nextAuctionLabel(selected.nextAuctionDate)}`
                 : ' · auctioned weekly on Thursdays; our next-auction date is out of date'}

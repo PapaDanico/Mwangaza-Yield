@@ -10,7 +10,7 @@ import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { paymentDay } from '@/lib/holidays';
 import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
-import { nonNegativeNumber } from '@/lib/utils';
+import { nonNegativeNumber, CURRENCY_LABEL } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
 import WiderView from '@/components/shared/WiderView';
@@ -168,7 +168,7 @@ export default function LadderPage() {
       <div className="no-print grid gap-5 lg:grid-cols-[1fr,1.4fr] [&>*]:min-w-0">
         <div className="card h-fit space-y-4">
           <div>
-            <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest (Ksh)</label>
+            <label htmlFor="ladder-amount" className="mb-1 block text-sm font-medium text-ink-soft">Total to invest ({CURRENCY_LABEL})</label>
             <input
               id="ladder-amount"
               type="number" min={100_000} step={50_000} value={amount}

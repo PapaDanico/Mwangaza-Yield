@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { Bond, MacroIndicator } from '@/types/bond';
 import { latestInflation, realReturn, exemptionRealMultiple } from '@/lib/real-yield';
+import { formatKES } from '@/lib/financial-engine';
 
 /**
  * The number the rest of the page is missing.
@@ -73,7 +74,7 @@ export default function RealYieldCard({
               What Ksh 100 of principal buys when it comes back
             </span>
             <span className="num text-ink">
-              Ksh {real.principalRealValuePer100.toFixed(0)}
+              {formatKES(real.principalRealValuePer100, 0)}
             </span>
           </div>
           <div className="flex items-baseline justify-between py-2">

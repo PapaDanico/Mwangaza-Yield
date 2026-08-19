@@ -71,7 +71,7 @@ export default function RealYieldCard({
           </div>
           <div className="flex items-baseline justify-between border-b border-sand-200 py-2">
             <span className="text-sm text-ink-soft">
-              What Ksh 100 of principal buys when it comes back
+              What {formatKES(100, 0)} of principal buys when it comes back
             </span>
             <span className="num text-ink">
               {formatKES(real.principalRealValuePer100, 0)}

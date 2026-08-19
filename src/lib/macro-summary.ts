@@ -65,14 +65,20 @@ export function longRateBenchmark(bonds: Bond[]): RateBenchmark | null {
 }
 
 export function buildMacroSummary(macro: MacroIndicator[], bonds: Bond[], tbills: TBill[]) {
-  const cbr = latestIndicatorValue(macro, 'CBR');
+  const cbrRow = latestRow(macro, 'CBR');
+  const cpiRow = latestRow(macro, 'CPI');
+  const fxRow = latestRow(macro, 'FX_USD_KES');
+  const us10yRow = latestRow(macro, 'US10Y');
+  const fedRow = latestRow(macro, 'US_FED_FUNDS');
+  const emRow = latestRow(macro, 'EM_BOND_YIELD');
+  const cbr = cbrRow?.value ?? 0;
   const prevCbr = previousIndicatorValue(macro, 'CBR');
-  const cpi = latestIndicatorValue(macro, 'CPI');
+  const cpi = cpiRow?.value ?? 0;
   const prevCpi = previousIndicatorValue(macro, 'CPI');
-  const fx = latestIndicatorValue(macro, 'FX_USD_KES');
-  const us10y = latestIndicatorValue(macro, 'US10Y');
-  const fed = latestIndicatorValue(macro, 'US_FED_FUNDS');
-  const em = latestIndicatorValue(macro, 'EM_BOND_YIELD');
+  const fx = fxRow?.value ?? 0;
+  const us10y = us10yRow?.value ?? 0;
+  const fed = fedRow?.value ?? 0;
+  const em = emRow?.value ?? 0;
   const prevDebt = previousIndicatorValue(macro, 'DEBT_TO_GDP');
   const debt = computeDebtSustainabilityIndicators(macro);
   const realRate = computeRealRate(cbr, cpi);
@@ -80,7 +86,10 @@ export function buildMacroSummary(macro: MacroIndicator[], bonds: Bond[], tbills
   const shortBenchmark = shortRateBenchmark(tbills);
   const longBenchmark = longRateBenchmark(bonds);
   const termPremium = computeTermPremium(longBenchmark?.value ?? 0, shortBenchmark?.value ?? 0);
-  const kenyaSpread = computeKenyaSpread(em || longBenchmark?.value || 0, us10y || fed);
+  const kenyaSpread = computeKenyaSpread(
+    emRow?.value ?? longBenchmark?.value ?? 0,
+    us10yRow?.value ?? fedRow?.value ?? 0
+  );
 
   return {
     cbr,

@@ -24,8 +24,8 @@ export const SHORTCUTS: Record<string, ShortcutDef> = {
     NAVIGATION_SHORTCUT_ROUTES.map((route) => [
       `nav:${route.id}`,
       {
-        keys: route.shortcutKeys!,
-        description: `Go to ${route.label}`,
+        keys: route.shortcutKeys ?? [],
+        description: `Go to ${route.commandLabel ?? route.label}`,
         category: 'navigation' as const,
       },
     ])

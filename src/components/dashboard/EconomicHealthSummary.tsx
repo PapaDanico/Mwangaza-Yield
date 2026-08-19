@@ -12,7 +12,6 @@ export default function EconomicHealthSummary() {
   const macro = useBondStore((s) => s.macro);
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
-  const auctions = useBondStore((s) => s.auctions);
   const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
   const { realRate, prevRealRate, debt, prevDebt, termPremium, kenyaSpread } = summary;
 
@@ -65,7 +64,7 @@ export default function EconomicHealthSummary() {
         ))}
       </div>
       <p className="mt-3 text-xs text-ink-muted">
-        Data Quality: {auctions.length} auctions, {bonds.length} bonds, {mpcCount} MPC decisions — all verified.
+        Data Quality: {bonds.length} bonds, {mpcCount} MPC decisions — all verified.
       </p>
     </div>
   );

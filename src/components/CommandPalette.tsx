@@ -67,7 +67,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
 
   const navItems: CommandItem[] = COMMAND_PALETTE_ROUTES.map((route) => ({
     id: route.id,
-    label: `Go to ${route.label}`,
+    label: `Go to ${route.commandLabel ?? route.label}`,
     shortcut: route.shortcutKeys?.join(' '),
     category: 'Navigation',
     icon: navIcons[route.id as keyof typeof navIcons] ?? <ArrowRight size={15} />,

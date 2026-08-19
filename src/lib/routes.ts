@@ -4,6 +4,7 @@ export interface AppRoute {
   id: string;
   href: string;
   label: string;
+  commandLabel?: string;
   journeyStage?: JourneyStage;
   showInPrimaryNav?: boolean;
   showInMobileNav?: boolean;
@@ -19,7 +20,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'calculator', href: '/calculator/', label: 'Calculator', journeyStage: 'analyze', showInPrimaryNav: true, showInMobileNav: false, showInCommandPalette: true, shortcutKeys: ['G', 'C'] },
   { id: 'auctions', href: '/auctions/', label: 'Auctions', journeyStage: 'analyze', showInPrimaryNav: true, showInMobileNav: true, showInCommandPalette: true, shortcutKeys: ['G', 'A'] },
   { id: 'portfolio', href: '/portfolio/', label: 'Portfolio', journeyStage: 'track', showInPrimaryNav: true, showInMobileNav: true, showInCommandPalette: true, shortcutKeys: ['G', 'P'] },
-  { id: 'macro', href: '/macro/', label: 'Economic Context', journeyStage: 'analyze', showInCommandPalette: true, shortcutKeys: ['G', 'M'] },
+  { id: 'macro', href: '/macro/', label: 'Economic Context', commandLabel: 'Macro', journeyStage: 'analyze', showInCommandPalette: true, shortcutKeys: ['G', 'M'] },
   { id: 'prices', href: '/prices/', label: 'Price Book', journeyStage: 'execute', showInCommandPalette: true, shortcutKeys: ['G', 'I'] },
   { id: 'learn', href: '/learn/', label: 'Learn', journeyStage: 'discover', showInCommandPalette: true, shortcutKeys: ['G', 'L'] },
   { id: 'yield-curve', href: '/yield-curve/', label: 'Yield Curve', journeyStage: 'analyze', showInCommandPalette: true },

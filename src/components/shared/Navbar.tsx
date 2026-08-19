@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight } from 'lucide-react';
+import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAlertStore } from '@/stores/alertStore';
 import { MOBILE_NAV_ROUTES, PRIMARY_NAV_ROUTES } from '@/lib/routes';
 import OfflineBadge from './OfflineBadge';
 import DataStatus from './DataStatus';
 
-const ICONS = {
+const ICONS: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
   goals: Target,
   tbills: Receipt,
@@ -17,7 +17,15 @@ const ICONS = {
   calculator: Calculator,
   auctions: Radar,
   portfolio: Briefcase,
-} as const;
+};
+
+function iconForRoute(id: string): LucideIcon {
+  const Icon = ICONS[id];
+  if (!Icon && process.env.NODE_ENV !== 'production') {
+    console.warn(`Missing navbar icon for route "${id}"`);
+  }
+  return Icon ?? ArrowRight;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -132,7 +140,7 @@ export default function Navbar() {
       {/* Mobile bottom nav */}
       <nav className="no-print fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-sand-300 bg-sand-50/95 py-2 backdrop-blur md:hidden">
         {MOBILE_NAV_ROUTES.map(({ href, id, label }) => {
-          const Icon = ICONS[id as keyof typeof ICONS] ?? ArrowRight;
+          const Icon = iconForRoute(id);
           return (
             <Link
               key={href}

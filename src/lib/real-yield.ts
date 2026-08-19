@@ -184,11 +184,11 @@ export function realReturn(
       ? `After withholding tax and inflation this returns ${realNetYTM.toFixed(2)}% a year in `
         + `today's money — real growth, but ${(100 - (realNetYTM / netYTM) * 100).toFixed(0)}% less than `
         + `the ${netYTM.toFixed(2)}% headline suggests. Over ${term} the principal itself comes back `
-        + `worth ${formatKES(principalRealValuePer100, 0)} for every Ksh 100 of face value, ${held}.`
+        + `worth ${formatKES(principalRealValuePer100, 0)} for every ${formatKES(100, 0)} of face value, ${held}.`
       : `After withholding tax and inflation this LOSES ${Math.abs(realNetYTM).toFixed(2)}% a year in `
         + `purchasing power. The ${netYTM.toFixed(2)}% net headline is below the ${inflationPct.toFixed(2)}% `
         + `inflation rate, so the money grows in shillings and shrinks in what it buys. Over ${term} the `
-        + `principal comes back worth ${formatKES(principalRealValuePer100, 0)} per Ksh 100 of face, ${held}.`;
+        + `principal comes back worth ${formatKES(principalRealValuePer100, 0)} per ${formatKES(100, 0)} of face, ${held}.`;
 
   return {
     nominalNetYTM: netYTM,

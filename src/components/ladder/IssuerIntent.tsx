@@ -34,6 +34,13 @@ export default function IssuerIntent() {
     );
   }
 
+  // Format pre-scaled values, appending the unit suffix that gives them meaning.
+  // The underlying values are stored in Bn (billions) and Tn (trillions) to
+  // avoid 12-digit literals in the JSON. formatKES provides the "Ksh" prefix;
+  // the suffix ("bn"/"tn") is the exponent that completes the number.
+  const kesbn = (bn: number) => `${formatKES(Math.round(bn), 0)}bn`;
+  const kestn = (tn: number) => `${formatKES(tn, 2)}tn`;
+
   return (
     <div className="no-print card border border-sand-300">
       <h2 className="font-semibold text-ink">What the issuer plans to sell</h2>
@@ -49,14 +56,14 @@ export default function IssuerIntent() {
       </p>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
         Nearer in, the {supply.fiscalYear} supplementary budget raised planned net domestic
-        borrowing from {formatKES(supply.revisedFromKESBn * 1_000_000_000, 0)}bn to{' '}
-        <strong>{formatKES(supply.netDomesticBorrowingKESBn * 1_000_000_000, 0)}bn</strong> — a wave of new
+        borrowing from {kesbn(supply.revisedFromKESBn)} to{' '}
+        <strong>{kesbn(supply.netDomesticBorrowingKESBn)}</strong> — a wave of new
         paper, which historically favours buyers at auction.
       </p>
       <Explain label="Why believe it — and why you still might not">
         Stated intent is not a promise. In {outturn.fiscalYear} the same issuer sold{' '}
-        {formatKES(outturn.tbillsIssuedKESTn * 1_000_000_000_000, 0)}tn of T-bills against{' '}
-        {formatKES(outturn.bondsIssuedKESTn * 1_000_000_000_000, 0)}tn of bonds — nearly the reverse of the
+        {kestn(outturn.tbillsIssuedKESTn)} of T-bills against{' '}
+        {kestn(outturn.bondsIssuedKESTn)} of bonds — nearly the reverse of the
         strategy&apos;s direction — so treat the plan as a leaning, not a schedule. Sources:{' '}
         {intent.source}; {supply.source}; {outturn.source}.{' '}
         {/* Rendered only when we have a URL somebody has actually opened.

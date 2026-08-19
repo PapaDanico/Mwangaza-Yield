@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{ts,tsx}'],
@@ -29,6 +30,7 @@ module.exports = {
           600: '#D97706',
           700: '#B45309',
           800: '#92400E',
+          900: '#78350F',
         },
         mint: { 300: '#6EE7B7', 500: '#10B981', 600: '#059669', 700: '#047857', 800: '#065F46' },
       },

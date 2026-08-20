@@ -51,6 +51,14 @@ EXEMPT = {
     # probe() reports status. Kept out of the probe_ prefix by history, not by
     # any difference in what it does.
     "validate.py": "diagnostic; prints live source status and writes nothing",
+    # Unreachable rather than untested: no ci.yml step runs it, so it ships no
+    # behaviour for a test to pin. It is not merely dormant — enabling it as
+    # written would fail the licence sweep, and two of its `source` strings
+    # name a calculation rather than a publisher. Its module docstring carries
+    # that reasoning in full; this entry deliberately does not restate it.
+    # Wiring it in means doing that work AND writing a test, and deleting this
+    # line is how the requirement comes back.
+    "macro_context_parser.py": "unwired; runs nowhere — see its docstring before enabling",
 }
 
 

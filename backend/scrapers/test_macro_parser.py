@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from macro_parser import (  # noqa: E402
     MAX_MOVE, carry_forward, date_by_observation, implausible_move,
-    reference_period, reject_implausible, today_iso,
+    one_row_per_indicator, reference_period, reject_implausible, today_iso,
 )
 from sources import Attempt, Resolution  # noqa: E402
 
@@ -303,6 +303,50 @@ def test_malformed_history_rows_are_skipped_not_crashed_on() -> None:
     hist = [None, "x", {}, {"value": 6.49}, {"date": "2026-07-01", "value": 6.49}]
     check(reference_period(6.49, hist) == "2026-07",
           f"got {reference_period(6.49, hist)}")
+
+
+def test_duplicate_indicators_collapse_to_one_row() -> None:
+    # The shipped defect: carry_forward re-appends every context row and
+    # load_macro_context appends the same rows again, so each came back twice.
+    rows = [
+        {"id": "cbr-2026-08-11", "indicator": "CBR", "value": 8.75},
+        {"id": "debt-gdp-2026", "indicator": "DEBT_TO_GDP", "value": 67.2},
+        {"id": "debt-gdp-2026", "indicator": "DEBT_TO_GDP", "value": 67.2},
+    ]
+    out = one_row_per_indicator(rows)
+    check(len(out) == 2, f"expected 2 rows, got {len(out)}")
+    check([r["indicator"] for r in out] == ["CBR", "DEBT_TO_GDP"],
+          f"order not preserved: {[r['indicator'] for r in out]}")
+
+
+def test_first_row_wins_so_fresh_beats_carried_forward() -> None:
+    # Order is precedence. A fresh scrape is appended before the carried-forward
+    # copy, so keeping the LAST row would republish yesterday's value as today's.
+    rows = [
+        {"id": "fx-2026-08-19", "indicator": "FX_USD_KES", "value": 129.54},
+        {"id": "fx-2026-08-18", "indicator": "FX_USD_KES", "value": 129.48},
+    ]
+    out = one_row_per_indicator(rows)
+    check(len(out) == 1, f"expected 1 row, got {len(out)}")
+    check(out[0]["value"] == 129.54, f"kept the stale value: {out[0]['value']}")
+
+
+def test_merge_is_idempotent_so_a_refresh_cannot_grow_the_file() -> None:
+    # Feeding the output back in is exactly what the daily pipeline does: this
+    # run's file is next run's `existing`. Doubling is what made 14 rows 22.
+    rows = [
+        {"id": "cbr-2026-08-11", "indicator": "CBR", "value": 8.75},
+        {"id": "us10y-2026-08-18", "indicator": "US10Y", "value": 4.18},
+    ]
+    once = one_row_per_indicator(rows)
+    twice = one_row_per_indicator(once + once)
+    check(once == twice, f"not idempotent: {len(once)} then {len(twice)}")
+
+
+def test_malformed_rows_are_dropped_not_crashed_on() -> None:
+    rows = [None, "x", {"value": 1}, {"indicator": "CBR", "value": 8.75}]
+    out = one_row_per_indicator(rows)
+    check([r["indicator"] for r in out] == ["CBR"], f"got {out}")
 
 
 # --------------------------------------------------------------------------

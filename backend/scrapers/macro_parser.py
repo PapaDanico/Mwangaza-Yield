@@ -87,7 +87,7 @@ def scrape() -> list:
         date_by_observation(records, existing), existing, (fx, cbr, cpi),
     )
     merged.extend(load_macro_context(existing))
-    return merged
+    return one_row_per_indicator(merged)
 
 
 # How far a figure may move from the last value we trusted before we refuse it.
@@ -314,6 +314,56 @@ def date_by_observation(records: list, existing: list) -> list:
 
 def today_iso() -> str:
     return date.today().isoformat()
+
+
+def one_row_per_indicator(records: list) -> list:
+    """One indicator, one row — asserted here rather than hoped for upstream.
+
+    THE MERGE IS NOT IDEMPOTENT WITHOUT THIS, AND IT SHIPPED.
+
+    `scrape()` assembles macro.json from three writers that each believe they
+    own a disjoint slice of it: the fresh scrape, `carry_forward` (anything the
+    scrape did not refresh), and `load_macro_context` (the debt and global
+    rows). The third overlaps the second. `carry_forward` walks EVERY row of
+    the previous file and re-appends whatever is not in this run's fresh set,
+    which includes every context row; `load_macro_context` then appends the
+    same rows again from the same file, because macro-context.json does not
+    exist and its fallback re-reads them out of `existing`.
+
+    So every context indicator came back twice, and the output of one run is
+    the input of the next: 14 rows became 22 on 2026-08-19, and would have
+    become 38, then 70, then 134 — doubling every refresh, byte-identical
+    duplicates carrying identical `id`s, until the file was mostly copies of
+    itself.
+
+    Nothing downstream failed loudly at it, which is why it ran for a day
+    unnoticed: `latestValue` in macro-context.ts sorts by date and takes the
+    first, so a duplicate reads the same as no duplicate. The damage was to
+    everything that COUNTS rows rather than reading them — the manifest's
+    recordCount, the data-health table, any future consumer that maps over the
+    file — plus a trend arrow comparing a row against its own copy and
+    therefore always reporting "unchanged".
+
+    Deduping at the seam is the fix rather than untangling which writer should
+    have yielded, because the invariant is what actually matters and it is
+    cheap to state: macro.json holds the current value of each indicator, one
+    row each. Order is precedence — fresh, then carried-forward, then context —
+    so the FIRST row wins and the later copy is dropped.
+    """
+    seen: dict = {}
+    out = []
+    for row in records:
+        if not isinstance(row, dict):
+            continue
+        name = row.get("indicator")
+        if name is None or name in seen:
+            if name is not None:
+                print(f"[macro] dropping duplicate row for {name} "
+                      f"(id={row.get('id')})", file=sys.stderr)
+            continue
+        seen[name] = row
+        out.append(row)
+    return out
 
 
 def carry_forward(records: list, existing: list, resolutions=()) -> list:

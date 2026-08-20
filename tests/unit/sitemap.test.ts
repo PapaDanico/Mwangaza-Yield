@@ -41,6 +41,14 @@ const DELIBERATELY_EXCLUDED: Record<string, string> = {
     'the argument for recording the exclusion here where a test can hold it. A ' +
     'crawler handed this URL indexes a permanently-wrong page under the ' +
     "site's own brand and spends crawl budget doing it.",
+  '/metrics':
+    'The owner view of the usage counters track.mts keeps. It is for the site ' +
+    'owner, not for readers: it holds no data of its own — everything is ' +
+    'fetched client-side with a token the owner pastes in — but indexing it ' +
+    'would advertise the endpoint and put a token prompt under the brand in ' +
+    'search results. It is also absent from src/lib/routes.ts, so it appears ' +
+    'in no nav, no mobile bar and no command palette. The page carries ' +
+    'robots: noindex as well, because a crawler does not read this test.',
 };
 
 const entries = sitemap();

@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { computeDataQuality, computeFreshness, generateDataReport } from '../../src/lib/data-quality';
+import { computeDataQuality } from '../../src/lib/data-quality';
+import * as dataQuality from '../../src/lib/data-quality';
 
 describe('dataQuality', () => {
-  it('computes freshness buckets', () => {
-    const now = new Date('2026-01-01T12:00:00Z');
-    expect(computeFreshness('2026-01-01T09:00:00Z', now)).toBe('fresh');
-    expect(computeFreshness('2026-01-01T00:00:00Z', now)).toBe('stale');
-    expect(computeFreshness('2025-12-31T00:00:00Z', now)).toBe('old');
-    expect(computeFreshness('2025-12-20T00:00:00Z', now)).toBe('expired');
-  });
-
   it('scores dataset quality', () => {
     const score = computeDataQuality([
       { issueDate: '2026-01-01', maturityDate: '2027-01-01', value: 10 },
@@ -19,21 +12,17 @@ describe('dataQuality', () => {
     expect(score.inconsistencies).toBeGreaterThan(0);
   });
 
-  it('builds a report', () => {
-    const report = generateDataReport({
-      datasets: [
-        {
-          id: 'macro',
-          label: 'Macro',
-          source: 'CBK',
-          sourceUrl: 'https://example.com',
-          dataDate: new Date().toISOString(),
-          file: 'macro.json',
-          dataset: [{ a: 1 }],
-        },
-      ],
-    });
-    expect(report.datasets).toHaveLength(1);
-    expect(report.overallScore).toBeGreaterThanOrEqual(0);
+  it('calls an empty dataset unscorable rather than perfect', () => {
+    const score = computeDataQuality([]);
+    expect(score.score).toBe(0);
+    expect(score.issues).toContain('Dataset is empty');
+  });
+
+  it('does not judge freshness — data-freshness.ts owns the cadence', () => {
+    // This module shipped a second freshness rule with 6h/24h/72h buckets that
+    // contradicted the schedule-aware one and reported healthy data as stale.
+    // Re-adding one here is how the cadence table comes to exist twice again.
+    expect(Object.keys(dataQuality)).not.toContain('computeFreshness');
+    expect(Object.keys(dataQuality)).not.toContain('generateDataReport');
   });
 });

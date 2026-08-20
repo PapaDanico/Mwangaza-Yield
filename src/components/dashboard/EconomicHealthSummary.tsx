@@ -28,6 +28,13 @@ export default function EconomicHealthSummary() {
    * so the card read "0.0%" beside "Debt burden is moderate against GDP", which
    * is a verdict on a number nobody measured. A card we cannot fill is now
    * absent rather than confident.
+   *
+   * Term Premium was missed in that pass and kept the old shape: its helper
+   * returned 0 rather than null, so it could not be caught by a null check
+   * here. With both benchmarks present it is a real figure, which is why the
+   * gap went unnoticed — but an empty bond or T-bill dataset would have
+   * rendered "0.00%" beside "Long bonds pay above short rates". It is now
+   * nullable at the source and dropped here like the other two.
    */
   const metrics = useMemo(() => [
     {
@@ -44,7 +51,7 @@ export default function EconomicHealthSummary() {
       arrow: trendArrow(debt.debtToGDP, prevDebt),
       note: debt.debtToGDP < 60 ? 'Debt burden is moderate against GDP.' : 'Debt burden remains elevated relative to GDP.',
     },
-    {
+    termPremium === null ? null : {
       key: 'term',
       label: 'Term Premium',
       value: `${termPremium.toFixed(2)}%`,

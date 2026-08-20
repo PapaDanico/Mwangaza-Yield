@@ -58,8 +58,20 @@ export function computeRealRate(cbr: number, cpi: number): number {
   return cbr - cpi;
 }
 
-export function computeTermPremium(longYield: number, shortYield: number): number {
-  if (!Number.isFinite(longYield) || !Number.isFinite(shortYield)) return 0;
+/**
+ * The premium, or null when either leg is missing. Zero would read as a flat
+ * curve — a measured statement that long and short pay the same — which is the
+ * same mistake `computeKenyaSpread` below was corrected for. The two are
+ * siblings and had drifted apart: this one returned 0 and its caller passed
+ * `?? 0` for an absent benchmark, so a missing bond or T-bill dataset rendered
+ * "0.00%" beside "Long bonds pay above short rates, rewarding duration risk."
+ */
+export function computeTermPremium(
+  longYield: number | null,
+  shortYield: number | null
+): number | null {
+  if (longYield === null || shortYield === null) return null;
+  if (!Number.isFinite(longYield) || !Number.isFinite(shortYield)) return null;
   return longYield - shortYield;
 }
 

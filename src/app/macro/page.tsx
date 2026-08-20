@@ -14,6 +14,7 @@ import { yearsToMaturityAt } from '@/lib/bid';
 import SovereignContext from '@/components/dashboard/SovereignContext';
 import { usePersistedState } from '@/lib/persisted';
 import { buildMacroSummary } from '@/lib/macro-summary';
+import { macroRegime } from '@/lib/macro-regime';
 
 function mpcSentiment(title?: string): 'hawkish' | 'dovish' | 'neutral' {
   const t = (title || '').toLowerCase();
@@ -43,46 +44,6 @@ function curveRegime(termPrem: number): { label: string; note: string; color: st
     note: 'Short rates exceed long yields — an unusual signal of market stress or aggressive policy tightening. Duration may underperform cash.',
     color: 'text-red-600',
   };
-}
-
-function macroRegime(cbr: number, cpi: number, debtToGDP: number | null, kenyaSpread: number | null, sentiment: string): {
-  label: string;
-  description: string;
-  tags: { text: string; color: string }[];
-} {
-  const realRate = cbr - cpi;
-  const tags: { text: string; color: string }[] = [];
-
-  if (sentiment === 'dovish') tags.push({ text: 'Easing cycle', color: 'bg-mint-500/15 text-mint-700' });
-  else if (sentiment === 'hawkish') tags.push({ text: 'Tightening cycle', color: 'bg-red-500/15 text-red-700' });
-  else tags.push({ text: 'Policy on hold', color: 'bg-sand-200 text-ink-soft' });
-
-  if (realRate > 1) tags.push({ text: 'Positive real rates', color: 'bg-mint-500/15 text-mint-700' });
-  else if (realRate < 0) tags.push({ text: 'Negative real rates', color: 'bg-red-500/15 text-red-700' });
-
-  if (debtToGDP !== null && debtToGDP > 70) tags.push({ text: 'Elevated debt burden', color: 'bg-red-500/15 text-red-700' });
-  else if (debtToGDP !== null && debtToGDP > 55) tags.push({ text: 'Moderate debt pressure', color: 'bg-gold-500/15 text-gold-700' });
-  else tags.push({ text: 'Debt within threshold', color: 'bg-mint-500/15 text-mint-700' });
-
-  if (kenyaSpread !== null && kenyaSpread > 4) tags.push({ text: 'Wide spread vs. EM peers', color: 'bg-gold-500/15 text-gold-700' });
-  else tags.push({ text: 'Contained spread vs. EM', color: 'bg-mint-500/15 text-mint-700' });
-
-  const conditions = tags.filter((t) => t.color.includes('mint')).length;
-  const risks = tags.filter((t) => t.color.includes('red')).length;
-
-  let label: string;
-  let description: string;
-  if (conditions > risks + 1) {
-    label = 'Broadly supportive for bond investors';
-    description = 'Policy rates are positive in real terms and yields compensate for duration and sovereign risk. Conditions favour holding.';
-  } else if (risks > conditions) {
-    label = 'Elevated risk environment';
-    description = 'Debt dynamics or policy signals introduce headwinds. Scrutinise duration and credit risk before extending.';
-  } else {
-    label = 'Mixed signals — selectivity rewarded';
-    description = 'Some conditions support bonds while others introduce risk. Pricing discipline and security selection matter more than direction bets.';
-  }
-  return { label, description, tags };
 }
 
 export default function MacroPage() {
@@ -132,7 +93,7 @@ export default function MacroPage() {
   const latestDecision = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date))[0];
   const sentiment = mpcSentiment(latestDecision?.title);
 
-  const curve = curveRegime(termPremium);
+  const curve = termPremium === null ? null : curveRegime(termPremium);
   const regime = macroRegime(cbr, cpi, debt.debtToGDP, kenyaSpread, sentiment);
 
   const upcomingMpc = useMemo(() => {
@@ -421,24 +382,28 @@ export default function MacroPage() {
       <section className="card">
         <h2 className="font-semibold text-ink">Market Context</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {/* Term premium */}
-          <div className="rounded-xl border border-sand-300 p-3">
-            <p className="text-xs text-ink-muted">Term premium</p>
-            <div className="mt-0.5 flex items-baseline gap-2">
-              <p className="num text-xl font-bold text-ink">{termPremium.toFixed(2)}%</p>
-              <span className={`text-sm font-semibold ${curve.color}`}>{curve.label}</span>
+          {/* Term premium — needs both legs. With either missing there is no
+              premium to state, and a curve verdict computed from a substituted
+              zero would read as a measured flat curve. */}
+          {termPremium !== null && curve && (
+            <div className="rounded-xl border border-sand-300 p-3">
+              <p className="text-xs text-ink-muted">Term premium</p>
+              <div className="mt-0.5 flex items-baseline gap-2">
+                <p className="num text-xl font-bold text-ink">{termPremium.toFixed(2)}%</p>
+                <span className={`text-sm font-semibold ${curve.color}`}>{curve.label}</span>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">{curve.note}</p>
+              <div className="mt-2 border-t border-sand-200 pt-2">
+                <p className="text-[11px] text-ink-faint">
+                  <span className="font-medium text-ink-soft">{longBenchmark?.label ?? 'Long bond yield'}:</span>{' '}
+                  <span className="num">{(longBenchmark?.value ?? 0).toFixed(2)}%</span>
+                  {'  ·  '}
+                  <span className="font-medium text-ink-soft">{shortBenchmark?.label ?? 'Short bill'}:</span>{' '}
+                  <span className="num">{(shortBenchmark?.value ?? 0).toFixed(2)}%</span>
+                </p>
+              </div>
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">{curve.note}</p>
-            <div className="mt-2 border-t border-sand-200 pt-2">
-              <p className="text-[11px] text-ink-faint">
-                <span className="font-medium text-ink-soft">{longBenchmark?.label ?? 'Long bond yield'}:</span>{' '}
-                <span className="num">{(longBenchmark?.value ?? 0).toFixed(2)}%</span>
-                {'  ·  '}
-                <span className="font-medium text-ink-soft">{shortBenchmark?.label ?? 'Short bill'}:</span>{' '}
-                <span className="num">{(shortBenchmark?.value ?? 0).toFixed(2)}%</span>
-              </p>
-            </div>
-          </div>
+          )}
 
           {/* Yield curve chart */}
           <div className="rounded-xl border border-sand-300 p-3">

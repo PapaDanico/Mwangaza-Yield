@@ -1,6 +1,33 @@
 """Build supplementary macro context rows for macro.json.
 
 Produces public/data/macro-context.json with debt and global-spillover indicators.
+
+NOT WIRED INTO ci.yml, AND IT CANNOT BE ENABLED AS IT STANDS.
+------------------------------------------------------------
+No workflow step runs this file, so macro-context.json has never existed and
+`macro_parser.load_macro_context` has only ever taken its fallback branch —
+re-reading the context rows out of the previous macro.json. That fallback is
+therefore load-bearing, not a safety net, which is worth knowing before anyone
+deletes it.
+
+Enabling this parser as written would break the build, in the one way this
+project treats as serious. It stamps rows with `source` values of "FRED",
+"EMBI proxy" and "National Treasury (proxy)". None of the three is registered
+in src/lib/licences.ts, and tests/unit/licences.test.ts sweeps every `source`
+in public/data and fails on anything unregistered. The rows currently shipping
+are attributed to "World Bank Open Data (CC BY 4.0)" and "National Treasury",
+which ARE registered — so the parser and the data it is supposed to produce
+disagree about who published the figures.
+
+Two of those strings are also not sources at all. "EMBI proxy" describes a
+CALCULATION — US10Y plus a flat four points, see the `put("EM_BOND_YIELD", ...)`
+call below — and "National Treasury (proxy)" labels REVENUE_TO_GDP_PROXY, a
+constant hardcoded at the top of this file. Publishing either under a
+publisher's name would be the attribution defect licences.ts exists to prevent:
+a figure we derived, wearing a source's clothes.
+
+So before wiring this in: decide whether each figure is fetched or derived, give
+the derived ones a source string that says so, and register the fetched ones.
 """
 import json
 import sys

@@ -45,7 +45,7 @@ function curveRegime(termPrem: number): { label: string; note: string; color: st
   };
 }
 
-function macroRegime(cbr: number, cpi: number, debtToGDP: number, kenyaSpread: number, sentiment: string): {
+function macroRegime(cbr: number, cpi: number, debtToGDP: number | null, kenyaSpread: number | null, sentiment: string): {
   label: string;
   description: string;
   tags: { text: string; color: string }[];
@@ -60,11 +60,11 @@ function macroRegime(cbr: number, cpi: number, debtToGDP: number, kenyaSpread: n
   if (realRate > 1) tags.push({ text: 'Positive real rates', color: 'bg-mint-500/15 text-mint-700' });
   else if (realRate < 0) tags.push({ text: 'Negative real rates', color: 'bg-red-500/15 text-red-700' });
 
-  if (debtToGDP > 70) tags.push({ text: 'Elevated debt burden', color: 'bg-red-500/15 text-red-700' });
-  else if (debtToGDP > 55) tags.push({ text: 'Moderate debt pressure', color: 'bg-gold-500/15 text-gold-700' });
+  if (debtToGDP !== null && debtToGDP > 70) tags.push({ text: 'Elevated debt burden', color: 'bg-red-500/15 text-red-700' });
+  else if (debtToGDP !== null && debtToGDP > 55) tags.push({ text: 'Moderate debt pressure', color: 'bg-gold-500/15 text-gold-700' });
   else tags.push({ text: 'Debt within threshold', color: 'bg-mint-500/15 text-mint-700' });
 
-  if (kenyaSpread > 4) tags.push({ text: 'Wide spread vs. EM peers', color: 'bg-gold-500/15 text-gold-700' });
+  if (kenyaSpread !== null && kenyaSpread > 4) tags.push({ text: 'Wide spread vs. EM peers', color: 'bg-gold-500/15 text-gold-700' });
   else tags.push({ text: 'Contained spread vs. EM', color: 'bg-mint-500/15 text-mint-700' });
 
   const conditions = tags.filter((t) => t.color.includes('mint')).length;
@@ -88,11 +88,15 @@ function macroRegime(cbr: number, cpi: number, debtToGDP: number, kenyaSpread: n
 export default function MacroPage() {
   const macro = useBondStore((s) => s.macro);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
+  const cpiHistory = useBondStore((s) => s.cpiHistory);
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
 
   const [expectedDecision, setExpectedDecision] = usePersistedState('macro:expected-decision', '');
-  const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
+  const summary = useMemo(
+    () => buildMacroSummary(macro, bonds, tbills, cbrHistory, cpiHistory),
+    [macro, bonds, tbills, cbrHistory, cpiHistory]
+  );
   const {
     cbr,
     cpi,
@@ -120,7 +124,9 @@ export default function MacroPage() {
   const debtSeries = useMemo(() => {
     const debtRows = macro.filter((m) => m.indicator === 'DEBT_TO_GDP').sort((a, b) => a.date.localeCompare(b.date));
     if (debtRows.length) return debtRows.map((m) => ({ date: m.date.slice(0, 4), value: m.value }));
-    return [{ date: 'Now', value: debt.debtToGDP }];
+    // A single synthetic "Now" point drew a one-dot trend line out of the
+    // current value. With no value there is no line and no point pretending.
+    return debt.debtToGDP === null ? [] : [{ date: 'Now', value: debt.debtToGDP }];
   }, [macro, debt.debtToGDP]);
 
   const latestDecision = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -186,28 +192,31 @@ export default function MacroPage() {
         : 'KES is relatively contained. Dollar-denominated obligations are at manageable shilling cost.',
     },
     'Fed Funds': {
-      note: fed > 4
+      note: (fed ?? 0) > 4
         ? 'US rates remain elevated, keeping global capital costly and limiting room for Kenya to lower its own rates without outflows.'
         : 'Lower US rates reduce the opportunity cost of holding Kenyan bonds versus dollar assets.',
     },
     'EM Yield': {
-      note: em > 8
+      note: (em ?? 0) > 8
         ? 'Broad EM yields are elevated, reflecting global risk aversion. Kenya must price competitively to attract portfolio flows.'
         : 'EM yields are contained, indicating a constructive global backdrop for frontier bond issuers.',
     },
     'KE Spread': {
-      note: kenyaSpread > 4
-        ? `At ${kenyaSpread.toFixed(2)}%, Kenya's spread above global benchmarks is wide. This compensates investors for sovereign risk but signals elevated funding costs.`
-        : `At ${kenyaSpread.toFixed(2)}%, Kenya's spread is contained, suggesting the market prices the sovereign relatively favourably.`,
+      note: (kenyaSpread ?? 0) > 4
+        ? `At ${(kenyaSpread ?? 0).toFixed(2)}%, Kenya's spread above global benchmarks is wide. This compensates investors for sovereign risk but signals elevated funding costs.`
+        : `At ${(kenyaSpread ?? 0).toFixed(2)}%, Kenya's spread is contained, suggesting the market prices the sovereign relatively favourably.`,
     },
   };
 
+  // US and EM legs come from indicators macro.json no longer carries — see the
+  // note in macro-context.ts. A missing leg used to render as 0.00%, which
+  // reads as a measured zero rather than an absence, so it is dropped instead.
   const spillovers = [
     { label: 'USD/KES', value: fx, unit: '' },
     { label: 'Fed Funds', value: fed, unit: '%' },
     { label: 'EM Yield', value: em, unit: '%' },
     { label: 'KE Spread', value: kenyaSpread, unit: '%' },
-  ];
+  ].filter((x): x is { label: string; value: number; unit: string } => x.value !== null);
 
   return (
     <div className="macro-newspaper space-y-6 rounded-2xl p-4 sm:p-5">
@@ -254,23 +263,31 @@ export default function MacroPage() {
             <p className="text-xs text-ink-muted">Current CBR</p>
             <p className="num mt-1 text-xl font-bold text-ink">
               {cbr.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>
+              {trendArrow(cbr, prevCbr) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
+            {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
+                 and the flat arrow above already says the figure held. */}
+            {prevCbr !== null && trendArrow(cbr, prevCbr) !== '→' && (
+              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
+            )}
           </div>
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Inflation (CPI)</p>
             <p className="num mt-1 text-xl font-bold text-ink">
               {cpi.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cpi, prevCpi)}</span>
+              {trendArrow(cpi, prevCpi) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cpi, prevCpi)}</span>}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
+            {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
+                 and the flat arrow above already says the figure held. */}
+            {prevCpi !== null && trendArrow(cpi, prevCpi) !== '→' && (
+              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
+            )}
           </div>
           <div className={`rounded-xl border p-3 ${realRate > 0 ? 'border-mint-300 bg-mint-500/[0.06]' : 'border-red-300 bg-red-500/[0.06]'}`}>
             <p className="text-xs text-ink-muted">Real rate (CBR − CPI)</p>
             <p className={`num mt-1 text-xl font-bold ${realRate > 0 ? 'text-mint-700' : 'text-red-600'}`}>
               {realRate > 0 ? '+' : ''}{realRate.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(realRate, prevRealRate)}</span>
+              {trendArrow(realRate, prevRealRate) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(realRate, prevRealRate)}</span>}
             </p>
             <p className="mt-1 text-[11px] leading-snug text-ink-faint">
               {realRate > 0
@@ -287,6 +304,20 @@ export default function MacroPage() {
       </section>
 
       {/* ── Fiscal Health ── */}
+      {/*
+        Rendered only when the figures exist. They do not today, and the
+        alternative is not four cards reading "0.0%": sustainabilitySignal used
+        to return GREEN for missing data, which is the most reassuring possible
+        answer to the question a bond buyer most needs answered honestly.
+
+        The World Bank returns no observation for Kenya's Government debt / GDP
+        — sovereign-gaps.ts documents that, and SovereignContext below already
+        tells the reader so and points at the Treasury bulletin. For two days
+        this section contradicted it with a hand-typed 67.2% and a traffic
+        light. Saying we do not have it, in the same words as the panel beneath,
+        is the only version of this section that is true.
+      */}
+      {debt.debtToGDP !== null && debt.debtServiceRatio !== null && debt.fiscalSpace !== null ? (
       <section className="card">
         <h2 className="font-semibold text-ink">Fiscal Health</h2>
         <p className="mt-0.5 text-xs text-ink-faint">Debt-to-GDP trajectory. The IMF&apos;s indicative ceiling for EMs is 55%; the yellow band marks the amber zone (55–70%).</p>
@@ -304,8 +335,8 @@ export default function MacroPage() {
           </ResponsiveContainer>
         </div>
         <ul className="sr-only">
-          {debtSeries.slice(-6).map((p) => (
-            <li key={p.date}>{p.date}: Debt to GDP {p.value.toFixed(1)}%</li>
+          {debtSeries.map((pt) => (
+            <li key={pt.date}>{pt.date}: Debt to GDP {pt.value.toFixed(1)}%</li>
           ))}
         </ul>
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
@@ -313,7 +344,7 @@ export default function MacroPage() {
             <p className="text-xs text-ink-muted">Debt / GDP</p>
             <p className="num mt-1 font-bold text-lg text-ink">
               {debt.debtToGDP.toFixed(1)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(debt.debtToGDP, prevDebt)}</span>
+              {trendArrow(debt.debtToGDP, prevDebt) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(debt.debtToGDP, prevDebt)}</span>}
             </p>
             <p className="mt-1 text-[11px] text-ink-faint">
               {debt.debtToGDP > 70 ? 'Above amber threshold — elevated refinancing risk.' : debt.debtToGDP > 55 ? 'Above IMF indicative ceiling of 55%.' : 'Within IMF indicative threshold.'}
@@ -342,6 +373,27 @@ export default function MacroPage() {
           </div>
         </div>
       </section>
+      ) : (
+      <section className="card">
+        <h2 className="font-semibold text-ink">Fiscal Health</h2>
+        <p className="mt-2 text-sm text-ink-soft">
+          We do not publish Kenya&apos;s debt-to-GDP ratio, and we would rather say so than
+          estimate it.
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+          It is the measure a reader looks for first, and the one we cannot source. We ask
+          the World Bank for it and Kenya has no observation in that series — the request
+          succeeds and comes back empty. The National Treasury publishes the figure in its
+          monthly debt bulletin, and the number quoted in the press comes from there rather
+          than from us.
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
+          The sovereign panel below carries the seven ratios we can source and licence,
+          including external debt and debt service, which answer a narrower version of the
+          same question.
+        </p>
+      </section>
+      )}
 
       {/* ── Sovereign Credit Assessment ── */}
       <SovereignContext />

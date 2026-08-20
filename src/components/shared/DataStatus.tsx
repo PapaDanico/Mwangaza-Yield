@@ -1,29 +1,79 @@
 'use client';
 
+/**
+ * The data-health dot in the navbar, and the panel behind it.
+ *
+ * WHY THIS READS data-freshness.ts AND NOT A THRESHOLD OF ITS OWN
+ * --------------------------------------------------------------
+ * This component shipped with its own freshness rule — under 6 hours "fresh",
+ * under 24 "stale", under 72 "old", beyond that "expired" — applied to each
+ * dataset's newest record date. Every part of that was wrong for this project:
+ *
+ *   - The refresh is scheduled twice a day, at 03:17 and 15:17 UTC. A 6-hour
+ *     "fresh" window means the dot spends half of every healthy day amber.
+ *   - Sunday has no scheduled run at all, so a correct Sunday evening read is
+ *     over a day old and the rule called it "old" — red, all weekend, every
+ *     weekend. data-freshness.ts exists precisely because of that case and its
+ *     header says so.
+ *   - Datasets have their own cadences. Sovereign context is 595 days old
+ *     against a 900-day budget and is perfectly healthy; a 72-hour rule calls
+ *     it expired.
+ *   - The date it judged was the newest record IN the dataset, not when the
+ *     data was fetched. For auctions that is a scheduled FUTURE auction, so the
+ *     age came out negative and the rule reported "fresh" — freshness derived
+ *     from a calendar entry that has not happened yet.
+ *
+ * On 2026-08-20, with the pipeline having run on time the previous afternoon,
+ * the panel reported three of its four datasets "old" and the fourth "fresh"
+ * for the wrong reason.
+ *
+ * So freshness is not computed here. The dot comes from `freshness()`, which
+ * counts SCHEDULED RUNS THAT DID NOT HAPPEN, and the per-dataset rows come from
+ * freshness.json, which the pipeline writes with each dataset's real budget.
+ * One cadence table, in the place that already owned it. What stays local is
+ * QUALITY — completeness and outliers — which is a different question from age
+ * and genuinely has no other home.
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import { X, RefreshCw, Download } from 'lucide-react';
-import type { DataManifest } from '@/lib/data-quality';
-import { computeFreshness, generateDataReport } from '@/lib/data-quality';
+import { computeDataQuality, type QualityScore } from '@/lib/data-quality';
+import {
+  datasetFreshness,
+  freshness,
+  freshnessNotice,
+  type DatasetFreshness,
+} from '@/lib/data-freshness';
 import meta from '../../../public/data/meta.json';
 
-const DATASETS = [
-  { id: 'bonds', label: 'Bonds', file: '/data/bonds.json', source: 'CBK', sourceUrl: 'https://www.centralbank.go.ke' },
-  { id: 'auctions', label: 'Auctions', file: '/data/auctions.json', source: 'CBK', sourceUrl: 'https://www.centralbank.go.ke' },
-  { id: 'macro', label: 'Macro', file: '/data/macro.json', source: 'KNBS/CBK/World Bank', sourceUrl: 'https://www.knbs.or.ke' },
-  { id: 'prices', label: 'Prices', file: '/data/secondary.json', source: 'NSE/CBK', sourceUrl: 'https://www.centralbank.go.ke' },
+/**
+ * Datasets whose contents we can score for quality, and where to read them.
+ *
+ * Deliberately does NOT carry a source string. The previous version listed
+ * "NSE/CBK" and "KNBS/CBK/World Bank" here, which put the two sources this
+ * project is not permitted to redistribute — see licences.ts — on screen as
+ * attributions, in a hand-kept list that no test could hold to the registry.
+ * Provenance belongs to /sources and licences.ts, which is where the panel now
+ * points instead of restating it.
+ */
+const SCORED = [
+  { file: 'macro.json', label: 'Macro (CBR, CPI, FX)' },
+  { file: 'bonds.json', label: 'Bonds' },
+  { file: 'auctions.json', label: 'Auctions' },
+  { file: 'tbills.json', label: 'Treasury bills' },
 ] as const;
 
-function dotClass(level: string): string {
-  if (level === 'fresh') return 'bg-mint-600';
-  if (level === 'stale') return 'bg-gold-600';
-  if (level === 'old') return 'bg-red-600';
-  return 'bg-slate-400';
+/** Worst state loudest. The previous order left `expired` grey — calmer than `old`. */
+function badgeClass(stale: boolean): string {
+  return stale ? 'bg-red-600 text-sand-50' : 'bg-mint-600 text-sand-50';
 }
 
 export default function DataStatus() {
   const [open, setOpen] = useState(false);
-  const [manifest, setManifest] = useState<DataManifest>({ datasets: [] });
   const [offline, setOffline] = useState(false);
+  const [quality, setQuality] = useState<Record<string, QualityScore>>({});
+  const [raw, setRaw] = useState<Record<string, unknown[]>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const updateNet = () => setOffline(!navigator.onLine);
@@ -36,54 +86,63 @@ export default function DataStatus() {
     };
   }, []);
 
-  async function loadDatasets(bust = false) {
+  const rows: DatasetFreshness[] = useMemo(() => datasetFreshness(), []);
+  const fresh = useMemo(() => freshness(new Date()), []);
+  const notice = useMemo(() => freshnessNotice(fresh), [fresh]);
+
+  /**
+   * Fetch the datasets only when the panel is opened.
+   *
+   * They were previously fetched on mount, on every page, including on phones
+   * where the button is hidden by a `lg:` breakpoint and the panel can never be
+   * opened at all — several tens of kilobytes of JSON pulled to compute a
+   * number nobody could see.
+   */
+  async function loadQuality(bust = false) {
+    setLoading(true);
     const stamp = bust ? `?ts=${Date.now()}` : '';
-    const rows = await Promise.all(DATASETS.map(async (d) => {
-      try {
-        const res = await fetch(`${d.file}${stamp}`, { cache: 'no-store' });
-        const json = await res.json();
-        const firstDate = Array.isArray(json)
-          ? json.map((x: any) => x?.date || x?.auctionDate || x?.tradeDate || x?.asOf).filter(Boolean).sort().at(-1)
-          : undefined;
-        return {
-          ...d,
-          dataset: json,
-          dataDate: firstDate || meta.generatedAt,
-        };
-      } catch {
-        return {
-          ...d,
-          dataset: [],
-          dataDate: '1970-01-01T00:00:00Z',
-        };
-      }
-    }));
-    setManifest({ datasets: rows, lastSuccessfulScrape: meta.generatedAt });
+    const scores: Record<string, QualityScore> = {};
+    const datasets: Record<string, unknown[]> = {};
+    await Promise.all(
+      SCORED.map(async (d) => {
+        try {
+          const res = await fetch(`/data/${d.file}${stamp}`, { cache: 'no-store' });
+          const json = await res.json();
+          const arr = Array.isArray(json) ? json : [];
+          datasets[d.file] = arr;
+          scores[d.file] = computeDataQuality(arr);
+        } catch {
+          // A dataset we cannot read has no quality score, and saying nothing
+          // is honest. It still shows its age, which comes from the build.
+        }
+      })
+    );
+    setQuality(scores);
+    setRaw(datasets);
+    setLoading(false);
   }
 
   useEffect(() => {
-    loadDatasets().catch(() => {});
-  }, []);
+    if (open && !Object.keys(quality).length) loadQuality().catch(() => {});
+    // Loading is keyed on opening the panel; `quality` is the guard, not a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-  const report = useMemo(() => generateDataReport(manifest), [manifest]);
-  const datasetFreshness = computeFreshness(meta.generatedAt, new Date());
-  const nextRefresh = useMemo(() => {
-    const now = new Date();
-    const next = new Date(now);
-    const hour = now.getUTCHours() < 12 ? 12 : 0;
-    if (hour === 0) next.setUTCDate(now.getUTCDate() + 1);
-    next.setUTCHours(hour, 0, 0, 0);
-    return next;
-  }, []);
+  const anyStale = rows.some((d) => d.stale) || fresh.stale;
+  const dot = offline ? 'bg-slate-400' : anyStale ? 'bg-red-600' : 'bg-mint-600';
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
         className="group relative inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs text-ink-muted hover:bg-sand-200 hover:text-ink"
-        title={`Data refreshed ${Math.max(0, Math.floor((Date.now() - new Date(meta.generatedAt).getTime()) / 3_600_000))} hours ago. Next refresh: ${nextRefresh.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' })} EAT.`}
+        title={
+          offline
+            ? 'You are offline. Showing the data saved on this device.'
+            : notice ?? `Data current as of ${fresh.generatedAt.slice(0, 10)}. Refreshes twice a day, Monday to Saturday.`
+        }
       >
-        <span className={`h-2.5 w-2.5 rounded-full ${dotClass(offline ? 'offline' : datasetFreshness)}`} />
+        <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
         <span className="hidden lg:inline">Data</span>
       </button>
 
@@ -95,10 +154,8 @@ export default function DataStatus() {
               <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 hover:bg-sand-200"><X size={15} /></button>
             </div>
             <p className="mt-1 text-xs text-ink-muted">
-              Last successful scrape: {manifest.lastSuccessfulScrape?.slice(0, 19) || 'unknown'}
-              {manifest.lastSuccessfulScrape && (Date.now() - new Date(manifest.lastSuccessfulScrape).getTime()) / 3_600_000 > 48 && (
-                <span className="ml-2 text-gold-700">Automated updates paused. Technical team notified.</span>
-              )}
+              Last successful scrape: {meta.generatedAt.slice(0, 19)}
+              {notice && <span className="ml-2 text-gold-700">{notice}</span>}
             </p>
 
             <div className="mt-3 overflow-x-auto">
@@ -106,44 +163,67 @@ export default function DataStatus() {
                 <thead>
                   <tr className="text-left text-xs text-ink-faint">
                     <th className="py-2">Dataset</th>
-                    <th>Last updated</th>
-                    <th>Source</th>
-                    <th>Freshness</th>
+                    <th>As of</th>
+                    <th>Age</th>
+                    <th>Expected within</th>
+                    <th>State</th>
                     <th>Quality</th>
-                    <th>Records</th>
                     <th className="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.datasets.map((d) => (
-                    <tr key={d.id} className="border-t border-sand-200">
-                      <td className="py-2 font-medium text-ink">{d.label}</td>
-                      <td className="num text-ink-soft">{d.dataDate.slice(0, 19)}</td>
-                      <td><a href={d.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-gold-700 hover:underline">{d.source}</a></td>
-                      <td><span className={`rounded-full px-2 py-0.5 text-xs ${dotClass(d.freshness)} text-sand-50`}>{d.freshness}</span></td>
-                      <td className="num">{d.quality.score}</td>
-                      <td className="num">{d.recordCount}</td>
-                      <td className="text-right">
-                        <a
-                          download={`${d.id}.json`}
-                          href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify((manifest.datasets.find((x) => x.id === d.id) as any)?.dataset ?? [], null, 2))}`}
-                          className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-2 py-1 text-xs hover:bg-sand-100"
-                        >
-                          <Download size={12} /> Raw
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
+                  {rows.map((d) => {
+                    const q = quality[d.file];
+                    const rows_ = raw[d.file];
+                    return (
+                      <tr key={d.file} className="border-t border-sand-200">
+                        <td className="py-2 font-medium text-ink">{d.label}</td>
+                        <td className="num text-ink-soft">{d.asOf}</td>
+                        <td className="num text-ink-soft">{d.ageDays}d</td>
+                        <td className="num text-ink-soft">{d.budgetDays}d</td>
+                        <td>
+                          <span className={`rounded-full px-2 py-0.5 text-xs ${badgeClass(d.stale)}`}>
+                            {d.stale ? 'overdue' : 'on schedule'}
+                          </span>
+                        </td>
+                        <td className="num">{q ? q.score : loading ? '…' : '—'}</td>
+                        <td className="text-right">
+                          {rows_ ? (
+                            <a
+                              download={d.file}
+                              href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(rows_, null, 2))}`}
+                              className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-2 py-1 text-xs hover:bg-sand-100"
+                            >
+                              <Download size={12} /> Raw
+                            </a>
+                          ) : (
+                            <a
+                              href={`/data/${d.file}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-2 py-1 text-xs hover:bg-sand-100"
+                            >
+                              <Download size={12} /> Raw
+                            </a>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <p className="text-xs text-ink-muted">Overall quality score: {report.overallScore}</p>
+              <p className="text-xs text-ink-muted">
+                Ages and budgets are the pipeline&apos;s own, from freshness.json. Where each
+                figure comes from, and on whose licence, is on the{' '}
+                <a href="/sources/" className="text-gold-700 hover:underline">Sources</a> page.
+              </p>
               <button
-                onClick={() => loadDatasets(true)}
+                onClick={() => loadQuality(true)}
                 className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-3 py-1.5 text-xs hover:bg-sand-100"
               >
-                <RefreshCw size={12} /> Force Refresh
+                <RefreshCw size={12} /> Re-check
               </button>
             </div>
           </div>

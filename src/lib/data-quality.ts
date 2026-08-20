@@ -1,4 +1,14 @@
-export type FreshnessLevel = 'fresh' | 'stale' | 'old' | 'expired';
+/**
+ * Dataset QUALITY — completeness, consistency, outliers.
+ *
+ * Freshness deliberately does NOT live here. It lives in data-freshness.ts,
+ * which knows the refresh schedule and each dataset's budget. This module
+ * shipped with a second, simpler freshness rule (6h/24h/72h buckets) that
+ * contradicted it and reported healthy data as stale; DataStatus.tsx documents
+ * what that cost. Age is a question about the pipeline, quality is a question
+ * about the records — keeping them apart is what stops the cadence table
+ * existing twice.
+ */
 
 export interface QualityScore {
   score: number;
@@ -7,48 +17,6 @@ export interface QualityScore {
   inconsistencies: number;
   outliers: number;
   issues: string[];
-}
-
-export interface DataManifestItem {
-  id: string;
-  label: string;
-  source: string;
-  sourceUrl: string;
-  dataDate: string;
-  file: string;
-  dataset: unknown;
-}
-
-export interface DataManifest {
-  datasets: DataManifestItem[];
-  lastSuccessfulScrape?: string;
-}
-
-export interface DataReport {
-  generatedAt: string;
-  overallFreshness: FreshnessLevel;
-  overallScore: number;
-  datasets: Array<{
-    id: string;
-    label: string;
-    freshness: FreshnessLevel;
-    quality: QualityScore;
-    recordCount: number;
-    source: string;
-    sourceUrl: string;
-    file: string;
-    dataDate: string;
-  }>;
-}
-
-export function computeFreshness(dataDate: string, now: Date): FreshnessLevel {
-  const d = new Date(dataDate);
-  if (Number.isNaN(d.getTime())) return 'expired';
-  const hours = (now.getTime() - d.getTime()) / 3_600_000;
-  if (hours < 6) return 'fresh';
-  if (hours < 24) return 'stale';
-  if (hours < 72) return 'old';
-  return 'expired';
 }
 
 function percentile(values: number[], p: number): number {
@@ -125,45 +93,5 @@ export function computeDataQuality(dataset: unknown): QualityScore {
     inconsistencies,
     outliers,
     issues,
-  };
-}
-
-const freshnessRank: Record<FreshnessLevel, number> = {
-  fresh: 0,
-  stale: 1,
-  old: 2,
-  expired: 3,
-};
-
-export function generateDataReport(datasets: DataManifest): DataReport {
-  const now = new Date();
-  const rows = datasets.datasets.map((d) => {
-    const freshness = computeFreshness(d.dataDate, now);
-    const quality = computeDataQuality(d.dataset);
-    return {
-      id: d.id,
-      label: d.label,
-      freshness,
-      quality,
-      recordCount: Array.isArray(d.dataset) ? d.dataset.length : 0,
-      source: d.source,
-      sourceUrl: d.sourceUrl,
-      file: d.file,
-      dataDate: d.dataDate,
-    };
-  });
-
-  const overallFreshness = rows
-    .map((r) => r.freshness)
-    .sort((a, b) => freshnessRank[b] - freshnessRank[a])[0] ?? 'expired';
-  const overallScore = rows.length
-    ? Number((rows.reduce((sum, r) => sum + r.quality.score, 0) / rows.length).toFixed(1))
-    : 0;
-
-  return {
-    generatedAt: now.toISOString(),
-    overallFreshness,
-    overallScore,
-    datasets: rows,
   };
 }

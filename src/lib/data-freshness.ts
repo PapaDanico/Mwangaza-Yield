@@ -251,8 +251,21 @@ export interface DatasetFreshness {
   stale: boolean;
 }
 
+/**
+ * Every dataset's age against its own budget, as the pipeline measured it.
+ *
+ * Exposed alongside `staleDatasets` because a health panel needs the healthy
+ * rows too, and reading them from here is what keeps the cadence table in one
+ * place. The alternative — a component listing datasets and judging their age
+ * on a threshold of its own — is what data-quality.ts did, and it reported
+ * three of four datasets "old" on a morning when the pipeline had run on time.
+ */
+export function datasetFreshness(): DatasetFreshness[] {
+  return freshnessReport.datasets as DatasetFreshness[];
+}
+
 export function staleDatasets(): DatasetFreshness[] {
-  return (freshnessReport.datasets as DatasetFreshness[]).filter((d) => d.stale);
+  return datasetFreshness().filter((d) => d.stale);
 }
 
 /**

@@ -16,11 +16,31 @@ module.exports = {
         ink: {
           DEFAULT: '#0A192F', // treasury navy as text
           soft: '#31445F',
-          muted: '#5C687A',
-          faint: '#6A6555',
+          // Contrast is measured against the DARKEST surface each token lands
+          // on, not the lightest. The previous values were checked only against
+          // sand-50 (cards) and annotated "passes AA" — but most muted text sits
+          // on sand-100 (the page) and some on sand-200, where #64748B fell to
+          // 4.26 and 3.87. Verified at the token level, failing where rendered.
+          //                      sand-50 / sand-100 / sand-200
+          muted: '#5C687A',   //    5.46 /   5.06   /   4.59
+          faint: '#6A6555',   //    5.63 /   5.22   /   4.73
         },
+        // Brand palette: Treasury Navy, Sun Gold, Emerald Mint, Slate Gray
         treasury: { navy: '#0A192F', dark: '#020C1B' },
         slate: { 500: '#64748B' },
+        // A COMPLETE ramp, on purpose. It used to hold 300/500/600/700 only,
+        // and twelve places across the app had reached for 50, 100, 400 and
+        // 800 anyway — Tailwind emits nothing for a step that does not exist,
+        // so each of those rendered with no colour at all and no error
+        // anywhere. The footer's Pesa Smart link was dark text on navy; the
+        // stale-price badge in PriceProvenance lost both its amber background
+        // and its dark amber text and read as ordinary body copy, which is the
+        // opposite of what a caution badge is for.
+        //
+        // Values are the Tailwind amber ramp, which is what 300/500/600/700
+        // already were — so this fills the gaps in the scale that was being
+        // used rather than inventing a second one. tests/unit/palette.test.ts
+        // now fails on any utility naming a step that is not defined here.
         gold: {
           50: '#FFFBEB',
           100: '#FEF3C7',

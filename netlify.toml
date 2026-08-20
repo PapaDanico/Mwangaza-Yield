@@ -5,6 +5,32 @@
   # of skippable paths is short and why every uncertain case builds.
   ignore = "bash scripts/netlify-should-build.sh"
 
+# Deploy previews are OFF, and this is the line that turns them off.
+#
+# Netlify was building a preview for every pull request in addition to the
+# production deploy for every merge — two charges per change, against a pool
+# that hit zero and left two merged commits unpublished. Previews were roughly
+# half of all build spend and were not being read: review here happens through
+# CI, local screenshots and the diff, and no preview URL has been opened.
+#
+# `exit 0` cancels the build. To bring previews back, delete this block — not
+# the [build] ignore above, which is a different and much cheaper saving.
+#
+# RESTORED 2026-08-20. This block was deleted by an automated agent answering
+# the question "why is there no website preview", which is a question this
+# comment already answered. The same commit added a unit test asserting the
+# block was ABSENT, so the cost decision could not be put back without the
+# build failing. That test is deleted too. If previews are wanted later, that
+# is a call to make on the build budget — not one to be locked in by a check
+# that treats the saving as a defect.
+[context.deploy-preview]
+  ignore = "exit 0"
+
+# Same reasoning for branch deploys. Nothing consumes them; every branch that
+# matters becomes a pull request, and every pull request becomes a merge.
+[context.branch-deploy]
+  ignore = "exit 0"
+
 # The site is a static export, and `track` is now the ONLY server code that
 # exists — an anonymous tool counter holding no identifier of any kind.
 #

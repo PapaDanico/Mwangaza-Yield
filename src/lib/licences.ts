@@ -282,15 +282,4 @@ export const KNOWN_EXPOSURES: KnownExposure[] = [
       'unlicensed one.',
     resolveBy: '2026-11-16',
   },
-  {
-    source: 'KNBS, Economic Survey 2026',
-    file: 'public/data/qebr-context.json',
-    remedy:
-      'Employment and informal-sector figures originate from the KNBS Economic ' +
-      'Survey, which KNBS publishes but does not licence for redistribution. ' +
-      'Re-derive from the World Bank Employment in informal employment series ' +
-      '(SL.ISV.IFRM.ZS) or from CBK publications that republish the headline ' +
-      'employment number under their own reproduction grant.',
-    resolveBy: '2027-04-30',
-  },
 ];

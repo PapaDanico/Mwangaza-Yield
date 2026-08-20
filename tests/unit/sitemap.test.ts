@@ -29,10 +29,19 @@ function routesOnDisk(): string[] {
 /**
  * Routes deliberately absent from the sitemap, each with a reason.
  *
- * Empty today. It exists so that excluding a page is a decision somebody
- * writes down, rather than an omission indistinguishable from forgetting.
+ * It exists so that excluding a page is a decision somebody writes down,
+ * rather than an omission indistinguishable from forgetting.
  */
-const DELIBERATELY_EXCLUDED: Record<string, string> = {};
+const DELIBERATELY_EXCLUDED: Record<string, string> = {
+  '/offline':
+    "The service worker's fallback shell. Its entire body is \"You're " +
+    'offline\" and a list of what still works without a connection — a state, ' +
+    'not a page. It was added to the sitemap on 2026-08-19, in the same commit ' +
+    'that deleted the comment in sitemap.ts naming what must stay out, which is ' +
+    'the argument for recording the exclusion here where a test can hold it. A ' +
+    'crawler handed this URL indexes a permanently-wrong page under the ' +
+    "site's own brand and spends crawl budget doing it.",
+};
 
 const entries = sitemap();
 const paths = entries.map((e) => new URL(e.url).pathname.replace(/\/$/, '') || '/');

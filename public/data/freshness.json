@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-08-19T15:49:55.610429+00:00",
+  "checkedAt": "2026-08-20T19:27:11.008791+00:00",
   "datasets": [
     {
       "file": "meta.json",
       "label": "Pipeline last ran",
       "asOf": "2026-08-19",
-      "ageDays": 0,
+      "ageDays": 1,
       "budgetDays": 7,
       "stale": false
     },
@@ -13,15 +13,15 @@
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
       "asOf": "2026-08-19",
-      "ageDays": 0,
+      "ageDays": 1,
       "budgetDays": 40,
       "stale": false
     },
     {
       "file": "tbills.json",
       "label": "Treasury bills",
-      "asOf": "2026-07-30",
-      "ageDays": 20,
+      "asOf": "2026-08-20",
+      "ageDays": 0,
       "budgetDays": 21,
       "stale": false
     },
@@ -29,7 +29,7 @@
       "file": "context.json",
       "label": "Sovereign context",
       "asOf": "2025-01-01",
-      "ageDays": 595,
+      "ageDays": 596,
       "budgetDays": 900,
       "stale": false
     },
@@ -37,7 +37,7 @@
       "file": "cbr-history.json",
       "label": "CBR decision history",
       "asOf": "2026-08-11",
-      "ageDays": 8,
+      "ageDays": 9,
       "budgetDays": 130,
       "stale": false
     },
@@ -45,7 +45,7 @@
       "file": "cpi-history.json",
       "label": "CPI history",
       "asOf": "2026-07-01",
-      "ageDays": 49,
+      "ageDays": 50,
       "budgetDays": 75,
       "stale": false
     }

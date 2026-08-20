@@ -87,9 +87,9 @@ export function buildMacroSummary(macro: MacroIndicator[], bonds: Bond[], tbills
   const cpi = cpiRow?.value ?? 0;
   const prevCpi = previousIndicatorValue(macro, 'CPI');
   const fx = fxRow?.value ?? 0;
-  const us10y = us10yRow?.value ?? 0;
-  const fed = fedRow?.value ?? 0;
-  const em = emRow?.value ?? 0;
+  const us10y = us10yRow?.value ?? null;
+  const fed = fedRow?.value ?? null;
+  const em = emRow?.value ?? null;
   const prevDebt = previousIndicatorValue(macro, 'DEBT_TO_GDP');
   const debt = computeDebtSustainabilityIndicators(macro);
   const realRate = computeRealRate(cbr, cpi);
@@ -99,8 +99,8 @@ export function buildMacroSummary(macro: MacroIndicator[], bonds: Bond[], tbills
   const longBenchmark = longRateBenchmark(bonds);
   const termPremium = computeTermPremium(longBenchmark?.value ?? 0, shortBenchmark?.value ?? 0);
   const kenyaSpread = computeKenyaSpread(
-    emRow?.value ?? longBenchmark?.value ?? 0,
-    us10yRow?.value ?? fedRow?.value ?? 0
+    emRow?.value ?? longBenchmark?.value ?? null,
+    us10yRow?.value ?? fedRow?.value ?? null
   );
 
   return {

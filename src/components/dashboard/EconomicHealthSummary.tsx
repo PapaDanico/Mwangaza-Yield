@@ -15,6 +15,15 @@ export default function EconomicHealthSummary() {
   const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
   const { realRate, prevRealRate, debt, prevDebt, termPremium, kenyaSpread } = summary;
 
+  /**
+   * Only the metrics we can actually source.
+   *
+   * Debt/GDP and the Kenya spread depend on indicators macro.json no longer
+   * carries — see the note in macro-context.ts. They used to fall back to 0,
+   * so the card read "0.0%" beside "Debt burden is moderate against GDP", which
+   * is a verdict on a number nobody measured. A card we cannot fill is now
+   * absent rather than confident.
+   */
   const metrics = useMemo(() => [
     {
       key: 'real',
@@ -23,7 +32,7 @@ export default function EconomicHealthSummary() {
       arrow: trendArrow(realRate, prevRealRate),
       note: realRate > 0 ? 'Real rate is positive — favorable for bond investors.' : 'Real rate is negative — inflation is eroding nominal returns.',
     },
-    {
+    debt.debtToGDP === null ? null : {
       key: 'debt',
       label: 'Debt/GDP',
       value: `${debt.debtToGDP.toFixed(1)}%`,
@@ -37,14 +46,15 @@ export default function EconomicHealthSummary() {
       arrow: null,
       note: termPremium >= 0 ? 'Long bonds pay above short rates, rewarding duration risk.' : 'Curve inversion signals tighter long-end risk pricing.',
     },
-    {
+    kenyaSpread === null ? null : {
       key: 'spread',
       label: 'Kenya Spread',
       value: `${kenyaSpread.toFixed(2)}%`,
       arrow: null,
       note: kenyaSpread > 3 ? 'Kenya spread is wide versus global benchmarks.' : 'Kenya spread is relatively contained versus peers.',
     },
-  ], [realRate, prevRealRate, debt.debtToGDP, prevDebt, termPremium, kenyaSpread]);
+  ].filter((m): m is { key: string; label: string; value: string; arrow: '▲' | '▼' | '→' | null; note: string } => m !== null),
+  [realRate, prevRealRate, debt.debtToGDP, prevDebt, termPremium, kenyaSpread]);
 
   const mpcCount = useBondStore((s) => s.cbrHistory.length);
 

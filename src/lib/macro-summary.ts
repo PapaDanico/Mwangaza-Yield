@@ -26,11 +26,22 @@ export function latestIndicatorValue(macro: MacroIndicator[], indicator: MacroIn
   return latestRow(macro, indicator)?.value ?? 0;
 }
 
-export function previousIndicatorValue(macro: MacroIndicator[], indicator: MacroIndicator['indicator']): number {
+/**
+ * The previous observation of an indicator, or `null` if this file has only one.
+ *
+ * It used to fall back to the LATEST value when there was no second row, which
+ * made every caller believe the figure had not moved. macro.json carries one
+ * row per indicator, so that fallback was not an edge case — it was the only
+ * path. See the note on `trendArrow`.
+ */
+export function previousIndicatorValue(
+  macro: MacroIndicator[],
+  indicator: MacroIndicator['indicator']
+): number | null {
   const sorted = [...macro]
     .filter((row) => row.indicator === indicator && Number.isFinite(row.value))
     .sort((a, b) => b.date.localeCompare(a.date));
-  return sorted[1]?.value ?? sorted[0]?.value ?? 0;
+  return sorted[1]?.value ?? null;
 }
 
 export function shortRateBenchmark(tbills: TBill[]): RateBenchmark | null {
@@ -82,7 +93,8 @@ export function buildMacroSummary(macro: MacroIndicator[], bonds: Bond[], tbills
   const prevDebt = previousIndicatorValue(macro, 'DEBT_TO_GDP');
   const debt = computeDebtSustainabilityIndicators(macro);
   const realRate = computeRealRate(cbr, cpi);
-  const prevRealRate = computeRealRate(prevCbr, prevCpi);
+  const prevRealRate =
+    prevCbr === null || prevCpi === null ? null : computeRealRate(prevCbr, prevCpi);
   const shortBenchmark = shortRateBenchmark(tbills);
   const longBenchmark = longRateBenchmark(bonds);
   const termPremium = computeTermPremium(longBenchmark?.value ?? 0, shortBenchmark?.value ?? 0);

@@ -43,8 +43,32 @@ export function computeKenyaSpread(emYield: number, usYield: number): number {
   return emYield - usYield;
 }
 
-export function trendArrow(current: number, previous: number): '▲' | '▼' | '→' {
-  if (!Number.isFinite(current) || !Number.isFinite(previous)) return '→';
+/**
+ * Which way an indicator moved — or `null` when we have nothing to compare to.
+ *
+ * NULL IS NOT THE SAME AS FLAT, AND CONFLATING THEM SHIPPED A FALSE CLAIM.
+ *
+ * This used to return '→' whenever the previous value was missing or unusable.
+ * macro.json holds exactly ONE row per indicator by design — it is the current
+ * state of each figure, not a series — so `previousIndicatorValue` never found
+ * a second row, fell back to the latest, and every arrow on the dashboard and
+ * the macro page rendered '→'. Six of them, permanently flat.
+ *
+ * Flat is a claim: it says the figure was measured before and has not moved.
+ * The CBR had in fact moved. We simply were not reading the file that knows —
+ * the series live in cbr-history.json and cpi-history.json. Rendering
+ * "unchanged" over an unread history is the same defect this project keeps
+ * finding in itself: a confident statement standing in for an absent check.
+ *
+ * So an unknown previous value now renders no arrow at all. Silence is the
+ * honest answer, and it is visibly different from a claim of no change.
+ */
+export function trendArrow(
+  current: number,
+  previous: number | null | undefined
+): '▲' | '▼' | '→' | null {
+  if (!Number.isFinite(current)) return null;
+  if (previous === null || previous === undefined || !Number.isFinite(previous)) return null;
   const diff = current - previous;
   if (Math.abs(diff) < 0.05) return '→';
   return diff > 0 ? '▲' : '▼';

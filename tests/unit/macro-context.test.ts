@@ -27,9 +27,20 @@ describe('macroContext', () => {
     expect(computeKenyaSpread(12, 4)).toBe(8);
   });
 
+  it('renders no arrow when there is no previous value to compare against', () => {
+    // macro.json holds one row per indicator, so a missing previous value is
+    // the normal case, not an edge case. Returning '→' there claimed the
+    // figure had not moved when we simply had not read a series.
+    expect(trendArrow(8.75, null)).toBeNull();
+    expect(trendArrow(8.75, undefined)).toBeNull();
+    expect(trendArrow(8.75, Number.NaN)).toBeNull();
+    expect(trendArrow(Number.NaN, 8.5)).toBeNull();
+  });
+
   it('derives trend and sustainability colours', () => {
     expect(trendArrow(2, 1)).toBe('▲');
     expect(trendArrow(1, 2)).toBe('▼');
+    expect(trendArrow(2, 2)).toBe('→');
     expect(sustainabilitySignal(50, 20)).toBe('green');
     expect(sustainabilitySignal(62, 31)).toBe('yellow');
     expect(sustainabilitySignal(80, 40)).toBe('red');

@@ -254,23 +254,27 @@ export default function MacroPage() {
             <p className="text-xs text-ink-muted">Current CBR</p>
             <p className="num mt-1 text-xl font-bold text-ink">
               {cbr.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>
+              {trendArrow(cbr, prevCbr) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
+            {prevCbr !== null && (
+              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
+            )}
           </div>
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Inflation (CPI)</p>
             <p className="num mt-1 text-xl font-bold text-ink">
               {cpi.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cpi, prevCpi)}</span>
+              {trendArrow(cpi, prevCpi) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cpi, prevCpi)}</span>}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
+            {prevCpi !== null && (
+              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
+            )}
           </div>
           <div className={`rounded-xl border p-3 ${realRate > 0 ? 'border-mint-300 bg-mint-500/[0.06]' : 'border-red-300 bg-red-500/[0.06]'}`}>
             <p className="text-xs text-ink-muted">Real rate (CBR − CPI)</p>
             <p className={`num mt-1 text-xl font-bold ${realRate > 0 ? 'text-mint-700' : 'text-red-600'}`}>
               {realRate > 0 ? '+' : ''}{realRate.toFixed(2)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(realRate, prevRealRate)}</span>
+              {trendArrow(realRate, prevRealRate) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(realRate, prevRealRate)}</span>}
             </p>
             <p className="mt-1 text-[11px] leading-snug text-ink-faint">
               {realRate > 0
@@ -313,7 +317,7 @@ export default function MacroPage() {
             <p className="text-xs text-ink-muted">Debt / GDP</p>
             <p className="num mt-1 font-bold text-lg text-ink">
               {debt.debtToGDP.toFixed(1)}%
-              <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(debt.debtToGDP, prevDebt)}</span>
+              {trendArrow(debt.debtToGDP, prevDebt) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(debt.debtToGDP, prevDebt)}</span>}
             </p>
             <p className="mt-1 text-[11px] text-ink-faint">
               {debt.debtToGDP > 70 ? 'Above amber threshold — elevated refinancing risk.' : debt.debtToGDP > 55 ? 'Above IMF indicative ceiling of 55%.' : 'Within IMF indicative threshold.'}

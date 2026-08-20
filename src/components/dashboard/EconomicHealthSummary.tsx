@@ -27,21 +27,21 @@ export default function EconomicHealthSummary() {
       key: 'debt',
       label: 'Debt/GDP',
       value: `${debt.debtToGDP.toFixed(1)}%`,
-      arrow: trendArrow(debt.debtToGDP, prevDebt || debt.debtToGDP),
+      arrow: trendArrow(debt.debtToGDP, prevDebt),
       note: debt.debtToGDP < 60 ? 'Debt burden is moderate against GDP.' : 'Debt burden remains elevated relative to GDP.',
     },
     {
       key: 'term',
       label: 'Term Premium',
       value: `${termPremium.toFixed(2)}%`,
-      arrow: termPremium >= 0 ? '▲' : '▼',
+      arrow: null,
       note: termPremium >= 0 ? 'Long bonds pay above short rates, rewarding duration risk.' : 'Curve inversion signals tighter long-end risk pricing.',
     },
     {
       key: 'spread',
       label: 'Kenya Spread',
       value: `${kenyaSpread.toFixed(2)}%`,
-      arrow: kenyaSpread >= 0 ? '▲' : '▼',
+      arrow: null,
       note: kenyaSpread > 3 ? 'Kenya spread is wide versus global benchmarks.' : 'Kenya spread is relatively contained versus peers.',
     },
   ], [realRate, prevRealRate, debt.debtToGDP, prevDebt, termPremium, kenyaSpread]);
@@ -58,13 +58,14 @@ export default function EconomicHealthSummary() {
         {metrics.map((m) => (
           <div key={m.key} className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">{m.label}</p>
-            <p className="num mt-1 text-lg font-bold text-ink">{m.arrow} {m.value}</p>
+            <p className="num mt-1 text-lg font-bold text-ink">{m.arrow ? `${m.arrow} ` : ''}{m.value}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-ink-faint">{m.note}</p>
           </div>
         ))}
       </div>
       <p className="mt-3 text-xs text-ink-muted">
-        Data Quality: {bonds.length} bonds, {mpcCount} MPC decisions — all verified.
+        Derived from {bonds.length} bonds and {mpcCount} MPC decisions.{' '}
+        <a href="/sources/" className="text-gold-700 hover:underline">Where these come from</a>.
       </p>
     </div>
   );

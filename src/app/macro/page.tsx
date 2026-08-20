@@ -88,11 +88,15 @@ function macroRegime(cbr: number, cpi: number, debtToGDP: number | null, kenyaSp
 export default function MacroPage() {
   const macro = useBondStore((s) => s.macro);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
+  const cpiHistory = useBondStore((s) => s.cpiHistory);
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
 
   const [expectedDecision, setExpectedDecision] = usePersistedState('macro:expected-decision', '');
-  const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
+  const summary = useMemo(
+    () => buildMacroSummary(macro, bonds, tbills, cbrHistory, cpiHistory),
+    [macro, bonds, tbills, cbrHistory, cpiHistory]
+  );
   const {
     cbr,
     cpi,
@@ -261,7 +265,9 @@ export default function MacroPage() {
               {cbr.toFixed(2)}%
               {trendArrow(cbr, prevCbr) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>}
             </p>
-            {prevCbr !== null && (
+            {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
+                 and the flat arrow above already says the figure held. */}
+            {prevCbr !== null && trendArrow(cbr, prevCbr) !== '→' && (
               <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
             )}
           </div>
@@ -271,7 +277,9 @@ export default function MacroPage() {
               {cpi.toFixed(2)}%
               {trendArrow(cpi, prevCpi) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cpi, prevCpi)}</span>}
             </p>
-            {prevCpi !== null && (
+            {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
+                 and the flat arrow above already says the figure held. */}
+            {prevCpi !== null && trendArrow(cpi, prevCpi) !== '→' && (
               <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
             )}
           </div>

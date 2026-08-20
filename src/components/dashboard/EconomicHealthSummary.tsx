@@ -12,7 +12,12 @@ export default function EconomicHealthSummary() {
   const macro = useBondStore((s) => s.macro);
   const bonds = useBondStore((s) => s.bonds);
   const tbills = useBondStore((s) => s.tbills);
-  const summary = useMemo(() => buildMacroSummary(macro, bonds, tbills), [macro, bonds, tbills]);
+  const cbrHistory = useBondStore((s) => s.cbrHistory);
+  const cpiHistory = useBondStore((s) => s.cpiHistory);
+  const summary = useMemo(
+    () => buildMacroSummary(macro, bonds, tbills, cbrHistory, cpiHistory),
+    [macro, bonds, tbills, cbrHistory, cpiHistory]
+  );
   const { realRate, prevRealRate, debt, prevDebt, termPremium, kenyaSpread } = summary;
 
   /**

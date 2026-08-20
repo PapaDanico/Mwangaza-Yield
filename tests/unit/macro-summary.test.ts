@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildMacroSummary, longRateBenchmark, shortRateBenchmark } from '../../src/lib/macro-summary';
+import {
+  buildMacroSummary,
+  longRateBenchmark,
+  previousCpiPrint,
+  previousPolicyRate,
+  shortRateBenchmark,
+} from '../../src/lib/macro-summary';
+import { readFileSync } from 'node:fs';
 import type { Bond, MacroIndicator, TBill } from '../../src/types/bond';
 
 const tbills: TBill[] = [
@@ -112,5 +119,59 @@ describe('macro summary', () => {
     expect(summary.prevDebt).toBe(66);
     expect(summary.termPremium).toBeCloseTo(4.5, 6);
     expect(summary.kenyaSpread).toBeCloseTo(6.9, 6);
+  });
+});
+
+describe('previous values come from the history files, not macro.json', () => {
+  const decisions = [
+    { id: 'a', date: '2026-08-11', rate: 8.75, title: '', url: '', move: 'hold' as const, changeBps: 0 },
+    { id: 'b', date: '2026-06-09', rate: 9.25, title: '', url: '', move: 'cut' as const, changeBps: -50 },
+    { id: 'c', date: '2026-04-08', rate: 9.75, title: '', url: '', move: 'cut' as const, changeBps: -50 },
+  ];
+  const prints = [
+    { id: '1', indicator: 'CPI' as const, value: 6.49, date: '2026-07-01', unit: '', source: '', series: '' },
+    { id: '2', indicator: 'CPI' as const, value: 6.41, date: '2026-06-01', unit: '', source: '', series: '' },
+    { id: '3', indicator: 'CPI' as const, value: 6.68, date: '2026-05-01', unit: '', source: '', series: '' },
+  ];
+
+  it('takes the rate set at the meeting before the latest', () => {
+    expect(previousPolicyRate(decisions)).toBe(9.25);
+  });
+
+  it('treats a hold as a real answer, not a missing one', () => {
+    const held = [decisions[0], { ...decisions[1], rate: 8.75 }];
+    expect(previousPolicyRate(held)).toBe(8.75);
+  });
+
+  it('has no previous rate from a single decision', () => {
+    expect(previousPolicyRate([decisions[0]])).toBeNull();
+    expect(previousPolicyRate([])).toBeNull();
+  });
+
+  it('matches CPI on reference month, not on scrape date', () => {
+    // macro.json's CPI is dated when it was scraped (5 Aug) and carries
+    // period 2026-07. Comparing against the previous MONTH is the question.
+    expect(previousCpiPrint(prints, '2026-07')).toBe(6.41);
+    expect(previousCpiPrint(prints, '2026-06')).toBe(6.68);
+    expect(previousCpiPrint(prints, '2026-05')).toBeNull();
+  });
+
+  it('falls back to the second-most-recent print with no period', () => {
+    expect(previousCpiPrint(prints)).toBe(6.41);
+  });
+
+  it('produces a moving arrow from the shipped data, not a permanent flat one', () => {
+    // The regression this exists for: previousIndicatorValue fell back to the
+    // LATEST row of macro.json, so "previous" was always "current" and every
+    // arrow rendered flat forever. Read against the real files.
+    const read = (f: string) => JSON.parse(readFileSync(`public/data/${f}`, 'utf8'));
+    const s = buildMacroSummary(
+      read('macro.json'), [], [], read('cbr-history.json'), read('cpi-history.json')
+    );
+    expect(s.prevCpi).not.toBeNull();
+    expect(s.prevCpi).not.toBe(s.cpi);
+    expect(s.prevCbr).not.toBeNull();
+    expect(s.prevRealRate).not.toBeNull();
+    expect(s.prevRealRate).not.toBe(s.realRate);
   });
 });

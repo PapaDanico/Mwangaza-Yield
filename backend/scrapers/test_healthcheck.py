@@ -155,6 +155,7 @@ from healthcheck import (  # noqa: E402
     check_fetch_recency,
     check_per_indicator_budgets,
     FETCH_MAX_AGE_DAYS,
+    PER_INDICATOR_BUDGETS,
 )
 from datetime import timedelta  # noqa: E402
 
@@ -326,9 +327,24 @@ def test_every_indicator_is_reported_even_when_healthy():
 
 
 def test_an_unlisted_indicator_is_conservative_not_exempt():
+    # The canary only means anything while PER_INDICATOR_BUDGETS does not list
+    # it, and the previous one rotted: "GDP" stood in for an unlisted indicator
+    # until GDP was registered a 400-day budget, at which point this test was
+    # asserting the opposite of its own name.
+    #
+    # So assert the premise before the behaviour. Registering the canary now
+    # fails on the premise, which says what to do, rather than on the
+    # behavioural assertion, which would send the next reader looking for a
+    # regression in check_per_indicator_budgets that is not there.
+    canary = "UNLISTED_CANARY"
+    assert canary not in PER_INDICATOR_BUDGETS, (
+        f"{canary} is now a registered indicator and can no longer stand in "
+        "for an unlisted one — pick a name PER_INDICATOR_BUDGETS does not hold."
+    )
+
     problems: list = []
     rows: list = []
-    check_per_indicator_budgets(_macro(("GDP", 400)), "Macro", problems, rows)
+    check_per_indicator_budgets(_macro((canary, 400)), "Macro", problems, rows)
     assert len(problems) == 1, "an unlisted indicator was silently exempted"
 
 

@@ -14,39 +14,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.7882,
-      "grossEAY": 9.0824,
-      "netEAY": 7.682,
+      "quotedDiscountRate": 8.77,
+      "grossEAY": 9.0629,
+      "netEAY": 7.6657,
       "whtRate": 0.15,
-      "pricePer100": 97.8559,
-      "auctionDate": "2026-07-30",
-      "nextAuctionDate": "2026-08-06",
+      "pricePer100": 97.8603,
+      "auctionDate": "2026-08-20",
+      "nextAuctionDate": "2026-08-27",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 30 Jul 2026"
+      "source": "CBK auction, 20 Aug 2026"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.9545,
-      "grossEAY": 9.1555,
-      "netEAY": 7.7566,
+      "quotedDiscountRate": 8.948,
+      "grossEAY": 9.1487,
+      "netEAY": 7.7508,
       "whtRate": 0.15,
-      "pricePer100": 95.7259,
-      "auctionDate": "2026-07-30",
-      "nextAuctionDate": "2026-08-06",
+      "pricePer100": 95.7288,
+      "auctionDate": "2026-08-20",
+      "nextAuctionDate": "2026-08-27",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 30 Jul 2026"
+      "source": "CBK auction, 20 Aug 2026"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0169,
-      "grossEAY": 9.018,
-      "netEAY": 7.6651,
+      "quotedDiscountRate": 9.0356,
+      "grossEAY": 9.0367,
+      "netEAY": 7.681,
       "whtRate": 0.15,
-      "pricePer100": 91.7497,
-      "auctionDate": "2026-07-30",
-      "nextAuctionDate": "2026-08-06",
+      "pricePer100": 91.734,
+      "auctionDate": "2026-08-20",
+      "nextAuctionDate": "2026-08-27",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 30 Jul 2026"
+      "source": "CBK auction, 20 Aug 2026"
     }
   ],
   "macro": {

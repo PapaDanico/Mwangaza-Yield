@@ -123,6 +123,22 @@ class MwangazaDB extends Dexie {
     this.version(11).stores({
       receipts: 'id, timestamp, kind',
     });
+    // VESTIGIAL. Nothing writes this any more, and nothing ever read it.
+    //
+    // BondDetailCard offered "Notify me when this bond reopens" and a yield
+    // threshold, wrote them here, and gave the reader no confirmation. No
+    // consumer existed: the alert engine is alerts.ts over `alertRules`, and
+    // it implements neither a per-ISIN `reopen` nor a per-bond yield
+    // threshold. So this was not a wire someone forgot to connect — it was the
+    // schema for an engine nobody wrote, and the buttons promised a
+    // notification that could never arrive. They are gone.
+    //
+    // The store is KEPT rather than dropped with `bondAlerts: null`. Dropping
+    // it would delete rows a reader deliberately created, to gain nothing but
+    // tidiness, and those rows are the only record of who wanted the feature.
+    // Building it means adding the rule kinds to alerts.ts — `tbill-threshold`
+    // is the working precedent for the yield half — at which point this data
+    // is a migration source rather than litter.
     this.version(12).stores({
       bondAlerts: 'id, isin, kind, createdAt',
     });

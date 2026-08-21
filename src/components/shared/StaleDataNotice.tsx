@@ -54,7 +54,7 @@
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { freshness, freshnessNotice, staleDatasetNotice } from '@/lib/data-freshness';
+import { readerNotice } from '@/lib/data-freshness';
 
 export default function StaleDataNotice({
   /** The notice as computed at build time, or null if there was none to make. */
@@ -65,10 +65,11 @@ export default function StaleDataNotice({
   const [notice, setNotice] = useState<string | null>(initialNotice);
 
   useEffect(() => {
-    // Two independent questions, and the pipeline one comes first because it
-    // subsumes the other: if the refresh has stopped entirely, naming
-    // individual datasets is noise on top of the real fault.
-    setNotice(freshnessNotice(freshness(new Date())) ?? staleDatasetNotice());
+    // What is actually out of date, judged against each publisher's own
+    // cadence. NOT whether the refresh job ran: that is an operations fact,
+    // it lives in the Data Health panel, and showing it here told readers to
+    // distrust figures that were correct. See readerNotice.
+    setNotice(readerNotice(new Date()));
   }, []);
 
   if (!notice) return null;

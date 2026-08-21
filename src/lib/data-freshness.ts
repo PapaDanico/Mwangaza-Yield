@@ -46,6 +46,8 @@
 
 import meta from '../../public/data/meta.json';
 import freshnessReport from '../../public/data/freshness.json';
+import macroRows from '../../public/data/macro.json';
+import { indicatorAge } from './indicator-freshness';
 
 /** UTC hours of the scheduled refresh; `17 3,15 * * 1-6` in ci.yml. */
 export const REFRESH_HOURS_UTC = [3, 15];
@@ -283,6 +285,107 @@ export function staleDatasetNotice(stale: DatasetFreshness[] = staleDatasets()):
     .join('; ');
   return (
     `Some figures here have not refreshed on schedule: ${named}. ` +
+    `The rest of the site is current — check the Central Bank's own published ` +
+    `figures before acting on the ones named.`
+  );
+}
+
+/* ------------------------------------------------------------------ reader */
+
+/**
+ * What the READER needs told, which is not what the operator needs told.
+ *
+ * WHY THE PIPELINE NOTICE WAS THE WRONG THING TO SHOW A READER
+ * ------------------------------------------------------------
+ * `freshnessNotice` answers "has the refresh job run". That is an operations
+ * question, and it was being shown to somebody deciding where to put money,
+ * phrased as advice about the figures:
+ *
+ *     "These figures were last updated on 2026-08-19, and 2 scheduled updates
+ *      have been missed since. Auction rates move weekly, so treat anything
+ *      here as indicative..."
+ *
+ * On the morning that shipped, every one of those clauses misled. The T-bill
+ * figures — the auction rates it singles out — had been updated the DAY AFTER
+ * the date it quotes, and this file's own freshness report said so
+ * (`tbills.json asOf 2026-08-20`). The CBR was ten days into a 130-day
+ * cadence, the CPI sixteen into forty-five. Nothing on the page was out of
+ * date. The banner told readers to distrust figures that were correct, which
+ * is not a conservative error: it is the boy who cried wolf, and it spends the
+ * credibility the banner needs on the day something IS wrong.
+ *
+ * `meta.generatedAt` means "the pipeline ran". It does not mean "the figures
+ * were last updated" — those diverge the moment anything is corrected by hand,
+ * which is exactly how tbills.json is maintained (see probe_tbill_rates.py).
+ *
+ * WHAT REPLACES IT
+ * ----------------
+ * A figure is worth warning about when IT is past ITS OWN publisher's cadence.
+ * That is computed here from the live clock against the dates in the data, so
+ * a dead pipeline cannot silence it — the objection that justified the
+ * pipeline notice in the first place. `asOf` is a fact about the data; it goes
+ * on ageing whether or not the job that wrote it ever runs again.
+ *
+ * Pipeline liveness has not been discarded, it has been moved to where it
+ * belongs: the Data Health panel's "Pipeline last ran" row, which is read by
+ * whoever operates this, not by somebody pricing a bond.
+ *
+ * BOTH GRANULARITIES, BECAUSE ONE OF THEM MISSES THE URGENT CASE
+ * -------------------------------------------------------------
+ * Datasets alone are not enough, and the first draft of this function proved
+ * it by staying silent through the case it was written for. macro.json holds
+ * five indicators on wholly different cadences behind a single 40-day
+ * file-level budget, so USD/KES — published every trading day, four-day
+ * budget — can be a fortnight stale while the file it lives in is comfortably
+ * inside its own. indicator-freshness.ts already holds the per-indicator
+ * table, mirrored from healthcheck.py and guarded against drift by a test.
+ * Both levels are checked here.
+ */
+
+/** Reader-facing names. The raw keys are pipeline vocabulary. */
+const INDICATOR_LABELS: Record<string, string> = {
+  FX_USD_KES: 'USD/KES',
+  CPI: 'Inflation (CPI)',
+  CPI_CORE: 'Core inflation',
+  CPI_NONCORE: 'Non-core inflation',
+  CBR: 'Central Bank Rate',
+  GDP: 'GDP growth',
+};
+export function readerNotice(now: Date = new Date()): string | null {
+  const overdue: string[] = datasetFreshness()
+    .filter((d) => d.file !== 'meta.json') // pipeline liveness, not a figure
+    .map((d) => {
+      const when = new Date(d.asOf);
+      if (Number.isNaN(when.getTime())) return null;
+      // Recomputed against the live clock rather than trusting the ageDays the
+      // pipeline stamped: those freeze at the last run, which is precisely the
+      // moment this check has to keep working.
+      const days = Math.max(0, Math.floor((now.getTime() - when.getTime()) / 86_400_000));
+      return days > d.budgetDays
+        ? `${d.label} (${days} days old, expected within ${d.budgetDays})`
+        : null;
+    })
+    .filter((x): x is string => x !== null);
+
+  // Newest row per indicator, then each against its own publisher's cadence.
+  const newest = new Map<string, string>();
+  for (const r of macroRows as { indicator?: string; date?: string }[]) {
+    if (!r?.indicator || !r?.date) continue;
+    const prev = newest.get(r.indicator);
+    if (!prev || r.date > prev) newest.set(r.indicator, r.date);
+  }
+  for (const [indicator, date] of newest) {
+    const age = indicatorAge(indicator, date, now);
+    if (!age?.stale) continue;
+    const label = INDICATOR_LABELS[indicator] ?? indicator;
+    overdue.push(
+      `${label} (${age.days} days old, ${age.cadence}, expected within ${age.budgetDays})`
+    );
+  }
+
+  if (overdue.length === 0) return null;
+  return (
+    `Some figures here have not refreshed on schedule: ${overdue.join('; ')}. ` +
     `The rest of the site is current — check the Central Bank's own published ` +
     `figures before acting on the ones named.`
   );

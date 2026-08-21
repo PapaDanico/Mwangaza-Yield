@@ -8,7 +8,7 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '600'], v
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import StaleDataNotice from '@/components/shared/StaleDataNotice';
-import { freshness, freshnessNotice, staleDatasetNotice } from '@/lib/data-freshness';
+import { readerNotice } from '@/lib/data-freshness';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
 import JourneyBar from '@/components/shared/JourneyBar';
@@ -101,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "yes" cannot become a "no"; the component's effect keeps the
               wording current from there. See its header. */}
           <StaleDataNotice
-            initialNotice={freshnessNotice(freshness(new Date())) ?? staleDatasetNotice()}
+            initialNotice={readerNotice(new Date())}
           />
           <DataOfflineBanner />
           <main

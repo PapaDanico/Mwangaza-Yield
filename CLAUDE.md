@@ -81,7 +81,18 @@ and everything like the site being down — so the natural next move is to retry
 and retrying spends tokens on a wall that will not move.
 
 `WebSearch` returns results without needing a tunnel to the target host, so it
-works where `WebFetch` cannot.
+works where `WebFetch` cannot. This is not theory: it is how the National
+Treasury's debt bulletin URL scheme was found on 21 August, with
+`treasury.go.ke` as unreachable as CBK.
+
+**What it is good for, and what it is not.** Search is for DISCOVERY — does
+this source exist, at what cadence, under what URL, has the site moved. It is
+NOT a substitute for reading a primary document. A search result summarising a
+figure gives you the number without its label, its reporting month, or its
+publisher's terms, and shipping that is the attribution defect `licences.ts`
+exists to prevent. Two results carrying Kenya's debt stock were declined for
+exactly this reason on 21 August: both were CEIC and Trading Economics, which
+are `refused` BY NAME in `licences.ts` with tests asserting it.
 
 ### The rule is about REACHING A HOST, not about one tool's name
 
@@ -127,6 +138,35 @@ Two consequences worth stating rather than rediscovering:
   Treasury and the World Bank. A refresh happens in CI or on a machine with
   real network access, or not at all.
 
+### Reading a PDF, including its charts
+
+Documents arrive as uploads because the sources cannot be fetched. Two tools
+are needed and neither is installed by default.
+
+```bash
+pip install --force-reinstall --no-cache-dir cryptography   # see Python, below
+pip install pypdf
+```
+
+`pypdf` extracts a text layer, which is enough for prose. **It is not enough
+for charts**, and that distinction has already nearly cost a wrong figure. Text
+extraction returns a chart's values and its series names as SEPARATE runs, so
+pairing them is reading order rather than anything the document asserts —
+"6.70, 6.13, 6.5" beside "Banks, Non-banks, Actual" is a guess dressed as a
+reading.
+
+So rasterise and look at it:
+
+```bash
+npm i --no-save pdfjs-dist@4.0.379
+# render page N to canvas in a served page, screenshot the canvas with
+# playwright-core + CHROMIUM_PATH, then Read the PNG
+```
+
+That is how the July 2026 survey figures were verified rather than inferred.
+A scanned or image-only page extracts as zero characters and must be read this
+way regardless.
+
 ---
 
 ## Deploying: merging to `main` already deploys
@@ -155,6 +195,13 @@ there: `netlify-should-build.sh` skips builds that cannot change the published
 site, but it decides from `CACHED_COMMIT_REF`/`COMMIT_REF`, which a direct
 deploy does not carry — so every direct deploy builds, including a docs-only
 one. This repository has run its credit pool dry before.
+
+For a GIT-CONNECTED merge the skip list does apply, and it now covers `docs/`,
+`scripts/`, `tests/`, `backend/`, `.github/`, `README.md`, **`CLAUDE.md`**,
+`LICENSE`, `SECURITY.md` and `.gitignore`. The last two additions were made
+after a CLAUDE.md-only merge ran a full production build — the same charge the
+script's own comment records being paid when `LICENSE` was added. Editing this
+file no longer costs a deploy.
 
 ### Verify every deploy against the previous one
 
@@ -214,9 +261,24 @@ reported them unrunnable; they were not.
 `backend/scrapers/`. Without it `lxml` is missing and the parser tests fail with
 `FeatureNotFound`, which reads like a code defect and is not one.
 
-`test_tls_chain.py` fails here regardless, on a broken system `cryptography`
-build (a `pyo3` panic before any test body). Environment, not code, and
-unverifiable either way from a session.
+`test_tls_chain.py` used to fail here on a broken system `cryptography` build
+— a `pyo3` panic before any test body — and was written off as unverifiable.
+**It is fixable and now passes.** The Debian-packaged `cryptography` cannot be
+uninstalled by pip (no RECORD file), but forcing a reinstall lays a working
+build over it anyway:
+
+```bash
+pip install --force-reinstall --no-cache-dir cryptography   # prints an
+                                                            # uninstall ERROR
+                                                            # and works anyway
+```
+
+The error message is alarming and irrelevant: `import cryptography` succeeds
+afterwards, and so does the whole Python suite. Do not skip this on the
+strength of the error. **With it, all of CI's Python tests pass here** — the
+only suite that used to have a permanent exemption no longer needs one.
+
+This also unblocks `pypdf`, which imports `cryptography` unconditionally.
 
 **Run the whole Python suite, not a sample.** Two red tests survived for days
 because a session ran the full TypeScript suite and only `test_macro_parser.py`.
@@ -244,15 +306,24 @@ not the `DATED` value on CBK's notice, which is the Monday value date.
 
 ### Never stamp `meta.json` to clear the staleness banner
 
-`meta.generatedAt` means "the pipeline ran". Writing it by hand suppresses the
-reader-facing staleness notice on data that is exactly as old as it was — the
-failure `docs/RUNBOOK-REFRESH-WITHOUT-CI.md` warns about most directly. If the
-banner shows, the honest fixes are to run the pipeline or to leave it showing.
+`meta.generatedAt` means "the pipeline ran". Writing it by hand claims a
+refresh that did not happen, on data exactly as old as it was — the failure
+`docs/RUNBOOK-REFRESH-WITHOUT-CI.md` warns about most directly.
 
-Note the banner is about the **pipeline**, not about any figure being wrong.
-Check per-indicator budgets before assuming the numbers are stale: the CBR is
-set at an MPC that meets roughly every two months, and a July CPI print is the
-most recent that exists no matter when you look.
+**The reader-facing banner no longer reports pipeline liveness at all**, so
+stamping `meta.json` would not even silence it. It reports figures that are
+past their OWN publisher's cadence, computed by `readerNotice` from the live
+clock against dates in the data — which is why a dead pipeline cannot mute it.
+
+That change was made because the old banner lied. On 21 August it told readers
+"these figures were last updated on 2026-08-19… auction rates move weekly, so
+treat anything here as indicative" — while the T-bill figures it singled out
+had been updated on the 20th, and `freshness.json` said so. Every figure on the
+page was inside its cadence. A banner that cries wolf spends the credibility it
+needs for the day something is genuinely wrong.
+
+Pipeline liveness is still visible, in the Data Health panel's "Pipeline last
+ran" row — read by whoever operates this, not by somebody pricing a bond.
 
 ---
 
@@ -282,9 +353,11 @@ Current as of 21 August 2026. Confirm before acting; do not rediscover.
 | | state |
 |---|---|
 | **GitHub Actions** | Blocked account-wide. Runs are *created* but runner allocation fails — jobs die in 3–5s with `runner_id: 0`, zero steps, job log 404s. Not a quota: the repo is public and standard runners are free. Visible only in the web UI (Actions banner, Settings → Billing). |
-| **Data pipeline** | Down since 19 Aug as a result. Figures remain inside their publisher cadences; **FX breaches its 4-day budget on 23 Aug** and is the only one that moves daily. |
+| **Data pipeline** | Down since 19 Aug as a result. Every figure remains inside its publisher's cadence; **USD/KES breaches its 4-day budget on 24 Aug** — staleness is `age > budget`, so four days against a four-day budget is still inside it — and is the only figure that moves daily. |
 | **Lighthouse Best Practices: 0** | **A reporting artifact, not a site defect — diagnosed 21 Aug.** Run directly against the built site with the production CSP and headers applied, Lighthouse scores Best Practices **1.0 (100) with zero failing audits**. Netlify's plugin has reported 0 on every deploy including ones scoring 77 Performance / 100 Accessibility / 100 SEO. Do not chase it in the code; the site is clean. Reproduce with `npm i --no-save lighthouse` and run it against a local server that applies the netlify.toml headers. |
 | **CLS** | **Resolved 21 Aug.** All six measured routes now pass: `/` 0, `/dashboard/` 0.0252, `/auctions/` 0, `/ladder/` 0.0166, `/tbills/` 0, `/portfolio/` 0.0024. One cause, not four — `StaleDataNotice` appeared on mount and pushed `<main>` down 99px. It is now server-rendered when the build already knows the data is stale. |
+| **Python suite** | Fully green here, including `test_tls_chain.py`, once `cryptography` is force-reinstalled. It previously carried a permanent exemption in this file; it no longer needs one. |
+| **`expectations.json`** | New 21 Aug — CBK Market Perceptions Survey inflation expectations, four horizons, banks and non-banks separate. Opinions, not measurements: fenced in the UI, excluded from `macroRegime` by test, and budgeted at 75 days so a late survey names itself. |
 | **`METRICS_TOKEN`** | **Set 21 Aug** — secret, scoped to builds/functions/runtime. This was `REVENUE.md` §1's highest return-on-effort item, gating three of four revenue paths. `/metrics` (shipped #260) is the reader. Counters should now be readable; the next step is letting them accumulate before any commercial conversation. |
 
 ---

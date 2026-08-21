@@ -11,6 +11,7 @@
     "amountOfferedKES": 15000000000,
     "couponRate": 12.28,
     "tenorYears": 10,
+    "maturityDate": "2029-11-12",
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
     "status": "open"
   },
@@ -104,8 +105,9 @@
     "auctionDate": "2026-07-15",
     "settlementDate": "2026-07-20",
     "amountOfferedKES": 10000000000,
-    "couponRate": null,
+    "couponRate": 12.0,
     "tenorYears": 20,
+    "maturityDate": "2032-11-01",
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/443434270_JULY%202026%20SWITCH%20FROM%20FXD1-2021-005%20TO%20FXD1-2012-020%20DATED%2015-07-2026.pdf",
     "status": "settled"
   },

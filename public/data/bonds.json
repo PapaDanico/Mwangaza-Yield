@@ -22,13 +22,13 @@
     "category": "IFB",
     "issueDate": "2014-10-27",
     "maturityDate": "2026-10-12",
-    "tenorYears": 12.0,
-    "couponRate": 11.0,
+    "tenorYears": 12,
+    "couponRate": 11,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 11.633,
+    "ytmGross": 11.263,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": null,
+    "ytmAsOf": "2014-10-27",
     "source": "https://www.centralbank.go.ke//images/results%2012-year%20ifb1-2014-12%20dated%2027-10-2014.pdf"
   },
   {
@@ -87,13 +87,13 @@
     "issueDate": "2012-09-24",
     "maturityDate": "2027-09-06",
     "tenorYears": 15,
-    "couponRate": 11.0,
+    "couponRate": 11,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 11.0,
+    "ytmGross": 11.474,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": null,
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1432140282_RESULTS FXD1-2012-15 AND FXD2-2019-15 DATED 14.12.2020.pdf"
+    "ytmAsOf": "2021-07-19",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1460348745_RESULTS FXD1-2012-15  FXD1-2018-15 AND FXD1-2021-25  DATED 19-7-2021.pdf"
   },
   {
     "isin": "KE4000003790",
@@ -119,7 +119,7 @@
     "issueDate": "2013-04-29",
     "maturityDate": "2028-04-10",
     "tenorYears": 15,
-    "couponRate": 12.0,
+    "couponRate": 12,
     "couponFrequencyPerYear": 2,
     "ytmGross": 13.256,
     "minInvestmentKES": 50000,
@@ -166,7 +166,7 @@
     "category": "FXD",
     "issueDate": "2018-08-27",
     "maturityDate": "2028-08-14",
-    "tenorYears": 10.0,
+    "tenorYears": 10,
     "couponRate": 12.686,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.669,
@@ -230,7 +230,7 @@
     "category": "IFB",
     "issueDate": "2017-02-27",
     "maturityDate": "2029-02-12",
-    "tenorYears": 12.0,
+    "tenorYears": 12,
     "couponRate": 12.5,
     "couponFrequencyPerYear": 2,
     "ytmGross": 14.052,
@@ -262,7 +262,7 @@
     "category": "IFB",
     "issueDate": "2020-04-13",
     "maturityDate": "2029-04-02",
-    "tenorYears": 9.0,
+    "tenorYears": 9,
     "couponRate": 10.85,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.332,
@@ -278,7 +278,7 @@
     "category": "FXD",
     "issueDate": "2019-08-19",
     "maturityDate": "2029-08-06",
-    "tenorYears": 10.0,
+    "tenorYears": 10,
     "couponRate": 11.517,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.309,
@@ -313,11 +313,11 @@
     "tenorYears": 6.5,
     "couponRate": 17.9327,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 17.9327,
+    "ytmGross": 18.2989,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": "2023-12-11",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/903550590_TAP SALE RESULTS TREASURY BOND ISSUE NOs. IFB1-2023-6.5 DATED 11-12-2023.pdf"
+    "ytmAsOf": "2024-08-19",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/107706422_RESULTS FOR REOPENED IFB1-2023-6.5 AND IFB1-2023-17 DATED 19-08-2024.pdf"
   },
   {
     "isin": "KE8000005879",
@@ -342,8 +342,8 @@
     "category": "FXD",
     "issueDate": "2011-05-30",
     "maturityDate": "2031-05-05",
-    "tenorYears": 20.0,
-    "couponRate": 10.0,
+    "tenorYears": 20,
+    "couponRate": 10,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.065,
     "minInvestmentKES": 50000,
@@ -361,10 +361,10 @@
     "tenorYears": 11,
     "couponRate": 10.9,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 11.406,
+    "ytmGross": 11.302,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": null,
+    "ytmAsOf": "2020-08-24",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1961884867_Results IFBI-2020-11Dated 24.08.2020.pdf"
   },
   {
@@ -374,8 +374,8 @@
     "category": "IFB",
     "issueDate": "2016-10-24",
     "maturityDate": "2031-10-06",
-    "tenorYears": 15.0,
-    "couponRate": 12.0,
+    "tenorYears": 15,
+    "couponRate": 12,
     "couponFrequencyPerYear": 2,
     "ytmGross": 13.277,
     "minInvestmentKES": 50000,
@@ -393,9 +393,11 @@
     "tenorYears": 10,
     "couponRate": 13.49,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.2,
+    "ytmGross": 12.7822,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-07-13",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1097140849_RESULTS FXD1-2022-010, FXD1-2021-020 AND FXD1-2026-30 DATED 13-07-2026.pdf"
   },
   {
     "isin": "KE8000006430",
@@ -421,7 +423,7 @@
     "issueDate": "2012-11-26",
     "maturityDate": "2032-11-01",
     "tenorYears": 20,
-    "couponRate": 12.0,
+    "couponRate": 12,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.8118,
     "minInvestmentKES": 50000,
@@ -439,9 +441,11 @@
     "tenorYears": 15,
     "couponRate": 12.5,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.3,
+    "ytmGross": 12.9934,
     "minInvestmentKES": 100000,
-    "taxExempt": true
+    "taxExempt": true,
+    "ytmAsOf": "2025-08-25",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf"
   },
   {
     "isin": "KE8000005432",
@@ -515,7 +519,7 @@
     "issueDate": "2024-03-25",
     "maturityDate": "2034-03-13",
     "tenorYears": 10,
-    "couponRate": 16.0,
+    "couponRate": 16,
     "couponFrequencyPerYear": 2,
     "ytmGross": 14.7823,
     "minInvestmentKES": 50000,
@@ -530,7 +534,7 @@
     "category": "FXD",
     "issueDate": "2019-05-13",
     "maturityDate": "2034-04-24",
-    "tenorYears": 15.0,
+    "tenorYears": 15,
     "couponRate": 12.734,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.734,
@@ -549,9 +553,11 @@
     "tenorYears": 15,
     "couponRate": 12.34,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.5,
+    "ytmGross": 12.9708,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-05-25",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/801309501_RESULTS FXD3-2019-015 AND FXD1-2021-020 DATED 25-05-2026.pdf"
   },
   {
     "isin": "KE6000007218",
@@ -576,13 +582,13 @@
     "category": "FXD",
     "issueDate": "2010-06-28",
     "maturityDate": "2035-05-28",
-    "tenorYears": 25.0,
+    "tenorYears": 25,
     "couponRate": 11.25,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 11.25,
+    "ytmGross": 9.839,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": null,
+    "ytmAsOf": "2010-07-26",
     "source": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2025%20yr%20re-opening%20July%202010.pdf"
   },
   {
@@ -592,14 +598,14 @@
     "category": "IFB",
     "issueDate": "2019-10-28",
     "maturityDate": "2035-10-08",
-    "tenorYears": 16.0,
+    "tenorYears": 16,
     "couponRate": 11.75,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.507,
+    "ytmGross": 12.196,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": "2019-10-28",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/174650516_IFB1-2019-16 DATED 28.10.2019.pdf"
+    "ytmAsOf": "2026-08-17",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
   },
   {
     "isin": "KE5000006543",
@@ -609,7 +615,7 @@
     "issueDate": "2016-09-26",
     "maturityDate": "2036-09-01",
     "tenorYears": 20,
-    "couponRate": 14.0,
+    "couponRate": 14,
     "couponFrequencyPerYear": 2,
     "ytmGross": 17.349,
     "minInvestmentKES": 50000,
@@ -627,11 +633,11 @@
     "tenorYears": 14,
     "couponRate": 13.938,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.938,
+    "ytmGross": 13.9784,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": "2022-11-28",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/838376338_TAP SALE RESULTS IFB1-2022-14 DATED 28-11-2022.pdf"
+    "ytmAsOf": "2025-02-17",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf"
   },
   {
     "isin": "KE7000002324",
@@ -643,10 +649,10 @@
     "tenorYears": 16,
     "couponRate": 12.257,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.407,
+    "ytmGross": 12.257,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": null,
+    "ytmAsOf": "2021-01-25",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1750508134_FINAL RESULTS IFB1-2021-16 DATED 25.01.2021.pdf"
   },
   {
@@ -704,14 +710,14 @@
     "category": "IFB",
     "issueDate": "2018-11-19",
     "maturityDate": "2038-10-25",
-    "tenorYears": 20.0,
+    "tenorYears": 20,
     "couponRate": 11.95,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.286,
+    "ytmGross": 12.156,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": "2018-11-19",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/11932141_AUCTION RESULTS IFB1-2018-20 DATED 19-11-2018..pdf"
+    "ytmAsOf": "2018-12-03",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1042591131_IFB1-2018-20 TAP  DATED 03.12.2018.pdf"
   },
   {
     "isin": "KE5000009984",
@@ -723,9 +729,11 @@
     "tenorYears": 20,
     "couponRate": 12.873,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.9,
+    "ytmGross": 13.9234,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-07-27",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1725223368_RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"
   },
   {
     "isin": "KE7000003546",
@@ -737,11 +745,11 @@
     "tenorYears": 18,
     "couponRate": 12.667,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.693,
+    "ytmGross": 12.6877,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": null,
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/821042447_RESULTS IFB1-2021-18 DATED 12.04.2021.pdf"
+    "ytmAsOf": "2026-08-17",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
   },
   {
     "isin": "KE8000005549",
@@ -753,11 +761,11 @@
     "tenorYears": 17,
     "couponRate": 14.399,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.399,
+    "ytmGross": 14.2806,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": "2024-09-02",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/987838813_RESULTS FOR TAP SALE IFB1-2023-017 DATED 02-09-2024.pdf"
+    "ytmAsOf": "2025-02-17",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf"
   },
   {
     "isin": "KE8000002322",
@@ -783,7 +791,7 @@
     "issueDate": "2011-02-28",
     "maturityDate": "2041-01-21",
     "tenorYears": 30,
-    "couponRate": 12.0,
+    "couponRate": 12,
     "couponFrequencyPerYear": 2,
     "ytmGross": 13.1104,
     "minInvestmentKES": 50000,
@@ -801,9 +809,11 @@
     "tenorYears": 19,
     "couponRate": 12.965,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.9,
+    "ytmGross": 13.9991,
     "minInvestmentKES": 100000,
-    "taxExempt": true
+    "taxExempt": true,
+    "ytmAsOf": "2025-08-25",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf"
   },
   {
     "isin": "KE7000005210",
@@ -815,9 +825,11 @@
     "tenorYears": 20,
     "couponRate": 13.444,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.0,
+    "ytmGross": 14.3395,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-07-13",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1097140849_RESULTS FXD1-2022-010, FXD1-2021-020 AND FXD1-2026-30 DATED 13-07-2026.pdf"
   },
   {
     "isin": "KE7000005327",
@@ -829,11 +841,11 @@
     "tenorYears": 21,
     "couponRate": 12.737,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.802,
+    "ytmGross": 13.052,
     "minInvestmentKES": 50000,
     "taxExempt": true,
-    "ytmAsOf": null,
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/437708488_RESULTS IFB1-2021-21 DATED 13.09.2021.pdf"
+    "ytmAsOf": "2026-08-17",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
   },
   {
     "isin": "KE5000008549",
@@ -845,9 +857,11 @@
     "tenorYears": 25,
     "couponRate": 13.4,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.2,
+    "ytmGross": 14.2304,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-06-15",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/801340435_TAP SALE RESULTS FXD1-2020-015 AND FXD1-2018-025 DATED 15-06-2026.pdf"
   },
   {
     "isin": "KE5000009760",
@@ -856,7 +870,7 @@
     "category": "IFB",
     "issueDate": "2019-03-25",
     "maturityDate": "2044-02-22",
-    "tenorYears": 25.0,
+    "tenorYears": 25,
     "couponRate": 12.2,
     "couponFrequencyPerYear": 2,
     "ytmGross": 12.834,
@@ -893,7 +907,9 @@
     "couponFrequencyPerYear": 2,
     "ytmGross": 14.4432,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-07-27",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1725223368_RESULTS FXD1-2019-020 AND FXD1-2022-025 DATED 27-07-2026.pdf"
   },
   {
     "isin": "KE8000006760",
@@ -905,8 +921,10 @@
     "tenorYears": 30,
     "couponRate": 12.5,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.6,
+    "ytmGross": 14.6166,
     "minInvestmentKES": 50000,
-    "taxExempt": false
+    "taxExempt": false,
+    "ytmAsOf": "2026-07-13",
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1097140849_RESULTS FXD1-2022-010, FXD1-2021-020 AND FXD1-2026-30 DATED 13-07-2026.pdf"
   }
 ]

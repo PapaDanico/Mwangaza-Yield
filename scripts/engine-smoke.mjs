@@ -27,12 +27,37 @@ assert.ok(Math.abs(a.netProceedsKES - 429_710.56) < 0.01, `net ${a.netProceedsKE
 assert.ok(Math.abs(a.ourDirtyAtQuotedYTM - 107.8145) < 0.01, `dirty ${a.ourDirtyAtQuotedYTM}`);
 
 // 2. Bid guidance runs against the real shipped archive.
+//
+// TWO QUESTIONS, KEPT APART — THEY WERE CONFLATED AND IT COST A FALSE ALARM
+//
+// "Does the built engine work" and "does the archive currently hold enough
+// 10-year taxable paper" are different, and only the first is what a smoke
+// test of the artifact can promise. This asserted `g.count >= 10` — a literal
+// twice the engine's own sufficiency bar, MIN_SAMPLE, which is 5. So the
+// engine returned a perfectly good result (count 6, thin false, 365-day
+// window, median 13.24) and the test failed it.
+//
+// Worse, it failed it with the message `guidance thin (6)` while `thin` was
+// FALSE. The count clause was the one that broke and the message named the
+// other one, sending a reader after a thinness bug that does not exist. A
+// wrong explanation is more expensive than no explanation, so each condition
+// now reports itself.
 const prints = JSON.parse(readFileSync('public/data/auction-results.json', 'utf8'));
 const bonds = JSON.parse(readFileSync('public/data/bonds.json', 'utf8'));
+
+// The archive itself, asserted separately and generously: this is a data
+// question, and it fails loudly if the shipped history is ever gutted.
+assert.ok(prints.length >= 100, `auction archive holds only ${prints.length} prints`);
+
 const g = E.bidGuidance(prints, bonds, 10, { taxExempt: false });
-assert.ok(!g.thin && g.count >= 10, `guidance thin (${g.count})`);
-assert.ok(g.median > 8 && g.median < 20, `median ${g.median}`);
+assert.equal(g.thin, false, `engine reports the sample thin at count ${g.count}`);
+assert.ok(
+  g.count >= E.MIN_SAMPLE,
+  `count ${g.count} is below the engine's own MIN_SAMPLE of ${E.MIN_SAMPLE}`
+);
+assert.ok(g.median > 8 && g.median < 20, `median ${g.median} outside plausible band`);
 assert.equal(E.readBid(g.median, g).verdict, 'competitive');
+console.log(`  bid guidance: count ${g.count}, window ${g.windowDays}d, median ${g.median.toFixed(3)}`);
 
 // 3. Demand is grouped, never per record.
 const demand = E.demandByAuction(prints);

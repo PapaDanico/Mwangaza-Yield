@@ -151,6 +151,16 @@ jobs:
 
       - run: npm run build
 
+      # The engine as a LICENSEE would receive it, not as the app imports it.
+      #
+      # BUSINESS-MODEL.md names engine licensing as the chosen direction, and
+      # engine-smoke.mjs doubles as the demo run for that pitch — so it is the
+      # one artifact that must not be broken when somebody asks to see it.
+      # Nothing ran it. It sat red, and the failure was a stale assertion
+      # rather than a defect, which is exactly the state an unrun check decays
+      # into. Runs after build:engine because it imports dist/engine.
+      - run: npm run build:engine && npm run test:engine
+
       # The unit suite proves the maths; this proves the reader sees it. Every
       # defect found in the July review was invisible to 382 unit tests — a
       # mark-to-market column that had never rendered for anybody, a yield

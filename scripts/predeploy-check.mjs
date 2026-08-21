@@ -26,6 +26,7 @@
  *
  * Exit 0 means safe to deploy. Any non-zero means stop.
  */
+import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
@@ -250,6 +251,31 @@ if (!existsSync(fnDir)) {
   const fns = readdirSync(fnDir).filter((f) => /\.(m?[tj]s)$/.test(f) || existsSync(join(fnDir, f, 'index.mts')));
   if (!fns.length) fail('netlify/functions/ contains no functions', 'expected at least track.mts');
   else ok(`${fns.length} function source(s) present: ${fns.join(', ')}`);
+}
+
+// ---------------------------------------------------------------------------
+// 9. The service worker's cache version tracks what it precaches.
+//
+// A service worker answers from its cache until VERSION moves, so a precached
+// page can change, deploy cleanly, and never reach anybody who already has the
+// app. That is not hypothetical: VERSION sat at v15 from 14 to 21 August while
+// 49 commits changed shared UI, all twelve precached routes moved, and every
+// deploy in between was green. It surfaced when a person said the live site
+// looked unchanged.
+//
+// Delegated rather than reimplemented: verify-sw-shell.mjs owns the digest and
+// the recorded pair, and duplicating that here would give two copies of a
+// cadence to drift apart — the defect this repository keeps finding in itself.
+// ---------------------------------------------------------------------------
+{
+  const r = spawnSync('node', ['scripts/verify-sw-shell.mjs'], { encoding: 'utf8' });
+  const out = `${r.stdout ?? ''}${r.stderr ?? ''}`.trim();
+  if (r.status === 0) {
+    ok('service worker cache version matches its precached content');
+  } else {
+    const why = out.split('\n').find((l) => l.includes('FAIL')) ?? 'verify-sw-shell.mjs failed';
+    fail(`${why.replace(/^\s*FAIL\s*/, '')} — run \`npm run verify:sw\` for the full report`);
+  }
 }
 
 // ---------------------------------------------------------------------------

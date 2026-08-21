@@ -833,3 +833,129 @@ found; only the Quarterly Economic Review carries an explicit reproduction
 grant, which is what `src/lib/licences.ts` quotes. Redistributing a CBK *table*
 rests on that same notice, and that inference should be checked before any of
 the above is published rather than after.
+
+---
+
+## 17. CBK Market Perceptions Survey — INGESTED, after a verdict that changed (2026-08-21)
+
+The July 2026 survey was supplied directly as a PDF, because
+`centralbank.go.ke` is denied by this environment's egress policy and no
+session can fetch it.
+
+**What it is.** CBK runs it before every MPC meeting: 400 private-sector firms
+— 37 commercial banks, 14 microfinance banks, the rest non-bank across eight
+towns, in sectors worth about 78% of GDP. July's fieldwork ran in the first
+three weeks of the month; the report is dated 18 August. It reports what
+respondents *expect* of inflation, growth, credit and lending rates — not what
+has been measured.
+
+### The verdict here was first "do not ingest", and it was wrong
+
+That is recorded rather than quietly overwritten, because the reasoning is the
+useful part. Three objections were raised. Two dissolved on inspection and one
+survives in a weaker form.
+
+**Objection 1 — the numbers are inference, not statement. RESOLVED.** Text
+extraction yields chart values and series names as separate runs, so mapping
+one to the other looked like reading order rather than something the document
+asserts. That is a real hazard and it is exactly the attribution defect
+`licences.ts` exists to prevent — but it is solvable rather than fatal. The
+pages were rasterised with pdfjs and read visually, and every figure below was
+taken off a rendered chart with its legend in view. Verified, not inferred.
+
+**Objection 2 — it would be a fourth hand-fed surface, and we already fail to
+feed three. RESOLVED, by work done an hour earlier.** `tbills.json` sat three
+auctions stale; `real-history.ts` is imported nowhere; `macro_context_parser.py`
+runs from no workflow. That was a strong objection while nothing detected rot.
+It is not any more: `readerNotice` now warns when a figure passes its own
+publisher's cadence, and `expectations.json` is registered in
+`healthcheck.py` with a 75-day budget. When the next survey is late, the site
+says so by name, without anyone remembering to look.
+
+**Objection 3 — the licence rests on an inference. STANDS, but it is not new.**
+Section 16 records it: no site-wide CBK terms have been found, only the
+Quarterly Economic Review carries an explicit reproduction grant, and
+`licences.ts` quotes that one. Extending it to a Market Perceptions Survey is
+one hop further out. The survey PDF itself carries no copyright notice, no
+reproduction grant and no rights statement — checked, and its metadata is bare
+InDesign output. But this is the same inference already load-bearing for the
+CBR, the CPI, the FX rate and every T-bill figure on the site. Ingesting the
+survey does not create a new exposure; it relies on one that is already
+carrying everything else. If that inference is ever found to be wrong, the
+problem is not this dataset.
+
+### What was ingested
+
+`public/data/expectations.json`, an ARRAY on purpose so the licence sweep in
+`tests/unit/licences.test.ts` can see it — an object would have been skipped by
+that test and escaped the check entirely. Inflation expectations, percent:
+
+| Horizon | Banks | Non-banks |
+|---|---|---|
+| Next 3 months | 6.70 | 6.13 |
+| Next 1 year | 6.24 | 5.05 |
+| Next 2 years | 5.90 | 4.65 |
+| Next 5 years | 5.42 | 4.29 |
+
+Both panels are carried separately and never blended into a headline. They
+disagree by more than a point at one year, and that disagreement — the people
+lending money and the people borrowing it holding different views of inflation
+— is itself the information.
+
+### The boundary that must hold
+
+These are opinions. `macroRegime` reaches a verdict about whether conditions
+favour bond investors, and nothing here feeds it. A test asserts that
+directly, because an opinion that moves a recommendation is an opinion wearing
+a measurement's clothes, and this repository has shipped the milder version of
+that mistake more than once.
+
+**One corroboration worth keeping.** The survey's own reference for actual
+inflation reads 6.5 at July 2026, against the 6.49 carried in `macro.json`.
+Independent confirmation from the publisher that our headline CPI is right.
+
+---
+
+## 18. Annual GDP table — analysed, NOT ingested, blocked on provenance (2026-08-21)
+
+Supplied as a CSV and a matching PDF: 26 rows, 2000–2025, with nominal GDP,
+real GDP and annual growth.
+
+**Provenance is unverified, and that is the blocker.** Neither file names a
+publisher. The PDF carries no branding, no attribution and no rights
+statement, and its metadata says only `pdfmake` — a JavaScript library — dated
+2026-07-21. That signature is characteristic of a website table export, and
+section 16 documented CBK having exactly such an export. But "characteristic
+of" is not "verified", and the licence turns on the answer: CBK is `permitted`
+in `licences.ts`, **KNBS is `refused`**, and GDP originates with KNBS before
+CBK republishes it. Ingesting on a guess would be the precise defect this file
+exists to prevent.
+
+*What would unblock it: the URL it was downloaded from.*
+
+### The series has a rebasing break at 2008/09, and it is not subtle
+
+Found by reconciling the real-GDP levels against the growth column year by
+year. Every year agrees within 0.1pp except one:
+
+```
+2008   real 1,357,262   growth  1.50   implied from levels    1.53
+2009   real 5,361,462   growth  2.70   implied from levels  295.02   <==
+2010   real 5,793,514   growth  8.10   implied from levels    8.06
+```
+
+Real GDP does not quadruple in a year. The pre-2009 figures are on an older
+base and the later ones are rebased — 2016 is the base year in this table,
+where nominal and real are identical to the shilling. Anyone computing growth
+from these levels across that boundary gets +295%, and it would render as
+confidently as any other number.
+
+So if this is ever ingested, the levels must not be treated as one continuous
+series. The growth column is per-vintage and reconciles; the levels do not.
+
+### It corroborates the GDP figure already shipped
+
+Implied real growth for 2025 from the levels is **4.63%** — exactly the figure
+in `macro.json`, which is attributed to the World Bank. This table's own growth
+column rounds it to 4.60. Two independent publishers agreeing to two decimal
+places is worth more than either alone.

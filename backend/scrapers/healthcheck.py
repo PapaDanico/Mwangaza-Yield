@@ -42,6 +42,16 @@ BUDGETS = [
     # different cadences and a single number cannot police them.
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
     ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
+    # CBK runs the Market Perceptions Survey before every MPC meeting, and the
+    # MPC sits roughly every two months. 75 days is one full cycle plus the
+    # publication lag — July's fieldwork closed on the 21st and the report was
+    # dated 18 August, so a budget tighter than that would fire on the gap
+    # between running a survey and publishing it. These are EXPECTATIONS, and
+    # an expectation quoted long after the survey that formed it is worse than
+    # a stale measurement: the reader cannot tell by looking that the world has
+    # moved on underneath it.
+    ("expectations.json", "Market expectations", "surveyDate", 75,
+     "survey precedes every MPC, roughly every two months"),
     # Secondary trades are OPTIONAL_IF_EMPTY (see below). This file is empty
     # and stays empty: exchange price data is licensed, and we publish none of
     # it. Nothing in this repository fetches it any more. Held as an ordinary

@@ -12,6 +12,7 @@ import {
 } from '@/lib/macro-context';
 import { yearsToMaturityAt } from '@/lib/bid';
 import SovereignContext from '@/components/dashboard/SovereignContext';
+import MarketExpectations from '@/components/dashboard/MarketExpectations';
 import { usePersistedState } from '@/lib/persisted';
 import { buildMacroSummary } from '@/lib/macro-summary';
 import { macroRegime } from '@/lib/macro-regime';
@@ -377,6 +378,8 @@ export default function MacroPage() {
           ))}
         </div>
       </section>
+
+      <MarketExpectations />
 
       {/* ── Market Context ── */}
       <section className="card">

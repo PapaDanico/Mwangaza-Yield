@@ -1,0 +1,98 @@
+[
+  {
+    "id": "infl-exp-3m-banks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 3 months",
+    "horizonMonths": 3,
+    "respondent": "Banks",
+    "value": 6.7,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-3m-nonbanks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 3 months",
+    "horizonMonths": 3,
+    "respondent": "Non-banks",
+    "value": 6.13,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-1y-banks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 1 year",
+    "horizonMonths": 12,
+    "respondent": "Banks",
+    "value": 6.24,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-1y-nonbanks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 1 year",
+    "horizonMonths": 12,
+    "respondent": "Non-banks",
+    "value": 5.05,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-2y-banks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 2 years",
+    "horizonMonths": 24,
+    "respondent": "Banks",
+    "value": 5.9,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-2y-nonbanks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 2 years",
+    "horizonMonths": 24,
+    "respondent": "Non-banks",
+    "value": 4.65,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-5y-banks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 5 years",
+    "horizonMonths": 60,
+    "respondent": "Banks",
+    "value": 5.42,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  },
+  {
+    "id": "infl-exp-5y-nonbanks",
+    "indicator": "INFLATION_EXPECTATION",
+    "horizon": "Next 5 years",
+    "horizonMonths": 60,
+    "respondent": "Non-banks",
+    "value": 4.29,
+    "unit": "%",
+    "surveyDate": "2026-07-21",
+    "source": "CBK Market Perceptions Survey, July 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+  }
+]

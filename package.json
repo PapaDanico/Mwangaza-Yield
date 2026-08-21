@@ -12,6 +12,7 @@
     "verify": "npm run typecheck && npm run lint && npm run test",
     "test:e2e": "node tests/e2e/smoke.mjs",
     "verify:csp": "node scripts/verify-csp.mjs",
+    "verify:sw": "node scripts/verify-sw-shell.mjs",
     "build:engine": "node scripts/build-engine.mjs",
     "build:rates": "node scripts/build-rates-feed.mjs",
     "test:engine": "node scripts/engine-smoke.mjs",

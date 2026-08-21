@@ -224,6 +224,13 @@ jobs:
       - name: Verify the Content-Security-Policy against every route
         run: timeout -k 20s 300s npm run verify:csp
 
+      # A service worker answers from cache until its VERSION moves, so a
+      # precached page can change, deploy cleanly, and never reach anybody who
+      # already has the app. That ran for a week in August 2026 across 49
+      # commits. Runs after build because it reads the built routes.
+      - name: Service worker shell version tracks what it precaches
+        run: node scripts/verify-sw-shell.mjs
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

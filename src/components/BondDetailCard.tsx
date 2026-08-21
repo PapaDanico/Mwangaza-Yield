@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { AuctionPrint, Bond } from '@/types/bond';
 import { computeBondInvestment, formatKES, getCouponDates } from '@/lib/financial-engine';
 import { computeBondRiskMetrics, computePriceSensitivity } from '@/lib/riskMetrics';
-import { db } from '@/lib/db';
 import { useBondStore } from '@/stores/bondStore';
 
 export default function BondDetailCard({
@@ -28,17 +27,12 @@ export default function BondDetailCard({
   onCalculate?: (bond: Bond) => void;
   onSetGoal?: (bond: Bond) => void;
 }) {
-  const [yieldThreshold, setYieldThreshold] = useState<number>(bond?.ytmGross ?? 0);
   const [compare, setCompare] = useState<string[]>([]);
   const cpi = useBondStore((s) =>
     [...s.macro]
       .filter((m) => m.indicator === 'CPI')
       .sort((a, b) => b.date.localeCompare(a.date))[0]?.value ?? 0,
   );
-
-  useEffect(() => {
-    setYieldThreshold(bond?.ytmGross ?? 0);
-  }, [bond]);
 
   const cmpBonds = useMemo(() => related.filter((b) => compare.includes(b.isin)).slice(0, 3), [compare, related]);
 
@@ -66,20 +60,6 @@ export default function BondDetailCard({
       coupon: (100000 * bond.couponRate) / 100 / (bond.couponFrequencyPerYear || 2),
       principal: d.toISOString().slice(0, 10) === bond.maturityDate ? 100000 : 0,
     }));
-
-  const saveReopenAlert = async () => {
-    await db.bondAlerts.put({ id: `reopen-${bond.isin}`, isin: bond.isin, kind: 'reopen', createdAt: new Date().toISOString() });
-  };
-
-  const saveYieldAlert = async () => {
-    await db.bondAlerts.put({
-      id: `yield-${bond.isin}`,
-      isin: bond.isin,
-      kind: 'yield-threshold',
-      threshold: yieldThreshold,
-      createdAt: new Date().toISOString(),
-    });
-  };
 
   const yearsRemaining = Math.max(0, (new Date(bond.maturityDate).getTime() - Date.now()) / (365.25 * 86_400_000));
 
@@ -201,17 +181,6 @@ export default function BondDetailCard({
             )}
           </section>
 
-          <section className="card p-4">
-            <h3 className="font-semibold text-ink">Bond Alerts</h3>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <button onClick={saveReopenAlert} className="rounded-lg border border-sand-300 px-3 py-1 text-xs hover:bg-sand-100">Notify me when this bond reopens</button>
-              <div className="flex items-center gap-2 text-xs">
-                <span>Notify me when yield exceeds</span>
-                <input type="number" step="0.1" value={yieldThreshold} onChange={(e) => setYieldThreshold(Number(e.target.value) || 0)} className="num w-16 rounded border border-sand-300 px-1 py-0.5" />
-                <button onClick={saveYieldAlert} className="rounded-lg border border-sand-300 px-2 py-1 hover:bg-sand-100">Save</button>
-              </div>
-            </div>
-          </section>
 
           <div className="flex flex-wrap gap-2">
             <button onClick={() => onAddToPortfolio?.(bond)} className="rounded-xl border border-sand-300 px-3 py-2 text-sm hover:bg-sand-100">Add to Portfolio</button>

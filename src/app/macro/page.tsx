@@ -265,6 +265,15 @@ export default function MacroPage() {
         </div>
       </section>
 
+      {/* ── What the market expects ──
+          Directly after Monetary Policy on purpose. That section says what the
+          CBR is and what inflation last measured; this says what the people
+          lending and borrowing think inflation will do next. Read together
+          they are one thought — the rate now, and the rate the market is
+          pricing against — and separating them by three unrelated panels made
+          the reader hold the first in their head to use the second. */}
+      <MarketExpectations />
+
       {/* ── Fiscal Health ── */}
       {/*
         Rendered only when the figures exist. They do not today, and the
@@ -272,12 +281,18 @@ export default function MacroPage() {
         to return GREEN for missing data, which is the most reassuring possible
         answer to the question a bond buyer most needs answered honestly.
 
-        The World Bank returns no observation for Kenya's Government debt / GDP
-        — sovereign-gaps.ts documents that, and SovereignContext below already
-        tells the reader so and points at the Treasury bulletin. For two days
-        this section contradicted it with a hand-typed 67.2% and a traffic
-        light. Saying we do not have it, in the same words as the panel beneath,
-        is the only version of this section that is true.
+        The World Bank returns no observation for Kenya's Government debt / GDP.
+        For two days this section contradicted that with a hand-typed 67.2% and
+        a traffic light.
+
+        The first repair replaced it with a card explaining the absence — in
+        the same sentences sovereign-gaps.ts already renders through
+        SovereignContext, immediately below. That gave the reader two
+        consecutive cards saying the same thing in the same words, and put the
+        wording in two places to drift apart. So this section is simply absent
+        when the figures are, and the explanation lives once, in the component
+        that computes it from what is present and therefore stops saying it the
+        day the figure arrives.
       */}
       {debt.debtToGDP !== null && debt.debtServiceRatio !== null && debt.fiscalSpace !== null ? (
       <section className="card">
@@ -335,27 +350,7 @@ export default function MacroPage() {
           </div>
         </div>
       </section>
-      ) : (
-      <section className="card">
-        <h2 className="font-semibold text-ink">Fiscal Health</h2>
-        <p className="mt-2 text-sm text-ink-soft">
-          We do not publish Kenya&apos;s debt-to-GDP ratio, and we would rather say so than
-          estimate it.
-        </p>
-        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-          It is the measure a reader looks for first, and the one we cannot source. We ask
-          the World Bank for it and Kenya has no observation in that series — the request
-          succeeds and comes back empty. The National Treasury publishes the figure in its
-          monthly debt bulletin, and the number quoted in the press comes from there rather
-          than from us.
-        </p>
-        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-          The sovereign panel below carries the seven ratios we can source and licence,
-          including external debt and debt service, which answer a narrower version of the
-          same question.
-        </p>
-      </section>
-      )}
+      ) : null}
 
       {/* ── Sovereign Credit Assessment ── */}
       <SovereignContext />
@@ -378,8 +373,6 @@ export default function MacroPage() {
           ))}
         </div>
       </section>
-
-      <MarketExpectations />
 
       {/* ── Market Context ── */}
       <section className="card">

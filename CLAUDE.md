@@ -83,6 +83,26 @@ and retrying spends tokens on a wall that will not move.
 `WebSearch` returns results without needing a tunnel to the target host, so it
 works where `WebFetch` cannot.
 
+### The rule is about REACHING A HOST, not about one tool's name
+
+This was first written as "do not use WebFetch", and that phrasing let the same
+mistake through five times in the session that wrote it. No `WebFetch` call was
+ever made. Instead `curl` was reached for — once at `centralbank.go.ke`, three
+times at `mwangazayield.org`, once at a `netlify.app` deploy permalink — and
+every one returned the same `403` on `CONNECT`, because the proxy does not care
+which binary opened the socket.
+
+So the rule covers **any** direct fetch: `curl`, `wget`, `fetch()` in a scratch
+script, a Python `requests` call, a Playwright `page.goto` at a public URL.
+Before reaching for one, ask what host it will contact and whether that host is
+on the blocked list below. If it is, the answer is already known and the call
+buys nothing.
+
+Two habits that stay legitimate, because neither leaves the sandbox: `curl`
+against `127.0.0.1` for a locally served build — this is how `verify:csp`,
+`test:e2e` and the Lighthouse diagnosis all run — and `curl` against
+`$HTTPS_PROXY/__agentproxy/status`, which reports the proxy's own state.
+
 If a fetch is genuinely unavoidable, read the reason rather than guessing:
 
 ```bash

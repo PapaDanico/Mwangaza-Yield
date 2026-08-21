@@ -930,7 +930,11 @@ session, and the Statistical Bulletin is unambiguously a CBK publication
 series. Together with section 16's finding that CBK's tables have exactly this
 CSV export, that is five independent strands pointing at CBK.
 
-Still short of the URL itself, which remains the thing that would settle it.
+**SETTLED the same day.** The source URL was supplied:
+`https://www.centralbank.go.ke/releases/statistical-bulletin/`. Both exports
+are CBK's, and the inference above is now a fact. The licence position for
+these tables is CBK's grant, the same one already carrying the CBR, the CPI
+and every T-bill figure.
 
 **The reason it is not ingested is simpler than the licence: it unlocks
 nothing.** The obvious use would be computing debt/GDP ourselves and closing
@@ -1003,3 +1007,54 @@ probes did not know:
 is ever worth closing, is to open the December 2025 edition and find out
 whether it carries a public debt table in a form a parser can reach — and to
 capture the URL while doing so, which would also settle section 18.
+
+---
+
+## 20. The Treasury has migrated hosts, and the debt bulletin URL scheme changed (2026-08-21)
+
+Found by web search, because `treasury.go.ke` is as unreachable from a session
+as CBK is. `probe_treasury_debt.py` cannot run here either, so this is
+discovery rather than verification, and it is recorded as such.
+
+**What has not changed.** `https://www.treasury.go.ke/monthly-bulletins` is
+still the index the probe already lists, and the Treasury still publishes a
+Public Debt Bulletin monthly. Nothing in the probe's premise is stale.
+
+**What has.** Two URL schemes are now live, which is consistent with a
+WordPress-to-Drupal migration:
+
+```
+old   www.treasury.go.ke/wp-content/uploads/2024/02/August-2023-Monthly-Bulletin.pdf
+new   newsite.treasury.go.ke/sites/default/files/Debt Monthly Bulletins/December 2025 Monthly Bulletin.pdf
+```
+
+Note the host changes as well as the path, and the new scheme uses spaces
+where the old used hyphens. The probe discovers links rather than constructing
+them — which is exactly the design that survives this — but its scoring runs
+against hrefs, and a `newsite.` absolute URL will not be caught by the
+`"https://www.treasury.go.ke" + href` join at line 168. Worth checking when
+the probe next runs somewhere with network access.
+
+**Cadence reality check.** The most recent bulletins surfaced are March 2026
+and February 2026. As of August 2026 that puts the Treasury's own debt series
+roughly five months behind, which is still an order of magnitude better than
+the World Bank vintages the sovereign panel currently shows — but it is not
+"monthly and current", and a budget set from the publication cadence rather
+than the observed lag would fire constantly.
+
+### What was deliberately NOT taken
+
+Two search results carry a December 2025 debt figure. Both are
+**`refused`** in `licences.ts` by name — CEIC and Trading Economics — and the
+licence tests assert that refusal. Neither is usable at any level of
+convenience.
+
+Nor is a search summary of the Treasury PDF a substitute for the PDF. This
+probe's own standard is that a figure must sit ADJACENT to its label in a
+document carrying its own reporting month, and a summary satisfies none of
+that. The arithmetic is nonetheless a useful sanity check for whoever does
+read it: a debt stock near KES 12,300bn against the 2025 nominal GDP of
+17,577,557 million gives roughly 70%, which matches the 70.08 the probe's own
+docstring records FRED serving and rejecting on licence grounds. Two
+independent estimates agreeing at 70% means a parser that returns 45 or 95 has
+a bug, not a discovery.

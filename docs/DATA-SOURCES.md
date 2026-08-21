@@ -1058,3 +1058,72 @@ read it: a debt stock near KES 12,300bn against the 2025 nominal GDP of
 docstring records FRED serving and rejecting on licence grounds. Two
 independent estimates agreeing at 70% means a parser that returns 45 or 95 has
 a bug, not a discovery.
+
+---
+
+## 21. The August 2026 switch prospectus, and the yield reconciliation it triggered (2026-08-21)
+
+CBK's prospectus for the switch out of **FXD1/2012/015** and t-bills
+2685/091, 2646/182 and 2574/364 into **FXD4/2019/010**. Supplied as a
+document; the host is blocked from a session, so nothing was fetched.
+
+### What it confirmed
+
+Every term already in `auctions.json` under `auc-2026-08-switch` checked out
+against the prospectus: KES 15bn, sale 30 Jul – 24 Aug, auction 24 Aug,
+settlement 26 Aug, destination coupon 12.28%. Both securities were already in
+`bonds.json` with the right ISIN, coupon and maturity. The document added a
+maturity date to the auction record and otherwise corrected nothing, which is
+the outcome worth recording — the register reconciliation is holding.
+
+### What was deliberately NOT taken
+
+The prospectus quotes a **prevailing market yield of 9.0935%** for
+FXD1/2012/015. It is five years fresher than anything else held for that bond
+and it was written into `ytmGross` before being taken back out.
+
+It is not a market observation. It is the yield CBK is USING TO PRICE a switch
+settling 26 August, and the prospectus's own accrued interest of KES 3.3736
+per 100 confirms the basis: that is roughly 101 days from the May coupon, so
+the pricing is struck at settlement, in the future. A forward pricing input is
+not a mark. `bonds.json` holds marks.
+
+It was caught by an assertion that no yield may be dated after today, written
+minutes earlier in `tests/unit/bond-yield-placeholders.test.ts`. The bond now
+carries its last **observed** clearing yield, 11.474% from 2021-07-19. The
+24 August result is the thing to ingest, once it exists.
+
+### The gap it exposed
+
+Checking that one bond surfaced a much larger one. Twenty of 58 bonds carried
+a yield that could not be aged:
+
+- **16 had `ytmAsOf: null`.** Two of those — FXD1/2012/015 and FXD1/2010/025 —
+  had `ytmGross` set literally equal to `couponRate`, a placeholder reading to
+  every consumer as a market yield.
+- **5 more were dated years behind a result already in the repository.**
+  IFB1/2019/016 sat on a 2019-10-28 mark while a 2026-08-17 one was in
+  `auction-results.json` the whole time.
+
+Nothing was missing. `bonds.json` and `auction-results.json` had simply never
+been reconciled. `scripts/date-bond-yields.mjs` does that now — reading two
+local files, which is why it runs from a session at all — and closed all 20.
+That the old values were mostly ROUNDED versions of the auction results
+(13.9 against 13.9234, 14.4432 exactly) is what established the match was real
+rather than coincidental.
+
+An undated yield is worse than a stale one: `YieldCurveChart` refuses to
+describe the curve unless every point is dated and under a year old, so those
+nulls were suppressing the chart's explanation for a reason no reader could
+see. The chart was being cautious about ages it had never been given.
+
+### Still open, and not fixable from a session
+
+- **13 rows in `auction-results.json` have no `auctionDate`.** Unlike the bond
+  yields, these are not recoverable: their `sourceUrl` filenames carry no date
+  either (`Tap sale advert.pdf`, `FXD1_2010_25.pdf`). Reading them needs the
+  PDFs, and the host is blocked. They are excluded from the reconciliation.
+- **`secondary.json` is an empty array** — no secondary-market marks at all.
+- **`auc-2026-06-reopen` has no `maturityDate`**, correctly: it covers two
+  securities, so a single maturity would be a false precision rather than a
+  gap.

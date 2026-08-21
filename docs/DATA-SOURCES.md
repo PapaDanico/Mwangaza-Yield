@@ -921,17 +921,27 @@ Independent confirmation from the publisher that our headline CPI is right.
 Supplied as a CSV and a matching PDF: 26 rows, 2000–2025, with nominal GDP,
 real GDP and annual growth.
 
-**Provenance is unverified, and that is the blocker.** Neither file names a
-publisher. The PDF carries no branding, no attribution and no rights
-statement, and its metadata says only `pdfmake` — a JavaScript library — dated
-2026-07-21. That signature is characteristic of a website table export, and
-section 16 documented CBK having exactly such an export. But "characteristic
-of" is not "verified", and the licence turns on the answer: CBK is `permitted`
-in `licences.ts`, **KNBS is `refused`**, and GDP originates with KNBS before
-CBK republishes it. Ingesting on a guess would be the precise defect this file
-exists to prevent.
+**Provenance was the first objection and it has largely dissolved.** Neither
+file names a publisher; the PDF is bare `pdfmake` output dated 2026-07-21 with
+no branding or rights statement. But a second export supplied afterwards — the
+Statistical Bulletin index, section 19 below — carries the *identical*
+generator signature and was created eleven minutes later in the same browsing
+session, and the Statistical Bulletin is unambiguously a CBK publication
+series. Together with section 16's finding that CBK's tables have exactly this
+CSV export, that is five independent strands pointing at CBK.
 
-*What would unblock it: the URL it was downloaded from.*
+Still short of the URL itself, which remains the thing that would settle it.
+
+**The reason it is not ingested is simpler than the licence: it unlocks
+nothing.** The obvious use would be computing debt/GDP ourselves and closing
+the gap `sovereign-gaps.ts` documents — but that needs a government debt STOCK,
+and we do not have one. `context.json` carries the World Bank's *external* debt
+series, which is a different quantity. GDP is the denominator; the numerator is
+the part nobody can obtain. Adding twenty-five years of GDP levels would buy a
+history chart on a site about bonds, at the cost of a fourth hand-fed dataset.
+
+That is the honest verdict, and it is worth stating in that order — the licence
+objection was the easier one to reach for, and it was not the binding one.
 
 ### The series has a rebasing break at 2008/09, and it is not subtle
 
@@ -959,3 +969,37 @@ Implied real growth for 2025 from the levels is **4.63%** — exactly the figure
 in `macro.json`, which is attributed to the World Bank. This table's own growth
 column rounds it to 4.60. Two independent publishers agreeing to two decimal
 places is worth more than either alone.
+
+---
+
+## 19. CBK Statistical Bulletin — an index, and the best lead on the debt gap (2026-08-21)
+
+Supplied as a CSV and PDF pair. Neither is data: both are a **listing of
+editions**, 45 of them, June 2003 through December 2025, published twice a year
+in June and December. Same `pdfmake` signature as the Annual GDP export above,
+created eleven minutes after it.
+
+**Why an index is worth recording anyway.** `sovereign-gaps.ts` exists because
+the World Bank returns no observation for Kenya's government debt / GDP, and
+the sovereign panel tells readers so rather than inventing a number. Two probes
+in `backend/scrapers/` — `probe_treasury_debt.py` and `probe_debt_sources.py` —
+are already hunting for a route to it.
+
+The Statistical Bulletin is the strongest candidate yet seen. It is CBK's
+standing statistical series, it is exactly where public debt tables live in a
+central bank's publication set, and this listing tells us three things the
+probes did not know:
+
+- **Cadence: twice a year**, June and December. So a debt figure from it would
+  carry a ~180-day budget, not a daily or monthly one, and would not read as
+  stale between editions.
+- **Archive depth: back to June 2003**, with a "December 2009 Revised" edition
+  in the list — a reminder that these get restated, so any ingestion must key
+  on the edition rather than assume a figure is final.
+- **Latest edition: December 2025.** June 2026 is not yet listed, which is
+  itself the freshness signal for anything drawn from it.
+
+**Not ingested, because an index is not data.** The next step, if the debt gap
+is ever worth closing, is to open the December 2025 edition and find out
+whether it carries a public debt table in a form a parser can reach — and to
+capture the URL while doing so, which would also settle section 18.

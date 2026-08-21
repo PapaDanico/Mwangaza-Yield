@@ -49,7 +49,22 @@ changed=$(git diff --name-only "$CACHED_COMMIT_REF" "$COMMIT_REF" 2>/dev/null) |
 # 2026-08-07 and the merge that added them triggered a full production deploy
 # that could not change one byte of the published site — the cost this script
 # exists to avoid, paid on the very commit that documented it.
-relevant=$(echo "$changed" | grep -Ev '^(docs/|tests/|backend/|\.github/|README\.md$|LICENSE$|SECURITY\.md$|\.gitignore$)') || true
+#
+# CLAUDE.md and scripts/ were added on 2026-08-21 after the identical thing
+# happened again, which is the argument for keeping this list current rather
+# than assuming it is. A CLAUDE.md-only merge (#264) ran a full production
+# build. The root of the tree was never covered by the `docs/` prefix, and
+# nobody noticed because the only root-level docs at the time were the three
+# already named above.
+#
+#   - CLAUDE.md is guidance for agents working on the repo. Nothing imports it.
+#   - scripts/ holds build and check tooling, and the Netlify build command is
+#     `npm run build`, which is `next build` alone. It never invokes
+#     build-engine, build-rates-feed or predeploy-check, and nothing under
+#     src/ imports from scripts/ — both verified before this line was widened.
+#     A script only reaches the published site through its committed OUTPUT,
+#     and that output lands in public/, which is not skipped.
+relevant=$(echo "$changed" | grep -Ev '^(docs/|scripts/|tests/|backend/|\.github/|README\.md$|CLAUDE\.md$|LICENSE$|SECURITY\.md$|\.gitignore$)') || true
 
 if [ -z "$relevant" ]; then
   skip "$(echo "$changed" | wc -l | tr -d ' ') changed file(s), none of them reachable by next build"

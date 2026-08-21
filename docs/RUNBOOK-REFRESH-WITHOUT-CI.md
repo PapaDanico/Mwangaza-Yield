@@ -17,22 +17,46 @@ The site degrades honestly while this is true — see "What the reader sees"
 below — so this is not an emergency. It is a four-day clock, and this document
 is what stops that clock being discovered rather than planned for.
 
-## First: is it actually the quota?
+## First: what it is NOT
 
-This repository is **private**; the sister project is **public**. Public repos
-get unlimited free Actions minutes and private ones draw on the account's
-monthly allowance. An exhausted allowance fails private-repo jobs at runner
-assignment and leaves public-repo jobs untouched — which is exactly the
-asymmetry observed, and it is easy to mistake for a fault in the repository.
+An earlier version of this section said this repository is private and blamed
+an exhausted Actions minutes allowance. **That was wrong, and it is worth
+saying why, because the wrong answer is the plausible one.**
 
-Check **Settings → Billing and licensing → Plans and usage → Actions minutes**
-before diagnosing anything else. If the minutes are spent, either wait for the
-monthly reset or raise the spending limit; nothing in this repository needs
-changing.
+This repository is **public** — Netlify's deploy metadata reports
+`public_repo: true` — and public repositories get unlimited free Actions
+minutes on standard runners. Every job here declares `runs-on: ubuntu-latest`,
+so there is no paid-runner angle either. There is no minutes pool to exhaust,
+and the quota explanation cannot be right no matter how well it fits the
+symptom.
 
-A durable fix worth considering: making this repository public would end this
-failure mode permanently. The product is public-facing and its data is already
-published openly under `/data/`.
+That misdiagnosis survived being written down once and was then repeated in a
+pull request description, which is the cost of recording a guess in the same
+voice as a finding.
+
+## So what is it?
+
+The symptom is real and specific: no runner is ever allocated. Jobs die in two
+to five seconds with `runner_id: 0`, zero steps executed, and a job log that
+returns a hard 404 rather than a truncated run. The same signature appears on
+`main`, so it is not the branch under test.
+
+That is account-level, and the specific cause is not visible through the API.
+It is visible in the web UI, in two places worth checking in order:
+
+1. The banner at the top of the **Actions** tab.
+2. **Settings → Billing and licensing.** An unpaid balance from anything else
+   on the account disables Actions account-wide — public repositories
+   included, which is exactly why the free-minutes reasoning above does not
+   save you.
+
+Until that is resolved, nothing in this repository needs changing, and no
+amount of re-running will help. Verify locally instead — see below — and say
+plainly what you ran, so the evidence is worth what it claims to be.
+
+Note also that publishing no longer depends on this. Direct deploys to Netlify
+are the default path now; see `RUNBOOK-DEPLOY.md`. A dead CI blocks the data
+refresh, not the ability to ship.
 
 ## What the reader sees while the pipeline is down
 
@@ -143,9 +167,17 @@ both and reaches `main` — which is exactly how it did. Running the three
 separately also invites running one of them before the last edit and reading
 its result as though it covered what shipped.
 
-Then commit `public/data/` and push to `main`. Netlify redeploys on push, which
-is the same path the `refresh-data` job uses — it commits to `main` and lets the
-deploy follow. Nothing about the deployment needs to be done differently.
+Then commit `public/data/` and push to `main`.
+
+Publishing is now a deliberate second step rather than something that follows
+from the push. Deploy directly to Netlify — run `node scripts/predeploy-check.mjs`,
+then the deploy command, per `RUNBOOK-DEPLOY.md`. The gate matters more here
+than usual: it byte-compares `out/data` against `public/data`, which is exactly
+the mistake available after a hand-run refresh — refreshing the data, then
+publishing a build made before it changed.
+
+The git-connected build still works and will also deploy this push. Either is
+fine; what is not fine is assuming the deploy happened because the push did.
 
 ## When Actions comes back
 

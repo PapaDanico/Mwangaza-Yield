@@ -151,7 +151,10 @@ export function buildMacroSummary(
     prevCbr === null || prevCpi === null ? null : computeRealRate(prevCbr, prevCpi);
   const shortBenchmark = shortRateBenchmark(tbills);
   const longBenchmark = longRateBenchmark(bonds);
-  const termPremium = computeTermPremium(longBenchmark?.value ?? 0, shortBenchmark?.value ?? 0);
+  const termPremium = computeTermPremium(
+    longBenchmark?.value ?? null,
+    shortBenchmark?.value ?? null
+  );
   const kenyaSpread = computeKenyaSpread(
     emRow?.value ?? longBenchmark?.value ?? null,
     us10yRow?.value ?? fedRow?.value ?? null

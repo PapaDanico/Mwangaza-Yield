@@ -33,12 +33,37 @@ npm test        # financial engine unit tests (vitest)
 npm run build   # static export to out/
 ```
 
+## Deploy
+
+**Deploy directly to Netlify.** The git-connected build is the fallback, not
+the default — publishing should not depend on GitHub, which it did until an
+account-level Actions outage took CI, the data pipeline and the ability to ship
+down together.
+
+```bash
+node scripts/predeploy-check.mjs   # six gates; exits non-zero and refuses
+```
+
+Then ask the Netlify MCP server to deploy and run the one-time command it
+returns. It uploads the repo and runs a real build in Netlify's build system,
+so the plugins, secret scanning and the generated edge function all still
+happen — it is the same build, triggered differently, not a degraded one.
+
+Record the current deploy ID first; it is the rollback target. Full procedure,
+post-deploy verification, and the build-credit cost this policy carries:
+[`docs/RUNBOOK-DEPLOY.md`](docs/RUNBOOK-DEPLOY.md).
+
+Deploying is not refreshing — a deploy publishes whatever data is committed and
+fetches nothing. See
+[`docs/RUNBOOK-REFRESH-WITHOUT-CI.md`](docs/RUNBOOK-REFRESH-WITHOUT-CI.md).
+
 ## Data pipeline
 
 The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary). Scrapers in
 `backend/scrapers/` refresh those files twice a day, Monday to Saturday (`17 3,15 * * 1-6`), via
-GitHub Actions; a push to `main`
-triggers Netlify to redeploy. **Fail-safe contract:** a scraper that extracts nothing exits
+GitHub Actions, which commits the
+refreshed files to `main`. Publishing them is a separate step and a separate decision — see
+[Deploy](#deploy). **Fail-safe contract:** a scraper that extracts nothing exits
 non-zero and leaves the previous file untouched — stale-but-valid beats empty.
 
 `public/data/` holds **live scraped data**, refreshed by that cron and cross-checked in CI

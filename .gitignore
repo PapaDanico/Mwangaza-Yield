@@ -24,3 +24,9 @@ dist/
 Portfolio*.csv
 Securities*.csv
 Securities*.pdf
+
+# Scratch worktrees created by Claude Code when subagents run with worktree
+# isolation. Ephemeral harness state, one full checkout each — 33MB for four.
+# Scoped to worktrees/ rather than .claude/ so that genuine project config
+# under .claude (settings, skills) would still be tracked if it is ever added.
+.claude/worktrees/

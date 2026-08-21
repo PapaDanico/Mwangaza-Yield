@@ -63,6 +63,36 @@ const SCORED = [
   { file: 'tbills.json', label: 'Treasury bills' },
 ] as const;
 
+/**
+ * Datasets that are scored for quality but have no meaningful age.
+ *
+ * The panel's rows come from freshness.json, which is right — one cadence
+ * table, not two. But freshness.json deliberately does not carry these two,
+ * and moving the rows over silently dropped them from the panel while SCORED
+ * went on fetching them to compute quality scores that were then rendered
+ * nowhere. Two defects facing opposite ways: work done and discarded, and the
+ * two datasets a reader most expects to see missing from "Data Health".
+ *
+ * Putting them back into freshness.json would be the wrong repair. Neither
+ * carries a date that says when it was fetched:
+ *
+ *   - bonds.json holds issueDate and maturityDate, which describe the
+ *     instrument. Maturities run decades out.
+ *   - auctions.json is dated by auction, and the newest is a SCHEDULED one.
+ *     Today it is 2026-08-24, four days in the future, which ages negative
+ *     and reads as impossibly fresh. That specific bug is why the panel's
+ *     own per-dataset rule was removed.
+ *
+ * So they appear as quality-only rows that say why they have no age, rather
+ * than being dropped, or shown with a number that would be fiction. The
+ * question "has the pipeline run recently" is answered once, by the
+ * "Pipeline last ran" row above them.
+ */
+const NOT_AGE_CHECKED: Record<string, string> = {
+  'bonds.json': 'dated by instrument, not by fetch — see Pipeline last ran',
+  'auctions.json': 'dated by auction, including scheduled ones — see Pipeline last ran',
+};
+
 /** Worst state loudest. The previous order left `expired` grey — calmer than `old`. */
 function badgeClass(stale: boolean): string {
   return stale ? 'bg-red-600 text-sand-50' : 'bg-mint-600 text-sand-50';
@@ -87,6 +117,15 @@ export default function DataStatus() {
   }, []);
 
   const rows: DatasetFreshness[] = useMemo(() => datasetFreshness(), []);
+
+  /** SCORED entries freshness.json cannot age-check — see NOT_AGE_CHECKED. */
+  const qualityOnly = useMemo(
+    () =>
+      SCORED.filter(
+        (s) => s.file in NOT_AGE_CHECKED && !rows.some((r) => r.file === s.file)
+      ),
+    [rows]
+  );
   const fresh = useMemo(() => freshness(new Date()), []);
   const notice = useMemo(() => freshnessNotice(fresh), [fresh]);
 
@@ -185,6 +224,43 @@ export default function DataStatus() {
                           <span className={`rounded-full px-2 py-0.5 text-xs ${badgeClass(d.stale)}`}>
                             {d.stale ? 'overdue' : 'on schedule'}
                           </span>
+                        </td>
+                        <td className="num">{q ? q.score : loading ? '…' : '—'}</td>
+                        <td className="text-right">
+                          {rows_ ? (
+                            <a
+                              download={d.file}
+                              href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(rows_, null, 2))}`}
+                              className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-2 py-1 text-xs hover:bg-sand-100"
+                            >
+                              <Download size={12} /> Raw
+                            </a>
+                          ) : (
+                            <a
+                              href={`/data/${d.file}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-sand-300 px-2 py-1 text-xs hover:bg-sand-100"
+                            >
+                              <Download size={12} /> Raw
+                            </a>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {/* Scored, but with no honest age to report. One cell says
+                      why, rather than four cells of blanks that read as a
+                      failure to measure. */}
+                  {qualityOnly.map((d) => {
+                    const q = quality[d.file];
+                    const rows_ = raw[d.file];
+                    return (
+                      <tr key={d.file} className="border-t border-sand-200">
+                        <td className="py-2 font-medium text-ink">{d.label}</td>
+                        <td colSpan={4} className="text-xs italic text-ink-faint">
+                          {NOT_AGE_CHECKED[d.file]}
                         </td>
                         <td className="num">{q ? q.score : loading ? '…' : '—'}</td>
                         <td className="text-right">

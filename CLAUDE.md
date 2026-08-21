@@ -25,6 +25,34 @@ it is a constraint on what to do next.
 - **Report what you did not do, and why.** Declining to act, with a reason, is
   a legitimate and often correct outcome.
 
+### Resolve it. Do not hand it back.
+
+The owner has asked, in terms, not to be given assignments. So a list of things
+for them to do is a failure mode, not a status report. Before naming anything
+as blocked, exhaust what is actually in reach:
+
+- **Check whether a tool can do it** rather than assuming it cannot. Three
+  items sat on a "yours to do" list for hours that were mine all along:
+  `METRICS_TOKEN` was settable through the Netlify env-var tool, the CLS
+  failures were ordinary code, and the browser suites ran fine once pointed at
+  the Chromium already installed.
+- **A transient error is not a blocker.** The Netlify API returned `502` three
+  times before succeeding on the fourth. Do other work and come back; do not
+  convert a flaky endpoint into a task for someone else.
+- **Measure before concluding.** Four CLS failures looked like four problems
+  and were one: `<main>` moving 99px because a banner appeared after mount.
+  Reading the `layout-shift` source nodes found that in one pass; guessing
+  would have produced four separate fixes for a single cause.
+- **State genuine impossibility once, as a fact, not as a chore.** Actions
+  being blocked account-wide and CBK being denied by egress policy are real
+  walls. Say so plainly, say what it prevents, and move on — do not repeat it
+  every turn as an outstanding item.
+
+This does not override the ordinary confirmations: destructive or outward-
+facing actions still need care, and a decision that is genuinely the owner's —
+product direction, whether a feature they wanted should be deleted — is still
+theirs to make.
+
 ### Verify before asserting
 
 Every claim in this file was checked before it was written, and that is the
@@ -236,8 +264,8 @@ Current as of 21 August 2026. Confirm before acting; do not rediscover.
 | **GitHub Actions** | Blocked account-wide. Runs are *created* but runner allocation fails — jobs die in 3–5s with `runner_id: 0`, zero steps, job log 404s. Not a quota: the repo is public and standard runners are free. Visible only in the web UI (Actions banner, Settings → Billing). |
 | **Data pipeline** | Down since 19 Aug as a result. Figures remain inside their publisher cadences; **FX breaches its 4-day budget on 23 Aug** and is the only one that moves daily. |
 | **Lighthouse Best Practices: 0** | Pre-existing and undiagnosed. Identical on deploys `6a875aeb`, `6a87c8b5`, `6a87cf6c`. CSP is ruled out — `verify:csp` is clean on all 30 routes. Not a regression from any recent work. |
-| **CLS** | Four routes marginally over the 0.10 budget: `/` 0.1035, `/portfolio/` 0.1018, `/ladder/` 0.116, `/dashboard/` 0.1246. Real but modest; the harness notes its method is stricter than field CLS. |
-| **`METRICS_TOKEN`** | Not configured. `REVENUE.md` §1 names this the highest return-on-effort item in the document — it gates three of four revenue paths. `/metrics` shipped in #260 as the reader; the env var is the remaining half. |
+| **CLS** | **Resolved 21 Aug.** All six measured routes now pass: `/` 0, `/dashboard/` 0.0252, `/auctions/` 0, `/ladder/` 0.0166, `/tbills/` 0, `/portfolio/` 0.0024. One cause, not four — `StaleDataNotice` appeared on mount and pushed `<main>` down 99px. It is now server-rendered when the build already knows the data is stale. |
+| **`METRICS_TOKEN`** | **Set 21 Aug** — secret, scoped to builds/functions/runtime. This was `REVENUE.md` §1's highest return-on-effort item, gating three of four revenue paths. `/metrics` (shipped #260) is the reader. Counters should now be readable; the next step is letting them accumulate before any commercial conversation. |
 
 ---
 

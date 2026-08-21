@@ -8,6 +8,7 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '600'], v
 import Navbar from '@/components/shared/Navbar';
 import Footer from '@/components/shared/Footer';
 import StaleDataNotice from '@/components/shared/StaleDataNotice';
+import { freshness, freshnessNotice, staleDatasetNotice } from '@/lib/data-freshness';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
 import JourneyBar from '@/components/shared/JourneyBar';
@@ -90,8 +91,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               Reserving a viewport's worth of main means the footer starts below
               the fold and stays there. */}
           {/* Above <main>, so it is read before the figures it qualifies rather
-              than after them. Renders nothing in the ordinary case. */}
-          <StaleDataNotice />
+              than after them. Renders nothing in the ordinary case.
+
+              The notice is computed HERE, in a server component, so that when
+              the shipped data is already stale at build time the banner is
+              present in the served HTML. Appearing on mount instead pushed
+              <main> down 99px — one 0.0994 layout shift, most of the CLS
+              budget, on every route. Staleness only increases, so a build-time
+              "yes" cannot become a "no"; the component's effect keeps the
+              wording current from there. See its header. */}
+          <StaleDataNotice
+            initialNotice={freshnessNotice(freshness(new Date())) ?? staleDatasetNotice()}
+          />
           <DataOfflineBanner />
           <main
             id="main"

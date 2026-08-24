@@ -8,7 +8,7 @@ people learn to ignore is worse than no alarm at all.
 """
 
 import json
-from datetime import date
+from datetime import date, timedelta
 import subprocess
 import sys
 import tempfile
@@ -16,7 +16,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
-from healthcheck import BUDGETS  # noqa: E402
+from healthcheck import BUDGETS, indicator_age_days  # noqa: E402
 
 DATA = HERE.parent.parent / "public" / "data"
 
@@ -277,10 +277,12 @@ def _macro(*rows):
 def test_a_daily_rate_is_not_given_a_monthly_budget():
     problems: list = []
     rows: list = []
-    check_per_indicator_budgets(_macro(("FX_USD_KES", 18)), "Macro", problems, rows)
+    payload = _macro(("FX_USD_KES", 18))
+    check_per_indicator_budgets(payload, "Macro", problems, rows)
     assert len(problems) == 1, problems
     assert "FX_USD_KES" in problems[0]
-    assert "18 days old" in problems[0]
+    age = indicator_age_days("FX_USD_KES", date.fromisoformat(payload[0]["date"]), date.today())
+    assert f"{age} days old" in problems[0]
 
 
 def test_a_fresh_sibling_cannot_hide_a_stale_one():
@@ -302,6 +304,12 @@ def test_the_cbr_does_not_alarm_for_doing_nothing():
     rows: list = []
     check_per_indicator_budgets(_macro(("CBR", 58)), "Macro", problems, rows)
     assert problems == [], problems
+
+
+def test_fx_uses_trading_days_for_a_midweek_to_sunday_gap():
+    # Tuesday to Sunday spans five calendar days but only Wednesday-Friday are
+    # CBK publication days; the reader banner must stay quiet.
+    assert indicator_age_days("FX_USD_KES", date(2026, 8, 19), date(2026, 8, 24)) == 3
 
 
 def test_fx_stays_quiet_over_a_weekend():
@@ -399,9 +407,11 @@ def test_a_healthy_in_budget_indicator_still_says_nothing():
 def test_a_stale_AND_broken_indicator_reports_both_facts_in_one_problem():
     problems: list = []
     rows: list = []
-    check_per_indicator_budgets(_failing("FX_USD_KES", 18), "Macro", problems, rows)
+    payload = _failing("FX_USD_KES", 18)
+    check_per_indicator_budgets(payload, "Macro", problems, rows)
     assert len(problems) == 1, "one indicator should raise one problem, not two"
-    assert "18 days old" in problems[0]
+    age = indicator_age_days("FX_USD_KES", date.fromisoformat(payload[0]["date"]), date.today())
+    assert f"{age} days old" in problems[0]
     assert "every route failed" in problems[0]
 
 

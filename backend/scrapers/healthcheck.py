@@ -18,7 +18,7 @@ was actually refreshed, and trusting them makes the check silently useless.
 import json
 import os
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 from common import DATA_DIR, _write_json_atomic
@@ -256,6 +256,21 @@ PER_INDICATOR_BUDGETS = {
 }
 
 
+def indicator_age_days(name: str, when: date, today: date) -> int:
+    """Age a trading-day series without treating a weekend as a missed publication."""
+    if today <= when:
+        return 0
+    if name != "FX_USD_KES":
+        return (today - when).days
+    days = 0
+    cursor = when + timedelta(days=1)
+    while cursor <= today:
+        if cursor.weekday() < 5:
+            days += 1
+        cursor += timedelta(days=1)
+    return days
+
+
 def check_per_indicator_budgets(payload, label: str, problems: list, rows: list) -> None:
     """Hold each indicator in a multi-indicator file to its own cadence.
 
@@ -277,7 +292,7 @@ def check_per_indicator_budgets(payload, label: str, problems: list, rows: list)
         when = parse_day(rec.get("date"))
         if not name or when is None or when > today:
             continue
-        age = (today - when).days
+        age = indicator_age_days(name, when, today)
         budget, why = PER_INDICATOR_BUDGETS.get(name, (None, ""))
         if budget is None:
             # Not listed: fall back to the file budget rather than exempting it.

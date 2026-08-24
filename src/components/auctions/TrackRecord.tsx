@@ -29,6 +29,9 @@ import { cn } from '@/lib/utils';
  * desktop readings cannot drift apart.
  */
 function Outcome({ p }: { p: Prediction }) {
+  if (p.excludedOn !== undefined) {
+    return <span className="text-ink-faint">not scored — {p.exclusionReason}</span>;
+  }
   if (p.scoredOn === undefined) {
     return <span className="text-ink-faint">awaiting result</span>;
   }
@@ -75,7 +78,8 @@ export default function TrackRecord() {
    * rather than writing it afterwards is what stops the outcome choosing the
    * tone. See prediction-verdict.ts. */
   const verdict = scoringVerdict(ledger, s);
-  const unscored = ledger.filter((p) => p.scoredOn === undefined);
+  const unscored = ledger.filter((p) => p.scoredOn === undefined && p.excludedOn === undefined);
+  const excluded = ledger.filter((p) => p.excludedOn !== undefined);
   const pending = unscored.length;
   // The earliest auction still awaiting a result: the date a reader can come
   // back on. `sort` over a copy — `unscored` is a fresh array, so this is safe,
@@ -119,6 +123,12 @@ export default function TrackRecord() {
                   <span className="num">{pending}</span> more{' '}
                   {pending === 1 ? 'is' : 'are'} on the record and still waiting on CBK to
                   publish.
+                </>
+              )}
+              {excluded.length > 0 && (
+                <>
+                  {' '}
+                  <span className="num">{excluded.length}</span> {excluded.length === 1 ? 'entry was' : 'entries were'} excluded because the event was not a cash issuance.
                 </>
               )}
             </p>

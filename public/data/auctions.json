@@ -13,7 +13,8 @@
     "tenorYears": 10,
     "maturityDate": "2029-11-12",
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
-    "status": "settled"
+    "status": "settled",
+    "transactionType": "switch"
   },
   {
     "id": "auc-ifb1-2019-016-2026-08-12",

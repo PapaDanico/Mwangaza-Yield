@@ -44,7 +44,7 @@
  */
 
 import type { AuctionPrint, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { computeBondInvestment } from './financial-engine';
 import { yearsToMaturityAt } from './bid';
 
@@ -93,6 +93,7 @@ function recentPeers(prints: AuctionPrint[], bonds: Bond[], asOf: Date): Peer[] 
   const out: Peer[] = [];
   for (const p of prints) {
     if (!p.auctionDate || p.auctionDate < cutoff) continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const bond = byCode.get(normaliseCode(p.issueCode));
     const rate = clearingRate(p);
     if (!bond || rate === null) continue;

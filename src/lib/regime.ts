@@ -50,7 +50,7 @@
  */
 
 import type { AuctionPrint, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { yearsToMaturityAt } from './bid';
 
 export interface YieldContext {
@@ -87,6 +87,7 @@ export function yieldContext(
 
   for (const p of prints) {
     if (!p.auctionDate || p.auctionDate > asOf) continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const bond = byCode.get(normaliseCode(p.issueCode));
     const rate = clearingRate(p);
     if (!bond || rate === null) continue;

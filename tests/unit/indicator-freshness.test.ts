@@ -29,11 +29,11 @@ describe('indicatorAge', () => {
   });
 
   it('does not count a weekend as missed FX publications', () => {
-    const sunday = new Date('2026-08-24T06:00:00Z');
-    const a = indicatorAge('FX_USD_KES', '2026-08-19', sunday)!;
+    const monday = new Date('2026-08-24T06:00:00Z');
+    const a = indicatorAge('FX_USD_KES', '2026-08-19', monday)!;
     expect(a.days).toBe(3);
     expect(a.stale).toBe(false);
-    expect(tradingDaysElapsed(new Date('2026-08-19T00:00:00Z'), sunday)).toBe(3);
+    expect(tradingDaysElapsed(new Date('2026-08-19T00:00:00Z'), monday)).toBe(3);
   });
 
   it('is stale strictly ABOVE the budget, not at it', () => {

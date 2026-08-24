@@ -306,9 +306,9 @@ def test_the_cbr_does_not_alarm_for_doing_nothing():
     assert problems == [], problems
 
 
-def test_fx_uses_trading_days_for_a_midweek_to_sunday_gap():
-    # Tuesday to Sunday spans five calendar days but only Wednesday-Friday are
-    # CBK publication days; the reader banner must stay quiet.
+def test_fx_uses_trading_days_for_a_midweek_to_monday_gap():
+    # Tuesday to Monday spans five calendar days but only Wednesday-Friday are
+    # intervening CBK publication days; the reader banner must stay quiet.
     assert indicator_age_days("FX_USD_KES", date(2026, 8, 19), date(2026, 8, 24)) == 3
 
 

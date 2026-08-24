@@ -11,6 +11,7 @@ import StaleDataNotice from '@/components/shared/StaleDataNotice';
 import { readerNotice } from '@/lib/data-freshness';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/next';
 import JourneyBar from '@/components/shared/JourneyBar';
 import Breadcrumb from '@/components/shared/Breadcrumb';
 import UpdateBanner from '@/components/shared/UpdateBanner';
@@ -68,6 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <AppInit />
         <Analytics />
+        <VercelAnalytics />
         {/* The first thing a keyboard or screen-reader user meets. Without it
             every page makes them walk the whole nav — nine links, on every
             navigation — before reaching a word of content. Visually hidden

@@ -298,6 +298,10 @@ describe('against the real archive', () => {
 });
 
 describe('auctionKind — what kind of sale this was', () => {
+  it('uses an explicit type for a supplied switch result with no public URL', () => {
+    expect(auctionKind(undefined, 'switch')).toBe('switch');
+  });
+
   it('reads a switch from the name CBK gave the file', () => {
     expect(auctionKind('/uploads/x/376777690_SWITCH RESULTS FXD1-2018-015 DATED 15-04-2026.pdf'))
       .toBe('switch');

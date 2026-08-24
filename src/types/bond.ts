@@ -143,6 +143,8 @@ export interface RateDecision {
  * a per-bond yield history. Every field beyond the identity is optional because
  * CBK's own tables omit columns from one result sheet to the next.
  */
+export type AuctionTransactionType = 'issuance' | 'tap' | 'switch' | 'buyback';
+
 export interface AuctionPrint {
   id: string;
   issueCode: string;
@@ -159,6 +161,10 @@ export interface AuctionPrint {
   // the two are not always comparable and this is how you tell.
   bidsLabel?: string;
   sourceUrl?: string;
+  /** Explicit classification when the primary result was supplied without a public CBK URL. */
+  transactionType?: AuctionTransactionType;
+  /** Provenance shown when the original document was supplied directly rather than linked. */
+  sourceNote?: string;
 }
 
 export interface SecondaryTrade {

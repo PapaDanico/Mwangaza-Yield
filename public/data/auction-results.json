@@ -5869,5 +5869,22 @@
     "bidsLabel": "total bids received at cost (kshs. m)",
     "amountOfferedKESM": 150000.0,
     "offeredScope": "auction"
+  },
+  {
+    "id": "res-fxd4-2019-010-2026-08-26-switch",
+    "issueCode": "FXD4/2019/010",
+    "auctionDate": "2026-08-26",
+    "parserVersion": 14,
+    "couponRate": 12.28,
+    "weightedAverageRate": 11.2391,
+    "marketWeightedAverageRate": 11.2395,
+    "pricePer100": 106.0845,
+    "amountOfferedKESM": 15000.0,
+    "amountAcceptedKESM": 22510.93,
+    "bidsReceivedKESM": 22582.52,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "switch",
+    "sourceNote": "Central Bank of Kenya \u2014 Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 26 August 2026 (document supplied directly to Mwangaza Yield)."
   }
 ]

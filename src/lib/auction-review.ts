@@ -231,7 +231,8 @@ export type AuctionKind = 'primary' | 'tap' | 'switch';
  * FXD1-2018-015 DATED 15-04-2026", "TAP SALE RESULTS IFB1-2022-14". The
  * document body says the same thing in prose that varies far more.
  */
-export function auctionKind(sourceUrl?: string): AuctionKind {
+export function auctionKind(sourceUrl?: string, transactionType?: Exclude<AuctionKind, 'primary'>): AuctionKind {
+  if (transactionType) return transactionType;
   if (!sourceUrl) return 'primary';
   let name = sourceUrl;
   try {
@@ -312,7 +313,12 @@ function toRow(date: string, group: AuctionPrint[]): AuctionRow {
   // beside a primary auction's. The figures are still reported on the row —
   // they are real and they are CBK's — but no ratio is computed from them,
   // because a ratio is a claim about demand and these cannot make one.
-  const kind = auctionKind(group.find((p) => p.sourceUrl)?.sourceUrl);
+  const representative = group.find((p) => p.sourceUrl || p.transactionType);
+  const explicitKind = representative?.transactionType;
+  const kind = auctionKind(
+    representative?.sourceUrl,
+    explicitKind === 'tap' || explicitKind === 'switch' ? explicitKind : undefined,
+  );
 
   let bidToCover: number | undefined;
   let coverRejected = false;

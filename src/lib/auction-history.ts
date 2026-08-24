@@ -124,6 +124,7 @@ export interface AuctionPoint {
   pricePer100?: number;
   sourceUrl?: string;
   sourceNote?: string;
+  transactionType: AuctionKind;
 }
 
 /** Every print for one bond that carries a clearing rate, oldest first. */
@@ -145,6 +146,7 @@ export function historyFor(prints: AuctionPrint[], issueCode: string): AuctionPo
         pricePer100: p.pricePer100,
         sourceUrl: p.sourceUrl,
         sourceNote: p.sourceNote,
+        transactionType: auctionKind(p),
       });
     }
   }

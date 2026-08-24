@@ -1,5 +1,5 @@
 import type { AuctionPrint } from '../types/bond';
-import { clearingRate } from './auction-history';
+import { clearingRate, auctionKind } from './auction-history';
 
 /**
  * How often a bond of a given remaining term has actually been on offer.
@@ -126,6 +126,7 @@ export function reinvestmentAvailability(
 
   for (const p of prints) {
     if (!p.auctionDate || !p.issueCode) continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const auctionDate = new Date(`${p.auctionDate}T00:00:00Z`);
     if (Number.isNaN(auctionDate.getTime())) continue;
     if (auctionDate.getUTCFullYear() < fromYear) continue;

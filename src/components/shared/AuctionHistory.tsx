@@ -104,6 +104,11 @@ export default function AuctionHistory({ issueCode }: { issueCode: string }) {
                   at {p.pricePer100.toFixed(2)} per 100
                 </span>
               )}
+              {p.transactionType !== 'issuance' && (
+                <span className="shrink-0 rounded bg-sand-200 px-1 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
+                  {p.transactionType}
+                </span>
+              )}
               {p.sourceUrl && <ExternalLink size={11} className="shrink-0 text-ink-faint" />}
             </>;
             return (

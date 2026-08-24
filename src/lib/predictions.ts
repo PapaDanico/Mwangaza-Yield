@@ -87,6 +87,9 @@ export interface Prediction {
   hitRange?: boolean;
   /** Did the middle half (p25..p75) contain it? The stricter, honest test. */
   hitMiddleHalf?: boolean;
+  /** Recorded range excluded when the calendar entry was not a cash issuance. */
+  excludedOn?: string;
+  exclusionReason?: string;
 }
 
 /**
@@ -119,6 +122,7 @@ export function recordPredictions(
   const added: Prediction[] = [];
 
   for (const a of auctions) {
+    if (a.transactionType && a.transactionType !== 'issuance') continue;
     if (a.auctionDate <= today) continue; // the result may exist; too late to forecast
     for (const code of splitIssueCodes(a.issueCode)) {
       const key = `${normaliseCode(code)}|${a.auctionDate}`;
@@ -237,7 +241,7 @@ export interface LedgerSummary {
 }
 
 export function summariseLedger(ledger: Prediction[]): LedgerSummary {
-  const scored = ledger.filter((p) => p.scoredOn !== undefined);
+  const scored = ledger.filter((p) => p.scoredOn !== undefined && p.excludedOn === undefined);
   const claims = scored.filter((p) => !p.thin);
   return {
     recorded: ledger.length,
@@ -269,6 +273,9 @@ export function assertLedgerIntegrity(before: Prediction[], after: Prediction[])
     }
     if (b.scoredOn !== undefined && a.actualRate !== b.actualRate) {
       problems.push(`${key(b)}: scored outcome rewritten`);
+    }
+    if (b.excludedOn !== undefined && (a.excludedOn !== b.excludedOn || a.exclusionReason !== b.exclusionReason)) {
+      problems.push(`${key(b)}: exclusion outcome rewritten`);
     }
   }
   return problems;

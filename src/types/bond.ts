@@ -47,6 +47,8 @@ export interface AuctionSchedule {
   maturityDate?: string | null;
   prospectusUrl: string;
   status: 'upcoming' | 'open' | 'closed' | 'settled';
+  /** A switch/tap/buyback is visible in the calendar but not a cash issuance. */
+  transactionType?: AuctionTransactionType;
 }
 
 export interface Holding {

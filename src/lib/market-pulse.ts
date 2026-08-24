@@ -18,7 +18,7 @@
  */
 
 import type { AuctionPrint, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { demandByAuction, yearsToMaturityAt, type AuctionDemand } from './bid';
 
 /** Only auctions inside this window count as "now". */
@@ -72,6 +72,7 @@ export function recentClearingByTerm(
 
   for (const p of prints) {
     if (!p.auctionDate || p.auctionDate < cutoff) continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const bond = byCode.get(normaliseCode(p.issueCode));
     const rate = clearingRate(p);
     if (!bond || rate === null) continue;

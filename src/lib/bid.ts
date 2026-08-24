@@ -28,7 +28,7 @@
 // bond cleared at, and it is present on 100% of 2022+ results.
 
 import type { AuctionPrint, Bond } from '../types/bond';
-import { normaliseCode, clearingRate } from './auction-history';
+import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 
 /**
  * Guidance is drawn from 2022 onward only.
@@ -115,6 +115,7 @@ export function findComparables(
 
   for (const p of prints) {
     if (!p.auctionDate || p.auctionDate < GUIDANCE_FROM) continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const bond = byCode.get(normaliseCode(p.issueCode));
     const rate = clearingRate(p);
     if (!bond || rate === null) { dropped++; continue; }

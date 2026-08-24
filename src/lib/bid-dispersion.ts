@@ -36,9 +36,9 @@ import { auctionKind } from './auction-history';
  * rates were violent and bidders disagreed; it fell under 7bp through the
  * placid 2019-2022 stretch and widened again to 16bp in 2023-24.
  *
- * BUYBACKS ARE EXCLUDED, and for the reason auction-history documents: the
- * Treasury is the buyer there, so the sign flips and a "dispersion" computed
- * across it means the opposite of what it means everywhere else.
+ * ONLY COMPETITIVE ISSUANCE IS INCLUDED. A switch is a debt exchange and a
+ * tap is a fixed-price sale, so neither measures bid dispersion for a cash
+ * auction; a buyback also reverses the Treasury's side of the trade.
  */
 
 export interface DispersionPoint {
@@ -76,7 +76,7 @@ export function dispersionPoints(prints: AuctionPrint[]): DispersionPoint[] {
   const out: DispersionPoint[] = [];
   for (const p of prints) {
     if (!p.auctionDate || !p.issueCode) continue;
-    if (auctionKind(p) === 'buyback') continue;
+    if (auctionKind(p) !== 'issuance') continue;
     const accepted = p.weightedAverageRate;
     const market = p.marketWeightedAverageRate;
     if (accepted == null || market == null) continue;

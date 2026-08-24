@@ -8,6 +8,7 @@ export interface AuctionPoint {
   label: string;
   rate: number;
   date?: string;
+  transactionType?: string;
 }
 
 /**

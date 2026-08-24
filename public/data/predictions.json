@@ -27,7 +27,9 @@
     "p75": 18.3379,
     "high": 18.7697,
     "thin": false,
-    "windowDays": null
+    "windowDays": null,
+    "excludedOn": "2026-08-24",
+    "exclusionReason": "switch auction, not cash issuance"
   },
   {
     "issueCode": "IFB1/2019/016",

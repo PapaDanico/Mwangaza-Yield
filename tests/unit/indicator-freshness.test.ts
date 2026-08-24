@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  indicatorAge, indicatorStaleNote, INDICATOR_BUDGETS, DEFAULT_BUDGET_DAYS,
+  indicatorAge, indicatorStaleNote, INDICATOR_BUDGETS, DEFAULT_BUDGET_DAYS, tradingDaysElapsed,
   vintageLabel,
 } from '../../src/lib/indicator-freshness';
 
@@ -13,7 +13,7 @@ describe('indicatorAge', () => {
     // macro.json held FX_USD_KES at 2026-07-20 while CPI was a day old, and
     // every surface rendered them identically.
     const a = indicatorAge('FX_USD_KES', '2026-07-20', NOW)!;
-    expect(a.days).toBe(17);
+    expect(a.days).toBe(13);
     expect(a.stale).toBe(true);
   });
 
@@ -28,14 +28,22 @@ describe('indicatorAge', () => {
     expect(indicatorAge('CPI', daysAgo(21), NOW)!.stale).toBe(false);
   });
 
-  it('lets FX pass over a weekend', () => {
-    expect(indicatorAge('FX_USD_KES', daysAgo(3), NOW)!.stale).toBe(false);
+  it('does not count a weekend as missed FX publications', () => {
+    const monday = new Date('2026-08-24T06:00:00Z');
+    const a = indicatorAge('FX_USD_KES', '2026-08-19', monday)!;
+    expect(a.days).toBe(3);
+    expect(a.stale).toBe(false);
+    expect(tradingDaysElapsed(new Date('2026-08-19T00:00:00Z'), monday)).toBe(3);
   });
 
   it('is stale strictly ABOVE the budget, not at it', () => {
     const b = INDICATOR_BUDGETS.FX_USD_KES.days;
-    expect(indicatorAge('FX_USD_KES', daysAgo(b), NOW)!.stale).toBe(false);
-    expect(indicatorAge('FX_USD_KES', daysAgo(b + 1), NOW)!.stale).toBe(true);
+    // Fri 31 July to Thu 6 August crosses exactly four CBK publication days;
+    // Thursday 30 July crosses five.
+    expect(indicatorAge('FX_USD_KES', '2026-07-31', NOW)!.days).toBe(b);
+    expect(indicatorAge('FX_USD_KES', '2026-07-31', NOW)!.stale).toBe(false);
+    expect(indicatorAge('FX_USD_KES', '2026-07-30', NOW)!.days).toBe(b + 1);
+    expect(indicatorAge('FX_USD_KES', '2026-07-30', NOW)!.stale).toBe(true);
   });
 
   it('gives an unlisted indicator the conservative default, not exemption', () => {

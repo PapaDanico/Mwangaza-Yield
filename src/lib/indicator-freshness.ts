@@ -30,11 +30,13 @@ export interface IndicatorBudget {
   days: number;
   /** Why that number — shown to the reader, so it must read as a reason. */
   cadence: string;
+  /** A daily market series should not age over weekends. */
+  tradingDays?: boolean;
 }
 
 /** Mirrors PER_INDICATOR_BUDGETS in backend/scrapers/healthcheck.py. */
 export const INDICATOR_BUDGETS: Record<string, IndicatorBudget> = {
-  FX_USD_KES: { days: 4, cadence: 'published every trading day' },
+  FX_USD_KES: { days: 4, cadence: 'published every trading day', tradingDays: true },
   CPI: { days: 45, cadence: 'released monthly' },
   CPI_CORE: { days: 45, cadence: 'released monthly' },
   CPI_NONCORE: { days: 45, cadence: 'released monthly' },
@@ -57,6 +59,20 @@ export interface IndicatorAge {
   cadence: string;
 }
 
+/** Weekdays elapsed after a published value date. Kenyan public holidays still count
+ * conservatively; a weekend does not, because CBK publishes no indicative FX rate then. */
+export function tradingDaysElapsed(from: Date, to: Date): number {
+  const start = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+  const end = Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate());
+  if (end <= start) return 0;
+  let days = 0;
+  for (let cursor = start + 86_400_000; cursor <= end; cursor += 86_400_000) {
+    const day = new Date(cursor).getUTCDay();
+    if (day !== 0 && day !== 6) days += 1;
+  }
+  return days;
+}
+
 export function indicatorAge(
   indicator: string,
   date: string,
@@ -66,10 +82,10 @@ export function indicatorAge(
   if (Number.isNaN(when.getTime())) return null;
   const budget = INDICATOR_BUDGETS[indicator];
   const budgetDays = budget?.days ?? DEFAULT_BUDGET_DAYS;
-  const days = Math.floor((now.getTime() - when.getTime()) / 86_400_000);
+  const calendarDays = Math.floor((now.getTime() - when.getTime()) / 86_400_000);
   // A future date is not staleness. Clamping to 0 rather than reporting a
   // negative age keeps a clock-skewed device from showing nonsense.
-  const age = Math.max(0, days);
+  const age = Math.max(0, budget?.tradingDays ? tradingDaysElapsed(when, now) : calendarDays);
   return {
     days: age,
     budgetDays,

@@ -64,6 +64,7 @@ export function normaliseCode(code: string): string {
 export type AuctionKind = 'issuance' | 'tap' | 'switch' | 'buyback';
 
 export function auctionKind(print: AuctionPrint): AuctionKind {
+  if (print.transactionType) return print.transactionType;
   const name = (print.sourceUrl ?? '').toUpperCase();
   if (/BUY\s*-?\s*BACK/.test(name)) return 'buyback';
   if (name.includes('SWITCH')) return 'switch';
@@ -122,6 +123,7 @@ export interface AuctionPoint {
   rate: number;
   pricePer100?: number;
   sourceUrl?: string;
+  sourceNote?: string;
 }
 
 /** Every print for one bond that carries a clearing rate, oldest first. */
@@ -142,6 +144,7 @@ export function historyFor(prints: AuctionPrint[], issueCode: string): AuctionPo
         rate,
         pricePer100: p.pricePer100,
         sourceUrl: p.sourceUrl,
+        sourceNote: p.sourceNote,
       });
     }
   }

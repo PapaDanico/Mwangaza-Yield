@@ -117,10 +117,40 @@ describe('clearingRate', () => {
     expect(clearingRate(sw)).toBe(11.9662);
   });
 
+  it('uses an explicit transaction type when a supplied CBK result has no public URL', () => {
+    const p = print({
+      issueCode: 'FXD4/2019/010',
+      auctionDate: '2026-08-26',
+      weightedAverageRate: 11.2391,
+      transactionType: 'switch',
+    });
+    expect(auctionKind(p)).toBe('switch');
+    expect(clearingRate(p)).toBe(11.2391);
+  });
+
   it('treats an ordinary sale as an issuance, with no URL to go on', () => {
     expect(auctionKind(print({ issueCode: 'X/2020/005', auctionDate: '2026-01-05' }))).toBe(
       'issuance'
     );
+  });
+});
+
+describe('CBK switch result supplied directly', () => {
+  it('records the 26 August 2026 FXD4/2019/010 switch exactly and classifies it correctly', () => {
+    const row = PRINTS.find((p) => p.id === 'res-fxd4-2019-010-2026-08-26-switch');
+    expect(row).toMatchObject({
+      issueCode: 'FXD4/2019/010',
+      auctionDate: '2026-08-26',
+      couponRate: 12.28,
+      weightedAverageRate: 11.2391,
+      marketWeightedAverageRate: 11.2395,
+      pricePer100: 106.0845,
+      amountOfferedKESM: 15000,
+      bidsReceivedKESM: 22582.52,
+      amountAcceptedKESM: 22510.93,
+      transactionType: 'switch',
+    });
+    expect(auctionKind(row!)).toBe('switch');
   });
 });
 

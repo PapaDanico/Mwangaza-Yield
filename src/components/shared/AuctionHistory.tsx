@@ -93,31 +93,42 @@ export default function AuctionHistory({ issueCode }: { issueCode: string }) {
           Every auction we have read
         </p>
         <ul className="space-y-0.5">
-          {[...history.points].reverse().map((p) => (
-            <li key={p.date}>
-              <a
-                href={p.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs hover:bg-sand-100"
-              >
-                <span className="num shrink-0 tabular-nums text-ink-muted">{p.date}</span>
-                <span className="num min-w-0 flex-1 font-semibold text-ink-soft">
-                  {p.rate.toFixed(2)}%
+          {[...history.points].reverse().map((p) => {
+            const content = <>
+              <span className="num shrink-0 tabular-nums text-ink-muted">{p.date}</span>
+              <span className="num min-w-0 flex-1 font-semibold text-ink-soft">
+                {p.rate.toFixed(2)}%
+              </span>
+              {p.pricePer100 != null && (
+                <span className="num shrink-0 text-ink-faint">
+                  at {p.pricePer100.toFixed(2)} per 100
                 </span>
-                {p.pricePer100 != null && (
-                  <span className="num shrink-0 text-ink-faint">
-                    at {p.pricePer100.toFixed(2)} per 100
+              )}
+              {p.sourceUrl && <ExternalLink size={11} className="shrink-0 text-ink-faint" />}
+            </>;
+            return (
+              <li key={p.date} title={p.sourceNote}>
+                {p.sourceUrl ? (
+                  <a
+                    href={p.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs hover:bg-sand-100"
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-2 rounded-lg px-1.5 py-1 text-xs">
+                    {content}
                   </span>
                 )}
-                <ExternalLink size={11} className="shrink-0 text-ink-faint" />
-              </a>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
         <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">
-          Source: CBK&apos;s own published auction results — each row links to the original PDF.
-          This is the rate on accepted bids, which is what buyers received; it is not a
+          Source: CBK&apos;s own published auction results. Rows linked with an external-arrow icon open the original PDF;
+          directly supplied CBK documents are shown without a link. This is the rate on accepted bids, which is what buyers received; it is not a
           secondary-market price and not a forecast.
         </p>
       </div>

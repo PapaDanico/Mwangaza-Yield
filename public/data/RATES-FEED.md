@@ -146,7 +146,11 @@ unchanged scrapes carries the old stamp on purpose.
 - **No exchange-sourced or secondary-market prices**, published or implied.
   The project holds none by policy.
 - **No per-bond current yields.** A current yield needs a current price.
-- **No forecasts.** The feed reports what auctions did, never what they will do.
+- **No forecasts.** The feed reports what auctions did, never what they will
+  do. The project's one forecast dataset is `imf-outlook.json` — a separate
+  file with its vintage named and every observation labelled outturn, estimate
+  or projection, which never feeds this feed. Consumers wanting the IMF's
+  outlook take it from there, labelled as what it is.
 - **No estimates in place of evidence.** Thin bands carry `null` and a count.
 
 ## Stability

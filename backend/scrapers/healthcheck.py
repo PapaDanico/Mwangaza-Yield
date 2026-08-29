@@ -91,6 +91,15 @@ BUDGETS = [
     # missed publication before it speaks, which is the first point at which
     # something is actually wrong.
     ("cpi-history.json", "CPI history", "date", 75, "monthly, and CBK's table lags a month"),
+    # The IMF World Economic Outlook publishes in April and October, and this
+    # file is refreshed by hand when an edition lands (see DATA-SOURCES.md §22).
+    # The date field is the VINTAGE of the edition, not a fetch timestamp — the
+    # same pattern as context.json, whose budget is wide because the data lags
+    # its reference period by design. 240 days is one full April-to-October
+    # cycle plus publication lag, so the alarm means "a whole edition was
+    # missed", not "it is September and the October book is not out yet".
+    ("imf-outlook.json", "IMF WEO outlook", "vintageDate", 240,
+     "WEO publishes in April and October"),
 ]
 
 

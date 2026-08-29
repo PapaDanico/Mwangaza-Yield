@@ -59,7 +59,8 @@ fetches nothing. See
 
 ## Data pipeline
 
-The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary). Scrapers in
+The app reads static JSON from `public/data/` (bonds, auctions, macro, secondary,
+imf-outlook). Scrapers in
 `backend/scrapers/` refresh those files twice a day, Monday to Saturday (`17 3,15 * * 1-6`), via
 GitHub Actions, which commits the
 refreshed files to `main`. Publishing them is a separate step and a separate decision — see
@@ -70,7 +71,12 @@ non-zero and leaves the previous file untouched — stale-but-valid beats empty.
 (`published-cross-check`, `schedule-vs-dataset`, `check_archive.py`). Source formats change without
 notice, so the `validate-sources` job probes them on every run.
 
-### Sourcing: CBK, National Treasury, KNBS and the World Bank — and nothing else
+The one exception to the cron is `imf-outlook.json`, which is refreshed **by
+hand** when an IMF World Economic Outlook edition lands (April and October);
+`healthcheck.py` budgets it at 240 days, so a missed edition raises the same
+alert a broken scraper would rather than aging quietly.
+
+### Sourcing: CBK, National Treasury, KNBS and the World Bank — plus a clearly-labelled IMF outlook
 
 ⚠️ **No Nairobi Securities Exchange data is used anywhere in this project.** Its terms make the
 data proprietary — not copyable, storable or distributable, and not usable to build a product —
@@ -85,6 +91,18 @@ reader actually pays is supplied by the reader, in the **price book** (`/prices`
 or the one a broker or DhowCSD quotes. It is stored only on their device and takes precedence over
 everything else. The `secondary.json` slot remains for a deployer who lawfully holds priced data of
 their own.
+
+**The one addition to the four measured sources is the IMF's World Economic
+Outlook** — a forecast dataset, kept out of every measured panel by
+construction. `public/data/imf-outlook.json` carries the current WEO vintage
+for Kenya with the vintage named on every record and each observation labelled
+outturn, estimate or projection, under the IMF terms registered as
+`permitted` in `src/lib/licences.ts`. It never feeds `rates.json` (whose
+no-forecasts contract is unchanged) and never blends with the CBK/KNBS/World
+Bank outturns the dashboard quotes. Why it exists and how the two objections
+from the original investigation were resolved:
+[`docs/DATA-SOURCES.md` §22](docs/DATA-SOURCES.md) and
+[`docs/IMF-KENYA-OUTLOOK.md`](docs/IMF-KENYA-OUTLOOK.md).
 
 ## Disclaimer
 

@@ -1,13 +1,26 @@
 # IMF Kenya outlook — reference note
 
-**Status: reference material, not app data.** This file sits outside the data
-pipeline on purpose. The project's sourcing policy is CBK, National Treasury,
-KNBS and the World Bank — and nothing else — and the rates feed's contract
-says *no forecasts*. The IMF World Economic Outlook is a forecast dataset, so
-nothing here feeds `public/data/`, the macro panel or the feed. If that ever
-changes, the policy in `README.md` and `docs/DATA-SOURCES.md` has to change
-first, deliberately, and the figures below should then be re-pulled rather
-than copied from this file.
+**Status: SHIPPED since 2026-08-29 as `public/data/imf-outlook.json`.** The
+first version of this note said the IMF sat outside the sourcing policy; that
+changed once the project's licence registry was found to have already settled
+the IMF at `permitted` (`src/lib/licences.ts`, checked 2026-08-16, terms
+quoted there) and the two data objections from the original investigation —
+unnamed vintages, unflagged projections — were resolved by the shape of the
+shipped file. The full decision record is `docs/DATA-SOURCES.md` §22. This
+note remains the human-readable companion: the tables, the cross-checks, and
+why any of it matters to a bond investor.
+
+House rules for this dataset:
+
+- **The rates feed's contract is unchanged** — no forecasts in `rates.json`,
+  and `imf-outlook.json` never feeds it.
+- **Nothing here feeds the macro panel or any measured dashboard figure.**
+  Measured outturns stay with CBK, the National Treasury, KNBS and the World
+  Bank; this layer answers what IMF staff *expect*, never what *is*.
+- **Refresh by hand when a WEO edition lands (April / October):** re-pull the
+  seven subjects, update `vintageDate`, and re-check the
+  outturn/estimate/projection mapping rather than carrying it forward.
+  `healthcheck.py` alarms at 240 days of vintage age.
 
 - **Source:** IMF World Economic Outlook (WEO), **April 2026** edition
   (data compiled by IMF staff through 1 April 2026), plus IMF International
@@ -15,7 +28,9 @@ than copied from this file.
 - **Retrieved:** 29 August 2026, via the IMF data API.
 - **Reading the labels:** years marked **e** are IMF estimates, **f** are
   projections. The April 2026 vintage treats 2025 as estimated and 2026
-  onward as projected.
+  onward as projected. This mapping is our reading of the vintage, stated in
+  each record's `statusNote` — the WEO itself ships one undifferentiated
+  year→value map.
 
 ## WEO projections, Kenya (April 2026)
 

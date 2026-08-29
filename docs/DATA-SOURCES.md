@@ -19,7 +19,8 @@
 > and `validate.py` no longer probes an Exchange endpoint.
 >
 > **Everything the app publishes now comes from CBK, the National Treasury, KNBS and the
-> World Bank.** `secondary.json` ships empty and stays that way.
+> World Bank — plus one clearly-labelled IMF forecast file added 2026-08-29 (see §22).**
+> `secondary.json` ships empty and stays that way.
 
 ### The CMA route was investigated and is closed — 2026-08-07
 
@@ -208,7 +209,8 @@ any source whose licence forbids redistribution can only be linked, never mirror
 | CBK, KNBS, National Treasury | **Integrated** | Public primary data, freely citable |
 | World Bank Open Data | **Integrated** | Keyless, CORS-enabled, versioned JSON, CC BY 4.0 |
 | NSE | Free daily list only | Bulk EOD data needs a commercial licence |
-| IMF, broker research, press | Linked only | Copyrighted; cited for context, never republished |
+| IMF | **Integrated — WEO outlook only** (2026-08-29, §22) | IMF Data terms permit redistribution with attribution; the verdict lives in `licences.ts`. Measured outturns stay with the four sources above |
+| Broker research, press | Linked only | Copyrighted; cited for context, never republished |
 | Trading Economics | Declined | API key required — impossible in a static client; redistribution outside ToS |
 | Investing.com, yfinance | Declined | Unofficial or scraping-restricted endpoints; unsuitable for a money tool |
 | CDSC | Declined | Participant-only data |
@@ -302,6 +304,11 @@ failed to check"*. **Reading it needs a human with a browser.**
 **Net effect on the decision: unchanged, but for better reasons.** Two data grounds still stand
 on their own (disagreeing vintages, unflagged projections). The licence ground is now one
 verified prohibition and one honest unknown, instead of a sandbox error.
+
+**Amended 2026-08-29:** the licence ground closed eleven days after this was written —
+`licences.ts` carries the IMF at `permitted`, checked 2026-08-16, with the operative
+sentence quoted from `imf.org/en/about/copyright-and-terms`. The two data grounds are
+resolved by the shape of the shipped file. See §22.
 
 ## 7. Monitoring and alerting
 
@@ -1127,3 +1134,80 @@ see. The chart was being cautious about ages it had never been given.
 - **`auc-2026-06-reopen` has no `maturityDate`**, correctly: it covers two
   securities, so a single maturity would be a false precision rather than a
   gap.
+
+---
+
+## 22. IMF World Economic Outlook — INTEGRATED as a labelled forecast layer (2026-08-29)
+
+Section 7 investigated the IMF's debt-to-GDP series and declined it on three
+grounds: two copies of the same series disagreed by vintage, the payload does
+not flag which years are forecasts, and the IMF's terms had not been read.
+All three are now resolved, and the resolution is recorded where the project
+keeps such things rather than in prose alone.
+
+**The licence ground closed eleven days after §7.1 recorded it as open.**
+`src/lib/licences.ts` carries the IMF at verdict `permitted`, checked
+2026-08-16, quoting the operative sentence from
+`imf.org/en/about/copyright-and-terms`:
+
+> Users may download, extract, copy, create derivative works, publish,
+> distribute and sell Data obtained from IMF Sites, subject to the following
+> conditions: When Data is distributed or reproduced, it must appear
+> accurately and attributed to the IMF as the source.
+
+So the registry had settled the question while this document still called it
+unread — the drift licences.ts exists to prevent, caught here in the
+documentation rather than in the data. (The terms page was not reachable from
+the session that wrote this section, so the quoted terms are the registry's
+2026-08-16 reading rather than a fresh one; the registry is the authority, and
+its `checkedOn` date is the freshness signal.)
+
+**The two data grounds are resolved by the shape of what ships.**
+`public/data/imf-outlook.json` names its vintage on every record
+(`vintageDate: 2026-04-30`, the April 2026 WEO, retrieved 2026-08-29 via the
+IMF data API), so a figure from it cannot present a version as the value —
+the FRED divergence that started §7 (70.08 vs 71.6 for 2026 debt/GDP) is now
+explainable to a reader rather than hidden by a bare number. And every
+observation carries an explicit `status` — `outturn`, `estimate` or
+`projection` — instead of relying on a year threshold. The mapping (2025
+estimated, 2026 onward projected) is OUR reading of the vintage and each
+record's `statusNote` says so, which is the honest form of §7's objection
+that filtering by year would be our inference about their data, not their
+labelling.
+
+**What ships.** Seven WEO series for Kenya, 2020–2030: real GDP growth,
+CPI inflation (annual average), general government gross debt/GDP, fiscal
+balance/GDP, current account/GDP, nominal GDP and GDP per capita. WEO subject
+codes travel in each record. The file is an array precisely so the licence
+sweep in `tests/unit/licences.test.ts` sees every record's `source` — the
+same reason `expectations.json` is one (§17). Full tables, the IFS monthly
+readings, and the cross-checks against `macro.json` live in
+`docs/IMF-KENYA-OUTLOOK.md`.
+
+**What does not change.**
+
+- **The feed contract.** `rates.json` still carries no forecasts; the outlook
+  file never feeds it, and `public/data/RATES-FEED.md` now says where the
+  forecast layer lives at the "No forecasts" line.
+- **The measured panels.** CBR, CPI and FX stay with CBK; GDP stays with the
+  World Bank. The outlook answers what IMF staff EXPECT, never what IS. The
+  2025 growth figures differ (World Bank 4.63, WEO estimate 4.88) and both
+  stay, each with its publisher attached — the companion doc records the
+  comparison rather than resolving it by fiat.
+- **KNBS stays refused as a direct source.** Nothing here routes around that.
+- **`macroRegime` and every measured verdict** see nothing from this file.
+
+**Freshness and the hand-fed surface.** Refresh is manual until a scraper
+exists, so the failure mode §17 worried about — a hand-fed surface nobody
+notices aging — is covered the way that section fixed it: `healthcheck.py`
+budgets the file at 240 days on `vintageDate` (one April-to-October WEO cycle
+plus publication lag), and it appears in `freshness.json` on the next
+`--publish` run like every other dataset.
+
+**Refresh procedure** (until a scraper exists): pull the seven subjects for
+KEN via the IMF data API, rewrite the observations, update `vintageDate` to
+the new edition, re-derive the outturn/estimate/projection mapping for the
+new vintage rather than carrying it forward, and sanity-check the last
+outturn year against the CBK/World Bank figures already shipped — a forecast
+file whose history disagrees with the measured panels has a bug, not a
+discovery.

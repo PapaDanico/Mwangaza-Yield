@@ -27,9 +27,9 @@
       "file": "context.json"
     },
     "auction-results": {
+      "file": "auction-results.json",
       "lastUpdated": "2026-08-19T15:48:47.299901+00:00",
-      "recordCount": 390,
-      "file": "auction-results.json"
+      "recordCount": 390
     },
     "cbr-history": {
       "lastUpdated": "2026-08-19T15:48:47.646704+00:00",
@@ -45,6 +45,12 @@
       "lastUpdated": "2026-08-19T15:49:06.097921+00:00",
       "recordCount": 3,
       "file": "qebr-context.json"
+    },
+    "imf-outlook": {
+      "file": "imf-outlook.json",
+      "lastUpdated": "2026-08-29T00:00:00.000000+00:00",
+      "recordCount": 7,
+      "note": "Manually refreshed on each WEO edition (April/October), not by the scraper cron. Forecast dataset — see docs/IMF-KENYA-OUTLOOK.md and DATA-SOURCES.md §22."
     }
   }
 }

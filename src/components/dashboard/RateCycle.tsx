@@ -54,7 +54,18 @@ export default function RateCycle() {
     [cbrHistory, years],
   );
 
-  if (!cycle || series.length < 2) return <Reserve height={340} />;
+  /* Measured on the built page at 390px and 1280px, not estimated.
+  *
+  * Reserve's contract is "roughly what the real card occupies, so the swap
+  * does not shift either way", and every one of these was quoted from an
+  * earlier layout and had drifted badly — this one by 577px on a phone.
+  * A reservation that is too SHORT is the ordinary case here and the page
+  * grows under the reader as each card lands.
+  *
+  * Two numbers because one cannot be right at both ends: the height prop
+  * carries the desktop figure and the min-h carries the phone's, so neither
+  * breakpoint swaps into a different height. */
+  if (!cycle || series.length < 2) return <Reserve height={695} className="min-h-[917px] sm:min-h-[695px]" />;
 
   const recent = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   const fell = cycle.runBps < 0;

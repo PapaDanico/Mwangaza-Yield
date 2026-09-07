@@ -31,7 +31,18 @@ const SHORT_LABELS: Record<string, string> = {
 export default function MacroPanel() {
   const all = useBondStore((s) => s.macro);
   const macro = all.filter((m) => HEADLINE.includes(m.indicator));
-  if (!macro.length) return <Reserve height={84} />;
+  /* Measured on the built page at 390px and 1280px, not estimated.
+  *
+  * Reserve's contract is "roughly what the real card occupies, so the swap
+  * does not shift either way", and every one of these was quoted from an
+  * earlier layout and had drifted badly — this one by 138px on a phone.
+  * A reservation that is too SHORT is the ordinary case here and the page
+  * grows under the reader as each card lands.
+  *
+  * Two numbers because one cannot be right at both ends: the height prop
+  * carries the desktop figure and the min-h carries the phone's, so neither
+  * breakpoint swaps into a different height. */
+  if (!macro.length) return <Reserve height={110} className="min-h-[222px] sm:min-h-[110px]" />;
 
   /* A FIGURE THAT HAS STOPPED MOVING MUST NOT LOOK LIKE ONE THAT HAS NOT.
    *

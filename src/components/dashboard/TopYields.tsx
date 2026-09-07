@@ -57,7 +57,18 @@ export default function TopYields() {
   const userPrices = usePriceStore((s) => s.userPrices);
   const [selected, setSelected] = useState<Bond | null>(null);
   // Holds the space rather than popping in. See Reserve for the measurement.
-  if (!bonds.length) return <Reserve height={196} />;
+  /* Measured on the built page at 390px and 1280px, not estimated.
+  *
+  * Reserve's contract is "roughly what the real card occupies, so the swap
+  * does not shift either way", and every one of these was quoted from an
+  * earlier layout and had drifted badly — this one by 152px on a phone.
+  * A reservation that is too SHORT is the ordinary case here and the page
+  * grows under the reader as each card lands.
+  *
+  * Two numbers because one cannot be right at both ends: the height prop
+  * carries the desktop figure and the min-h carries the phone's, so neither
+  * breakpoint swaps into a different height. */
+  if (!bonds.length) return <Reserve height={210} className="min-h-[348px] sm:min-h-[210px]" />;
 
   // Ranked from the price book like everywhere else. Left on the old par-only
   // fallback, the dashboard would name a "best yield" the calculator and ladder

@@ -373,6 +373,39 @@ docstring in `probe_tbill_rates.py`. Hand-editing it is the intended mechanism
 until a parser exists. Its `auctionDate` is the **auction day (a Thursday)**,
 not the `DATED` value on CBK's notice, which is the Monday value date.
 
+### Updating it from search, when CBK cannot be fetched
+
+Done on 7 September, 20 Aug -> 27 Aug. The method, because getting the DATE
+wrong is easier than getting the rate wrong:
+
+**Pin the auction date from the issue-number sequence, not from a headline.**
+The numbers advance by one a week across all three tenors, and the `DATED`
+value is the Monday value date. `2696/091 DATED 24-08-2026` is the Thursday
+20 August auction; therefore 2697 (DATED 31-08) is 27 August and 2698 (DATED
+07-09) is 3 September. An earlier reading in that same session had these a
+week out, from assuming `DATED` was the auction day.
+
+**Corroborate the rate three ways before writing it.** For 27 August: CBK's
+own Treasury Bills page carried them as the "Previous Average Interest Rate"
+against the following auction; a second result reported them as CBK weighted
+average rates for bills issue-dated 31 August; and press coverage said all
+three tenors DECLINED, which each figure confirms against the values it
+replaces. One search result carrying a number is not enough — the "previous
+average interest rate" column in particular is a figure whose vintage is one
+auction older than the page it appears on, which is exactly the unlabelled
+number the WebSearch section warns about.
+
+**Write `null`, not the last known value, for anything unsourced.**
+`amountOfferedKES` and `amountAcceptedKES` are `number | null` for this
+reason. Press gave the 27 August aggregate (Ksh 28bn offered, Ksh 56.7bn bid)
+but no per-tenor split, so both are null on those records. Neither is rendered
+anywhere, so honesty costs the reader nothing.
+
+**Regenerating the feed is required and has a side effect.** rates.json is
+derived from tbills.json, so `npm run build:engine && npm run build:rates`
+must follow. See the note below on why the liveness canary no longer reads
+rates.json.
+
 ### Never stamp `meta.json` to clear the staleness banner
 
 `meta.generatedAt` means "the pipeline ran". Writing it by hand claims a
@@ -393,6 +426,15 @@ needs for the day something is genuinely wrong.
 
 Pipeline liveness is still visible, in the Data Health panel's "Pipeline last
 ran" row — read by whoever operates this, not by somebody pricing a bond.
+
+**And in `published-data-freshness.test.ts`, which now reads meta.json too.**
+It used to measure rates.json's `generatedAt`, on the stated reasoning that
+"a date somebody can edit is a date somebody will edit". rates.json did not
+satisfy that: `npm run build:rates` regenerates it from committed data with no
+network and stamps a fresh date, so any legitimate hand-edit to tbills.json
+silenced the pipeline alarm as a side effect. meta.json is the signal that
+test always wanted — nothing local writes it, and hand-stamping it is the one
+edit forbidden outright above.
 
 ---
 
@@ -422,8 +464,8 @@ Current as of 7 September 2026. Confirm before acting; do not rediscover.
 | | state |
 |---|---|
 | **GitHub Actions** | Blocked account-wide, unchanged after 19 days. Runs are *created* but runner allocation fails — jobs die in 2–5s with zero steps and job log 404s. Re-confirmed 7 Sept on run `34094629609` (`test-and-build`, 3s) and on the twice-daily scheduled runs, which have failed identically every day since 19 Aug. Not a quota: the repo is public and standard runners are free. Visible only in the web UI (Actions banner, Settings → Billing). **This is the single blocker on every stale figure below.** |
-| **Data pipeline** | Down since 19 Aug. As of 7 Sept the reader banner names TWO figures: **USD/KES** (13 trading days, budget 4) and **Treasury bills** (18 days, budget 10). Everything else is genuinely inside its publisher's cadence. |
-| **What the archive is missing** | Established 7 Sept by `WebSearch` (CBK itself is egress-blocked, so none of it could be verified against the source PDF and none of it was written). **T-bills:** auctions ran 27 Aug and 3 Sept — issues 2698/091, 2672/182, 2627/364, value-dated 7 Sept — and `tbills.json` still holds 20 Aug. **Bonds:** an auction ran 2 Sept for FXD3/2019/015 and SDB1/2011/030; press reported a market WAR of 13.7991% and an accepted WAR of 13.6937%, Ksh41.14bn accepted. `auction-results.json` ends at 26 Aug. Do NOT write any of it: those outlets are unregistered in `licences.ts`, `licences.test.ts` fails the build on a source that does not resolve, and both files are pipeline output that the next run overwrites. |
+| **Data pipeline** | Down since 19 Aug. As of 7 Sept the reader banner names TWO figures: **USD/KES** (13 trading days, budget 4) and **Treasury bills** (11 days, budget 10, after the 27 Aug update below). Everything else is genuinely inside its publisher's cadence. |
+| **What the archive is missing** | Established 7 Sept by `WebSearch` (CBK itself is egress-blocked, so none of it could be verified against the source PDF and none of it was written). **T-bills:** `tbills.json` was advanced to the **27 Aug** auction on 7 Sept (8.7692 / 8.9400 / 9.0323, amounts null — see the method above). The **3 Sept** auction (issues 2698/091, 2672/182, 2627/364, value-dated 7 Sept) is still missing: only its announcement is reachable, carrying the previous auction's rates, not its own results. **Bonds:** an auction ran 2 Sept for FXD3/2019/015 and SDB1/2011/030; press reported a market WAR of 13.7991% and an accepted WAR of 13.6937%, Ksh41.14bn accepted. `auction-results.json` ends at 26 Aug. Do NOT write any of it: those outlets are unregistered in `licences.ts`, `licences.test.ts` fails the build on a source that does not resolve, and both files are pipeline output that the next run overwrites. |
 | **Bonds and Auctions have no freshness row, deliberately** | Do not add one. `auctions.json` is a FORWARD-looking calendar and `bonds.json` holds maturity dates, so `now - date` is negative for most rows — the negative-age bug that got the panel's per-dataset rule deleted in the first place. The auction calendar being entirely in the past is already covered by a canary in `published-data-freshness.test.ts`, which is red and correct. |
 | **Lighthouse Best Practices: 0** | **A reporting artifact, not a site defect — diagnosed 21 Aug.** Run directly against the built site with the production CSP and headers applied, Lighthouse scores Best Practices **1.0 (100) with zero failing audits**. Netlify's plugin has reported 0 on every deploy including ones scoring 77 Performance / 100 Accessibility / 100 SEO. Do not chase it in the code; the site is clean. Reproduce with `npm i --no-save lighthouse` and run it against a local server that applies the netlify.toml headers. |
 | **CLS** | **Resolved 21 Aug.** All six measured routes now pass: `/` 0, `/dashboard/` 0.0512 (was 0.0252 on 21 Aug; still far inside the 0.1 budget), `/auctions/` 0, `/ladder/` 0.0166, `/tbills/` 0, `/portfolio/` 0.0024. One cause, not four — `StaleDataNotice` appeared on mount and pushed `<main>` down 99px. It is now server-rendered when the build already knows the data is stale. |

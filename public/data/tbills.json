@@ -8,7 +8,7 @@
     "amountOfferedKES": null,
     "amountAcceptedKES": null,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 27 Aug 2026"
+    "source": "CBK auction, 27 Aug 2026, entered by hand"
   },
   {
     "id": "tb-182-2026-08-27",
@@ -19,7 +19,7 @@
     "amountOfferedKES": null,
     "amountAcceptedKES": null,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 27 Aug 2026"
+    "source": "CBK auction, 27 Aug 2026, entered by hand"
   },
   {
     "id": "tb-364-2026-08-27",
@@ -30,6 +30,6 @@
     "amountOfferedKES": null,
     "amountAcceptedKES": null,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 27 Aug 2026"
+    "source": "CBK auction, 27 Aug 2026, entered by hand"
   }
 ]

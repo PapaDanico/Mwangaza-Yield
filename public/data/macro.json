@@ -21,36 +21,43 @@
     "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 7 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down)."
   },
   {
-    "id": "cpi-2026-08-05",
+    "id": "cpi-2026-08",
     "indicator": "CPI",
-    "value": 6.49,
-    "date": "2026-08-05",
+    "value": 6.6,
+    "date": "2026-08-31",
     "unit": "% y/y",
     "source": "CBK",
-    "fallback": true,
-    "via": "cbk-home",
-    "period": "2026-07",
-    "lastChecked": "2026-08-19"
+    "fallback": false,
+    "via": "supplied-document",
+    "period": "2026-08",
+    "lastChecked": "2026-09-07",
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
   },
   {
-    "id": "cpi-core-2026-07",
+    "id": "cpi-core-2026-08",
     "indicator": "CPI_CORE",
-    "value": 3.2,
-    "date": "2026-07-31",
+    "value": 3.4,
+    "date": "2026-08-31",
     "unit": "% y/y",
-    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+    "source": "CBK",
     "fallback": false,
-    "lastChecked": "2026-07-31"
+    "lastChecked": "2026-09-07",
+    "period": "2026-08",
+    "via": "supplied-document",
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
   },
   {
-    "id": "cpi-noncore-2026-07",
+    "id": "cpi-noncore-2026-08",
     "indicator": "CPI_NONCORE",
-    "value": 15.0,
-    "date": "2026-07-31",
+    "value": 14.7,
+    "date": "2026-08-31",
     "unit": "% y/y",
-    "source": "KNBS Consumer Price Indices and Inflation Rates, July 2026",
+    "source": "CBK",
     "fallback": false,
-    "lastChecked": "2026-07-31"
+    "lastChecked": "2026-09-07",
+    "period": "2026-08",
+    "via": "supplied-document",
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
   },
   {
     "id": "gdp-2025",

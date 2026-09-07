@@ -1,7 +1,7 @@
 [
   {
     "id": "auc-2026-08-switch",
-    "issueCode": "FXD1/2012/015 + bills \u2192 FXD4/2019/010",
+    "issueCode": "FXD1/2012/015 + bills → FXD4/2019/010",
     "bondName": "Switch auction into 10-Year Fixed Coupon Bond FXD4/2019/010 (Ksh 15B)",
     "category": "FXD",
     "offerOpenDate": "2026-07-30",
@@ -98,7 +98,7 @@
   },
   {
     "id": "auc-2026-07-switch",
-    "issueCode": "FXD1/2021/05 \u2192 FXD1/2012/20",
+    "issueCode": "FXD1/2021/05 → FXD1/2012/20",
     "bondName": "Switch Auction (Ksh 10B offered, 7.95B accepted into 20-Year)",
     "category": "FXD",
     "offerOpenDate": "2026-07-01",
@@ -174,5 +174,56 @@
     "tenorYears": 25,
     "prospectusUrl": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/32779892_JUNE%202026%20FXD1-2020-015%20AND%20FXD1-2018-025%20DATED%20%2008-06-2026.pdf",
     "status": "settled"
+  },
+  {
+    "id": "auc-2026-09-reopen",
+    "issueCode": "FXD3/2019/015 · SDB1/2011/030",
+    "bondName": "Re-opened 15-Year and 30-Year Treasury Bonds (Ksh 60B)",
+    "category": "FXD",
+    "offerOpenDate": "2026-08-19",
+    "offerCloseDate": "2026-09-02",
+    "auctionDate": "2026-09-02",
+    "settlementDate": "2026-09-07",
+    "amountOfferedKES": 60000000000,
+    "couponRate": null,
+    "tenorYears": 15,
+    "maturityDate": "2034-07-10",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "settled",
+    "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-09-switch",
+    "issueCode": "FXD1/2013/015 → FXD4/2019/010",
+    "bondName": "Switch auction into 10-Year Fixed Coupon Bond FXD4/2019/010 (Ksh 10B)",
+    "category": "FXD",
+    "offerOpenDate": "2026-08-27",
+    "offerCloseDate": "2026-09-07",
+    "auctionDate": "2026-09-07",
+    "settlementDate": "2026-09-09",
+    "amountOfferedKES": 10000000000,
+    "couponRate": 12.28,
+    "tenorYears": 10,
+    "maturityDate": "2029-11-12",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "settled",
+    "transactionType": "switch"
+  },
+  {
+    "id": "auc-2026-09-10-tbills",
+    "issueCode": "2699/091 · 2673/182 · 2628/364",
+    "bondName": "91, 182 & 364-day Treasury Bills",
+    "category": "TBILL",
+    "offerOpenDate": "2026-09-04",
+    "offerCloseDate": "2026-09-10",
+    "auctionDate": "2026-09-10",
+    "settlementDate": "2026-09-14",
+    "amountOfferedKES": null,
+    "couponRate": null,
+    "tenorYears": 1,
+    "maturityDate": null,
+    "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
+    "status": "upcoming",
+    "transactionType": "issuance"
   }
 ]

@@ -269,17 +269,20 @@ export interface KnownExposure {
 }
 
 export const KNOWN_EXPOSURES: KnownExposure[] = [
-  {
-    source: 'KNBS Consumer Price Indices and Inflation Rates, July 2026',
-    file: 'public/data/macro.json',
-    remedy:
-      'Core (3.2%) and non-core (15.0%) CPI are cited to KNBS, which reserves ' +
-      'all rights. CBK republishes both in its MPC press release under a ' +
-      'notice that does grant reproduction. Re-derive them from the CBK ' +
-      'release on the next refresh and cite CBK — the same route the headline ' +
-      'CPI already takes, and the one provenance.ts documents. Do not simply ' +
-      'change the label: an unverified attribution is a worse defect than an ' +
-      'unlicensed one.',
-    resolveBy: '2026-11-16',
-  },
+  /* Empty, and that is the intended end state rather than an oversight.
+   *
+   * The one entry here cited core and non-core CPI to KNBS, which reserves all
+   * rights. Its remedy said: re-derive them from the CBK release and cite CBK,
+   * the route the headline CPI already takes — and warned "do not simply
+   * change the label: an unverified attribution is a worse defect than an
+   * unlicensed one."
+   *
+   * Carried out on 7 September 2026 against CBK's own "Inflation Highlights,
+   * August 2026", supplied directly. It is a re-derivation and not a relabel:
+   * the figures moved with the attribution, core 3.2 -> 3.4 and non-core
+   * 15.0 -> 14.7, because they are August's rather than July's.
+   *
+   * Every `source` the app ships now resolves to a `permitted` licence. Add an
+   * entry here only with a remedy and a resolveBy date; the tests above refuse
+   * one that is overdue, and refuse one for a source nothing ships any more. */
 ];

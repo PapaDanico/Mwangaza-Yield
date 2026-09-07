@@ -44,17 +44,21 @@ describe('supplied FXD4 switch across analytical surfaces', () => {
   });
 
   it('keeps the September switch as labelled historical evidence too', () => {
-    /* The same bond, switched again — CBK results notice dated 9 September
-     * 2026, supplied directly. A second switch on one bond is the case where
-     * "exclude switches from issuance" has to keep working per record rather
-     * than per bond. */
+    /* The same bond, switched again — CBK results notice value dated 9
+     * September 2026 and signed on the 7th, supplied directly. A second switch
+     * on one bond is the case where "exclude switches from issuance" has to
+     * keep working per record rather than per bond.
+     *
+     * Dated 2026-09-07, the AUCTION date, not the 9th. CBK heads a results
+     * notice with the VALUE date: the 2 September auction's notice is headed
+     * "DATED 07/09/2026" and signed on the 2nd, which settles the convention. */
     const history = historyFor(prints, 'FXD4/2019/010');
-    expect(history.find((h) => h.date === '2026-09-09')).toMatchObject({
-      date: '2026-09-09',
+    expect(history.find((h) => h.date === '2026-09-07')).toMatchObject({
+      date: '2026-09-07',
       rate: 11.1398,
       transactionType: 'switch',
     });
-    expect(prints.find((p) => p.id === 'res-fxd4-2019-010-2026-09-09-switch')).toBeDefined();
+    expect(prints.find((p) => p.id === 'res-fxd4-2019-010-2026-09-07-switch')).toBeDefined();
   });
 
   it('excludes the switch from cash-issuance demand, curve, peer, and trend calculations', () => {

@@ -5888,9 +5888,9 @@
     "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 26 August 2026 (document supplied directly to Mwangaza Yield)."
   },
   {
-    "id": "res-fxd4-2019-010-2026-09-09-switch",
+    "id": "res-fxd4-2019-010-2026-09-07-switch",
     "issueCode": "FXD4/2019/010",
-    "auctionDate": "2026-09-09",
+    "auctionDate": "2026-09-07",
     "parserVersion": 14,
     "couponRate": 12.28,
     "weightedAverageRate": 11.1398,
@@ -5902,6 +5902,40 @@
     "bidsLabel": "total bids received at cost (kshs. m)",
     "offeredScope": "auction",
     "transactionType": "switch",
-    "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 9 September 2026, signed D. Luusa, Director Financial Markets, 7 September 2026 (document supplied directly to Mwangaza Yield)."
+    "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, value dated 9 September 2026, signed D. Luusa, Director Financial Markets, 7 September 2026 (document supplied directly to Mwangaza Yield)."
+  },
+  {
+    "id": "res-fxd3-2019-015-2026-09-02",
+    "issueCode": "FXD3/2019/015",
+    "auctionDate": "2026-09-02",
+    "parserVersion": 14,
+    "couponRate": 12.34,
+    "weightedAverageRate": 12.7631,
+    "marketWeightedAverageRate": 12.829,
+    "pricePer100": 99.5615,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 41139.13,
+    "bidsReceivedKESM": 57101.4,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Fifteen and Thirty Years Treasury Bonds Issue Nos. FXD3/2019/015 and SDB1/2011/030, value dated 7 September 2026, signed D. Luusa, Director Financial Markets, 2 September 2026 (document supplied directly to Mwangaza Yield)."
+  },
+  {
+    "id": "res-sdb1-2011-030-2026-09-02",
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": "2026-09-02",
+    "parserVersion": 14,
+    "couponRate": 12.0,
+    "weightedAverageRate": 13.6937,
+    "marketWeightedAverageRate": 13.7991,
+    "pricePer100": 90.3598,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 6609.37,
+    "bidsReceivedKESM": 11093.49,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Fifteen and Thirty Years Treasury Bonds Issue Nos. FXD3/2019/015 and SDB1/2011/030, value dated 7 September 2026, signed D. Luusa, Director Financial Markets, 2 September 2026 (document supplied directly to Mwangaza Yield)."
   }
 ]

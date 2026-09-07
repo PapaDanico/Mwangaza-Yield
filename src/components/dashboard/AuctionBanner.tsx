@@ -13,13 +13,28 @@ export default function AuctionBanner() {
     .filter((a) => a.status === 'open' || a.status === 'upcoming')
     .sort((a, b) => a.offerCloseDate.localeCompare(b.offerCloseDate))[0];
 
-  if (!next) return <Reserve height={92} />;
+  /* 144 on a phone, 119 from sm — MEASURED on the built page, not guessed.
+   *
+   * Reserve's contract is "roughly what the real card occupies, so the swap
+   * does not shift either way", and 92 stopped satisfying it. The first
+   * UPCOMING auction with a multi-issue code — "2699/091 · 2673/182 ·
+   * 2628/364", three Treasury bill issues sold together — wraps to a second
+   * line, and the code is deliberately never clamped (see the note below on
+   * what clamping it cost). The banner rendered at 144px against a 92px
+   * reservation, and /dashboard/ CLS went 0.0512 -> 0.105, past the 0.1 budget.
+   *
+   * The same min-heights are on the rendered Link, so a SHORT code cannot
+   * shift the other way either. Both states now occupy one height at each
+   * breakpoint, which is the only arrangement that shifts in neither
+   * direction. */
+  const SLOT = 'min-h-[144px] sm:min-h-[119px]';
+  if (!next) return <Reserve height={92} className={SLOT} />;
   const days = daysUntil(next.offerCloseDate);
 
   return (
     <Link
       href="/auctions/"
-      className="card flex items-center gap-4 border-l-4 border-l-gold-500 transition hover:border-gold-500"
+      className={`card flex items-center gap-4 border-l-4 border-l-gold-500 transition hover:border-gold-500 ${SLOT}`}
     >
       <div className="rounded-xl bg-ink p-3 text-gold-500">
         <Radar size={26} />

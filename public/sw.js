@@ -1,9 +1,8 @@
 /* Mwangaza Yield service worker: offline shell + data SWR + update controls. */
-const VERSION = 'mwangaza-v17';
+const VERSION = 'mwangaza-v18';
 const STATIC_CACHE = `${VERSION}-static`;
 const DATA_CACHE = `${VERSION}-data`;
 const IMAGE_CACHE = `${VERSION}-image`;
-const QUEUE_CACHE = `${VERSION}-queue`;
 
 const APP_SHELL = [
   '/', '/dashboard/', '/calculator/', '/portfolio/', '/goals/', '/ladder/', '/prices/',
@@ -18,7 +17,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => ![STATIC_CACHE, DATA_CACHE, IMAGE_CACHE, QUEUE_CACHE].includes(k)).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => ![STATIC_CACHE, DATA_CACHE, IMAGE_CACHE].includes(k)).map((k) => caches.delete(k)));
     await self.clients.claim();
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     clients.forEach((client) => client.postMessage({ type: 'SW_ACTIVATED', version: VERSION }));
@@ -27,38 +26,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
-  if (event.data?.type === 'QUEUE_EVENT' && event.data?.payload) {
-    event.waitUntil(queueEvent(event.data.payload));
-  }
 });
 
-async function queueEvent(payload) {
-  const cache = await caches.open(QUEUE_CACHE);
-  const key = new Request(`/__queue__/${Date.now()}-${Math.random()}`);
-  await cache.put(key, new Response(JSON.stringify(payload), { headers: { 'content-type': 'application/json' } }));
-}
-
-async function flushQueue() {
-  const cache = await caches.open(QUEUE_CACHE);
-  const keys = await cache.keys();
-  await Promise.all(keys.map(async (req) => {
-    try {
-      const res = await cache.match(req);
-      const body = res ? await res.json() : null;
-      if (!body) return;
-      await fetch('/api/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      await cache.delete(req);
-    } catch {
-      // Keep queued for later.
-    }
-  }));
-}
-
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'analytics-sync' || event.tag === 'community-price-sync') {
-    event.waitUntil(flushQueue());
-  }
-});
+/* The background-sync queue that stood here has been removed.
+ *
+ * It cached QUEUE_EVENT messages and flushed them to POST /api/events on a
+ * 'analytics-sync' or 'community-price-sync' background sync. Nothing in the
+ * app has ever sent a QUEUE_EVENT or registered either sync tag — grep the
+ * source — and there is no /api/events to receive one: the only function in
+ * netlify/functions is track.mts. So the queue could only ever have been
+ * filled by a caller that does not exist, and drained into a 404.
+ *
+ * It was not free while it sat there. QUEUE_CACHE was a fourth versioned
+ * cache opened on every activate, and `flushQueue` was live code holding an
+ * endpoint contract that no longer matched the deployment. */
 
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'macro-refresh') {
@@ -79,10 +60,26 @@ self.addEventListener('periodicsync', (event) => {
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(DATA_CACHE);
-  const cached = await cache.match(request.url);
+  const url = new URL(request.url);
+
+  /* Key on the PATH, not the whole URL.
+   *
+   * The Data Health panel's refresh button fetches `/data/<file>?ts=<now>`
+   * (DataStatus.tsx), and a URL-keyed cache stored every one of those under
+   * its own unique key. Nothing ever read them again — the next refresh
+   * carried a new timestamp — and nothing evicted them, because the only
+   * eviction here fires when VERSION moves. Nineteen datasets times every
+   * refresh anyone ever pressed, growing without bound on the device.
+   *
+   * Keying on the path makes a refresh REPLACE the canonical entry, which is
+   * what a refresh means, and bounds the cache at one entry per dataset. The
+   * query string still has to bypass the cache READ, or a deliberate bust
+   * would be answered from the copy it was pressed to get past. */
+  const key = url.pathname;
+  const cached = url.search ? undefined : await cache.match(key);
   const networkPromise = fetch(request)
     .then(async (response) => {
-      if (response.ok) await cache.put(request.url, response.clone());
+      if (response.ok) await cache.put(key, response.clone());
       return response;
     })
     .catch(() => null);

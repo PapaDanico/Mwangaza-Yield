@@ -21,7 +21,6 @@
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.10",
-    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "dexie": "^4.0.8",
@@ -34,7 +33,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.12.7",
-    "web-push": "^3.6.7",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
@@ -43,7 +41,6 @@
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.15",

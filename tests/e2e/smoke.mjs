@@ -1125,7 +1125,13 @@ async function main() {
     const painted = await card
       .locator('tbody td')
       .evaluateAll((tds) =>
-        tds.filter((td) => td.offsetParent !== null && /awaiting result|in range|outside/.test(td.textContent || ''))
+        // `not scored` is the exclusion state introduced with the switch
+        // label: a print that is not a cash issuance is on the record but
+        // ineligible for a hit-rate claim. It is a fourth outcome the ledger
+        // can paint, and leaving it out of this vocabulary made the guard
+        // report a row as MISSING its outcome when the outcome was there and
+        // visible — a false alarm about the one thing the card exists to show.
+        tds.filter((td) => td.offsetParent !== null && /awaiting result|in range|outside|not scored/.test(td.textContent || ''))
           .length
       );
     if (rowCount > 0 && painted < rowCount) {

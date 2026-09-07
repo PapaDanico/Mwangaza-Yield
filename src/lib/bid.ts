@@ -29,6 +29,7 @@
 
 import type { AuctionPrint, Bond } from '../types/bond';
 import { normaliseCode, clearingRate, auctionKind } from './auction-history';
+import { DAYS_IN_YEAR } from './constants';
 
 /**
  * Guidance is drawn from 2022 onward only.
@@ -42,8 +43,6 @@ export const GUIDANCE_FROM = '2022';
 
 /** Below this many comparable auctions, say so rather than imply a distribution. */
 export const MIN_SAMPLE = 5;
-
-const DAYS_IN_YEAR = 364;
 
 export interface ComparableAuction {
   issueCode: string;

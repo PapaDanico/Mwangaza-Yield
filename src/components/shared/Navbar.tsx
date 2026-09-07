@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { APP_EVENTS } from '@/lib/events';
 import { useAlertStore } from '@/stores/alertStore';
 import { MOBILE_NAV_ROUTES, PRIMARY_NAV_ROUTES } from '@/lib/routes';
 import OfflineBadge from './OfflineBadge';
@@ -30,7 +31,17 @@ function iconForRoute(id: string): LucideIcon {
 export default function Navbar() {
   const pathname = usePathname();
   const unseen = useAlertStore((s) => s.unseen);
-  const isActive = (href: string) => pathname.startsWith(href.replace(/\/$/, ''));
+  /* '/' must match only '/'.
+   *
+   * `'/'.replace(/\/$/, '')` is the empty string, and every path starts with
+   * the empty string — so the home tab rendered as the active tab on every
+   * page in the app, alongside whichever tab was genuinely active. Two lit
+   * tabs, and the one that is always lit is the one that means nothing. */
+  const isActive = (href: string) => {
+    const normalised = href.replace(/\/$/, '');
+    if (normalised === '') return pathname === '/' || pathname === '';
+    return pathname.startsWith(normalised);
+  };
 
   return (
     <>
@@ -61,6 +72,7 @@ export default function Navbar() {
               <Link
                 key={href}
                 href={href}
+                aria-current={isActive(href) ? 'page' : undefined}
                 className={cn(
                   // min-h-11 (44px), not more padding: every sizing comment in
                   // this file is about WIDTH — fitting the wordmark, seven
@@ -84,7 +96,7 @@ export default function Navbar() {
             {/* Command palette trigger — gives power users a visual entry point
                 alongside the Cmd+K shortcut. */}
             <button
-              onClick={() => document.dispatchEvent(new CustomEvent('mwangaza:palette'))}
+              onClick={() => document.dispatchEvent(new CustomEvent(APP_EVENTS.OPEN_PALETTE))}
               aria-label="Open command palette (⌘K)"
               className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-ink-muted transition-colors hover:bg-sand-200 hover:text-ink lg:px-3"
             >
@@ -145,6 +157,7 @@ export default function Navbar() {
             <Link
               key={href}
               href={href}
+              aria-current={isActive(href) ? 'page' : undefined}
               className={cn(
                 // Seven tabs at px-3 need 469px; a 360px Android screen is common and
                 // the row pushed the whole page into a sideways scroll. Sharing the

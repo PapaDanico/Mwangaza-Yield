@@ -26,10 +26,9 @@
 import type { Bond } from '../types/bond';
 import { determineWHTRate, getCouponDates, getLastCouponDate } from './financial-engine';
 
+import { DAYS_IN_YEAR as YEAR_DAYS, DAYS_IN_COUPON_PERIOD as PERIOD_DAYS, DAY_MS } from './constants';
+
 /** 364-day year, 182-day coupon period — the convention Kenyan paper is built on. */
-const YEAR_DAYS = 364;
-const PERIOD_DAYS = 182;
-const DAY_MS = 86_400_000;
 
 /**
  * A partial principal repayment before maturity.

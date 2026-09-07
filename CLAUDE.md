@@ -180,8 +180,29 @@ repository. Observed twice on 21 August: `#260` produced deploy `6a87c8b5`
 
 **So after merging, do not fire a direct deploy.** It would rebuild identical
 content from an identical commit and cost a second build credit for nothing.
-Check `currentDeploy` and confirm its `commit_ref` matches the merge commit —
-allow ~60s plus queueing before concluding it did not fire.
+Check `currentDeploy` and confirm its `commit_ref` matches the merge commit.
+
+**Allow at least fifteen minutes before concluding it did not fire.** "~60s
+plus queueing" was written from the 21 August merges, where the build itself
+took 48-57s, and it reads as though a minute is the whole wait. It is not. PR
+#278 was merged at 07:04 on 7 September and Netlify did not create the deploy
+until 07:16 — twelve minutes of queue, then a 118s build, published 07:18.
+
+That gap is a trap, because everything visible during it points the other way.
+`currentDeploy` still names the previous deploy, whose `deploy_source` reads
+`api`, and the merges since the last publish have not deployed either — so the
+evidence assembles into "the git integration is dead" when the truth is "the
+queue is long". The session that wrote this got as far as running
+`predeploy-check.mjs` on that reading before checking one more time and finding
+the build had landed on its own.
+
+A direct deploy at that moment would have been worse than a wasted credit.
+`netlify.toml` declares **no** `[[plugins]]`: the Next runtime, the Lighthouse
+plugin and the build-time edge function are all configured in the Netlify UI
+and run only in a Netlify-side build. A direct upload of `out/` skips every one
+of them, which is what `predeploy-check.mjs` means by "a direct upload can drop
+it". And it could not have been done from a session anyway — `api.netlify.com`
+is blocked by the egress proxy, so the CLI cannot reach it.
 
 Direct deploy exists for when GitHub *cannot* carry the change. Then:
 

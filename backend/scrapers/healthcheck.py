@@ -41,7 +41,23 @@ BUDGETS = [
     # PER_INDICATOR_BUDGETS below: macro.json holds five indicators on wholly
     # different cadences and a single number cannot police them.
     ("macro.json", "Macro (CBR, CPI, FX)", "date", 40, "CPI is monthly"),
-    ("tbills.json", "Treasury bills", "auctionDate", 21, "auctioned weekly"),
+    # 10 days, not 21. The justification string said "auctioned weekly" while
+    # the number allowed three weeks, so TWO missed auctions passed in silence
+    # — and on 7 September 2026 exactly that had happened: the file held the
+    # 20 August auction, CBK had since run 27 August and 3 September, and this
+    # line reported the data as comfortably within cadence at 18 days.
+    #
+    # Every other budget here is set to one full publisher cycle plus its
+    # publication lag; this one was set to three cycles. Weekly auction, results
+    # published the same or next day, so one cycle plus lag is 10. It fires
+    # three days after a missed auction, which is late enough not to trip on a
+    # public holiday shifting a Thursday and early enough that a reader pricing
+    # a bill is told the rate in front of them has been superseded.
+    #
+    # T-bill rates are the most perishable figures on the site and the ones a
+    # reader is most likely to act on the same day. A budget that hides a
+    # missed auction is worse here than anywhere else in this list.
+    ("tbills.json", "Treasury bills", "auctionDate", 10, "auctioned weekly"),
     # CBK runs the Market Perceptions Survey before every MPC meeting, and the
     # MPC sits roughly every two months. 75 days is one full cycle plus the
     # publication lag — July's fieldwork closed on the 21st and the report was

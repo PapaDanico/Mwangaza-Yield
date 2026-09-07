@@ -75,7 +75,15 @@ export const useBondStore = create<BondState>((set) => ({
         Promise.all([
           loadJSON<ContextIndicator[]>('/data/context.json').catch(() => []),
           loadJSON<ContextIndicator[]>('/data/qebr-context.json').catch(() => []),
-        ]).then(([wb, qebr]) => mergeSovereign(wb, qebr)),
+          // A third publisher, for the same reason there is a second: CBK's
+          // Weekly Bulletin carries import cover every week against the
+          // Treasury's quarter and the World Bank's year. Kept as its own file
+          // rather than folded into either, so neither scraper's completeness
+          // guard counts rows it did not write — worldbank.py REFUSES to write
+          // when it returns fewer indicators than the file already holds, so a
+          // row added to context.json would wedge it shut permanently.
+          loadJSON<ContextIndicator[]>('/data/cbk-context.json').catch(() => []),
+        ]).then(([wb, qebr, cbk]) => mergeSovereign(mergeSovereign(wb, qebr), cbk)),
         loadJSON<RateDecision[]>('/data/cbr-history.json').catch(() => []),
         loadJSON<AuctionPrint[]>('/data/auction-results.json').catch(() => []),
         loadJSON<CpiPoint[]>('/data/cpi-history.json').catch(() => []),

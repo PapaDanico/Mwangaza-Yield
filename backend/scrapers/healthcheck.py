@@ -58,6 +58,11 @@ BUDGETS = [
     # reader is most likely to act on the same day. A budget that hides a
     # missed auction is worse here than anywhere else in this list.
     ("tbills.json", "Treasury bills", "auctionDate", 10, "auctioned weekly"),
+    # Hand-maintained like tbills.json — no scraper writes it, so it is absent
+    # from data-manifest.json by design, and its budget is CBK's own cadence.
+    # The Weekly Bulletin is weekly; 14 days is one cycle plus the publication
+    # lag, the same basis every other line here uses.
+    ("cbk-context.json", "CBK sovereign context", "asOf", 14, "Weekly Bulletin"),
     # CBK runs the Market Perceptions Survey before every MPC meeting, and the
     # MPC sits roughly every two months. 75 days is one full cycle plus the
     # publication lag — July's fieldwork closed on the 21st and the report was

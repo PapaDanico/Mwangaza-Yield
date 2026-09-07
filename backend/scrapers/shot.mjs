@@ -1,9 +1,10 @@
 import { chromium } from 'playwright-core';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH });
 const p = await b.newPage({ viewport: { width: 1280, height: 1200 } });
-await p.goto('http://127.0.0.1:4703/macro/', { waitUntil: 'networkidle' });
+await p.goto('http://127.0.0.1:4702/macro/', { waitUntil: 'networkidle' });
 await p.waitForTimeout(1800);
 const t = await p.evaluate(()=>document.body.innerText);
 const i = t.indexOf('Reserves (import cover)');
-console.log(t.slice(Math.max(0,i-300), i+240));
+console.log('--- sovereign panel ---');
+console.log(t.slice(i-260, i+220));
 await b.close();

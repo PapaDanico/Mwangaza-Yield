@@ -70,8 +70,15 @@ def modules_needing_tests() -> set:
     }
 
 
-def tested_modules() -> set:
+def modules_with_tests() -> set:
     """Modules some test file actually imports.
+
+    NOT named `tested_modules`. pytest collects any function matching `test*`
+    in a `test_*.py` file, and "tested_modules" matches that prefix — so this
+    helper was collected and run as a test case. It asserts nothing and returns
+    a set, which pytest reported as PytestReturnNotNoneWarning and which future
+    pytest versions turn into an error. It also inflated the suite by one
+    passing "test" that could never fail.
 
     Import, not filename. test_calendar_parser.py covers cbk_parser.py, and a
     name-matching rule would have called cbk_parser untested while calling a
@@ -123,7 +130,7 @@ def main() -> int:
     # covers cbk_parser.py and a name rule would report that as a gap.
     needed = modules_needing_tests()
     check(len(needed) >= 8, f"only found {len(needed)} modules; the glob is wrong")
-    untested = sorted(needed - tested_modules())
+    untested = sorted(needed - modules_with_tests())
     check(not untested,
           f"modules with no test importing them: {untested}. Either write one, "
           f"or add it to EXEMPT with the reason it does not need one.")

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-07T13:35:23.980732+00:00",
+  "checkedAt": "2026-09-07T14:10:44.458171+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -12,18 +12,18 @@
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-08-19",
-      "ageDays": 19,
+      "asOf": "2026-09-07",
+      "ageDays": 0,
       "budgetDays": 40,
       "stale": false
     },
     {
       "file": "tbills.json",
       "label": "Treasury bills",
-      "asOf": "2026-08-27",
-      "ageDays": 11,
+      "asOf": "2026-09-03",
+      "ageDays": 4,
       "budgetDays": 10,
-      "stale": true
+      "stale": false
     },
     {
       "file": "expectations.json",

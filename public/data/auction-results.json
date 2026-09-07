@@ -5885,6 +5885,23 @@
     "bidsLabel": "total bids received at cost (kshs. m)",
     "offeredScope": "auction",
     "transactionType": "switch",
-    "sourceNote": "Central Bank of Kenya \u2014 Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 26 August 2026 (document supplied directly to Mwangaza Yield)."
+    "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 26 August 2026 (document supplied directly to Mwangaza Yield)."
+  },
+  {
+    "id": "res-fxd4-2019-010-2026-09-09-switch",
+    "issueCode": "FXD4/2019/010",
+    "auctionDate": "2026-09-09",
+    "parserVersion": 14,
+    "couponRate": 12.28,
+    "weightedAverageRate": 11.1398,
+    "marketWeightedAverageRate": 11.1778,
+    "pricePer100": 106.7968,
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 11020.44,
+    "bidsReceivedKESM": 13524.24,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "switch",
+    "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010, dated 9 September 2026, signed D. Luusa, Director Financial Markets, 7 September 2026 (document supplied directly to Mwangaza Yield)."
   }
 ]

@@ -14,39 +14,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.7692,
-      "grossEAY": 9.0621,
-      "netEAY": 7.665,
+      "quotedDiscountRate": 8.7687,
+      "grossEAY": 9.0616,
+      "netEAY": 7.6645,
       "whtRate": 0.15,
-      "pricePer100": 97.8605,
-      "auctionDate": "2026-08-27",
-      "nextAuctionDate": "2026-09-03",
+      "pricePer100": 97.8606,
+      "auctionDate": "2026-09-03",
+      "nextAuctionDate": "2026-09-10",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 27 Aug 2026"
+      "source": "CBK auction, 3 Sep 2026, entered by hand"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.94,
-      "grossEAY": 9.1404,
-      "netEAY": 7.7438,
+      "quotedDiscountRate": 8.9331,
+      "grossEAY": 9.1332,
+      "netEAY": 7.7377,
       "whtRate": 0.15,
-      "pricePer100": 95.7325,
-      "auctionDate": "2026-08-27",
-      "nextAuctionDate": "2026-09-03",
+      "pricePer100": 95.7356,
+      "auctionDate": "2026-09-03",
+      "nextAuctionDate": "2026-09-10",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 27 Aug 2026"
+      "source": "CBK auction, 3 Sep 2026, entered by hand"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0323,
-      "grossEAY": 9.0334,
-      "netEAY": 7.6782,
+      "quotedDiscountRate": 9.0737,
+      "grossEAY": 9.0748,
+      "netEAY": 7.7134,
       "whtRate": 0.15,
-      "pricePer100": 91.7368,
-      "auctionDate": "2026-08-27",
-      "nextAuctionDate": "2026-09-03",
+      "pricePer100": 91.702,
+      "auctionDate": "2026-09-03",
+      "nextAuctionDate": "2026-09-10",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 27 Aug 2026"
+      "source": "CBK auction, 3 Sep 2026, entered by hand"
     }
   ],
   "macro": {
@@ -83,10 +83,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.54,
+      "value": 129.43,
       "unit": "KES/USD",
-      "date": "2026-08-19",
-      "lastChecked": "2026-08-19",
+      "date": "2026-09-07",
+      "lastChecked": "2026-09-07",
       "source": "CBK indicative",
       "fallback": false
     }

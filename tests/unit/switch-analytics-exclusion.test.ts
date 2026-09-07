@@ -29,11 +29,32 @@ describe('supplied FXD4 switch across analytical surfaces', () => {
   it('keeps the switch as labelled historical evidence', () => {
     expect(switchPrint).toBeDefined();
     const history = historyFor(prints, 'FXD4/2019/010');
-    expect(history.at(-1)).toMatchObject({
+    /* Found by date, NOT taken as `.at(-1)`.
+     *
+     * FXD4/2019/010 was switched again on 9 September, so the August print is
+     * no longer the newest and this assertion started failing on data that was
+     * entirely correct. What it exists to prove is that a switch STAYS in the
+     * per-bond record wearing its label — not that it is the last thing in it,
+     * which is a fact about the calendar rather than about this behaviour. */
+    expect(history.find((h) => h.date === '2026-08-26')).toMatchObject({
       date: '2026-08-26',
       rate: 11.2391,
       transactionType: 'switch',
     });
+  });
+
+  it('keeps the September switch as labelled historical evidence too', () => {
+    /* The same bond, switched again — CBK results notice dated 9 September
+     * 2026, supplied directly. A second switch on one bond is the case where
+     * "exclude switches from issuance" has to keep working per record rather
+     * than per bond. */
+    const history = historyFor(prints, 'FXD4/2019/010');
+    expect(history.find((h) => h.date === '2026-09-09')).toMatchObject({
+      date: '2026-09-09',
+      rate: 11.1398,
+      transactionType: 'switch',
+    });
+    expect(prints.find((p) => p.id === 'res-fxd4-2019-010-2026-09-09-switch')).toBeDefined();
   });
 
   it('excludes the switch from cash-issuance demand, curve, peer, and trend calculations', () => {

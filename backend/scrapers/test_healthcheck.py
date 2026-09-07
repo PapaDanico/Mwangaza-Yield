@@ -16,7 +16,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
-from healthcheck import BUDGETS, indicator_age_days  # noqa: E402
+from healthcheck import BUDGETS, FETCH_FIELD, indicator_age_days  # noqa: E402
 
 DATA = HERE.parent.parent / "public" / "data"
 
@@ -96,6 +96,20 @@ def fixture_dir(tmp: Path, **overrides) -> Path:
         if fname in overridden:
             continue  # the file under test keeps whatever the test gave it
         _freshen(d / fname, field)
+
+    # BUDGETS is necessary but NOT sufficient, which is what the docstring above
+    # promised it was. `check_fetch_recency` is a second age check layered on
+    # top of a budget rather than a budget of its own, so its field never
+    # appeared in that list and never got freshened — and the bomb the
+    # BUDGETS-derived list was introduced to defuse went off again from a
+    # direction nobody had covered. On 7 September 2026 every date in this
+    # fixture read 0d old and the run still failed, on "Sovereign context last
+    # fetched 19d ago", a fact about the real repository that a hermetic
+    # fixture has no business being able to see.
+    #
+    # Imported rather than retyped, for the same reason the field list is.
+    for src in d.glob("*.json"):
+        _freshen(src, FETCH_FIELD)
 
     for name, payload in overrides.items():
         (d / f"{name}.json").write_text(json.dumps(payload))

@@ -367,18 +367,29 @@ def check_per_indicator_budgets(payload, label: str, problems: list, rows: list)
 # a failure would raise an alarm about a deployment rather than about the data.
 FETCH_MAX_AGE_DAYS = 7
 
+# Named rather than inlined so a test fixture can freshen the same field this
+# check reads. test_healthcheck.py builds a hermetic dataset by stamping every
+# field healthcheck looks at, and it derived that list from BUDGETS alone —
+# which does not mention fetchedAt, because this is a second check on top of a
+# budget rather than a budget of its own. The result was a test asserting
+# something about secondary.json that failed whenever the real pipeline had not
+# run for a week, which is the exact "calendar bomb" its own docstring says the
+# BUDGETS-derived list makes impossible. Importing this closes that gap and
+# survives a rename.
+FETCH_FIELD = "fetchedAt"
+
 
 def check_fetch_recency(payload, label: str, problems: list, rows: list) -> None:
     if not isinstance(payload, list) or not payload:
         return
     today = date.today()
-    stamped = [r for r in payload if isinstance(r, dict) and r.get("fetchedAt")]
+    stamped = [r for r in payload if isinstance(r, dict) and r.get(FETCH_FIELD)]
     if not stamped:
-        rows.append(f"{'UNKNOWN':<9} {label} fetch age — no fetchedAt yet (written before it existed)")
+        rows.append(f"{'UNKNOWN':<9} {label} fetch age — no {FETCH_FIELD} yet (written before it existed)")
         return
     oldest: int | None = None
     for rec in stamped:
-        when = parse_day(rec["fetchedAt"])
+        when = parse_day(rec[FETCH_FIELD])
         if when is None or when > today:
             continue
         age = (today - when).days

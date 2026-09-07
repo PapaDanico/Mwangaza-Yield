@@ -92,6 +92,37 @@ the threshold: a banner that appears every weekend is a banner nobody reads.
 
 ## Running the refresh by hand
 
+```bash
+npm run refresh
+```
+
+That is `scripts/refresh-data.mjs`, and it runs exactly the sequence below in
+exactly this order. It is not a second refresh path — same scrapers, same
+files, no cadence of its own — it is this section made executable, with the
+"these commands WRITE even when they fail" trap enforced instead of remembered.
+
+**It decides whether to keep the run by asking whether any dataset's `asOf`
+advanced**, and discards everything including the stamps if none did. Two
+weaker rules were tried first and both kept a run that fetched nothing:
+
+- *Exit code.* `macro_parser.py` returns 0 having reached nothing, because
+  `carry_forward()` is a valid outcome.
+- *Files changed.* A failed run rewrites `macro.json` to record the failure —
+  rows gain `lastAttempt` and `attemptFailed` — and advances
+  `data-manifest.json`'s `lastSuccessfulScrape` **even when every source
+  403'd**. Bytes move while no figure does.
+
+`asOf` in `freshness.json` is the date of the newest OBSERVATION in each
+dataset, computed by `healthcheck.py`, and it is what the reader-facing
+staleness notice is derived from. Nothing else is a reliable answer to "did
+anything actually get newer".
+
+Run it from a container behind the egress proxy and it will reach nothing,
+restore `public/data`, and exit 1. That is correct behaviour, not a fault in
+the script.
+
+### What it runs
+
 Requires network access to CBK, KNBS, the National Treasury and the World Bank.
 A development container behind an egress proxy will **403 on CONNECT** to all
 of them, which looks identical to the source being down — do not report a
@@ -143,7 +174,9 @@ that and the site is told the pipeline ran today — which **suppresses the
 staleness notice** described above, on data that is exactly as old as it was.
 The banner would go quiet at the moment it was most needed.
 
-So check what actually changed before staging, and throw away a failed run:
+`npm run refresh` enforces this, and refuses to start if `public/data` is
+already dirty — it decides by looking at what changed and cannot tell your
+edits from its own. Running the scrapers directly, the checks are:
 
 ```bash
 git diff --stat public/data/          # what did this run really touch?
@@ -151,7 +184,9 @@ git diff public/data/meta.json        # did generatedAt move without new data?
 git checkout -- public/data/          # discard a run that fetched nothing
 ```
 
-Only keep `public/data/` from a run whose scrapers reached their sources.
+Only keep `public/data/` from a run whose scrapers reached their sources — and
+note that `git diff --stat` alone will not tell you that, for the reasons
+above. Compare `freshness.json`'s `asOf` values.
 
 ### Before committing
 
@@ -197,7 +232,8 @@ above.
 ## What not to do
 
 **Do not add a second refresh path** — a cron on a server, a scheduled function,
-a manual script that writes `public/data/` on a different cadence. Two writers
+a manual script that writes `public/data/` on a different cadence. (`npm run
+refresh` is not one: it has no cadence, and it drives these same scrapers.) Two writers
 to the same dataset with different clocks is how the figures start disagreeing
 with `freshness.json`, and that file is the only thing telling the reader how
 old the numbers are.

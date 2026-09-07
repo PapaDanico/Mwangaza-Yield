@@ -47,7 +47,7 @@ const SW = readFileSync(join(ROOT, 'public', 'sw.js'), 'utf8');
 
 /* Recorded pair. Update BOTH, in the same commit, or not at all. */
 const SHIPPED_VERSION = 'mwangaza-v18';
-const SHIPPED_DIGEST = 'c8c0d893a317e048';
+const SHIPPED_DIGEST = 'e3551844aa32eca3';
 
 function version() {
   const m = SW.match(/const VERSION = '([^']+)'/);
@@ -71,6 +71,37 @@ function resolve(entry) {
   return existsSync(inOut) ? inOut : join(ROOT, 'public', entry);
 }
 
+/**
+ * Blank out the one thing in a built page that moves without anybody editing
+ * it: the age in the staleness notice.
+ *
+ * `StaleDataNotice` is server-rendered when the build already knows the data
+ * is stale — that is the CLS fix, and it puts a clock-derived sentence into
+ * EVERY precached route ("USD/KES (13 days old, …)"). While the pipeline is
+ * down that number ticks upward on its own, so a digest taken over the raw
+ * bytes stops matching a day or two after it is recorded, on a tree nobody
+ * has touched.
+ *
+ * That is not the change this guard exists to catch. It exists to catch a
+ * precached page changing while VERSION stays put, and a reader being served
+ * the old one indefinitely. An age that advances with the calendar is not
+ * somebody shipping a new page behind a stale cache version — and a guard that
+ * goes red on its own teaches people to re-record its constant without reading
+ * it, which is the same as not having it.
+ *
+ * Only the digits are replaced, and only in that fixed phrase. If the sentence
+ * itself changes — different wording, a new indicator named, the notice
+ * appearing on a route that did not have it — the bytes around the number move
+ * and the digest still catches it.
+ */
+function normalise(buf, path) {
+  if (!path.endsWith('.html')) return buf;
+  return Buffer.from(
+    buf.toString('utf8').replace(/\b\d+ days old\b/g, 'N days old'),
+    'utf8'
+  );
+}
+
 function digest() {
   const h = createHash('sha256');
   const missing = [];
@@ -81,7 +112,7 @@ function digest() {
       continue;
     }
     h.update(entry);
-    h.update(readFileSync(path));
+    h.update(normalise(readFileSync(path), path));
   }
   return { hex: h.digest('hex').slice(0, 16), missing };
 }

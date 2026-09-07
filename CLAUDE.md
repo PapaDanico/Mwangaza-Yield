@@ -373,17 +373,36 @@ docstring in `probe_tbill_rates.py`. Hand-editing it is the intended mechanism
 until a parser exists. Its `auctionDate` is the **auction day (a Thursday)**,
 not the `DATED` value on CBK's notice, which is the Monday value date.
 
-### Updating it from search, when CBK cannot be fetched
+### Prefer a supplied document over search. Ask for one.
 
-Done on 7 September, 20 Aug -> 27 Aug. The method, because getting the DATE
-wrong is easier than getting the rate wrong:
+**The owner can paste CBK's own notice, and that beats any amount of
+searching.** On 7 September three arrived — the T-bill results, the daily
+exchange rates, and a switch result — and each replaced or corrected something
+search had produced. The search-derived 27 August T-bill rates committed
+earlier that day were superseded within the hour by the primary 3 September
+notice. If a figure matters, ask for the document before reasoning from
+fragments.
+
+Cross-check a supplied document against data already held before writing it.
+The 9 September switch notice was verified by its ISIN, maturity and coupon all
+matching `bonds.json` exactly; the T-bill notice by both column totals
+reconciling to 28,000.00M offered and 51,023.38M accepted. That is what makes a
+transcription checkable rather than trusted.
+
+### Updating it from search, when no document is available
+
+The method, because getting the DATE wrong is easier than getting the rate
+wrong:
 
 **Pin the auction date from the issue-number sequence, not from a headline.**
 The numbers advance by one a week across all three tenors, and the `DATED`
 value is the Monday value date. `2696/091 DATED 24-08-2026` is the Thursday
 20 August auction; therefore 2697 (DATED 31-08) is 27 August and 2698 (DATED
 07-09) is 3 September. An earlier reading in that same session had these a
-week out, from assuming `DATED` was the auction day.
+week out, from assuming `DATED` was the auction day. **Confirmed against the
+primary notice**: the 2698 document is headed `DATED 07-09-2026`, a Monday, and
+names the next auction as `DATED 14/09/2026`, also a Monday — Thursday 10
+September.
 
 **Corroborate the rate three ways before writing it.** For 27 August: CBK's
 own Treasury Bills page carried them as the "Previous Average Interest Rate"
@@ -464,8 +483,8 @@ Current as of 7 September 2026. Confirm before acting; do not rediscover.
 | | state |
 |---|---|
 | **GitHub Actions** | Blocked account-wide since **15 Aug, 13:34 UTC** (dated by `RUNBOOK-REFRESH-WITHOUT-CI.md`, written at the time). `meta.generatedAt` reads 19 Aug, so a refresh happened four days into the outage — by hand, per that runbook, is the only path that was open; its origin is not recorded. Runs are *created* but runner allocation fails — jobs die in 2–5s with zero steps and job log 404s. Re-confirmed 7 Sept on run `34094629609` (`test-and-build`, 3s) and on the twice-daily scheduled runs, which have failed identically every day since 19 Aug. Not a quota: the repo is public and standard runners are free. Diagnosed further on 7 Sept and the API exposes nothing more: the workflow's `state` is `active` (not disabled, not deactivated for inactivity), the job carries `runner_id: 0` with an empty runner group, its logs 404, and its check run has empty `output.title/summary/text`. So there is no annotation to read — the cause is visible only in the web UI, in two places, in this order: **(1)** the banner at the top of the Actions tab, **(2)** Settings → Billing and licensing, where an unpaid balance from anything else on the account disables Actions account-wide, public repositories included. **This is the single blocker on every stale figure below, and the only fix.** |
-| **Data pipeline** | Down since 19 Aug. As of 7 Sept the reader banner names TWO figures: **USD/KES** (13 trading days, budget 4) and **Treasury bills** (11 days, budget 10, after the 27 Aug update below). Everything else is genuinely inside its publisher's cadence. |
-| **What the archive is missing** | Established 7 Sept by `WebSearch` (CBK itself is egress-blocked, so none of it could be verified against the source PDF and none of it was written). **T-bills:** `tbills.json` was advanced to the **27 Aug** auction on 7 Sept (8.7692 / 8.9400 / 9.0323, amounts null — see the method above). The **3 Sept** auction (issues 2698/091, 2672/182, 2627/364, value-dated 7 Sept) is still missing: only its announcement is reachable, carrying the previous auction's rates, not its own results. **Bonds:** an auction ran 2 Sept for FXD3/2019/015 and SDB1/2011/030; press reported a market WAR of 13.7991% and an accepted WAR of 13.6937%, Ksh41.14bn accepted. `auction-results.json` ends at 26 Aug. Do NOT write any of it: those outlets are unregistered in `licences.ts`, `licences.test.ts` fails the build on a source that does not resolve, and both files are pipeline output that the next run overwrites. |
+| **Data pipeline** | Still down — `meta.generatedAt` is 19 Aug and the liveness canary is red at ~19 days. But as of 7 Sept the **reader banner is silent, and has earned it**: three CBK notices supplied by the owner put T-bills at 4 days (budget 10) and USD/KES at 0 (budget 4), so every figure is inside its own publisher's cadence. Fresh figures are not a working pipeline; the Data Health panel's "Pipeline last ran" row and the canary are what still report the machinery. |
+| **What the archive is missing** | Largely closed on 7 Sept by three CBK documents supplied directly: T-bills advanced to the **3 Sept** auction (8.7687 / 8.9331 / 9.0737, amounts sourced, `nextAuctionDate` 10 Sept), USD/KES to **129.43** on 7 Sept, and the **9 Sept FXD4/2019/010 switch** added (accepted WAR 11.1398%). The 27 Aug T-bill figures written earlier that day from search were superseded and removed. What remains missing is the **2 Sept bond auction** (FXD3/2019/015 and SDB1/2011/030) — press-reported only, no document, so not written. Earlier notes established 7 Sept by `WebSearch` (CBK itself is egress-blocked, so none of it could be verified against the source PDF and none of it was written). **T-bills:** `tbills.json` was advanced to the **27 Aug** auction on 7 Sept (8.7692 / 8.9400 / 9.0323, amounts null — see the method above). The **3 Sept** auction (issues 2698/091, 2672/182, 2627/364, value-dated 7 Sept) is still missing: only its announcement is reachable, carrying the previous auction's rates, not its own results. **Bonds:** an auction ran 2 Sept for FXD3/2019/015 and SDB1/2011/030; press reported a market WAR of 13.7991% and an accepted WAR of 13.6937%, Ksh41.14bn accepted. `auction-results.json` ends at 26 Aug. Do NOT write any of it: those outlets are unregistered in `licences.ts`, `licences.test.ts` fails the build on a source that does not resolve, and both files are pipeline output that the next run overwrites. |
 | **Every scraper source is egress-blocked, verified per host** | Checked individually on 7 Sept, not inferred from CBK alone: `api.worldbank.org`, `www.centralbank.go.ke`, `www.knbs.or.ke`, `www.treasury.go.ke`, `data.imf.org`, `api.imf.org` and `opendataforafrica.org` all fail `CONNECT` with 403. There is no partially-open route — no scraper can run from a session, including the keyless World Bank one. `list_environments` shows a single environment, so there is no second sandbox with different egress to try. |
 | **`npm run refresh`** | New 7 Sept. The runbook's manual sequence, executable, with its trap enforced: it discards the whole run — stamps included — unless a dataset's `asOf` in `freshness.json` advanced. Exit code and files-changed both LOOK like success on a run that fetched nothing (`macro_parser.py` exits 0 via `carry_forward()`; `data-manifest.json` advances `lastSuccessfulScrape` when every source 403'd), and a files-changed rule was tested here and kept a dead run. Not a second refresh path: same scrapers, same files, no cadence. Running it here correctly reaches nothing, restores the tree and exits 1. |
 | **Bonds and Auctions have no freshness row, deliberately** | Do not add one. `auctions.json` is a FORWARD-looking calendar and `bonds.json` holds maturity dates, so `now - date` is negative for most rows — the negative-age bug that got the panel's per-dataset rule deleted in the first place. The auction calendar being entirely in the past is already covered by a canary in `published-data-freshness.test.ts`, which is red and correct. |

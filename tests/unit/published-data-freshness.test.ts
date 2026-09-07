@@ -46,20 +46,32 @@ const ageInDays = (iso: string): number =>
 
 describe('the published data is still being refreshed', () => {
   it('has a machine-written generatedAt to measure', () => {
-    /* Read from the generated feed rather than a hand-kept constant, so the
-     * cheapest way to silence this test is to actually run the pipeline. A
-     * date somebody can edit is a date somebody will edit. */
-    const rates = read('rates.json');
-    expect(rates.generatedAt, 'rates.json has no generatedAt').toBeTruthy();
-    expect(Number.isNaN(new Date(rates.generatedAt).getTime())).toBe(false);
+    /* meta.json, NOT rates.json.
+     *
+     * The intent here was always "read a date that cannot be cheaply forged,
+     * so the only way to green this is to run the pipeline". rates.json does
+     * not satisfy it. `npm run build:rates` regenerates it from data already
+     * committed, needs no network, and stamps a fresh generatedAt — so any
+     * legitimate edit to tbills.json, which is hand-maintained BY DESIGN,
+     * silences the pipeline-liveness alarm as a side effect. That is the "date
+     * somebody can edit" this test set out to avoid; it just takes a script
+     * rather than a text editor.
+     *
+     * meta.generatedAt means "the scrapers ran". Nothing local writes it — the
+     * scrapers fetch CBK, KNBS, the Treasury and the World Bank — and
+     * hand-stamping it is the one edit CLAUDE.md names as forbidden outright.
+     * So it is the signal this test's own header describes wanting. */
+    const meta = read('meta.json');
+    expect(meta.generatedAt, 'meta.json has no generatedAt').toBeTruthy();
+    expect(Number.isNaN(new Date(meta.generatedAt).getTime())).toBe(false);
   });
 
-  it('regenerated the rates feed recently enough that the pipeline is alive', () => {
-    const age = ageInDays(read('rates.json').generatedAt);
+  it('ran the pipeline recently enough that it is alive', () => {
+    const age = ageInDays(read('meta.json').generatedAt);
     expect(
       age,
       [
-        `rates.json was generated ${age.toFixed(1)} days ago, past the ${MAX_AGE_DAYS}-day budget.`,
+        `the pipeline last ran ${age.toFixed(1)} days ago, past the ${MAX_AGE_DAYS}-day budget.`,
         'The daily refresh has probably stopped firing — check the schedule on',
         '.github/workflows/ci.yml and the last successful refresh-data run.',
         'Readers are being served whatever the site last built.',

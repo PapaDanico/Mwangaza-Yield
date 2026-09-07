@@ -6,13 +6,13 @@
 "# Public information provided as-is for education, not investment advice and not a warranty of accuracy. Verify against the official prospectus before committing funds."
 
 series,label,tenorDays,fromYears,toYears,quotedDiscountRate,grossRate,netRate,whtRate,sampleSize,lowRate,highRate,asOf,source
-tbill,91-day Treasury bill,91,,,8.77,9.0629,7.6657,0.15,,,,2026-08-20,"CBK auction, 20 Aug 2026"
-tbill,182-day Treasury bill,182,,,8.948,9.1487,7.7508,0.15,,,,2026-08-20,"CBK auction, 20 Aug 2026"
-tbill,364-day Treasury bill,364,,,9.0356,9.0367,7.681,0.15,,,,2026-08-20,"CBK auction, 20 Aug 2026"
+tbill,91-day Treasury bill,91,,,8.7692,9.0621,7.665,0.15,,,,2026-08-27,"CBK auction, 27 Aug 2026"
+tbill,182-day Treasury bill,182,,,8.94,9.1404,7.7438,0.15,,,,2026-08-27,"CBK auction, 27 Aug 2026"
+tbill,364-day Treasury bill,364,,,9.0323,9.0334,7.6782,0.15,,,,2026-08-27,"CBK auction, 27 Aug 2026"
 bondAuctionBand,Under 3y,,0,3,,,,,0,,,,CBK auction results
-bondAuctionBand,3–7y,,3,7,,12.782,,,3,12.457,12.808,2026-07-15,CBK auction results
-bondAuctionBand,7–12y,,7,12,,12.652,,,15,11.589,13.989,2026-08-17,CBK auction results
-bondAuctionBand,12–20y,,12,20,,13.529,,,21,12.688,14.864,2026-08-17,CBK auction results
+bondAuctionBand,3–7y,,3,7,,,,,2,,,2026-07-13,CBK auction results
+bondAuctionBand,7–12y,,7,12,,12.574,,,9,12.184,13.339,2026-08-17,CBK auction results
+bondAuctionBand,12–20y,,12,20,,13.362,,,17,12.688,14.34,2026-08-17,CBK auction results
 bondAuctionBand,20y+,,20,40,,13.756,,,8,12.949,14.617,2026-07-27,CBK auction results
 macro,centralBankRate,,,,,8.75,,,,,,2026-08-11,CBK
 macro,inflation,,,,,6.49,,,,,,2026-08-05,CBK

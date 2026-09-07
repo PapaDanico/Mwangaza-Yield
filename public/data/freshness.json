@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-07T07:43:04.134793+00:00",
+  "checkedAt": "2026-09-07T13:35:23.980732+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -20,8 +20,8 @@
     {
       "file": "tbills.json",
       "label": "Treasury bills",
-      "asOf": "2026-08-20",
-      "ageDays": 18,
+      "asOf": "2026-08-27",
+      "ageDays": 11,
       "budgetDays": 10,
       "stale": true
     },

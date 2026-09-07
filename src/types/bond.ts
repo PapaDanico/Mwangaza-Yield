@@ -184,8 +184,18 @@ export interface TBill {
   discountRate: number;      // quoted weighted average rate, % p.a.
   auctionDate: string;
   nextAuctionDate: string;
-  amountOfferedKES: number;
-  amountAcceptedKES: number;
+  /* Nullable because a record can be sourced without them.
+   *
+   * tbills.json is hand-maintained (no scraper writes it), and what a reader
+   * is shown from it is the RATE, the dates and the minimum — neither amount
+   * is rendered anywhere. When an auction's rate can be sourced but its
+   * offered/accepted split cannot, `null` records that honestly. Carrying the
+   * previous auction's amounts forward to satisfy a non-null type would put a
+   * fabricated money figure into a shipped dataset to no reader's benefit,
+   * and this codebase's most repeated defect is exactly that: an absent figure
+   * rendered as a confident value. */
+  amountOfferedKES: number | null;
+  amountAcceptedKES: number | null;
   minInvestmentKES: number;
   source: string;
 }

@@ -14,39 +14,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.77,
-      "grossEAY": 9.0629,
-      "netEAY": 7.6657,
+      "quotedDiscountRate": 8.7692,
+      "grossEAY": 9.0621,
+      "netEAY": 7.665,
       "whtRate": 0.15,
-      "pricePer100": 97.8603,
-      "auctionDate": "2026-08-20",
-      "nextAuctionDate": "2026-08-27",
+      "pricePer100": 97.8605,
+      "auctionDate": "2026-08-27",
+      "nextAuctionDate": "2026-09-03",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 20 Aug 2026"
+      "source": "CBK auction, 27 Aug 2026"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.948,
-      "grossEAY": 9.1487,
-      "netEAY": 7.7508,
+      "quotedDiscountRate": 8.94,
+      "grossEAY": 9.1404,
+      "netEAY": 7.7438,
       "whtRate": 0.15,
-      "pricePer100": 95.7288,
-      "auctionDate": "2026-08-20",
-      "nextAuctionDate": "2026-08-27",
+      "pricePer100": 95.7325,
+      "auctionDate": "2026-08-27",
+      "nextAuctionDate": "2026-09-03",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 20 Aug 2026"
+      "source": "CBK auction, 27 Aug 2026"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0356,
-      "grossEAY": 9.0367,
-      "netEAY": 7.681,
+      "quotedDiscountRate": 9.0323,
+      "grossEAY": 9.0334,
+      "netEAY": 7.6782,
       "whtRate": 0.15,
-      "pricePer100": 91.734,
-      "auctionDate": "2026-08-20",
-      "nextAuctionDate": "2026-08-27",
+      "pricePer100": 91.7368,
+      "auctionDate": "2026-08-27",
+      "nextAuctionDate": "2026-09-03",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 20 Aug 2026"
+      "source": "CBK auction, 27 Aug 2026"
     }
   ],
   "macro": {
@@ -109,30 +109,30 @@
         "label": "3–7y",
         "fromYears": 3,
         "toYears": 7,
-        "auctions": 3,
-        "medianClearingRate": 12.782,
-        "lowClearingRate": 12.457,
-        "highClearingRate": 12.808,
-        "latestAuctionDate": "2026-07-15"
+        "auctions": 2,
+        "medianClearingRate": null,
+        "lowClearingRate": null,
+        "highClearingRate": null,
+        "latestAuctionDate": "2026-07-13"
       },
       {
         "label": "7–12y",
         "fromYears": 7,
         "toYears": 12,
-        "auctions": 15,
-        "medianClearingRate": 12.652,
-        "lowClearingRate": 11.589,
-        "highClearingRate": 13.989,
+        "auctions": 9,
+        "medianClearingRate": 12.574,
+        "lowClearingRate": 12.184,
+        "highClearingRate": 13.339,
         "latestAuctionDate": "2026-08-17"
       },
       {
         "label": "12–20y",
         "fromYears": 12,
         "toYears": 20,
-        "auctions": 21,
-        "medianClearingRate": 13.529,
+        "auctions": 17,
+        "medianClearingRate": 13.362,
         "lowClearingRate": 12.688,
-        "highClearingRate": 14.864,
+        "highClearingRate": 14.34,
         "latestAuctionDate": "2026-08-17"
       },
       {
@@ -147,9 +147,9 @@
       }
     ],
     "demand": {
-      "auctions": 26,
-      "medianCoverRatio": 1.516,
-      "medianAcceptanceRate": 0.727
+      "auctions": 17,
+      "medianCoverRatio": 1.957,
+      "medianAcceptanceRate": 0.678
     }
   }
 }

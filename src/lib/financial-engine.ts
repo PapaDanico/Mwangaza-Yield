@@ -22,8 +22,7 @@ import type { Bond } from '../types/bond';
  * and the remaining 0.14% appears from nowhere on payment day. The accrual
  * never reconciles with the cheque.
  */
-const DAYS_IN_COUPON_PERIOD = 182;
-const DAYS_IN_YEAR = 364;
+import { DAYS_IN_COUPON_PERIOD, DAYS_IN_YEAR, YTM_CEILING } from './constants';
 
 /**
  * Upper bound of the yield search, and a number the UI must not present as a
@@ -33,7 +32,7 @@ const DAYS_IN_YEAR = 364;
  * limit. `isYieldPinned` lets the caller say "over 200%" instead of the
  * spuriously precise "200.00%".
  */
-export const YTM_CEILING = 200;
+export { YTM_CEILING };
 
 export function isYieldPinned(ytm: number): boolean {
   return ytm >= YTM_CEILING - 0.05;

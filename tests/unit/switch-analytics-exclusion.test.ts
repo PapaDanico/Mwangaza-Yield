@@ -5,7 +5,7 @@ import predictionsData from '../../public/data/predictions.json';
 import type { AuctionPrint, Bond } from '../../src/types/bond';
 import { auctionKind, historyFor } from '../../src/lib/auction-history';
 import { curveRows } from '../../src/lib/yield-curve';
-import { auctionDemand, findComparables } from '../../src/lib/bid';
+import { demandByAuction, findComparables } from '../../src/lib/bid';
 import { dispersionPoints } from '../../src/lib/bid-dispersion';
 import { reinvestmentAvailability } from '../../src/lib/reinvestment';
 import { yieldContext } from '../../src/lib/regime';
@@ -38,7 +38,7 @@ describe('supplied FXD4 switch across analytical surfaces', () => {
 
   it('excludes the switch from cash-issuance demand, curve, peer, and trend calculations', () => {
     expect(curveRows(prints, bonds)).toEqual(curveRows(issuance, bonds));
-    expect(auctionDemand(prints)).toEqual(auctionDemand(issuance));
+    expect(demandByAuction(prints)).toEqual(demandByAuction(issuance));
     expect(dispersionPoints(prints)).toEqual(dispersionPoints(issuance));
     expect(reinvestmentAvailability(prints)).toEqual(reinvestmentAvailability(issuance));
     expect(recentClearingByTerm(prints, bonds, asOf)).toEqual(recentClearingByTerm(issuance, bonds, asOf));

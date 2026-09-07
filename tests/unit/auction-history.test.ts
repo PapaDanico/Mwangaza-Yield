@@ -10,6 +10,7 @@ import {
   monthYear,
 } from '../../src/lib/auction-history';
 import type { AuctionPrint } from '../../src/types/bond';
+import type { AuctionPoint } from '../../src/lib/auction-history';
 import auctionsData from '../../public/data/auction-results.json';
 
 const PRINTS = auctionsData as unknown as AuctionPrint[];
@@ -219,14 +220,14 @@ describe('historyFor', () => {
 });
 
 describe('summarise', () => {
-  const points = [
-    { date: '2025-01-01', rate: 12.0 },
-    { date: '2025-06-01', rate: 14.0 },
-    { date: '2026-01-01', rate: 13.0 },
+  const points: AuctionPoint[] = [
+    { date: '2025-01-01', rate: 12.0, transactionType: 'issuance' },
+    { date: '2025-06-01', rate: 14.0, transactionType: 'issuance' },
+    { date: '2026-01-01', rate: 13.0, transactionType: 'issuance' },
   ];
 
   it('refuses to call a single auction a history', () => {
-    expect(summarise([{ date: '2026-01-01', rate: 13.0 }])).toBeNull();
+    expect(summarise([{ date: '2026-01-01', rate: 13.0, transactionType: 'issuance' }])).toBeNull();
     expect(summarise([])).toBeNull();
   });
 
@@ -254,8 +255,8 @@ describe('summarise', () => {
 
   it('calls a perfectly flat history typical rather than dividing by zero', () => {
     const flat = summarise([
-      { date: '2025-01-01', rate: 13.0 },
-      { date: '2026-01-01', rate: 13.0 },
+      { date: '2025-01-01', rate: 13.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 13.0, transactionType: 'issuance' },
     ])!;
     expect(flat.position).toBe(0.5);
     expect(flat.changeBps).toBe(0);
@@ -265,9 +266,9 @@ describe('summarise', () => {
 describe('describeHistory', () => {
   it('says how many auctions, since when, and how the last one compared', () => {
     const h = summarise([
-      { date: '2025-01-01', rate: 12.0 },
-      { date: '2025-06-01', rate: 14.0 },
-      { date: '2026-01-01', rate: 13.0 },
+      { date: '2025-01-01', rate: 12.0, transactionType: 'issuance' },
+      { date: '2025-06-01', rate: 14.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 13.0, transactionType: 'issuance' },
     ])!;
     const text = describeHistory(h);
     expect(text).toContain('3 times');
@@ -278,8 +279,8 @@ describe('describeHistory', () => {
 
   it('says "twice" rather than "2 times"', () => {
     const h = summarise([
-      { date: '2025-01-01', rate: 12.0 },
-      { date: '2026-01-01', rate: 12.5 },
+      { date: '2025-01-01', rate: 12.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 12.5, transactionType: 'issuance' },
     ])!;
     expect(describeHistory(h)).toContain('twice');
     expect(describeHistory(h)).toContain('0.50 percentage points more');
@@ -287,8 +288,8 @@ describe('describeHistory', () => {
 
   it('handles no change without claiming a direction', () => {
     const h = summarise([
-      { date: '2025-01-01', rate: 12.0 },
-      { date: '2026-01-01', rate: 12.0 },
+      { date: '2025-01-01', rate: 12.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 12.0, transactionType: 'issuance' },
     ])!;
     const text = describeHistory(h);
     expect(text).toContain('the same rate as the time before');
@@ -299,9 +300,9 @@ describe('describeHistory', () => {
 describe('readAgainstOwnRange', () => {
   const at = (rate: number) =>
     summarise([
-      { date: '2024-01-01', rate: 12.0 },
-      { date: '2025-01-01', rate: 16.0 },
-      { date: '2026-01-01', rate },
+      { date: '2024-01-01', rate: 12.0, transactionType: 'issuance' },
+      { date: '2025-01-01', rate: 16.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate, transactionType: 'issuance' },
     ])!;
 
   it('calls a near-record yield the good side of the bargain for a lender', () => {
@@ -318,9 +319,9 @@ describe('readAgainstOwnRange', () => {
 
   it('says a tight history offers little advantage in waiting', () => {
     const tight = summarise([
-      { date: '2024-01-01', rate: 13.0 },
-      { date: '2025-01-01', rate: 13.05 },
-      { date: '2026-01-01', rate: 13.1 },
+      { date: '2024-01-01', rate: 13.0, transactionType: 'issuance' },
+      { date: '2025-01-01', rate: 13.05, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 13.1, transactionType: 'issuance' },
     ])!;
     expect(readAgainstOwnRange(tight)).toContain('little advantage in waiting');
   });
@@ -330,8 +331,8 @@ describe('readAgainstOwnRange', () => {
     // paid. "Near the top of everything this bond has ever paid" would then be
     // arithmetic dressed as a finding.
     const two = summarise([
-      { date: '2023-09-18', rate: 18.49 },
-      { date: '2024-10-14', rate: 17.34 },
+      { date: '2023-09-18', rate: 18.49, transactionType: 'issuance' },
+      { date: '2024-10-14', rate: 17.34, transactionType: 'issuance' },
     ])!;
     const text = readAgainstOwnRange(two);
     expect(text).toContain('not yet a range');
@@ -342,8 +343,8 @@ describe('readAgainstOwnRange', () => {
 
   it('reports two identical auctions as too few to call a range', () => {
     const flat = summarise([
-      { date: '2025-01-01', rate: 13.0 },
-      { date: '2026-01-01', rate: 13.0 },
+      { date: '2025-01-01', rate: 13.0, transactionType: 'issuance' },
+      { date: '2026-01-01', rate: 13.0, transactionType: 'issuance' },
     ])!;
     expect(readAgainstOwnRange(flat)).toContain('too few to call a range');
   });

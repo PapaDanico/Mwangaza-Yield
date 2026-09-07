@@ -108,3 +108,24 @@ summary {
     break-inside: avoid;
   }
 }
+
+/* A vestibular trigger is not a preference about taste. Honour the OS setting
+   rather than animating regardless — the CLS work relies on layout settling
+   quickly, and 0.01ms is settled. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keyboard users need to see where they are. :focus-visible only, so a mouse
+   click does not leave a ring behind it. Gold on sand clears 3:1 against both
+   surface tokens, which is the WCAG floor for a non-text indicator. */
+:focus-visible {
+  outline: 2px solid #C9A227;
+  outline-offset: 2px;
+}

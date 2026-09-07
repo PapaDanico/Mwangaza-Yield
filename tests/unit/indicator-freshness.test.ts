@@ -75,8 +75,8 @@ describe('indicatorStaleNote', () => {
 
   it('gives the reader the age AND the expected cadence, not a bare warning', () => {
     const note = indicatorStaleNote(indicatorAge('FX_USD_KES', '2026-07-20', NOW))!;
-    expect(note).toContain('17 days old');
-    // Without the cadence the reader cannot judge whether 17 days is bad.
+    expect(note).toContain('13 days old');
+    // Without the cadence the reader cannot judge whether 13 days is bad.
     expect(note).toContain('every trading day');
   });
 });

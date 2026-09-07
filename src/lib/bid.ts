@@ -283,12 +283,30 @@ export function bidGuidance(
     );
   }
 
-  // Only then widen what counts as comparable, across the full archive.
+  /* Only then widen what counts as comparable, across the full archive.
+   *
+   * "Across the full archive" means every print up to `asOf`, and it has to be
+   * spelled `withinWindow(..., null)` rather than the bare `prints` that stood
+   * here. The bare array is the UNFILTERED input, so this fallback reached
+   * straight past the point-in-time guard that `withinWindow` exists to apply:
+   * a guidance call dated January 2024 that ran thin enough to reach this loop
+   * came back quoting auctions from 2026.
+   *
+   * Every hop above already routes through `withinWindow`; this one alone did
+   * not, which is why the leak survived the fix that put the upper bound in
+   * `withinWindow` in the first place. The window is only as good as its least
+   * careful caller. */
   for (const wider of [3, 5]) {
     if (found.comparables.length >= MIN_SAMPLE) break;
     tolerance = wider;
     windowDays = null;
-    found = findComparables(prints, bonds, targetYears, tolerance, opts.taxExempt);
+    found = findComparables(
+      withinWindow(prints, asOf, null),
+      bonds,
+      targetYears,
+      tolerance,
+      opts.taxExempt
+    );
   }
 
   const rates = found.comparables.map((c) => c.clearingRate).sort((a, b) => a - b);
@@ -399,6 +417,20 @@ export function demandByAuction(prints: AuctionPrint[], from = GUIDANCE_FROM): A
   const byDate = new Map<string, AuctionPrint[]>();
   for (const p of prints) {
     if (!p.auctionDate || p.auctionDate < from) continue;
+    /* Cash issuance only.
+     *
+     * Cover ratio answers "how much money chased the Treasury's offer", and a
+     * switch or a tap is not money chasing an offer — it is paper being
+     * exchanged for paper. Counting them put 33 non-issuance dates into the
+     * demand series, including the 26 August FXD4 switch at 1.51x, and
+     * `describeDemand` reads its headline off the median of the last six
+     * entries in exactly that series.
+     *
+     * Every other analytical surface was filtered when the switch label was
+     * introduced; this one was not, and the test that would have said so could
+     * not run — it imported a function name that does not exist, so vitest
+     * failed the file on the import and nobody saw the assertion underneath. */
+    if (auctionKind(p) !== 'issuance') continue;
     const list = byDate.get(p.auctionDate) ?? [];
     list.push(p);
     byDate.set(p.auctionDate, list);

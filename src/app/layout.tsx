@@ -106,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <DataOfflineBanner />
           <main
             id="main"
-            className="mx-auto min-h-[calc(100vh-8rem)] max-w-6xl px-4 pt-6"
+            className="mx-auto min-h-[calc(100vh-8rem)] max-w-7xl px-4 pt-4 sm:pt-6"
           >
             {children}
           </main>

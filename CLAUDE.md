@@ -169,6 +169,53 @@ way regardless.
 
 ---
 
+## Deploying: TWO hosts build this repo, and Vercel is the live one
+
+Read this before anything else in this section. The rest of it is about
+Netlify, it is accurate about Netlify, and Netlify is not what readers are
+served.
+
+**A Vercel project has held `mwangazayield.org` since 23 August 2026.**
+Verified 7 September from the Vercel production deployment record: project
+`mwangaza-yield` (`prj_sSLiX7dCSiqTjh0YX9zVzOZbAqKT`, team
+`team_9GgQc2d22DKrrezHf3Hjmc5i`), created 2026-08-23, latest production
+deployment `source: git`, `target: production`, `state: READY`, and its
+`alias` list carries both `mwangazayield.org` and `www.mwangazayield.org`
+with `aliasError: null`.
+
+Netlify still lists the same apex as its `primarySiteUrl`, so BOTH platforms
+claim the domain in their own configuration and only one can be answering.
+The evidence says Vercel: its aliases are assigned without error, and it has
+deployed every push to `main` since 23 August while Netlify's last production
+deploy stood at 21 August (`#272`) for seventeen days with five merges behind
+it.
+
+Two consequences that cost a session real time on 7 September:
+
+- **A Netlify deploy lagging `main` is not evidence of a broken pipeline.**
+  It reads exactly like one. That session concluded the git integration was
+  dead, drafted the "five merges undeployed" finding, and got as far as
+  running `predeploy-check.mjs` toward a direct deploy. The Netlify build was
+  simply queued — and largely beside the point either way.
+- **Every push to `main` builds TWICE.** Vercel builds on every push,
+  including a CLAUDE.md-only commit that `netlify-should-build.sh` correctly
+  skipped. So the whole build-credit discipline below — the skip list,
+  previews disabled — is guarding the platform that may not be serving
+  anybody. Whether both should stay connected is the owner's call; it has
+  not been made, and nothing in the repository records that Vercel exists.
+  There is no `vercel.json` and no `.vercel/`.
+
+**`@vercel/analytics` was mounted here and collected nothing.** Web Analytics
+is not enabled on the Vercel project — the API answers `404 Web Analytics not
+found` — so the component reported to a feature that is switched off. On the
+static export it is worse than inert: `/_vercel/insights/script.js` is
+injected by Vercel's edge and does not exist in `out/`, so a locally served
+build 404s on it once per route, which is what `test:e2e` was failing on. It
+was removed on 7 September. Restoring it means enabling Web Analytics in the
+Vercel dashboard first, and it is a decision about a third-party tracker on a
+site whose function directory is deliberately empty of anything that
+identifies a reader — the owner's, not an agent's.
+
 ## Deploying: merging to `main` already deploys
 
 **Merging a pull request to `main` triggers a Netlify build that runs the full

@@ -3,8 +3,10 @@ import { readFileSync } from 'node:fs';
 import {
   assertLedgerIntegrity,
   recordPredictions,
+  excludePredictions,
   scorePredictions,
   splitIssueCodes,
+  stalePredictions,
   summariseLedger,
   type Prediction,
 } from '../../src/lib/predictions';
@@ -216,5 +218,87 @@ describe('a recorded prediction states its own recency window', () => {
       assertLedgerIntegrity(before, tampered),
       'the window a prediction used could be rewritten after the fact'
     ).not.toEqual([]);
+  });
+});
+
+describe('a switch excludes BOTH its legs, and a stuck row reports itself', () => {
+  /* The August 2026 calendar entry, as committed:
+   *
+   *   FXD1/2012/015 + bills → FXD4/2019/010     transactionType: 'switch'
+   *
+   * Holders surrender FXD1/2012/015 and receive FXD4/2019/010. CBK publishes
+   * ONE result, as a rate on the destination; the surrendered leg has no
+   * clearing rate of its own and never will.
+   *
+   * In the shipped ledger only the destination was excluded — by hand, since
+   * nothing in the codebase wrote it — so the surrendered leg sat in
+   * "awaiting result" for fifteen days on the panel whose entire subject is
+   * whether this product's claims can be checked. */
+  const SWITCH: AuctionSchedule = {
+    ...sched({}),
+    id: 'auc-switch',
+    issueCode: 'FXD1/2012/015 + bills → FXD4/2019/010',
+    auctionDate: '2026-08-24',
+    transactionType: 'switch',
+  } as AuctionSchedule;
+
+  const leg = (issueCode: string): Prediction => ({
+    issueCode,
+    auctionDate: '2026-08-24',
+    recordedOn: '2026-07-31',
+    targetYears: 3, toleranceYears: 3, sampleSize: 9, windowDays: null,
+    low: 11, p25: 12, median: 13, p75: 14, high: 15, thin: false,
+  });
+
+  it('excludes the surrendered leg, not only the destination', () => {
+    const out = excludePredictions(
+      [leg('FXD1/2012/015'), leg('FXD4/2019/010')], [SWITCH], '2026-09-08');
+    for (const p of out) {
+      expect(p.excludedOn, `${p.issueCode} was left waiting on a result that cannot come`)
+        .toBe('2026-09-08');
+      expect(p.exclusionReason).toBe('switch auction, not cash issuance');
+    }
+  });
+
+  it('never rewrites an exclusion already recorded', () => {
+    const already = { ...leg('FXD4/2019/010'), excludedOn: '2026-08-24',
+                      exclusionReason: 'switch auction, not cash issuance' };
+    const out = excludePredictions([already], [SWITCH], '2026-09-08');
+    expect(out[0].excludedOn, 'an outcome field moved under a later run').toBe('2026-08-24');
+    expect(assertLedgerIntegrity([already], out)).toEqual([]);
+  });
+
+  it('leaves a genuine issuance alone, so exclusion cannot become an escape hatch', () => {
+    const issuance = { ...SWITCH, issueCode: 'FXD1/2012/015', transactionType: 'issuance' };
+    const out = excludePredictions([leg('FXD1/2012/015')], [issuance as AuctionSchedule], '2026-09-08');
+    expect(out[0].excludedOn, 'a cash auction was excused from being scored').toBeUndefined();
+  });
+
+  it('reports a row stuck past any plausible publication lag', () => {
+    /* The alarm that was missing. "Awaiting result" reads the same whether a
+     * row is two days old or fifty, so nothing distinguished a young row from
+     * a permanently stuck one except somebody reading the page. */
+    const stuck = leg('FXD1/2012/015');
+    expect(stalePredictions([stuck], '2026-09-08').map((p) => p.issueCode))
+      .toEqual(['FXD1/2012/015']);
+    expect(stalePredictions([stuck], '2026-08-30'), 'a fresh row must not cry wolf').toEqual([]);
+    expect(
+      stalePredictions([{ ...stuck, excludedOn: '2026-09-08' }], '2026-09-08'),
+      'an excluded row is resolved, not stuck'
+    ).toEqual([]);
+  });
+
+  it('the COMMITTED ledger has nothing stuck', () => {
+    /* The canary. This is the assertion that would have fired on 2026-09-07
+     * instead of waiting for the owner to ask why the panel said "pending". */
+    const ledger: Prediction[] = JSON.parse(
+      readFileSync('public/data/predictions.json', 'utf8'));
+    const stuck = stalePredictions(ledger, new Date().toISOString().slice(0, 10));
+    expect(
+      stuck.map((p) => `${p.issueCode} ${p.auctionDate}`),
+      'unresolved more than 14 days after the auction: either the result is ' +
+      'missing from auction-results.json, or the event never had one and the ' +
+      'calendar row needs its transactionType set'
+    ).toEqual([]);
   });
 });

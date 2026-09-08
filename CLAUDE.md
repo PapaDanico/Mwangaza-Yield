@@ -215,6 +215,18 @@ IS. Pausing the project stops it deploying, not commenting: the bot posted a
 project's Git settings → disconnect, or from the GitHub side, Settings →
 Integrations → Vercel. Both are dashboards, so both stay the owner's.
 
+**What was NOT a dashboard action, checked rather than assumed:** stopping it
+building. `vercel.json` now carries `git.deploymentEnabled: false`, which
+Vercel's own documentation gives as the way to "prevent any branch from
+triggering a deployment" — read from the repository, no dashboard involved.
+It was written off as unreachable until `search_vercel_documentation` was
+actually asked. The bot may still comment, since commenting is the GitHub App
+rather than the project; what it can no longer do is build, or post a red
+`Deployment was blocked` status on every pull request, which is what it did on
+#279 before this. `vercel.json` is in `netlify-should-build.sh`'s skip list —
+it configures a different host and Netlify never reads it — with a test that
+was mutation-checked rather than trusted.
+
 `@vercel/analytics` was mounted in the root layout until 7 September and was
 broken in production: on a Netlify-served site `/_vercel/insights/script.js`
 is a 404 on every route, in every reader's console. Web Analytics was not

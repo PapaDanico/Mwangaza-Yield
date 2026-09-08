@@ -156,6 +156,21 @@ describe('netlify build-skip decision', () => {
     const sibling = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
     expect(run(legal, sibling), 'LICENSE-THIRD-PARTY must still build').toBe(BUILD);
 
+    /* vercel.json, added 2026-09-08.
+     *
+     * It configures a different host and its only contents turn that host's
+     * git deployments off. Netlify never reads it, so a change to it cannot
+     * alter one byte of the published site — and the commit that introduced
+     * it would otherwise have bought a production build to publish a file
+     * with no reader, which is the exact charge the LICENSE note above
+     * records paying twice already.
+     */
+    execFileSync('bash', ['-c', `echo '{}' > ${dir}/vercel.json`]);
+    git('add', '-A');
+    git('commit', '-qm', 'another host config');
+    const vercel = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(sibling, vercel), 'vercel.json alone should skip').toBe(SKIP);
+
     /* CLEANUP MUST NOT BE ABLE TO FAIL THE TEST.
      *
      * The twin of this file in JiPange had the identical bare

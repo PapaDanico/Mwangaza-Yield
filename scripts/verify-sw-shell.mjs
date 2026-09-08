@@ -47,7 +47,7 @@ const SW = readFileSync(join(ROOT, 'public', 'sw.js'), 'utf8');
 
 /* Recorded pair. Update BOTH, in the same commit, or not at all. */
 const SHIPPED_VERSION = 'mwangaza-v27';
-const SHIPPED_DIGEST = '1e36ca8df8d27973';
+const SHIPPED_DIGEST = '2a570fddc69a8c3e';
 
 function version() {
   const m = SW.match(/const VERSION = '([^']+)'/);
@@ -89,18 +89,59 @@ function resolve(entry) {
  * goes red on its own teaches people to re-record its constant without reading
  * it, which is the same as not having it.
  *
- * Only the digits are replaced, and only in that fixed phrase. If the sentence
- * itself changes — different wording, a new indicator named, the notice
- * appearing on a route that did not have it — the bytes around the number move
- * and the digest still catches it.
+ * THE SECOND ONE, WHICH WOULD HAVE FAILED EVERY SINGLE DAY
+ *
+ * The navbar's freshness button carries a title computed the same way:
+ * "These figures were last updated on 2026-08-19, and 32 scheduled updates
+ * have been missed since". The schedule ran twice daily, so that count ticks
+ * by TWO every day the pipeline stays down, and the navbar is on all twelve
+ * precached routes.
+ *
+ * It was found the expensive way. The digest moved overnight with nothing
+ * edited; rebuilding the same commit gave a different answer than had been
+ * recorded at it, while two consecutive builds were byte-identical. Grepping
+ * twelve routes for date-shaped text found nothing, because the string is in a
+ * `title` attribute. What settled it was building twice with `global.Date`
+ * shifted a day forward under `--require` and diffing the per-entry digests —
+ * every route moved — then diffing the HTML token by token.
+ *
+ * Only the digits are replaced, and only inside these two fixed phrases. If a
+ * sentence itself changes — different wording, a new indicator named, the
+ * notice appearing on a route that did not carry it — the bytes around the
+ * number move and the digest still catches it.
  */
 function normalise(buf, path) {
   if (!path.endsWith('.html')) return buf;
   return Buffer.from(
-    buf.toString('utf8').replace(/\b\d+ days old\b/g, 'N days old'),
+    buf
+      .toString('utf8')
+      .replace(/\b\d+ days old\b/g, 'N days old')
+      .replace(/\band \d+ scheduled updates\b/g, 'and N scheduled updates'),
     'utf8'
   );
 }
+
+/* Routes whose bytes are a function of the calendar, and cannot be digested.
+ *
+ * /macro/ renders a T-bill maturity ladder anchored to TODAY — "7 Nov 2026 /
+ * 60 days", with the highlight on whichever rung is nearest — so every one of
+ * its dates, day counts and highlight classes moves each night. That is the
+ * widget working correctly, not a change anybody made.
+ *
+ * A digest cannot guard a page like that. Including it fails this check every
+ * single day with nothing edited, and a guard that reddens on its own teaches
+ * people to re-record its constant without reading it, which is the same as
+ * not having the guard — the wolf-crying this repository refuses elsewhere.
+ * Bumping VERSION daily to satisfy it would be worse still: it evicts every
+ * returning visitor's shell every day.
+ *
+ * The cost is real and worth naming: a genuine change to /macro/ will not be
+ * caught here. It is still PRECACHED and still asserted to exist below; what
+ * it cannot do is participate in change detection. The alternative — rendering
+ * that ladder on the client so the HTML stops carrying today's date — would
+ * let it back in, and is the better fix whenever somebody touches that
+ * component. */
+const CALENDAR_ROUTES = new Set(['/macro/']);
 
 function digest() {
   const h = createHash('sha256');
@@ -121,6 +162,10 @@ function digest() {
     const path = resolve(entry);
     if (!existsSync(path)) {
       missing.push(`${entry} -> ${path.replace(ROOT + '/', '')}`);
+      continue;
+    }
+    if (CALENDAR_ROUTES.has(entry)) {
+      perEntry.push([entry, 'calendar-bound']);
       continue;
     }
     const bytes = normalise(readFileSync(path), path);

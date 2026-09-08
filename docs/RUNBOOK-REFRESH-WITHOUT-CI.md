@@ -93,8 +93,15 @@ the threshold: a banner that appears every weekend is a banner nobody reads.
 ## Running the refresh by hand
 
 ```bash
-npm run refresh
+npm run refresh            # run it, keep it only if something arrived
+npm run refresh -- --push  # ... and commit and push that
 ```
+
+**If you are here because Actions is still down, read
+[`RUNNING-WITHOUT-ACTIONS.md`](RUNNING-WITHOUT-ACTIONS.md) first.** This
+document is the procedure; that one is whether to keep waiting for a runner at
+all, what the alternatives cost, and the crontab line that replaces the
+schedule outright.
 
 That is `scripts/refresh-data.mjs`, and it runs exactly the sequence below in
 exactly this order. It is not a second refresh path — same scrapers, same

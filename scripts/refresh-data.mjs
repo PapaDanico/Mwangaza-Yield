@@ -68,8 +68,14 @@ const SCRAPERS = [
   'cbr_history_parser.py',
   'cpi_history_parser.py',
   'expand_universe.py',
+  // --write, or it reports and changes nothing. The flag is the difference
+  // between the probe this started as and the writer ci.yml actually runs.
+  ['qebr_parser.py', '--write'],
   'refresh_calendar.py',
 ];
+
+/** `--push` commits and pushes, but only a run that passed the verdict below. */
+const PUSH = process.argv.includes('--push');
 
 /* THE AUTHORITATIVE SIGNAL.
  *
@@ -126,9 +132,11 @@ console.log('refreshing — network to CBK, KNBS, Treasury and the World Bank re
 
 const failed = [];
 for (const s of SCRAPERS) {
-  process.stdout.write(`  ${s.padEnd(26)}`);
+  const label = Array.isArray(s) ? s.join(' ') : s;
+  process.stdout.write(`  ${label.padEnd(30)}`);
   try {
-    execFileSync('python3', [s], {
+    const [script, ...flags] = Array.isArray(s) ? s : [s];
+    execFileSync('python3', [script, ...flags], {
       cwd: `${ROOT}/backend/scrapers`,
       encoding: 'utf8',
       stdio: 'pipe',
@@ -142,7 +150,7 @@ for (const s of SCRAPERS) {
     const out = `${e.stdout ?? ''}${e.stderr ?? ''}`;
     console.log(/Traceback/.test(out) ? 'FAILED (traceback — read it)' : 'unreachable');
     if (/Traceback/.test(out)) console.log(out.trim().split('\n').slice(-6).map((l) => `      ${l}`).join('\n'));
-    failed.push(s);
+    failed.push(label);
   }
 }
 
@@ -186,6 +194,64 @@ if (advanced.length === 0) {
 console.log('\nrebuilding the rates feed');
 sh('node scripts/build-rates-feed.mjs', { stdio: 'inherit' });
 
+/* The prediction ledger, which ci.yml rebuilds in the same job. It reads the
+ * archive the scrapers just wrote, so it belongs after them and before the
+ * commit — a refresh that moved an auction result and left the ledger behind
+ * publishes a scorecard measured against data it no longer matches. */
+console.log('\nupdating the prediction ledger');
+try {
+  sh('npm run build:engine', { stdio: 'inherit' });
+  sh('node scripts/update-predictions.mjs', { stdio: 'inherit' });
+} catch {
+  console.error('  prediction ledger failed — the data above still stands');
+}
+
+/* Integrity, not freshness: does the archive contradict itself after what just
+ * landed. ci.yml fails the job on this and so does this script, because a
+ * contradiction is the one thing that must not be pushed. */
+console.log('\nchecking the auction archive for contradictions');
+try {
+  execFileSync('python3', ['check_archive.py'], { cwd: `${ROOT}/backend/scrapers`, stdio: 'inherit' });
+} catch {
+  restore();
+  console.error('\nARCHIVE CONTRADICTS ITSELF — the run has been discarded and the tree restored.');
+  process.exit(1);
+}
+
 console.log(`\n${sh(`git diff --stat -- ${DATA}`).trim()}`);
 if (failed.length) console.log(`\npartial refresh — did not reach: ${failed.join(', ')}`);
-console.log('\nNext: npm run verify && npm run build, then commit public/data and push.');
+
+if (!PUSH) {
+  console.log('\nNext: npm run ci, then commit public/data and push.');
+  console.log('Or re-run with --push to commit and push this refresh.');
+  process.exit(0);
+}
+
+/* Committing is gated on the same verdict as everything above: this line is
+ * only reached when a dataset's asOf advanced. */
+console.log('\ncommitting');
+sh('git add public/data/*.json public/data/*.csv');
+try {
+  sh('git add backend/scrapers/tbill-probe-report.txt');
+} catch {
+  /* The probe has not run on this machine; nothing to stage. */
+}
+const stamp = new Date().toISOString().slice(0, 10);
+sh(`git commit -m "chore(data): refresh ${stamp}"`, { stdio: 'inherit' });
+
+/* A refresh spends minutes reading PDFs, which is a wide window for somebody
+ * else to push. A bare push loses the whole run to a non-fast-forward — it
+ * happened once and cost 120 files — so rebase onto whatever arrived and retry,
+ * exactly as ci.yml does. */
+for (let attempt = 1; attempt <= 3; attempt++) {
+  try {
+    sh('git push', { stdio: 'inherit' });
+    console.log('\npushed.');
+    process.exit(0);
+  } catch {
+    console.error(`push rejected (attempt ${attempt}) — rebasing onto the new tip`);
+    try { sh('git pull --rebase origin main', { stdio: 'inherit' }); } catch { /* reported below */ }
+  }
+}
+console.error('\npush failed three times. The refresh is committed locally; resolve and push by hand.');
+process.exit(1);

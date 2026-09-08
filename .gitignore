@@ -30,3 +30,21 @@ Securities*.pdf
 # Scoped to worktrees/ rather than .claude/ so that genuine project config
 # under .claude (settings, skills) would still be tracked if it is ever added.
 .claude/worktrees/
+
+# Scratch measurement scripts written at the repo root during a session.
+#
+# `cls.mjs`, `shot.mjs` and `src.mjs` — one-off Playwright probes for CLS
+# sources and screenshots — were swept into a commit by `git add -A` on
+# 8 September and shipped as repository content. They are not part of the
+# project and nothing references them.
+#
+# The named files rather than a blanket `*.mjs`: scripts/ is full of .mjs that
+# MUST be tracked, and a pattern broad enough to catch scratch would eventually
+# catch one of those. Use the scratchpad directory instead of the repo root and
+# none of this is needed.
+/cls.mjs
+/shot.mjs
+/src.mjs
+/measure.mjs
+/audit.mjs
+/probe-tmp.mjs

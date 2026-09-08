@@ -46,8 +46,8 @@ const ROOT = process.cwd();
 const SW = readFileSync(join(ROOT, 'public', 'sw.js'), 'utf8');
 
 /* Recorded pair. Update BOTH, in the same commit, or not at all. */
-const SHIPPED_VERSION = 'mwangaza-v26';
-const SHIPPED_DIGEST = 'd2ee53583bb70091';
+const SHIPPED_VERSION = 'mwangaza-v27';
+const SHIPPED_DIGEST = '1e36ca8df8d27973';
 
 function version() {
   const m = SW.match(/const VERSION = '([^']+)'/);
@@ -105,16 +105,30 @@ function normalise(buf, path) {
 function digest() {
   const h = createHash('sha256');
   const missing = [];
+  /* Per entry as well as overall.
+   *
+   * A mismatch used to say only that the total had moved, which is the least
+   * useful half of the answer: on 8 September the digest changed with no source
+   * change at all — two consecutive builds were byte-identical, so the build is
+   * deterministic and something in ONE precached route had followed the
+   * calendar over midnight. Finding which meant grepping twelve routes for
+   * anything date-shaped and still not being sure.
+   *
+   * `--entries` prints the per-entry digests, and a failure now says to run it.
+   * The next time this moves on its own, one command names the file. */
+  const perEntry = [];
   for (const entry of appShell()) {
     const path = resolve(entry);
     if (!existsSync(path)) {
       missing.push(`${entry} -> ${path.replace(ROOT + '/', '')}`);
       continue;
     }
+    const bytes = normalise(readFileSync(path), path);
+    perEntry.push([entry, createHash('sha256').update(bytes).digest('hex').slice(0, 12)]);
     h.update(entry);
-    h.update(normalise(readFileSync(path), path));
+    h.update(bytes);
   }
-  return { hex: h.digest('hex').slice(0, 16), missing };
+  return { hex: h.digest('hex').slice(0, 16), missing, perEntry };
 }
 
 const fail = (msg) => {
@@ -131,7 +145,7 @@ if (!existsSync(join(ROOT, 'out'))) {
 
 const entries = appShell();
 const routes = entries.filter((e) => e.endsWith('/'));
-const { hex, missing } = digest();
+const { hex, missing, perEntry } = digest();
 
 /* A digest over nothing is perfectly stable and passes every future change —
    the failure mode that makes a guard worse than no guard. */
@@ -139,6 +153,10 @@ if (routes.length < 2) fail(`only ${routes.length} route(s) parsed out of APP_SH
 if (missing.length) fail(`precached entries missing from the build:\n        ${missing.join('\n        ')}`);
 
 console.log(`  ok    ${entries.length} precached entries (${routes.length} routes, ${entries.length - routes.length} assets)`);
+
+if (process.argv.includes('--entries')) {
+  for (const [entry, d] of perEntry) console.log(`        ${d}  ${entry}`);
+}
 
 if (version() !== SHIPPED_VERSION) {
   fail(
@@ -150,7 +168,8 @@ if (version() !== SHIPPED_VERSION) {
 } else if (hex !== SHIPPED_DIGEST) {
   fail(
     `precached content changed but VERSION did not.\n` +
-      `        recorded ${SHIPPED_DIGEST} for ${SHIPPED_VERSION}, built ${hex}\n\n` +
+      `        recorded ${SHIPPED_DIGEST} for ${SHIPPED_VERSION}, built ${hex}\n` +
+      '        run with --entries to see which precached file moved\n\n' +
       '        Every returning visitor answers from the cache opened under the\n' +
       '        OLD version until VERSION moves. They will not see this change,\n' +
       '        ever, and nothing else will report it. Bump VERSION in\n' +

@@ -80,11 +80,32 @@ sites from Kenya, which is where this is being read anyway:
 
 ```cron
 # refresh at 06:20 and 18:20 Nairobi time, weekdays and Saturday
-20 6,18 * * 1-6  cd ~/Mwangaza-Yield && /usr/bin/npm run refresh -- --push >> ~/mwangaza-refresh.log 2>&1
+20 6,18 * * 1-6  ~/Mwangaza-Yield/scripts/refresh-cron.sh >> ~/mwangaza-refresh.log 2>&1
 ```
 
 That is the whole replacement for `refresh-data`. It needs `git` able to push —
-an SSH key or a credential helper — and nothing else. A laptop that is closed
+an SSH key or a credential helper — and nothing else.
+
+**Call the wrapper, not `npm` directly.** An earlier version of this line read
+`cd ~/Mwangaza-Yield && /usr/bin/npm run refresh -- --push`, and it has two
+faults that only appear once it is installed and nobody is watching:
+
+- **`/usr/bin/npm` is a guess.** cron runs with `PATH=/usr/bin:/bin`, and nvm,
+  asdf, Volta and Homebrew all put node somewhere else. The log then reads
+  `npm: command not found`, twice a day, indefinitely.
+- **Every outcome looks the same.** `refresh-data.mjs` exits non-zero when
+  nothing arrived, which is the ordinary result on a day CBK published nothing
+  or on a laptop that was asleep. A scheduler cannot tell that from a real
+  fault, so either everything alarms or nothing does.
+
+`scripts/refresh-cron.sh` resolves node (with `NODE_BIN` as the override),
+fast-forwards the branch before spending fifteen minutes on a push that would
+be rejected, installs the Python dependencies the first time they are missing,
+takes a `flock` so two runs cannot collide, and distinguishes the two
+non-zero exits: **3 is "nothing arrived" and is silent-normal; anything else
+is a fault worth reading.** Verified end to end in a session with every source
+egress-blocked — the run was discarded, the tree restored, and the wrapper
+exited 0. A laptop that is closed
 half the time is still better than a pipeline that has not run in three weeks:
 the script simply does nothing on the runs where the machine was asleep, and
 the site keeps saying how old its figures are.

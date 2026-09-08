@@ -184,7 +184,18 @@ if (advanced.length === 0) {
       'old as it was, and silence the staleness notice at the moment it is most\n' +
       `needed.\n\n${DATA} has been restored. Nothing to commit.`
   );
-  process.exit(1);
+  /* EXIT 3, NOT 1, AND THE DIFFERENCE MATTERS TO A SCHEDULER.
+   *
+   * "Nothing arrived" is the ordinary outcome of a run on a day CBK published
+   * nothing, or on a laptop that was asleep, or behind an egress proxy. It is
+   * the guard working, not a fault. Exit 1 is kept for a run that genuinely
+   * went wrong — an archive contradiction, a push that would not land.
+   *
+   * Under cron those two must not look alike: a wrapper that alerts on every
+   * non-zero exit would page somebody most mornings, and an operator who
+   * learns to ignore the alert has no alert. scripts/refresh-cron.sh reads
+   * this code and stays quiet on 3. */
+  process.exit(3);
 }
 
 /* Only now are the derived artefacts worth rebuilding: rates.json is computed

@@ -48,3 +48,8 @@ Securities*.pdf
 /measure.mjs
 /audit.mjs
 /probe-tmp.mjs
+
+# The flock file scripts/refresh-cron.sh takes so two scheduled refreshes
+# cannot run at once. Created at the repo root because that is where the
+# script can always write; it holds no content and must never be committed.
+/.refresh.lock

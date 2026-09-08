@@ -1627,7 +1627,22 @@ async function main() {
      * stale 0.36 allowance quietly becoming a floor. */
     const BUDGET = 0.10;
     const KNOWN = {};
-    for (const route of ['/', '/dashboard/', '/auctions/', '/ladder/', '/tbills/', '/portfolio/']) {
+    /* Every route with a ToolShell or a store-backed card, not the six that
+     * happened to be listed first.
+     *
+     * The four added here — /goals/, /calculator/, /sell/, /prices/ — were
+     * measured on 7 September at 0.2752, 0.2502, 0.2225 and 0.2519 against a
+     * 0.1 budget, and none had ever been looked at. The cause was the one this
+     * file already describes for /tbills/ above: a 256px DataState skeleton
+     * replaced on hydration by a tool many times its height, throwing the
+     * server-rendered prose below it down the page.
+     *
+     * A guard that covers six of thirteen routes reports the six. Adding a
+     * route here costs a page load; not adding it costs a defect nobody sees,
+     * which is what happened. */
+    const CLS_ROUTES = ['/', '/dashboard/', '/auctions/', '/ladder/', '/tbills/', '/portfolio/',
+                       '/goals/', '/calculator/', '/sell/', '/prices/', '/macro/', '/yield-curve/'];
+    for (const route of CLS_ROUTES) {
       /* Navigate first, then observe with buffered:true so entries that fired
          between load and the observer being created are still counted. */
       await page.goto(BASE + route, { waitUntil: 'load' });
@@ -1659,7 +1674,7 @@ async function main() {
     }
     if (!failures.some((f) => f.startsWith('layout shift:'))) {
       const known = Object.keys(KNOWN).length;
-      pass(`${6 - known} of 6 routes shift less than ${BUDGET} while loading`
+      pass(`${CLS_ROUTES.length - known} of ${CLS_ROUTES.length} routes shift less than ${BUDGET} while loading`
         + (known ? `; ${Object.keys(KNOWN).join(', ')} held at its known-bad ceiling` : ''));
     }
   }

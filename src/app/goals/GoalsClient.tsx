@@ -229,7 +229,7 @@ export default function GoalsClient() {
     []
   );
 
-  if (!bonds.length) return <DataState />;
+  if (!bonds.length) return <DataState reserve="h-[900px]" />;
 
   const def = GOALS.find((g) => g.key === goal)!;
   /** Every bond a reader could still buy, soonest maturity first. */

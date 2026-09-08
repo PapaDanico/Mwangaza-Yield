@@ -115,7 +115,7 @@ export default function CalculatorClient() {
     if (result) track('act:calculator-run');
   }, [result]);
 
-  if (!bond) return <DataState />;
+  if (!bond) return <DataState reserve="h-[900px]" />;
 
   // Zero is the empty field, not a bid of nothing, so it is not flagged — a
   // cleared box should read as "waiting", not as an error the reader made.

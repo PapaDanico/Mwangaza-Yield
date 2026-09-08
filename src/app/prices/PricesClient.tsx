@@ -172,7 +172,7 @@ export default function PricesClient() {
     (b) => selectCommunityPrice(communityState, b.isin) !== null,
   );
 
-  if (!bonds.length) return <DataState />;
+  if (!bonds.length) return <DataState reserve="h-[900px]" />;
 
   return (
     <>

@@ -130,7 +130,7 @@ export default function SellClient() {
     ).slice(0, 6);
   }, [analysis, bond, bonds, secondary, userPrices, settlement]);
 
-  if (!bonds.length) return <DataState />;
+  if (!bonds.length) return <DataState reserve="h-[900px]" />;
 
   return (
     <>

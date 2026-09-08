@@ -225,5 +225,21 @@
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-09-16-reopen",
+    "issueCode": "FXD1/2019/020 + FXD1/2026/030",
+    "bondName": "Re-opened 20 & 30-Year Fixed Coupon Bonds (Ksh 60B)",
+    "category": "FXD",
+    "offerOpenDate": "2026-09-08",
+    "offerCloseDate": "2026-09-16",
+    "auctionDate": "2026-09-16",
+    "settlementDate": "2026-09-21",
+    "amountOfferedKES": 60000000000,
+    "couponRate": null,
+    "tenorYears": 30,
+    "maturityDate": "2056-03-13",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming"
   }
 ]

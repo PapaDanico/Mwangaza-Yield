@@ -209,7 +209,11 @@ failure the "Verify before asserting" section above exists to prevent. One
 it served no traffic and only duplicated build spend. Deleting it outright and
 disconnecting the GitHub integration are dashboard actions and were left to
 the owner. If a `vercel[bot]` comment appears on a future pull request, the
-integration is still attached.
+integration is still attached — and one did, on **#279, 8 September**, so it
+IS. Pausing the project stops it deploying, not commenting: the bot posted a
+`Blocked` deployment row on the PR. The switch is Vercel dashboard → the
+project's Git settings → disconnect, or from the GitHub side, Settings →
+Integrations → Vercel. Both are dashboards, so both stay the owner's.
 
 `@vercel/analytics` was mounted in the root layout until 7 September and was
 broken in production: on a Netlify-served site `/_vercel/insights/script.js`

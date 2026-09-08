@@ -24,12 +24,31 @@ const bonds = read('public/data/bonds.json');
 const today = new Date().toISOString().slice(0, 10);
 
 let after = P.recordPredictions(before, auctions, prints, bonds, today);
+/* Exclusion BEFORE scoring: a switch leg must never be graded, and the
+   scorer's own issuance filter only protects it from being graded against
+   somebody else's print — it cannot tell "no result yet" from "no result
+   ever". Reading the calendar can. */
+after = P.excludePredictions(after, auctions, today);
 after = P.scorePredictions(after, prints, today);
 
 const problems = P.assertLedgerIntegrity(before, after);
 assert.deepEqual(problems, [], `ledger integrity violated:\n${problems.join('\n')}`);
 
 writeFileSync(LEDGER, JSON.stringify(after, null, 2) + '\n');
+
+/* A row nobody can resolve must not sit quietly in "awaiting result".
+   FXD1/2012/015 did exactly that for fifteen days, on the panel whose whole
+   subject is whether this product's claims survive contact with an outcome.
+   Reported here as well as asserted in the test suite, because whoever runs
+   the refresh is the person who can act on it. */
+const stale = P.stalePredictions(after, today);
+if (stale.length) {
+  console.warn(
+    `WARNING: ${stale.length} prediction(s) unresolved more than 14 days after ` +
+    `their auction — a missing result, or an event that never had one:\n` +
+    stale.map((p) => `  ${p.issueCode} ${p.auctionDate}`).join('\n')
+  );
+}
 
 const s = P.summariseLedger(after);
 console.log(

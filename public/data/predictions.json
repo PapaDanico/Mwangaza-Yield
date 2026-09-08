@@ -12,7 +12,9 @@
     "p75": 18.199450000000002,
     "high": 18.4222,
     "thin": false,
-    "windowDays": null
+    "windowDays": null,
+    "excludedOn": "2026-09-08",
+    "exclusionReason": "switch auction, not cash issuance"
   },
   {
     "issueCode": "FXD4/2019/010",

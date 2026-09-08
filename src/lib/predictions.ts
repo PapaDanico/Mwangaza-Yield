@@ -162,6 +162,95 @@ export function recordPredictions(
 }
 
 /**
+ * Mark predictions whose auction was never a cash sale, so they stop waiting
+ * for a result that cannot arrive.
+ *
+ * WHY THIS IS CODE AND NOT A HAND-EDIT
+ *
+ * It was a hand-edit. `FXD4/2019/010` carried `excludedOn` and
+ * `exclusionReason` in the committed ledger with nothing in this repository
+ * able to write them, and the OTHER LEG OF THE SAME SWITCH did not. The
+ * August calendar entry reads
+ *
+ *     FXD1/2012/015 + bills → FXD4/2019/010     transactionType: 'switch'
+ *
+ * so FXD1/2012/015 is the bond holders SURRENDER. CBK publishes one result
+ * for a switch, as a rate on the destination bond; the surrendered leg has no
+ * clearing rate of its own and never will. The panel therefore told readers
+ * "1 more is on the record and still waiting on CBK to publish" — about an
+ * event that does not exist — and went on saying it for fifteen days.
+ *
+ * That is the failure this file exists to prevent, on the page whose whole
+ * subject is whether this product's claims can be trusted. A track record
+ * that quietly parks its inconvenient rows in "pending" is not a track
+ * record.
+ *
+ * The rule reads from the CALENDAR rather than from whether a matching print
+ * turned up, which is what made the hand-edit look complete: the destination
+ * leg had a switch-typed print to notice, and the surrendered leg had no
+ * print at all, so it fell through to "awaiting". `recordPredictions` already
+ * refuses to open a prediction on a non-issuance; this closes the ones opened
+ * before that guard existed, and any that a calendar correction re-types
+ * later.
+ *
+ * Exclusions already in the ledger are never rewritten — `excludedOn` is an
+ * outcome field, and `assertLedgerIntegrity` fails the run if one moves.
+ */
+export function excludePredictions(
+  ledger: Prediction[],
+  auctions: AuctionSchedule[],
+  today: string
+): Prediction[] {
+  /* Keyed by bond AND date: the same bond is switched into repeatedly, and
+     only the entry for that auction may be excluded by it. */
+  const kindByKey = new Map<string, string>();
+  for (const a of auctions) {
+    if (!a.transactionType || a.transactionType === 'issuance') continue;
+    for (const code of splitIssueCodes(a.issueCode)) {
+      kindByKey.set(`${normaliseCode(code)}|${a.auctionDate}`, a.transactionType);
+    }
+  }
+
+  return ledger.map((p) => {
+    if (p.scoredOn !== undefined || p.excludedOn !== undefined) return p;
+    const kind = kindByKey.get(`${normaliseCode(p.issueCode)}|${p.auctionDate}`);
+    if (!kind) return p;
+    return {
+      ...p,
+      excludedOn: today,
+      exclusionReason: `${kind} auction, not cash issuance`,
+    };
+  });
+}
+
+/**
+ * Predictions that have been waiting longer than any result plausibly takes.
+ *
+ * The point of separating this from scoring is that NOBODY WAS WATCHING. A
+ * stuck row renders as "awaiting result", which is indistinguishable from a
+ * row that is legitimately young, so the ledger could carry a permanent
+ * pending entry indefinitely and the only alarm was a person reading the
+ * page. This returns them so a test can fail on them instead.
+ *
+ * CBK publishes a bond result within a working week of the auction. Fourteen
+ * days is double that, so a row past it is not slow — either its result is
+ * missing from `auction-results.json`, or it is an event that never had one.
+ * Both need a human; neither should need a human to NOTICE.
+ */
+export function stalePredictions(
+  ledger: Prediction[],
+  today: string,
+  maxDays = 14
+): Prediction[] {
+  return ledger.filter(
+    (p) =>
+      p.scoredOn === undefined &&
+      p.excludedOn === undefined &&
+      -daysBetween(p.auctionDate, today) > maxDays
+  );
+}
+
+/**
  * Fill in outcomes for predictions whose auction has since published a
  * clearing rate. Only the outcome fields are ever written; the recorded
  * forecast is read-only history.

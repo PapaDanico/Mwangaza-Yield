@@ -72,8 +72,8 @@ describe('the published data is still being refreshed', () => {
       age,
       [
         `the pipeline last ran ${age.toFixed(1)} days ago, past the ${MAX_AGE_DAYS}-day budget.`,
-        'The daily refresh has probably stopped firing — check the schedule on',
-        '.github/workflows/ci.yml and the last successful refresh-data run.',
+        'Nothing refreshes this on its own any more: run `npm run refresh`',
+        'on a machine with real network access — see docs/RUNNING-WITHOUT-ACTIONS.md.',
         'Readers are being served whatever the site last built.',
       ].join(' ')
     ).toBeLessThan(MAX_AGE_DAYS);

@@ -78,7 +78,7 @@ a rewrite nobody should undertake to work around a billing problem.
 | **Netlify build runs the scrapers** | yes | no | needs a PAT | credits | no daily cadence of its own, and a build that pushes triggers a build |
 | **A small VPS or a Raspberry Pi** | yes | yes | yes | ~$5/mo or nothing | the same as "any machine + cron", with uptime somebody else worries about |
 | **GitLab CI mirror** | yes | yes | yes | free tier | works, and moves the same dependency to a different company |
-| **Render.com cron job** | yes | yes | needs a PAT | **~$1/mo, not free** | works, and is the only hosted option proposed so far that clears the Python bar. Cron is a PAID feature: billed by the second, minimum $1 per cron service per month. Render's free tier is web services and static sites |
+| **Render.com cron job** | yes | yes | needs a PAT | **~$1/mo, not free** | works, and is the only hosted option proposed so far that clears the Python bar. Cron is a PAID feature: billed by the second, minimum $1 per cron service per month. Render's free tier is web services and static sites. **Written and committed** — see "If you choose Render" below |
 
 **On Google Apps Script and Cloudflare Workers**, which are proposed roughly
 once a cycle and were again on 11 September 2026: both are JavaScript-only, so
@@ -141,6 +141,58 @@ exited 0. A laptop that is closed
 half the time is still better than a pipeline that has not run in three weeks:
 the script simply does nothing on the runs where the machine was asleep, and
 the site keeps saying how old its figures are.
+
+### If you choose Render
+
+The blueprint is `render.yaml` and the container is `deploy/render/`. Both are
+committed, so the setup is four steps and none of them is writing code:
+
+1. **Create a GitHub personal access token** with `repo` scope.
+2. **New → Blueprint** in the Render dashboard, pointed at this repository.
+   Render reads `render.yaml` and proposes one cron service.
+3. **Paste the token** when it prompts for `GITHUB_TOKEN` — the blueprint
+   declares it `sync: false` precisely so the value is never committed.
+4. **Trigger a manual run** and read the log. A first run that finds nothing
+   new is the expected outcome and reports success; see the exit mapping below.
+
+It runs at **03:20 and 15:20 UTC, Monday to Saturday** — 06:20 and 18:20 in
+Nairobi, the same cadence as the crontab line above, before the working day and
+after CBK publishes.
+
+**What the container does, and deliberately does not do.** It is an adapter
+over `scripts/refresh-cron.sh`, not a second pipeline. That script already
+resolves node, serialises with `flock`, fast-forwards before spending fifteen
+minutes on a push that would be rejected, installs the Python dependencies, and
+maps **exit 3 — "nothing arrived" — to success** so a quiet Thursday does not
+page anybody. Reimplementing any of that on Render would produce two versions
+of the same logic and one of them would drift. Four things genuinely differ,
+and `deploy/render/refresh.sh` exists only to handle them:
+
+- **The image is not the checkout.** Render pulls a fresh image per run, and
+  the repository baked into it is frozen at the commit that BUILT it. A refresh
+  from that tree would read weeks-old data, write it back, and look entirely
+  successful. So the repository is cloned fresh on every run and the image
+  contributes only its dependencies.
+- **There are no push credentials**, so one is configured from `GITHUB_TOKEN` —
+  via a credential helper, not in the remote URL. A URL carrying a secret is
+  printed by `git remote -v` and echoed in git's own error messages, which is
+  how a token reaches a log.
+- **There is no git identity**, and `refresh-data.mjs` commits before it pushes.
+- **Nothing is persisted.** A cron job cannot have a disk, so there is no state
+  between runs and nothing to clean up.
+
+**Why Docker rather than a native runtime.** The pipeline needs both: the
+scrapers are Python and the orchestrator is Node. Render's native environments
+are one language each, so a native service would mean reimplementing half the
+pipeline in the other language — the same rewrite this document declines for
+Apps Script and Workers. Dependencies are installed at BUILD time because the
+image is pulled fresh for every run: anything installed at run time is paid for
+twice a day, forever.
+
+**Neither file can change the published site**, so both are in
+`scripts/netlify-should-build.sh`'s skip list on the same argument as
+`vercel.json`, with an assertion in `netlify-ignore.test.ts` that was
+mutation-checked rather than trusted.
 
 **And try a self-hosted runner before rewriting anything**, because it is one
 line and it may simply work:

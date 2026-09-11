@@ -1,0 +1,52 @@
+# Render Blueprint — the data refresh on a schedule.
+#
+# This exists because GitHub Actions stopped allocating runners on 15 August
+# 2026 for a billing reason outside this repository, and the pipeline has not
+# run since. It is ONE of the options in docs/RUNNING-WITHOUT-ACTIONS.md, and
+# deliberately not the first one: a crontab line on a machine you already own
+# is free, has no vendor, and runs the same scripts. Render earns its place by
+# not depending on a laptop being awake.
+#
+# COST, STATED PLAINLY: Render cron jobs are NOT free. They are billed by the
+# second while running, with a minimum of $1 per cron service per month.
+# Render's free tier covers web services and static sites, not cron. Anyone
+# reading this should know the number before connecting a card.
+#
+# Netlify never reads this file — it configures a different host entirely — so
+# it is in scripts/netlify-should-build.sh's skip list, on the same argument as
+# vercel.json.
+services:
+  - type: cron
+    name: mwangaza-refresh
+    runtime: docker
+    dockerfilePath: ./deploy/render/Dockerfile
+    # The build context is the repository root: the Dockerfile copies
+    # package-lock.json and backend/requirements.txt from it.
+    dockerContext: .
+    # Cron is a paid feature; there is no free plan to name here.
+    plan: starter
+    region: frankfurt
+
+    # UTC, always — Render evaluates the expression in UTC and shows UTC in the
+    # dashboard. 03:20 and 15:20 UTC is 06:20 and 18:20 in Nairobi, which is
+    # the cadence the crontab line in docs/RUNNING-WITHOUT-ACTIONS.md uses:
+    # before the working day, and after CBK has published.
+    # Monday to Saturday, because Sunday publishes nothing.
+    schedule: "20 3,15 * * 1-6"
+
+    envVars:
+      # A GitHub personal access token with `repo` scope. `sync: false` means
+      # Render prompts for it in the dashboard rather than reading it from this
+      # file — a token committed to a public repository is a token revoked.
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: PapaDanico/Mwangaza-Yield
+      - key: GITHUB_BRANCH
+        value: main
+      # Named so the data commits are attributable to the job rather than to
+      # whoever created the token.
+      - key: GIT_AUTHOR_NAME
+        value: Mwangaza refresh
+      - key: GIT_AUTHOR_EMAIL
+        value: refresh@mwangazayield.org

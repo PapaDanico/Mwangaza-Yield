@@ -64,11 +64,18 @@ changed=$(git diff --name-only "$CACHED_COMMIT_REF" "$COMMIT_REF" 2>/dev/null) |
 #     src/ imports from scripts/ — both verified before this line was widened.
 #     A script only reaches the published site through its committed OUTPUT,
 #     and that output lands in public/, which is not skipped.
+# render.yaml and deploy/ join them on 2026-09-11, by the same reasoning as
+# vercel.json below. render.yaml is a Render Blueprint and deploy/render/ holds
+# the Dockerfile and entrypoint for a cron job that runs the scrapers on a
+# schedule. Netlify reads none of it: `next build` never opens either path, and
+# nothing under src/ imports from them. Without this line the commit that added
+# them would have spent a production build credit to publish a Dockerfile no
+# reader can reach — the third time that charge would have been paid.
 # vercel.json joins them on 2026-09-08. It configures a DIFFERENT host, and
 # the only thing in it turns that host's deployments off — Netlify cannot be
 # changed by it under any reading. Without this line, the commit that adds it
 # would spend a Netlify build credit to publish a file Netlify never reads.
-relevant=$(echo "$changed" | grep -Ev '^(docs/|scripts/|tests/|backend/|\.github/|README\.md$|CLAUDE\.md$|LICENSE$|SECURITY\.md$|\.gitignore$|vercel\.json$)') || true
+relevant=$(echo "$changed" | grep -Ev '^(docs/|scripts/|tests/|backend/|deploy/|\.github/|README\.md$|CLAUDE\.md$|LICENSE$|SECURITY\.md$|\.gitignore$|vercel\.json$|render\.yaml$)') || true
 
 if [ -z "$relevant" ]; then
   skip "$(echo "$changed" | wc -l | tr -d ' ') changed file(s), none of them reachable by next build"

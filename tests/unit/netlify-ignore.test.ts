@@ -171,6 +171,23 @@ describe('netlify build-skip decision', () => {
     const vercel = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
     expect(run(sibling, vercel), 'vercel.json alone should skip').toBe(SKIP);
 
+    /* render.yaml and deploy/, added 2026-09-11.
+     *
+     * The Render Blueprint and the Dockerfile that runs the scrapers on a
+     * schedule. Like vercel.json they configure a host that is not Netlify:
+     * `next build` opens neither path and nothing under src/ imports from
+     * them, so a change to either cannot alter one byte of the published
+     * site. Mutation-checked rather than trusted — removing `deploy/` or
+     * `render\\.yaml$` from the skip list turns this assertion red.
+     */
+    execFileSync('bash', ['-c',
+      `mkdir -p ${dir}/deploy/render && echo FROM node > ${dir}/deploy/render/Dockerfile ` +
+      `&& printf 'services: []\\n' > ${dir}/render.yaml`]);
+    git('add', '-A');
+    git('commit', '-qm', 'the refresh, on somebody else\'s schedule');
+    const render = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(vercel, render), 'render.yaml + deploy/ alone should skip').toBe(SKIP);
+
     /* CLEANUP MUST NOT BE ABLE TO FAIL THE TEST.
      *
      * The twin of this file in JiPange had the identical bare

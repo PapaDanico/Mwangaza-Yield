@@ -2,12 +2,12 @@
   {
     "id": "cbk-import-cover",
     "label": "Reserves (import cover)",
-    "value": 6.2,
+    "value": 6.1,
     "unit": "months",
-    "asOf": "2026-08-27",
+    "asOf": "2026-09-03",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,934 million on this date.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,880 million on this date.",
     "sentiment": "good"
   }
 ]

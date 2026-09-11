@@ -48,5 +48,11 @@ services:
       # whoever created the token.
       - key: GIT_AUTHOR_NAME
         value: Mwangaza refresh
+      # No value here, deliberately. An invented address was committed here
+      # first and tests/unit/no-personal-data.test.ts caught it: that guard
+      # allowlists only genuinely public organisational contacts, because this
+      # repository once carried real personal data for three days. Set it in
+      # the dashboard — a GitHub noreply address attributes the commits to a
+      # real account without publishing a mailbox.
       - key: GIT_AUTHOR_EMAIL
-        value: refresh@mwangazayield.org
+        sync: false

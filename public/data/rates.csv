@@ -6,9 +6,9 @@
 "# Public information provided as-is for education, not investment advice and not a warranty of accuracy. Verify against the official prospectus before committing funds."
 
 series,label,tenorDays,fromYears,toYears,quotedDiscountRate,grossRate,netRate,whtRate,sampleSize,lowRate,highRate,asOf,source
-tbill,91-day Treasury bill,91,,,8.7687,9.0616,7.6645,0.15,,,,2026-09-03,"CBK auction, 3 Sep 2026, entered by hand"
-tbill,182-day Treasury bill,182,,,8.9331,9.1332,7.7377,0.15,,,,2026-09-03,"CBK auction, 3 Sep 2026, entered by hand"
-tbill,364-day Treasury bill,364,,,9.0737,9.0748,7.7134,0.15,,,,2026-09-03,"CBK auction, 3 Sep 2026, entered by hand"
+tbill,91-day Treasury bill,91,,,8.7674,9.0602,7.6634,0.15,,,,2026-09-10,"CBK auction, 10 Sep 2026, entered by hand"
+tbill,182-day Treasury bill,182,,,8.9296,9.1295,7.7346,0.15,,,,2026-09-10,"CBK auction, 10 Sep 2026, entered by hand"
+tbill,364-day Treasury bill,364,,,9.0665,9.0676,7.7073,0.15,,,,2026-09-10,"CBK auction, 10 Sep 2026, entered by hand"
 bondAuctionBand,Under 3y,,0,3,,,,,0,,,,CBK auction results
 bondAuctionBand,3–7y,,3,7,,,,,2,,,2026-07-13,CBK auction results
 bondAuctionBand,7–12y,,7,12,,12.613,,,10,12.184,13.339,2026-09-02,CBK auction results

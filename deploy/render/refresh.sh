@@ -42,8 +42,24 @@ WORK="${WORK_DIR:-/tmp/mwangaza}"
 # reads it from the environment and prints it to git alone.
 git config --global credential.helper \
   '!f() { echo username=x-access-token; echo "password=${GITHUB_TOKEN}"; }; f'
+# GIT_AUTHOR_EMAIL is REQUIRED and has no default on purpose. An invented
+# fallback was written here first — and tests/unit/no-personal-data.test.ts
+# caught it, correctly: that guard exists because this public repository once
+# carried the owner's real name, email, phone, CDS number and KRA PIN for three
+# days, and it allowlists only addresses that are genuinely public
+# organisational contacts. A plausible-looking address nobody owns is not one,
+# and pardoning it would have taught the guard to accept the next one too.
+#
+# Set it in the Render dashboard to the address the commits should be
+# attributed to. A GitHub noreply address — the `users.noreply.github.com`
+# form GitHub shows under Settings -> Emails — attributes them to a real
+# account without publishing a mailbox. No example is spelled out here: the
+# guard named above matches any email-shaped string, including one written
+# only to illustrate the point, which it duly caught on the first attempt.
+: "${GIT_AUTHOR_EMAIL:?set GIT_AUTHOR_EMAIL in the Render dashboard — deliberately has no default, see the comment above}"
+
 git config --global user.name  "${GIT_AUTHOR_NAME:-Mwangaza refresh}"
-git config --global user.email "${GIT_AUTHOR_EMAIL:-refresh@mwangazayield.org}"
+git config --global user.email "$GIT_AUTHOR_EMAIL"
 git config --global advice.detachedHead false
 
 # ------------------------------------------------------------------ the clone

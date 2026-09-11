@@ -14,10 +14,16 @@ repository, and no amount of editing `ci.yml` will move it. The evidence says
 the second.
 
 What is also true, and is the reason this document exists: it has not run
-since **15 August 2026, 13:34 UTC**, the runner is never allocated, the cause
-is visible only in the GitHub web UI, and nobody here can clear it. Twenty-four
-days is long enough to stop treating it as an outage and start treating it as
-an absence.
+since **15 August 2026, 13:34 UTC**, the runner is never allocated, and nobody
+here can clear it. Twenty-four days is long enough to stop treating it as an
+outage and start treating it as an absence.
+
+The cause is **billing**, confirmed by the owner on 11 September 2026, who
+asked that it be left alone. Earlier revisions of this document could only say
+it was "visible in the GitHub web UI", because it is — the Actions tab banner
+and Settings → Billing and licensing — and no API a session can reach reports
+it. It is recorded here so nobody re-derives it, and so nobody proposes a fix
+for it: it is a decision already taken, not an open problem.
 
 ## What it actually did
 

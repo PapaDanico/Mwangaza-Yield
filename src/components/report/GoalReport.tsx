@@ -189,7 +189,14 @@ export default function GoalReport({
                 <tr key={y.year} className="border-b border-sand-200 last:border-0">
                   <td className="num py-1.5 font-medium">{y.year}</td>
                   <td className="num py-1.5 text-right">{formatKES(y.feeKES)}</td>
-                  <td className="num py-1.5 text-right">{formatKES(y.principalMaturingKES)}</td>
+                  {/* '—', not 'Ksh 0', in the years no rung matures. The screen
+                    * renders it that way and the printout must agree: this test
+                    * ("the printout says what the screen says") caught a Ksh 0
+                    * stated on paper that appeared nowhere on the page. The
+                    * shortfall column beside it already reads the same way. */}
+                  <td className="num py-1.5 text-right">
+                    {y.principalMaturingKES > 0 ? formatKES(y.principalMaturingKES) : '—'}
+                  </td>
                   <td className="num py-1.5 text-right">{formatKES(y.couponsKES)}</td>
                   <td className="num py-1.5 text-right text-mint-700">{formatKES(y.coveredKES)}</td>
                   <td className="num py-1.5 text-right">

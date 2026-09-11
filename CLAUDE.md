@@ -138,6 +138,45 @@ Two consequences worth stating rather than rediscovering:
   Treasury and the World Bank. A refresh happens in CI or on a machine with
   real network access, or not at all.
 
+### A blocked host is not a blocked figure
+
+**Being unable to reach a source is a reason to look elsewhere, not a reason to
+stop.** On 11 September the reader banner spent a whole morning naming one
+number — reserves import cover, 27 August, one day past its budget — because a
+session ran two searches, failed to corroborate, and reported the wall instead
+of working around it. The owner's objection was exactly right: a placard on the
+page is not a substitute for the work, and "CBK is egress-blocked" describes one
+route, not the question.
+
+Three more searches found it. The figure was then corroborated three ways before
+being written, which is the bar and is worth restating as a method:
+
+1. **Two independent retrievals**, from differently-phrased queries, returning
+   the same value and date. A single result is not enough, and neither is the
+   same result found twice the same way — an exact-string search for the figure
+   had FAILED earlier, which is why it was not written that morning.
+2. **A series that stays monotonic with a primary document anchoring it.**
+   20 Aug (press, 6.3 months) -> 27 Aug (**the CBK document the owner supplied**,
+   6.2) -> 3 Sep (search, 6.1). Both units fell together across three points from
+   three origins. A figure that breaks the series it joins is wrong whatever
+   carried it.
+3. **A unit cross-check that has to reconcile.** USD 14,880m at CBK's own
+   129.47 is KSh 1.927tn, which matches the "above Ksh1.9 trillion" the same
+   week was reported as. This is the same trick as reconciling a T-bill notice's
+   column totals: an arithmetic identity somebody would have had to fake on
+   purpose.
+
+**And the tenor trap is real, so check the label, not just the number.** Search
+for the 10 September T-bill results returned "8.7674% for 182-day". The primary
+notice showed 8.7674 is the **91-day**; the 182-day was 8.9296. The only warning
+available beforehand was that the figure implied the 182-day falling 0.166pp in
+a week while the 364-day moved 0.007 — an anomaly in the shape of the data. That
+is why it was not written from search, and why the document was worth asking for.
+
+So: ask for the document first, it beats everything. When none is coming, search
+is legitimate — corroborated, cross-checked, and with `null` for anything that
+stays unsourced.
+
 ### Reading a PDF, including its charts
 
 Documents arrive as uploads because the sources cannot be fetched. Two tools
@@ -221,9 +260,17 @@ Vercel's own documentation gives as the way to "prevent any branch from
 triggering a deployment" — read from the repository, no dashboard involved.
 It was written off as unreachable until `search_vercel_documentation` was
 actually asked. The bot may still comment, since commenting is the GitHub App
-rather than the project; what it can no longer do is build, or post a red
-`Deployment was blocked` status on every pull request, which is what it did on
-#279 before this. `vercel.json` is in `netlify-should-build.sh`'s skip list —
+rather than the project; what it can no longer do is BUILD.
+
+**It still posts a red status, and that sentence used to claim otherwise.** This
+file said `vercel.json` had stopped Vercel posting a red status on every pull
+request. Observed on **#287, 11 Sept**: a `Vercel` commit status, state `failure`,
+description **"Account is blocked."** The earlier claim was half right — the
+`Deployment was blocked` row is gone because deployments are off — but the ACCOUNT
+is blocked at a level above the project, so no repository setting can silence it.
+Nothing in the tree will fix it and nothing should try: Vercel has never served
+`mwangazayield.org` (DNS points at Netlify), it does not block merges, and the
+remedy is the dashboard disconnect already described above. `vercel.json` is in `netlify-should-build.sh`'s skip list —
 it configures a different host and Netlify never reads it — with a test that
 was mutation-checked rather than trusted.
 
@@ -303,7 +350,10 @@ and fetches nothing.
 
 ## Git workflow
 
-Work on `claude/admiring-noether-fg3037`, push, open a **draft** PR.
+Work on the branch your session was assigned, push, open a **draft** PR. The name
+changes per session — it was `claude/admiring-noether-fg3037` when this section was
+written and `claude/loving-mayer-dw9jws` on 11 Sept — so read it from your own
+instructions rather than from this line, and substitute it below.
 
 **After a PR merges, GitHub deletes the remote branch.** The local
 `origin/...` ref goes stale, and the next `push --force-with-lease` is rejected
@@ -494,17 +544,23 @@ repository distrusts a check that cries wolf — see `scripts/netlify-should-bui
 
 ## Known state — do not re-report these as new findings
 
-Current as of 7 September 2026. Confirm before acting; do not rediscover.
+Current as of **11 September 2026**. Confirm before acting; do not rediscover.
+
+Several rows below were corrected on 11 Sept after being checked against the
+tree rather than trusted. That is the intended lifecycle of this table: it is a
+record of what was true when somebody last looked, not a standing fact. If a row
+and the repository disagree, the repository is right and the row is the defect —
+fix it in the same session that found it.
 
 | | state |
 |---|---|
 | **GitHub Actions** | **It worked, then stopped — checked, not assumed.** Runs 24-28 completed `success` on 25 July 2026, full ~50s runs on push and pull_request; the API still returns them. So "it never worked from day one" is not what the record shows, and the distinction decides where to look: a workflow that ran green and then stopped allocating runners is a change OUTSIDE this repository, and editing `ci.yml` cannot move it. Dead since **15 Aug, 13:34 UTC**. Runs are created; runner allocation fails; jobs die in 2-5s with `runner_id: 0`, zero steps, logs 404 and an empty check-run output. Workflow `state` is `active`. **The cause is BILLING — confirmed by the owner on 11 Sept 2026**, who asked that it be left alone. That is the answer to a question earlier sessions could only point at, since it is visible only in the web UI (the Actions tab banner, and Settings → Billing and licensing) and no API a session can reach reports it. Do not spend tokens re-deriving it from `runner_id: 0`, and do not raise it as an outstanding item: it is a known, accepted state, not a task. A red `test-and-build` on a pull request is therefore never that PR's failure — check the job record (2-5s, `runner_id: 0`, no steps) and say so once, rather than re-running it into the same absent runner. **Do not wait for it — see [`docs/RUNNING-WITHOUT-ACTIONS.md`](docs/RUNNING-WITHOUT-ACTIONS.md) and use `npm run ci` and `npm run refresh`.** |
-| **Data pipeline** | Still down — `meta.generatedAt` is 19 Aug and the liveness canary is red at ~19 days. But as of 7 Sept the **reader banner is silent, and has earned it**: three CBK notices supplied by the owner put T-bills at 4 days (budget 10) and USD/KES at 0 (budget 4), so every figure is inside its own publisher's cadence. Fresh figures are not a working pipeline; the Data Health panel's "Pipeline last ran" row and the canary are what still report the machinery. |
-| **What the archive is missing** | Largely closed on 7 Sept by three CBK documents supplied directly: T-bills advanced to the **3 Sept** auction (8.7687 / 8.9331 / 9.0737, amounts sourced, `nextAuctionDate` 10 Sept), USD/KES to **129.43** on 7 Sept, and the **9 Sept FXD4/2019/010 switch** added (accepted WAR 11.1398%). The 27 Aug T-bill figures written earlier that day from search were superseded and removed. What remains missing is the **2 Sept bond auction** (FXD3/2019/015 and SDB1/2011/030) — press-reported only, no document, so not written. Earlier notes established 7 Sept by `WebSearch` (CBK itself is egress-blocked, so none of it could be verified against the source PDF and none of it was written). **T-bills:** `tbills.json` was advanced to the **27 Aug** auction on 7 Sept (8.7692 / 8.9400 / 9.0323, amounts null — see the method above). The **3 Sept** auction (issues 2698/091, 2672/182, 2627/364, value-dated 7 Sept) is still missing: only its announcement is reachable, carrying the previous auction's rates, not its own results. **Bonds:** an auction ran 2 Sept for FXD3/2019/015 and SDB1/2011/030; press reported a market WAR of 13.7991% and an accepted WAR of 13.6937%, Ksh41.14bn accepted. `auction-results.json` ends at 26 Aug. Do NOT write any of it: those outlets are unregistered in `licences.ts`, `licences.test.ts` fails the build on a source that does not resolve, and both files are pipeline output that the next run overwrites. |
+| **Data pipeline** | Still down — `meta.generatedAt` is 19 Aug and the liveness canary is red at **23 days**. The **reader banner is silent as of 11 Sept, and has earned it**: T-bills 1 day (budget 10), reserves 8 (14), USD/KES 4 (4), everything else well inside cadence. Fresh figures are not a working pipeline. The Data Health panel's "Pipeline last ran" row and the canary are what still report the machinery, and they are the honest red — `meta.json` must never be hand-stamped to quiet them, which would not even work, since `readerNotice` stopped reading pipeline liveness in August. |
+| **What the archive is missing** | **Rewritten 11 Sept; the previous text was stale in three places.** **T-bills** are at the **10 Sept** auction — 8.7674 / 8.9296 / 9.0665, amounts sourced, `nextAuctionDate` 17 Sept — from CBK's notice for issues 2699/091, 2673/182, 2628/364 DATED 14-09-2026, supplied directly and reconciled on both column totals (28,000.00M offered, 53,281.57M accepted). **The 2 Sept bond auction is NOT missing**, whatever this row used to say: FXD3/2019/015 (WAR 12.7631, market 12.829) and SDB1/2011/030 (WAR 13.6937, market 13.7991) are in `auction-results.json`, written from the document signed D. Luusa rather than from the press reports this row warned against. `auction-results.json` now ends **7 Sept** (the FXD4/2019/010 switch, accepted WAR 11.1398%), not 26 Aug. **Reserves** advanced to **3 Sept** (6.1 months, USD 14,880m). **USD/KES** is 129.43 at 7 Sept and trips its 4-day budget soonest — and `macro.json` is scraper-written, so it cannot be hand-edited the way `tbills.json` and `cbk-context.json` can. The standing rule survives all of this: press outlets are unregistered in `licences.ts` and `licences.test.ts` fails the build on a source that does not resolve. |
 | **Every scraper source is egress-blocked, verified per host** | Checked individually on 7 Sept, not inferred from CBK alone: `api.worldbank.org`, `www.centralbank.go.ke`, `www.knbs.or.ke`, `www.treasury.go.ke`, `data.imf.org`, `api.imf.org` and `opendataforafrica.org` all fail `CONNECT` with 403. There is no partially-open route — no scraper can run from a session, including the keyless World Bank one. `list_environments` shows a single environment, so there is no second sandbox with different egress to try. |
 | **`npm run ci` and `npm run refresh`** | The two Actions jobs, runnable anywhere. `ci.mjs` is `test-and-build` derived step for step from `ci.yml`, in the same order, so they cannot drift without one being visibly shorter. `refresh-data.mjs` is the pipeline, and `--push` commits and pushes — but only a run where a dataset's `asOf` in `freshness.json` actually advanced. Exit code and files-changed both LOOK like success on a run that fetched nothing (`macro_parser.py` exits 0 via `carry_forward()`; `data-manifest.json` advances `lastSuccessfulScrape` when every source 403'd), and a files-changed rule was tested here and kept a dead run. Both need real network, which no session has. The sustainable home is a machine the owner controls plus one crontab line — the alternatives, including why every JavaScript-only runtime is out (the scrapers are Python), are compared in `docs/RUNNING-WITHOUT-ACTIONS.md`. |
 | **Deploy previews are OFF, deliberately** | Every pull request's Netlify preview is cancelled with `Failed during stage 'checking build content for changes': Canceled build due to no content change`. That is NOT a fault and not `netlify-should-build.sh`: it is `[context.deploy-preview] ignore = "exit 0"` in `netlify.toml`, with `[context.branch-deploy]` beside it. Previews were about HALF of all build spend against a pool that hit zero and left two merged commits unpublished. Production is unaffected — `#286` merged and published normally the same afternoon. **Do not investigate this, and do not delete the block.** An automated agent already did, answering the question its own comment answers, and added a test asserting the block was absent so the saving could not be restored without the build failing. Bringing previews back is a call on the build budget, and the owner's. A session spent four cancelled previews re-deriving this on 11 Sept before reading 30 lines of `netlify.toml`. |
-| **Bonds and Auctions have no freshness row, deliberately** | Do not add one. `auctions.json` is a FORWARD-looking calendar and `bonds.json` holds maturity dates, so `now - date` is negative for most rows — the negative-age bug that got the panel's per-dataset rule deleted in the first place. The auction calendar being entirely in the past is already covered by a canary in `published-data-freshness.test.ts`, which is red and correct. |
+| **Bonds and Auctions have no freshness row, deliberately** | Do not add one. `auctions.json` is a FORWARD-looking calendar and `bonds.json` holds maturity dates, so `now - date` is negative for most rows — the negative-age bug that got the panel's per-dataset rule deleted in the first place. The auction calendar being entirely in the past is already covered by a canary in `published-data-freshness.test.ts`. **That canary is GREEN as of 11 Sept** — it was red when this row was written, and #281 fixed it by adding the 16 Sept auction. Do not re-report it as failing without running it. |
 | **`verify:sw` and the calendar** | The shell digest is taken over pages whose bytes move on their own. Three causes, all settled 8 Sept: the staleness notice's "N days old", the navbar title's "and N scheduled updates" (ticks by two a day, on all twelve routes), and `/macro/`, whose T-bill ladder is anchored to TODAY and so moves entirely every night. The first two are blanked by `normalise()`; `/macro/` is in `CALENDAR_ROUTES` and excluded — still precached, but outside change detection. **Do not re-record `SHIPPED_DIGEST` to make a red check green without first running the clock shim.** Build twice with `global.Date` shifted (`NODE_OPTIONS=--require` a shim adding a day) and diff `npm run verify:sw -- --entries`: identical means the drift is calendar, different means somebody shipped a page behind a stale cache version, which is the whole point of the guard. Shifting **45** days legitimately moves every route — the staleness banner appears because figures really have passed their cadence — so use **one** day to test drift. |
 | **Lighthouse Best Practices: 0** | **A reporting artifact, not a site defect — diagnosed 21 Aug.** Run directly against the built site with the production CSP and headers applied, Lighthouse scores Best Practices **1.0 (100) with zero failing audits**. Netlify's plugin has reported 0 on every deploy including ones scoring 77 Performance / 100 Accessibility / 100 SEO. Do not chase it in the code; the site is clean. Reproduce with `npm i --no-save lighthouse` and run it against a local server that applies the netlify.toml headers. |
 | **CLS** | **Re-measured and widened 7-8 Sept.** The guard listed SIX routes out of thirteen and reported six — and **four routes outside it were over budget**: `/goals/` 0.2752, `/prices/` 0.2519, `/calculator/` 0.2502, `/sell/` 0.2225 against 0.1. One cause, already written up in `smoke.mjs` for `/tbills/` and fixed only there: `DataState`'s loading skeleton is `h-64` on every page, and the ToolShell tool that replaces it is 936-10,299px, throwing the server-rendered prose below it down the page. `DataState` now takes a `reserve` height and those four pass `h-[900px]` — a little over one viewport, deliberately NOT the final height, which varies with the reader's own data. The route list now covers twelve and the summary counts the list. All twelve inside budget: `/` 0, `/dashboard/` **0.0381**, `/auctions/` 0, `/ladder/` 0.0196, `/tbills/` 0, `/portfolio/` 0.0024, `/goals/` 0.0104, `/calculator/` 0.0268, `/sell/` 0, `/prices/` 0, `/macro/` 0, `/yield-curve/` 0. Dashboard fell 0.0784 -> 0.0381 when six drifted `Reserve` heights were re-measured (TopYields reserved 196 for 348; SovereignContext 180 for 1,350). **A guard that covers half the routes reports half the routes** — that is the lesson worth keeping. |

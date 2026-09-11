@@ -78,6 +78,32 @@ a rewrite nobody should undertake to work around a billing problem.
 | **Netlify build runs the scrapers** | yes | no | needs a PAT | credits | no daily cadence of its own, and a build that pushes triggers a build |
 | **A small VPS or a Raspberry Pi** | yes | yes | yes | ~$5/mo or nothing | the same as "any machine + cron", with uptime somebody else worries about |
 | **GitLab CI mirror** | yes | yes | yes | free tier | works, and moves the same dependency to a different company |
+| **Render.com cron job** | yes | yes | needs a PAT | **~$1/mo, not free** | works, and is the only hosted option proposed so far that clears the Python bar. Cron is a PAID feature: billed by the second, minimum $1 per cron service per month. Render's free tier is web services and static sites |
+
+**On Google Apps Script and Cloudflare Workers**, which are proposed roughly
+once a cycle and were again on 11 September 2026: both are JavaScript-only, so
+they land in the same row as the Netlify function above — they can reach CBK,
+and they cannot run `pdfplumber`, `lxml` or `pandas`. Reaching the source was
+never the hard part. "Can it reach CBK" is the column such proposals lead with
+and "runs Python" is the column that decides, which is why this table has both.
+
+Taking one at face value would also have cost something. The Apps Script
+proposal of that date carried a parser whose patterns were built with
+`new RegExp` over ordinary string literals, so `\s`, `\w` and `\d` collapsed to
+`s`, `w` and `d` before the expression was compiled:
+
+    91-Day.*?Issue Number:s*([w/]+).*?Previous Average Interest Rate:s*([d.]+)
+
+That matches nothing on a CBK page, and the failure is silent — the parser
+returns an empty list rather than raising. It also read **Previous Average
+Interest Rate**, which is one auction older than the page carrying it: the
+same field that put the T-bill dates a week out in August. And it committed to
+`public/data/rates-snapshot.json`, which does not exist, while stamping
+`meta.json` by hand — the one edit forbidden outright in CLAUDE.md.
+
+None of that makes the idea dishonest; it makes it unreviewed. A generated
+pipeline has to be run against the real page before it is trusted, and none of
+these can be run from a session anyway.
 
 ### What to do
 

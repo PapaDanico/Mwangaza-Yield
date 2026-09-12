@@ -10,15 +10,26 @@ by a session spending tokens to discover it. Read it before reaching for a tool.
 **Tokens cost real money and the owner has said so.** That is not a style note,
 it is a constraint on what to do next.
 
-- **Do not re-audit settled ground.** This repository has been audited three
-  times over. A fourth pass produces confirmations, not findings, and bills for
-  them. Prefer one verified fix to another sweep.
+- **Do not re-audit settled ground — but this file is not settled ground.**
+  The repository has been audited three times over and a fourth sweep produces
+  confirmations, not findings. That argues against sweeps. It does NOT argue for
+  trusting a row in the table below: on 11-12 September four of them were wrong
+  (the calendar canary called red was green, the 2 Sept auction called missing
+  was written, Vercel's red status called fixed was still posting, `macro.json`
+  called un-editable was already hand-edited). Each was checked in seconds.
+  **Verify the specific claim you are about to rely on, especially before
+  telling the owner something cannot be done.** A sweep is waste; a lookup
+  before an assertion is the house standard.
 - **Do not re-research what is already researched.** `docs/REVENUE.md` and
   `docs/BUSINESS-MODEL.md` are a sequenced, costed revenue plan with the
   arithmetic done and sources named. It is better than a cold web search would
   produce. Execute it; do not pay to rediscover it.
-- **Propose before a large spend.** Say what it will cost and what it buys, and
-  let the owner choose. "Upgrade the platform" is unbounded — bound it first.
+- **Bound a large spend, then do it.** Say what it will cost and what it buys —
+  and then, unless it is irreversible or genuinely the owner's call, get on with
+  it. "Upgrade the platform" is unbounded and needs bounding first. "Update the
+  figures" is not unbounded, and asking permission for it reads as a refusal
+  dressed as diligence. The owner has said, repeatedly and in terms, that he
+  does not want to be handed the work back.
 - **No monitoring loops unless asked.** Polling a blocked service re-reads a
   stale result at full price. Prefer one check timed to when the state can
   actually have changed, and say why that time was chosen.
@@ -43,10 +54,16 @@ as blocked, exhaust what is actually in reach:
   and were one: `<main>` moving 99px because a banner appeared after mount.
   Reading the `layout-shift` source nodes found that in one pass; guessing
   would have produced four separate fixes for a single cause.
-- **State genuine impossibility once, as a fact, not as a chore.** Actions
-  being blocked account-wide and CBK being denied by egress policy are real
-  walls. Say so plainly, say what it prevents, and move on — do not repeat it
-  every turn as an outstanding item.
+- **State genuine impossibility once, as a fact, not as a chore — and re-test
+  it when it is disputed.** Actions being blocked by billing and CBK being
+  denied by egress policy are real walls. Say so plainly, say what it prevents,
+  and move on. But "the host is blocked" answers a question about a ROUTE, never
+  about the figure, the file or the task: see "A blocked host is not a blocked
+  figure" below, which exists because a morning was spent showing readers a
+  banner about a number three more searches would have found. When the owner
+  doubts a wall, spend the thirty seconds to demonstrate it rather than
+  repeating the claim — DNS, `curl`, and `WebFetch` together settle it, and the
+  evidence is cheaper than the argument.
 
 This does not override the ordinary confirmations: destructive or outward-
 facing actions still need care, and a decision that is genuinely the owner's —
@@ -70,15 +87,25 @@ Verify the finding, then decide the fix independently.
 
 ---
 
-## Research the web with WebSearch, not WebFetch
+## Research the web with WebSearch first
 
-**Use `WebSearch`. Do not use `WebFetch`.**
+**Reach for `WebSearch` first. `WebFetch` is not banned — it is just useless on
+a blocked host, and most of the hosts this repository cares about are blocked.**
 
-`WebFetch` reaches a host directly, and outbound HTTPS from these sessions goes
-through a policy-enforcing egress proxy that denies most external hosts. The
-failure is a `403` on `CONNECT`, which looks nothing like "you are not allowed"
-and everything like the site being down — so the natural next move is to retry,
-and retrying spends tokens on a wall that will not move.
+This section used to read "Do not use `WebFetch`", flatly. That was over-broad
+in a way worth fixing, because a rule people cannot follow literally is a rule
+they stop reading: `WebFetch` is the right tool for any host the proxy permits,
+and on a blocked one it gives a BETTER diagnosis than `curl` does —
+
+    WebFetch  ->  EGRESS_BLOCKED: Access to www.centralbank.go.ke is blocked
+                  by the network egress proxy.
+    curl      ->  curl: (56) CONNECT tunnel failed, response 403
+
+The first names the cause. The second looks like the site being down, which is
+why the natural next move is to retry and retrying spends tokens on a wall that
+will not move. Use `WebFetch` deliberately when you need to settle whether a
+host is reachable; both were run against CBK on 11 September, when the block was
+disputed, and the pair is what made the answer checkable rather than asserted.
 
 `WebSearch` returns results without needing a tunnel to the target host, so it
 works where `WebFetch` cannot. This is not theory: it is how the National
@@ -429,10 +456,31 @@ because a session ran the full TypeScript suite and only `test_macro_parser.py`.
 
 ---
 
-## Never hand-edit a generated file
+## Hand-edit a generated file only with the route recorded
 
-`public/data/` is almost entirely output. Editing it by hand is silently undone
-by the next pipeline run — an agent once hand-added five QEBR indicators and the
+**The rule is about silent LOSS and silent PROVENANCE, not about never touching
+`public/data/`.** It was written as "never hand-edit a generated file", and on
+12 September that phrasing cost a real thing: a session told the owner USD/KES
+could not be fixed by hand, because `macro.json` is scraper-written — while that
+very file's FX and CPI rows carried `"via": "supplied-document"` and notes
+reading "entered by hand while the pipeline is down". The file had been
+hand-maintained for days. The rule had been read as a prohibition instead of a
+procedure, and a stale figure sat on the page because of it.
+
+**The procedure.** A hand-written figure must record how it arrived, so a value
+that came by a fallback can never be mistaken for one that did not:
+
+- `via` names the route — `supplied-document` for a notice the owner pasted,
+  `search-corroborated` for a figure that was NOT read from the primary PDF.
+- `sourceNote` says which document, which date, and what was checked.
+- Anything unsourced is `null`, never the last known value.
+
+`tbills.json`, `cbk-context.json` and `macro.json` are all maintained this way
+while the pipeline is down. What remains forbidden outright is `meta.json`,
+because `generatedAt` means "the pipeline ran" and no hand can make that true.
+
+The real hazard the original rule was pointing at is still real: editing output
+by hand is silently undone — an agent once hand-added five QEBR indicators and the
 next refresh wiped every one, because `qebr_parser.py` regenerates that file
 wholesale.
 

@@ -1,19 +1,19 @@
 {
-  "checkedAt": "2026-09-11T15:18:07.919458+00:00",
+  "checkedAt": "2026-09-12T05:48:29.035961+00:00",
   "datasets": [
     {
       "file": "meta.json",
       "label": "Pipeline last ran",
       "asOf": "2026-08-19",
-      "ageDays": 23,
+      "ageDays": 24,
       "budgetDays": 7,
       "stale": true
     },
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-09-07",
-      "ageDays": 4,
+      "asOf": "2026-09-10",
+      "ageDays": 2,
       "budgetDays": 40,
       "stale": false
     },
@@ -21,15 +21,15 @@
       "file": "tbills.json",
       "label": "Treasury bills",
       "asOf": "2026-09-10",
-      "ageDays": 1,
+      "ageDays": 2,
       "budgetDays": 10,
       "stale": false
     },
     {
       "file": "cbk-context.json",
       "label": "CBK sovereign context",
-      "asOf": "2026-09-03",
-      "ageDays": 8,
+      "asOf": "2026-09-10",
+      "ageDays": 2,
       "budgetDays": 14,
       "stale": false
     },
@@ -37,7 +37,7 @@
       "file": "expectations.json",
       "label": "Market expectations",
       "asOf": "2026-07-21",
-      "ageDays": 52,
+      "ageDays": 53,
       "budgetDays": 75,
       "stale": false
     },
@@ -45,7 +45,7 @@
       "file": "context.json",
       "label": "Sovereign context",
       "asOf": "2025-01-01",
-      "ageDays": 618,
+      "ageDays": 619,
       "budgetDays": 900,
       "stale": false
     },
@@ -53,7 +53,7 @@
       "file": "cbr-history.json",
       "label": "CBR decision history",
       "asOf": "2026-08-11",
-      "ageDays": 31,
+      "ageDays": 32,
       "budgetDays": 130,
       "stale": false
     },
@@ -61,7 +61,7 @@
       "file": "cpi-history.json",
       "label": "CPI history",
       "asOf": "2026-07-01",
-      "ageDays": 72,
+      "ageDays": 73,
       "budgetDays": 75,
       "stale": false
     },
@@ -69,7 +69,7 @@
       "file": "imf-outlook.json",
       "label": "IMF WEO outlook",
       "asOf": "2026-04-30",
-      "ageDays": 134,
+      "ageDays": 135,
       "budgetDays": 240,
       "stale": false
     }

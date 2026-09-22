@@ -20,5 +20,16 @@
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
     "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,726.50 billion on this date, up from KSh 7,668.41 billion a week earlier. Treasury bonds are 84.27 percent of outstanding securities and bills 15.73, so most new supply is long-dated.",
     "sentiment": "watch"
+  },
+  {
+    "id": "cbk-public-debt",
+    "label": "Public debt (total)",
+    "value": 13.01,
+    "unit": "KSh tn",
+    "asOf": "2026-06-30",
+    "source": "CBK Weekly Bulletin",
+    "sourceUrl": "https://www.centralbank.go.ke/publications/",
+    "note": "Everything the government owes, domestic and external together — KSh 13,011.89 billion, provisional, against KSh 12,299.48 billion in December 2025. External debt is USD 43.90 billion of it. Deliberately shown as a level and not as a share of GDP: no nominal GDP figure is held here that could be verified, and the ratio is the number this site refuses to estimate. Compiled by the National Treasury and CBK.",
+    "sentiment": "watch"
   }
 ]

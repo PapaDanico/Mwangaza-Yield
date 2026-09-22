@@ -191,3 +191,66 @@ export function summariseBacktest(results: BacktestResult[]): BacktestSummary {
     lastAuction: dates[dates.length - 1] ?? null,
   };
 }
+
+/* ------------------------------------------------------- bias, by regime */
+
+/**
+ * How many of the most recent replayed auctions count as "the regime we are
+ * in now".
+ *
+ * Twenty-four is about two years of bond auctions on CBK's current cadence —
+ * long enough that one surprising print cannot set the sign, short enough to
+ * sit entirely inside the easing cycle that began in 2025. It is a judgement
+ * and it is stated here rather than buried at a call site.
+ */
+export const RECENT_CLAIMS = 24;
+
+/**
+ * The median bias over the most recent claims, or null when there are too few.
+ *
+ * WHY A SECOND BIAS NUMBER, WHEN ONE WAS ALREADY PUBLISHED
+ *
+ * `summariseBacktest` measures bias over everything replayed, and on 22
+ * September 2026 that came to **-0.14pp** — the method quoting slightly BELOW
+ * what auctions paid. TrackRecord printed exactly that: "usually quoting below
+ * what the auction paid".
+ *
+ * Sliced by era, the same archive says the opposite about now:
+ *
+ *     all (97 claims)   -0.14pp
+ *     2024+ (74)        +0.34pp
+ *     2025+ (53)        +0.52pp
+ *     2026  (26)        +0.51pp
+ *
+ * The sign flipped because Kenyan yields fell hard through 2025-26, and a
+ * method built from past prints lags a falling market. The live ledger says
+ * the same thing far more bluntly: all three scored predictions missed, every
+ * one of them BELOW the quoted range — the direction the page was telling
+ * readers not to expect.
+ *
+ * So the published sentence was not false about the seventeen-year record and
+ * was wrong about the only question a bidder has, which is what to expect on
+ * Thursday. That is this repository's most familiar defect — a true figure
+ * answering a question nobody asked — and it is the same shape as the reader
+ * banner that reported pipeline liveness to somebody pricing a bond.
+ *
+ * Returns null rather than a number when the sample is short, so a caller
+ * cannot mistake "too early to say" for "no bias". Absence is not zero.
+ */
+export function recentBiasPp(
+  results: BacktestResult[],
+  window: number = RECENT_CLAIMS
+): number | null {
+  const claims = results
+    .filter((r) => !r.thin)
+    .sort((a, b) => a.auctionDate.localeCompare(b.auctionDate));
+  if (claims.length < window) return null;
+  return median(claims.slice(-window).map((r) => r.errorPp));
+}
+
+/** Which way the method currently leans, in words a bidder can act on. */
+export function biasPhrase(biasPp: number): string {
+  return biasPp < 0
+    ? 'usually quoting below what the auction paid'
+    : 'usually quoting above what the auction paid';
+}

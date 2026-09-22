@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import { summariseLedger, type Prediction } from '@/lib/predictions';
 import { scoringVerdict } from '@/lib/prediction-verdict';
-import { backtest, summariseBacktest } from '@/lib/backtest';
+import { backtest, summariseBacktest, recentBiasPp, biasPhrase, RECENT_CLAIMS } from '@/lib/backtest';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
 
@@ -50,13 +50,18 @@ export default function TrackRecord() {
   /* Replayed in the browser from data the store already holds, so this costs
    * no extra fetch. Memoised because it is a few hundred guidance rebuilds and
    * the inputs only change when the archive reloads. */
-  const bt = useMemo(
+  const replay = useMemo(
     () =>
       auctionResults.length && bonds.length
-        ? summariseBacktest(backtest(auctionResults, bonds))
+        ? backtest(auctionResults, bonds)
         : null,
     [auctionResults, bonds]
   );
+  const bt = useMemo(() => (replay ? summariseBacktest(replay) : null), [replay]);
+  /* The all-period bias and the CURRENT one disagree in sign — see
+   * recentBiasPp for the measured table and why the whole-archive figure was
+   * answering the wrong question. Null when the sample is too short to say. */
+  const recentBias = useMemo(() => (replay ? recentBiasPp(replay) : null), [replay]);
 
   useEffect(() => {
     fetch('/data/predictions.json')
@@ -268,8 +273,29 @@ export default function TrackRecord() {
             <span className="num">{Math.round((100 * bt.hitRange) / bt.claims)}%</span> of the
             time, and the typical miss was{' '}
             <span className="num">{bt.medianAbsErrorPp.toFixed(2)}</span> percentage points
-            {bt.medianBiasPp < 0 ? ', usually quoting below what the auction paid' : ', usually quoting above what the auction paid'}.
+            {`, ${biasPhrase(bt.medianBiasPp)}`}.
           </p>
+          {/* WHICH WAY IT LEANS NOW, WHEN THAT IS NOT WHICH WAY IT HAS LEANT
+            *
+            * Printed only when the recent slice disagrees in sign with the
+            * whole-archive figure above, because then the sentence above is
+            * true about the record and misleading about Thursday. Kenyan
+            * yields fell through 2025-26; a method built from past prints
+            * lags a falling market, and the live ledger's three scored
+            * predictions all missed on this exact side. Saying so is the
+            * point of publishing a calibration at all. */}
+          {recentBias !== null && recentBias * bt.medianBiasPp < 0 && (
+            <p className="mt-1.5 rounded bg-gold-500/10 px-2 py-1.5 text-xs text-ink-soft">
+              <strong>It leans the other way now.</strong> Over the last{' '}
+              <span className="num">{RECENT_CLAIMS}</span> auctions the method is{' '}
+              {biasPhrase(recentBias)}, by{' '}
+              <span className="num">{Math.abs(recentBias).toFixed(2)}</span> percentage points —
+              the opposite of its long-run habit. Yields have been falling, and a range built from
+              past auctions follows a falling market down rather than leading it. Read the quoted
+              range as more likely to sit{' '}
+              {recentBias > 0 ? 'above' : 'below'} the outturn than beneath it while that holds.
+            </p>
+          )}
           <details className="mt-2 text-xs">
             <summary className="cursor-pointer text-ink-faint hover:text-gold-700">
               What this test can and cannot tell you

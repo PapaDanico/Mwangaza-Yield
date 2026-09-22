@@ -10,17 +10,6 @@
     "lastChecked": "2026-08-19"
   },
   {
-    "id": "fx-2026-09-10",
-    "indicator": "FX_USD_KES",
-    "value": 129.45,
-    "date": "2026-09-10",
-    "unit": "KES/USD",
-    "source": "CBK indicative",
-    "via": "search-corroborated",
-    "lastChecked": "2026-09-12",
-    "sourceNote": "Central Bank of Kenya — Weekly Bulletin dated 11 September 2026, reporting KES/USD 129.45 on 10 September (129.48 on 3 September) and a weekly average of 129.44 for the week ending 10 September. Entered by hand while the pipeline is down. NOT read from the primary PDF — CBK is egress-blocked from an agent session — so it was corroborated by two independent retrievals from differently-phrased queries, cross-checked against the weekly average in the same bulletin, and against the 129.43 of 7 September it replaces."
-  },
-  {
     "id": "cpi-2026-08",
     "indicator": "CPI",
     "value": 6.6,
@@ -69,5 +58,16 @@
     "sourceUrl": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=KE",
     "period": "2025",
     "lastChecked": "2026-08-19"
+  },
+  {
+    "id": "fx-2026-09-21",
+    "indicator": "FX_USD_KES",
+    "value": 129.49,
+    "date": "2026-09-21",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "supplied-document",
+    "lastChecked": "2026-09-22",
+    "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 21 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down). Consistent with the CBK Weekly Bulletin of 18 September 2026, Table 1, which reports 129.62 on 17 September and a 129.59 average for the week ending 17 September."
   }
 ]

@@ -84,6 +84,39 @@ what you want, because the verification below needs the result.
 target and it is far easier to capture now than to reconstruct from a list of
 deploys later.
 
+**"Far easier" understates it: from a session it is currently IMPOSSIBLE.**
+On 22 September a rollback target was asked for after the deploy had already
+published, and it could not be reconstructed. The Netlify MCP exposes only
+`get-deploy` and `get-deploy-for-site`, both of which require a deploy ID you
+already have — there is no list-deploys operation. GitHub is no help either:
+no available tool lists check runs for an arbitrary commit (only for a pull
+request head), so the Netlify check's `details_url`, which carries the deploy
+ID, cannot be reached for a commit already merged to `main`. And
+`api.netlify.com` is egress-blocked, so the REST API and the CLI are both out.
+
+So the ID must be captured BEFORE, from the deploy that is current at that
+moment, or it is only recoverable from the Netlify dashboard by hand.
+
+## Rollback target, recorded
+
+The current production deploy, which is what a future deploy would roll back
+to:
+
+| | |
+|---|---|
+| deploy ID | `6ab2281e0974390008cae528` |
+| permalink | `https://6ab2281e0974390008cae528--mwangazayield.netlify.app` |
+| commit | `bdc3c70` — "Correct the bid range's measured lag instead of warning about it (#291)" |
+| published | 2026-09-22T07:03:49Z, build 52s |
+| verified | `state: ready`, `error_message: null`, secret scan 542 files / 0 matches, `available_functions: [track]`, `edge_functions_present: true`, `plugin_state: success` |
+
+It carries everything merged through #291, which includes the 21 September CBK
+data (#289) and the economic-context rows (#290). #292 was `CLAUDE.md`-only and
+correctly did not build.
+
+Update this block whenever a production deploy publishes — capturing the
+outgoing ID first, per the paragraph above.
+
 ## After you deploy
 
 Compare against the deploy you wrote down:

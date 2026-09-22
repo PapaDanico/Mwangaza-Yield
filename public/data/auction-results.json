@@ -5937,5 +5937,39 @@
     "offeredScope": "auction",
     "transactionType": "issuance",
     "sourceNote": "Central Bank of Kenya — Results for Reopened Fifteen and Thirty Years Treasury Bonds Issue Nos. FXD3/2019/015 and SDB1/2011/030, value dated 7 September 2026, signed D. Luusa, Director Financial Markets, 2 September 2026 (document supplied directly to Mwangaza Yield)."
+  },
+  {
+    "id": "res-fxd1-2019-020-2026-09-16",
+    "issueCode": "FXD1/2019/020",
+    "auctionDate": "2026-09-16",
+    "parserVersion": 14,
+    "couponRate": 12.873,
+    "weightedAverageRate": 13.6105,
+    "marketWeightedAverageRate": 13.6799,
+    "pricePer100": 101.5472,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 33456.74,
+    "bidsReceivedKESM": 43803.82,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Twenty and Thirty Years Treasury Bonds Issue Nos. FXD1/2019/020 and FXD1/2026/030 dated 21/09/2026, signed Robert Aloo for Director, Financial Markets, 16 September 2026 (document supplied directly to Mwangaza Yield). Column totals reconcile: bids 43,803.82 + 37,601.48 = 81,405.30M, accepted 33,456.74 + 16,718.32 = 50,175.06M against 60,000.00M offered (performance 135.68%). Rates corroborated by CBK Weekly Bulletin, 18 September 2026, Table 5 (13.61 and 14.24)."
+  },
+  {
+    "id": "res-fxd1-2026-030-2026-09-16",
+    "issueCode": "FXD1/2026/030",
+    "auctionDate": "2026-09-16",
+    "parserVersion": 14,
+    "couponRate": 12.5,
+    "weightedAverageRate": 14.2355,
+    "marketWeightedAverageRate": 14.4684,
+    "pricePer100": 93.2777,
+    "amountOfferedKESM": 60000.0,
+    "amountAcceptedKESM": 16718.32,
+    "bidsReceivedKESM": 37601.48,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Twenty and Thirty Years Treasury Bonds Issue Nos. FXD1/2019/020 and FXD1/2026/030 dated 21/09/2026, signed Robert Aloo for Director, Financial Markets, 16 September 2026 (document supplied directly to Mwangaza Yield). Column totals reconcile: bids 43,803.82 + 37,601.48 = 81,405.30M, accepted 33,456.74 + 16,718.32 = 50,175.06M against 60,000.00M offered (performance 135.68%). Rates corroborated by CBK Weekly Bulletin, 18 September 2026, Table 5 (13.61 and 14.24)."
   }
 ]

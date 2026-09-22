@@ -14,39 +14,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.7674,
-      "grossEAY": 9.0602,
-      "netEAY": 7.6634,
+      "quotedDiscountRate": 8.7837,
+      "grossEAY": 9.0776,
+      "netEAY": 7.678,
       "whtRate": 0.15,
-      "pricePer100": 97.8609,
-      "auctionDate": "2026-09-10",
-      "nextAuctionDate": "2026-09-17",
+      "pricePer100": 97.857,
+      "auctionDate": "2026-09-17",
+      "nextAuctionDate": "2026-09-24",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 10 Sep 2026, entered by hand"
+      "source": "CBK auction, 17 Sep 2026, entered by hand"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.9296,
-      "grossEAY": 9.1295,
-      "netEAY": 7.7346,
+      "quotedDiscountRate": 8.9099,
+      "grossEAY": 9.1089,
+      "netEAY": 7.7172,
       "whtRate": 0.15,
-      "pricePer100": 95.7372,
-      "auctionDate": "2026-09-10",
-      "nextAuctionDate": "2026-09-17",
+      "pricePer100": 95.7462,
+      "auctionDate": "2026-09-17",
+      "nextAuctionDate": "2026-09-24",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 10 Sep 2026, entered by hand"
+      "source": "CBK auction, 17 Sep 2026, entered by hand"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0665,
-      "grossEAY": 9.0676,
-      "netEAY": 7.7073,
+      "quotedDiscountRate": 9.0566,
+      "grossEAY": 9.0577,
+      "netEAY": 7.6989,
       "whtRate": 0.15,
-      "pricePer100": 91.7081,
-      "auctionDate": "2026-09-10",
-      "nextAuctionDate": "2026-09-17",
+      "pricePer100": 91.7164,
+      "auctionDate": "2026-09-17",
+      "nextAuctionDate": "2026-09-24",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 10 Sep 2026, entered by hand"
+      "source": "CBK auction, 17 Sep 2026, entered by hand"
     }
   ],
   "macro": {
@@ -83,10 +83,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.45,
+      "value": 129.49,
       "unit": "KES/USD",
-      "date": "2026-09-10",
-      "lastChecked": "2026-09-12",
+      "date": "2026-09-21",
+      "lastChecked": "2026-09-22",
       "source": "CBK indicative",
       "fallback": false
     }
@@ -129,27 +129,27 @@
         "label": "12–20y",
         "fromYears": 12,
         "toYears": 20,
-        "auctions": 18,
-        "medianClearingRate": 13.445,
+        "auctions": 19,
+        "medianClearingRate": 13.529,
         "lowClearingRate": 12.688,
         "highClearingRate": 14.34,
-        "latestAuctionDate": "2026-09-02"
+        "latestAuctionDate": "2026-09-16"
       },
       {
         "label": "20y+",
         "fromYears": 20,
         "toYears": 40,
-        "auctions": 8,
+        "auctions": 9,
         "medianClearingRate": 13.756,
         "lowClearingRate": 12.949,
         "highClearingRate": 14.617,
-        "latestAuctionDate": "2026-07-27"
+        "latestAuctionDate": "2026-09-16"
       }
     ],
     "demand": {
-      "auctions": 18,
-      "medianCoverRatio": 1.937,
-      "medianAcceptanceRate": 0.689
+      "auctions": 19,
+      "medianCoverRatio": 1.917,
+      "medianAcceptanceRate": 0.678
     }
   }
 }

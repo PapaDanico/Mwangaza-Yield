@@ -6,6 +6,8 @@ import {
   pointInTimePrints,
   biasPhrase,
   guidanceCalibration,
+  backtestPair,
+  calibrationFrom,
   CORRECTION_WINDOW,
   BAND_SCALE,
 } from '../../src/lib/backtest';
@@ -215,5 +217,50 @@ describe('calibration: correcting the measured lag and widening the band', () =>
   it('names the direction a bidder can act on', () => {
     expect(biasPhrase(0.42)).toContain('above');
     expect(biasPhrase(-0.14)).toContain('below');
+  });
+});
+
+
+describe('one traversal must give exactly what three gave', () => {
+  it('matches the separate calls on both replays and the calibration', () => {
+    // backtestPair exists for speed on a page that replays the archive in the
+    // browser. Speed is only worth having if the answer is unchanged, so the
+    // equivalence is asserted rather than assumed — fresh array copies, since
+    // the calibration memo is keyed on array identity.
+    const prints: AuctionPrint[] = read('public/data/auction-results.json');
+    const bonds: Bond[] = read('public/data/bonds.json');
+    const pair = backtestPair(prints, bonds);
+
+    expect(summariseBacktest(pair.raw)).toEqual(
+      summariseBacktest(backtest(read('public/data/auction-results.json'), bonds))
+    );
+    expect(summariseBacktest(pair.calibrated)).toEqual(
+      summariseBacktest(
+        backtest(read('public/data/auction-results.json'), bonds, { calibrate: true })
+      )
+    );
+    expect(pair.calibration).toEqual(
+      guidanceCalibration(read('public/data/auction-results.json'), bonds)
+    );
+  });
+
+  it('derives the same calibration from collected results as from a replay', () => {
+    const prints: AuctionPrint[] = read('public/data/auction-results.json');
+    const bonds: Bond[] = read('public/data/bonds.json');
+    expect(calibrationFrom(backtest(prints, bonds))).toEqual(
+      guidanceCalibration(prints, bonds)
+    );
+  });
+
+  it('caches on array identity without leaking between different archives', () => {
+    // A memo that returned one archive's answer for another would be a
+    // correctness bug wearing a performance badge.
+    const bonds: Bond[] = read('public/data/bonds.json');
+    const full: AuctionPrint[] = read('public/data/auction-results.json');
+    const short: AuctionPrint[] = full.slice(0, 40);
+    const a = guidanceCalibration(full, bonds);
+    const b = guidanceCalibration(short, bonds);
+    expect(guidanceCalibration(full, bonds)).toEqual(a);
+    expect(b).not.toEqual(a);
   });
 });

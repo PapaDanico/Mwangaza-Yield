@@ -101,7 +101,18 @@ export interface BacktestSummary {
 export function backtest(
   prints: AuctionPrint[],
   bonds: Bond[],
-  opts: { minPriorPrints?: number; calibrate?: boolean } = {}
+  opts: {
+    minPriorPrints?: number;
+    calibrate?: boolean;
+    /**
+     * Optional sink for the RAW result of each auction, filled as the
+     * calibrated pass goes. The calibrated pass builds the raw guidance
+     * anyway, so handing it out costs nothing and saves a second traversal —
+     * see backtestPair. Ignored when `calibrate` is off, where the returned
+     * results already are the raw ones.
+     */
+    collectRaw?: BacktestResult[];
+  } = {}
 ): BacktestResult[] {
   const minPrior = opts.minPriorPrints ?? 20;
   /* THE CORRECTION MUST BE EARNED, AUCTION BY AUCTION
@@ -171,6 +182,23 @@ export function backtest(
       ? bidGuidance(prior, bonds, target, { taxExempt, correctionPp, bandScale: BAND_SCALE })
       : raw;
     if (!raw.thin) rawErrors.push(raw.median - actual);
+    if (calibrate && opts.collectRaw) {
+      opts.collectRaw.push({
+        issueCode: print.issueCode,
+        auctionDate: print.auctionDate,
+        actualRate: actual,
+        low: raw.low,
+        p25: raw.p25,
+        median: raw.median,
+        p75: raw.p75,
+        high: raw.high,
+        sampleSize: raw.count,
+        thin: raw.thin,
+        hitRange: actual >= raw.low && actual <= raw.high,
+        hitMiddleHalf: actual >= raw.p25 && actual <= raw.p75,
+        errorPp: raw.median - actual,
+      });
+    }
 
     out.push({
       issueCode: print.issueCode,
@@ -303,11 +331,51 @@ export interface GuidanceCalibration {
  * because it means "quote the raw distribution", and `sample` says so plainly
  * rather than leaving a caller to infer it from the number.
  */
+/**
+ * Memo on the exact input arrays, because this is called from render.
+ *
+ * `guidanceCalibration` replays the whole archive — ~90ms on a development
+ * machine and several times that on the mid-range Android this audience
+ * actually uses. `/auctions/` calls it from two independent components
+ * (BidAssistant and TrackRecord), and each React memo only dedupes within its
+ * own component, so the work was being done twice for one identical answer.
+ *
+ * Keyed on array IDENTITY, not contents. The store hands every consumer the
+ * same two arrays, so identity is exactly the right key and is free to
+ * compare; hashing the contents would cost more than the thing being cached.
+ * A WeakMap means a replaced archive is collected rather than pinned.
+ */
+const calibrationMemo = new WeakMap<AuctionPrint[], WeakMap<Bond[], GuidanceCalibration>>();
+
 export function guidanceCalibration(
   prints: AuctionPrint[],
   bonds: Bond[]
 ): GuidanceCalibration {
-  const claims = backtest(prints, bonds).filter((r) => !r.thin);
+  const byBonds = calibrationMemo.get(prints);
+  const hit = byBonds?.get(bonds);
+  if (hit) return hit;
+  const computed = computeCalibration(prints, bonds);
+  if (byBonds) byBonds.set(bonds, computed);
+  else calibrationMemo.set(prints, new WeakMap([[bonds, computed]]));
+  return computed;
+}
+
+function computeCalibration(
+  prints: AuctionPrint[],
+  bonds: Bond[]
+): GuidanceCalibration {
+  return calibrationFrom(backtest(prints, bonds));
+}
+
+/**
+ * The calibration implied by a set of RAW replay results.
+ *
+ * Split out so `backtestPair` can derive it from the raw results it already
+ * collected instead of replaying the archive again for the same answer. Both
+ * routes must agree, and a test asserts they do.
+ */
+export function calibrationFrom(rawResults: BacktestResult[]): GuidanceCalibration {
+  const claims = rawResults.filter((r) => !r.thin);
   if (claims.length < CORRECTION_WINDOW) {
     return { correctionPp: 0, bandScale: BAND_SCALE, sample: 0 };
   }
@@ -319,4 +387,48 @@ export function guidanceCalibration(
     bandScale: BAND_SCALE,
     sample: recent.length,
   };
+}
+
+
+export interface BacktestPair {
+  /** The method as it quotes today: lag corrected, band widened. */
+  calibrated: BacktestResult[];
+  /** The same method with both adjustments off — the measuring stick. */
+  raw: BacktestResult[];
+  calibration: GuidanceCalibration;
+}
+
+/**
+ * Both replays and the live calibration, from ONE traversal of the archive.
+ *
+ * TrackRecord needs all three to show the before-and-after honestly, and
+ * calling them separately replayed the archive three times — 277ms of
+ * main-thread work on a development machine, for one page, every render. The
+ * calibrated pass already builds the raw guidance internally (it is what the
+ * rolling error history is made of), so the raw result is a by-product rather
+ * than a second pass, and the calibration falls out of the raw errors.
+ *
+ * This is a performance shape, not a different measurement: a test asserts it
+ * returns exactly what the separate calls do.
+ */
+export function backtestPair(prints: AuctionPrint[], bonds: Bond[]): BacktestPair {
+  const rawPass: BacktestResult[] = [];
+  const calibrated = backtest(prints, bonds, { calibrate: true, collectRaw: rawPass });
+  const calibration = calibrationFrom(rawPass);
+  /* Prime the shared memo. BidAssistant asks for the calibration on the same
+   * page from its own component, and it is the identical answer off the
+   * identical arrays — there is no reason for it to replay the archive to
+   * rediscover what this pass just computed. */
+  primeCalibration(prints, bonds, calibration);
+  return { calibrated, raw: rawPass, calibration };
+}
+
+function primeCalibration(
+  prints: AuctionPrint[],
+  bonds: Bond[],
+  value: GuidanceCalibration
+): void {
+  const byBonds = calibrationMemo.get(prints);
+  if (byBonds) byBonds.set(bonds, value);
+  else calibrationMemo.set(prints, new WeakMap([[bonds, value]]));
 }

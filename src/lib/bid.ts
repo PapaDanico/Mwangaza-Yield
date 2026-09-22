@@ -78,6 +78,17 @@ export interface BidGuidance {
   thin: boolean;
   /** Records in range that had to be dropped for want of a usable figure. */
   droppedForMissingData: number;
+  /**
+   * Percentage points subtracted from the raw comparable distribution to
+   * correct the method's measured lag, and the factor its middle band was
+   * widened by. Both reported so the page can say it is doing this — an
+   * adjustment a reader cannot see is one they cannot judge.
+   *
+   * 0 and 1 mean "raw": that is what `backtest` replays to MEASURE the lag,
+   * and what the ledger recorded before calibration existed.
+   */
+  correctionPp: number;
+  bandScale: number;
 }
 
 /** Years still to run on a bond at a given date. Negative once matured. */
@@ -247,7 +258,23 @@ export function bidGuidance(
   prints: AuctionPrint[],
   bonds: Bond[],
   targetYears: number,
-  opts: { taxExempt?: boolean; tolerance?: number; asOf?: Date } = {}
+  opts: {
+    taxExempt?: boolean;
+    tolerance?: number;
+    asOf?: Date;
+    /**
+     * Shift applied to every quoted figure, in percentage points, positive
+     * meaning "the raw method reads high, take this off".
+     *
+     * NOT computed here, and that is deliberate. It comes from replaying this
+     * very function over the archive (`guidanceCalibration` in backtest.ts),
+     * so computing it here would recurse. Passing it in also keeps the raw
+     * method available, which is the only thing honest to measure against.
+     */
+    correctionPp?: number;
+    /** Multiplier on the p25..p75 half-widths, about the corrected median. */
+    bandScale?: number;
+  } = {}
 ): BidGuidance {
   /* Point-in-time by construction: the window is measured back from the newest
    * print supplied, never from the clock. The backtest hands us only prints
@@ -309,20 +336,50 @@ export function bidGuidance(
   }
 
   const rates = found.comparables.map((c) => c.clearingRate).sort((a, b) => a - b);
+
+  /* CORRECTION AND WIDTH, APPLIED LAST AND REPORTED
+   *
+   * The raw distribution of comparable auctions is what the market DID. Two
+   * measured facts about it, both from replaying this function over the
+   * archive point-in-time (see backtest.ts):
+   *
+   *  - It LAGS. In a falling market the trailing sample reads high: median
+   *    bias +0.52pp over 2025-26. Shortening the window does not fix it —
+   *    a one-year window still measured +0.53pp — because the market moves
+   *    faster than any trailing sample can follow. So the lag is corrected
+   *    from its own measured history rather than designed away.
+   *  - It is TOO NARROW. The p25..p75 band contained the outturn 22% of the
+   *    time, where an interquartile band should manage about half.
+   *
+   * Both default to no-ops. A caller that wants the raw method gets exactly
+   * what it got before, which is what makes the measurement trustworthy.
+   */
+  const correctionPp = opts.correctionPp ?? 0;
+  const bandScale = opts.bandScale ?? 1;
+  const shift = (x: number): number => x - correctionPp;
+  const median = shift(quantile(rates, 0.5));
+  /* Widened about the CORRECTED median, so the band stays centred on the
+   * figure actually being quoted. Widening about the raw median and then
+   * shifting would give the same interval; doing it in this order is just
+   * the one a reader can follow. */
+  const spread = (edge: number): number => median + (shift(edge) - median) * bandScale;
+
   return {
     targetYears,
     toleranceYears: tolerance,
     windowDays,
     comparables: found.comparables,
     count: rates.length,
-    low: rates[0] ?? 0,
-    p25: quantile(rates, 0.25),
-    median: quantile(rates, 0.5),
-    p75: quantile(rates, 0.75),
-    high: rates[rates.length - 1] ?? 0,
+    low: rates.length ? shift(rates[0]) : 0,
+    p25: rates.length ? spread(quantile(rates, 0.25)) : 0,
+    median: rates.length ? median : 0,
+    p75: rates.length ? spread(quantile(rates, 0.75)) : 0,
+    high: rates.length ? shift(rates[rates.length - 1]) : 0,
     latest: found.comparables[0] ?? null,
     thin: rates.length < MIN_SAMPLE,
     droppedForMissingData: found.dropped,
+    correctionPp,
+    bandScale,
   };
 }
 

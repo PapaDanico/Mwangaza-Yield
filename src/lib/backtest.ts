@@ -101,9 +101,35 @@ export interface BacktestSummary {
 export function backtest(
   prints: AuctionPrint[],
   bonds: Bond[],
-  opts: { minPriorPrints?: number } = {}
+  opts: {
+    minPriorPrints?: number;
+    calibrate?: boolean;
+    /**
+     * Optional sink for the RAW result of each auction, filled as the
+     * calibrated pass goes. The calibrated pass builds the raw guidance
+     * anyway, so handing it out costs nothing and saves a second traversal —
+     * see backtestPair. Ignored when `calibrate` is off, where the returned
+     * results already are the raw ones.
+     */
+    collectRaw?: BacktestResult[];
+  } = {}
 ): BacktestResult[] {
   const minPrior = opts.minPriorPrints ?? 20;
+  /* THE CORRECTION MUST BE EARNED, AUCTION BY AUCTION
+   *
+   * With `calibrate`, each auction is forecast using a shift derived ONLY
+   * from errors the method had already made by that date — the same single
+   * forward pass the live path gets, never a figure fitted to the whole
+   * archive. Fitting the shift over everything and then reporting the hit
+   * rate would be the lookahead this file exists to forbid, wearing the
+   * clothes of an improvement.
+   *
+   * The rolling errors collected below are the RAW ones, because that is the
+   * quantity being corrected; feeding corrected errors back in would chase
+   * its own tail.
+   */
+  const calibrate = opts.calibrate === true;
+  const rawErrors: number[] = [];
   const byCode = new Map(bonds.map((b) => [normaliseCode(b.issueCode), b]));
   /* An undated print cannot be replayed point-in-time — there is no "before"
    * to filter on — and it cannot safely sit in the comparable pool either,
@@ -144,8 +170,35 @@ export function backtest(
     if (!Number.isFinite(target) || target <= 0) continue;
 
     const taxExempt = known ? known.taxExempt : print.issueCode.startsWith('IFB');
-    const g = bidGuidance(prior, bonds, target, { taxExempt });
-    if (!g.count) continue;
+    /* Raw first: it is what the rolling error history is made of, and with
+     * `calibrate` off it is also the answer. */
+    const raw = bidGuidance(prior, bonds, target, { taxExempt });
+    if (!raw.count) continue;
+    const correctionPp =
+      calibrate && rawErrors.length >= CORRECTION_WINDOW
+        ? median(rawErrors.slice(-CORRECTION_WINDOW))
+        : 0;
+    const g = calibrate
+      ? bidGuidance(prior, bonds, target, { taxExempt, correctionPp, bandScale: BAND_SCALE })
+      : raw;
+    if (!raw.thin) rawErrors.push(raw.median - actual);
+    if (calibrate && opts.collectRaw) {
+      opts.collectRaw.push({
+        issueCode: print.issueCode,
+        auctionDate: print.auctionDate,
+        actualRate: actual,
+        low: raw.low,
+        p25: raw.p25,
+        median: raw.median,
+        p75: raw.p75,
+        high: raw.high,
+        sampleSize: raw.count,
+        thin: raw.thin,
+        hitRange: actual >= raw.low && actual <= raw.high,
+        hitMiddleHalf: actual >= raw.p25 && actual <= raw.p75,
+        errorPp: raw.median - actual,
+      });
+    }
 
     out.push({
       issueCode: print.issueCode,
@@ -192,65 +245,190 @@ export function summariseBacktest(results: BacktestResult[]): BacktestSummary {
   };
 }
 
-/* ------------------------------------------------------- bias, by regime */
-
 /**
- * How many of the most recent replayed auctions count as "the regime we are
- * in now".
+ * Which way the method leans, in words a bidder can act on.
  *
- * Twenty-four is about two years of bond auctions on CBK's current cadence —
- * long enough that one surprising print cannot set the sign, short enough to
- * sit entirely inside the easing cycle that began in 2025. It is a judgement
- * and it is stated here rather than buried at a call site.
+ * Kept after `recentBiasPp` was retired. That function measured the lag over
+ * a 24-claim window so the page could WARN about it, which was the right fix
+ * while the method was not being changed. It is superseded: the lag is now
+ * corrected at source by `guidanceCalibration`, and a warning about a bias
+ * that has already been subtracted would be describing a problem the reader
+ * no longer has.
+ *
+ * Retiring it also removed a contradiction. A 24-claim window read +0.42pp
+ * while a 12-claim window read -0.29pp, because the error series genuinely
+ * turns in late May 2026 — consistently positive before it, mostly negative
+ * after. Two windows on one page would have disagreed in SIGN about the same
+ * question, which is worse than either answer alone.
  */
-export const RECENT_CLAIMS = 24;
-
-/**
- * The median bias over the most recent claims, or null when there are too few.
- *
- * WHY A SECOND BIAS NUMBER, WHEN ONE WAS ALREADY PUBLISHED
- *
- * `summariseBacktest` measures bias over everything replayed, and on 22
- * September 2026 that came to **-0.14pp** — the method quoting slightly BELOW
- * what auctions paid. TrackRecord printed exactly that: "usually quoting below
- * what the auction paid".
- *
- * Sliced by era, the same archive says the opposite about now:
- *
- *     all (97 claims)   -0.14pp
- *     2024+ (74)        +0.34pp
- *     2025+ (53)        +0.52pp
- *     2026  (26)        +0.51pp
- *
- * The sign flipped because Kenyan yields fell hard through 2025-26, and a
- * method built from past prints lags a falling market. The live ledger says
- * the same thing far more bluntly: all three scored predictions missed, every
- * one of them BELOW the quoted range — the direction the page was telling
- * readers not to expect.
- *
- * So the published sentence was not false about the seventeen-year record and
- * was wrong about the only question a bidder has, which is what to expect on
- * Thursday. That is this repository's most familiar defect — a true figure
- * answering a question nobody asked — and it is the same shape as the reader
- * banner that reported pipeline liveness to somebody pricing a bond.
- *
- * Returns null rather than a number when the sample is short, so a caller
- * cannot mistake "too early to say" for "no bias". Absence is not zero.
- */
-export function recentBiasPp(
-  results: BacktestResult[],
-  window: number = RECENT_CLAIMS
-): number | null {
-  const claims = results
-    .filter((r) => !r.thin)
-    .sort((a, b) => a.auctionDate.localeCompare(b.auctionDate));
-  if (claims.length < window) return null;
-  return median(claims.slice(-window).map((r) => r.errorPp));
-}
-
-/** Which way the method currently leans, in words a bidder can act on. */
 export function biasPhrase(biasPp: number): string {
   return biasPp < 0
     ? 'usually quoting below what the auction paid'
     : 'usually quoting above what the auction paid';
+}
+
+/* ------------------------------------------------- calibrating the method */
+
+/**
+ * How many past claims the lag correction is measured over.
+ *
+ * Twelve is roughly a year of bond auctions on CBK's cadence. It was chosen
+ * from a grid — every window from 8 to 24 improves every metric, so this sits
+ * in the middle of a plateau rather than on a tuned spike, which is the only
+ * defensible way to pick a constant like this:
+ *
+ *     window   range hit (all / 2025+)   median bias 2025+
+ *      raw          54% / 49%                 +0.52
+ *        8          70% / 66%                 -0.13
+ *       12          66% / 64%                 +0.08
+ *       16          66% / 66%                 +0.05
+ *       24          59% / 55%                 +0.10
+ *
+ * Twelve is not the maximum of that table. Eight scores better on range and
+ * worse on bias, and a shift fitted to eight auctions swings around; twelve
+ * lands the bias nearest zero from the positive side while keeping most of
+ * the range gain. Picking the row with the best single number would be how
+ * this constant goes stale the first time the cycle turns.
+ */
+export const CORRECTION_WINDOW = 12;
+
+/**
+ * How much the p25..p75 band is widened.
+ *
+ * The raw band contained the outturn 22% of the time; an interquartile band
+ * should manage about 50%. Measured with the correction in place:
+ *
+ *     scale   middle half (all / 2025+)
+ *      1.0         48% / 43%
+ *      1.75        53% / 47%
+ *      2.0         57% / 55%
+ *
+ * 1.75 straddles the 50% target from both sides. 2.0 overshoots, and a band
+ * that contains the answer MORE than half the time is overclaiming
+ * uncertainty in the other direction — wide enough to be useless is its own
+ * kind of dishonest.
+ */
+export const BAND_SCALE = 1.75;
+
+export interface GuidanceCalibration {
+  /** Percentage points to subtract, or 0 when not yet earned. */
+  correctionPp: number;
+  bandScale: number;
+  /** Past claims the correction was measured over; below the window it is 0. */
+  sample: number;
+}
+
+/**
+ * The correction the LIVE guidance should carry, from the archive as it stands.
+ *
+ * Distinct from the rolling shift inside `backtest`: there, each auction may
+ * only use errors predating it. Here every auction in the archive has already
+ * happened, so the most recent `CORRECTION_WINDOW` errors are all legitimately
+ * available — and using them is not lookahead, it is just reading the past.
+ *
+ * Returns a 0 correction, not a guess, when the archive is too short. Absence
+ * is not zero anywhere else in this codebase; here 0 IS the honest neutral,
+ * because it means "quote the raw distribution", and `sample` says so plainly
+ * rather than leaving a caller to infer it from the number.
+ */
+/**
+ * Memo on the exact input arrays, because this is called from render.
+ *
+ * `guidanceCalibration` replays the whole archive — ~90ms on a development
+ * machine and several times that on the mid-range Android this audience
+ * actually uses. `/auctions/` calls it from two independent components
+ * (BidAssistant and TrackRecord), and each React memo only dedupes within its
+ * own component, so the work was being done twice for one identical answer.
+ *
+ * Keyed on array IDENTITY, not contents. The store hands every consumer the
+ * same two arrays, so identity is exactly the right key and is free to
+ * compare; hashing the contents would cost more than the thing being cached.
+ * A WeakMap means a replaced archive is collected rather than pinned.
+ */
+const calibrationMemo = new WeakMap<AuctionPrint[], WeakMap<Bond[], GuidanceCalibration>>();
+
+export function guidanceCalibration(
+  prints: AuctionPrint[],
+  bonds: Bond[]
+): GuidanceCalibration {
+  const byBonds = calibrationMemo.get(prints);
+  const hit = byBonds?.get(bonds);
+  if (hit) return hit;
+  const computed = computeCalibration(prints, bonds);
+  if (byBonds) byBonds.set(bonds, computed);
+  else calibrationMemo.set(prints, new WeakMap([[bonds, computed]]));
+  return computed;
+}
+
+function computeCalibration(
+  prints: AuctionPrint[],
+  bonds: Bond[]
+): GuidanceCalibration {
+  return calibrationFrom(backtest(prints, bonds));
+}
+
+/**
+ * The calibration implied by a set of RAW replay results.
+ *
+ * Split out so `backtestPair` can derive it from the raw results it already
+ * collected instead of replaying the archive again for the same answer. Both
+ * routes must agree, and a test asserts they do.
+ */
+export function calibrationFrom(rawResults: BacktestResult[]): GuidanceCalibration {
+  const claims = rawResults.filter((r) => !r.thin);
+  if (claims.length < CORRECTION_WINDOW) {
+    return { correctionPp: 0, bandScale: BAND_SCALE, sample: 0 };
+  }
+  const recent = [...claims]
+    .sort((a, b) => a.auctionDate.localeCompare(b.auctionDate))
+    .slice(-CORRECTION_WINDOW);
+  return {
+    correctionPp: median(recent.map((r) => r.errorPp)),
+    bandScale: BAND_SCALE,
+    sample: recent.length,
+  };
+}
+
+
+export interface BacktestPair {
+  /** The method as it quotes today: lag corrected, band widened. */
+  calibrated: BacktestResult[];
+  /** The same method with both adjustments off — the measuring stick. */
+  raw: BacktestResult[];
+  calibration: GuidanceCalibration;
+}
+
+/**
+ * Both replays and the live calibration, from ONE traversal of the archive.
+ *
+ * TrackRecord needs all three to show the before-and-after honestly, and
+ * calling them separately replayed the archive three times — 277ms of
+ * main-thread work on a development machine, for one page, every render. The
+ * calibrated pass already builds the raw guidance internally (it is what the
+ * rolling error history is made of), so the raw result is a by-product rather
+ * than a second pass, and the calibration falls out of the raw errors.
+ *
+ * This is a performance shape, not a different measurement: a test asserts it
+ * returns exactly what the separate calls do.
+ */
+export function backtestPair(prints: AuctionPrint[], bonds: Bond[]): BacktestPair {
+  const rawPass: BacktestResult[] = [];
+  const calibrated = backtest(prints, bonds, { calibrate: true, collectRaw: rawPass });
+  const calibration = calibrationFrom(rawPass);
+  /* Prime the shared memo. BidAssistant asks for the calibration on the same
+   * page from its own component, and it is the identical answer off the
+   * identical arrays — there is no reason for it to replay the archive to
+   * rediscover what this pass just computed. */
+  primeCalibration(prints, bonds, calibration);
+  return { calibrated, raw: rawPass, calibration };
+}
+
+function primeCalibration(
+  prints: AuctionPrint[],
+  bonds: Bond[],
+  value: GuidanceCalibration
+): void {
+  const byBonds = calibrationMemo.get(prints);
+  if (byBonds) byBonds.set(bonds, value);
+  else calibrationMemo.set(prints, new WeakMap([[bonds, value]]));
 }

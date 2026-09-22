@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { backtest, summariseBacktest, pointInTimePrints } from '../../src/lib/backtest';
+import {
+  backtest,
+  summariseBacktest,
+  pointInTimePrints,
+  recentBiasPp,
+  biasPhrase,
+  RECENT_CLAIMS,
+} from '../../src/lib/backtest';
 import { bidGuidance } from '../../src/lib/bid';
+import type { BacktestResult } from '../../src/lib/backtest';
 import type { AuctionPrint, Bond } from '../../src/types/bond';
 
 const ROOT = new URL('../../', import.meta.url).pathname;
@@ -135,5 +143,59 @@ describe('what the backtest reports', () => {
     expect(Number.isFinite(s.medianBiasPp)).toBe(true);
     expect(Number.isFinite(s.medianAbsErrorPp)).toBe(true);
     expect(s.medianAbsErrorPp).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('bias measured by regime, not just over the whole archive', () => {
+  const claim = (auctionDate: string, errorPp: number): BacktestResult => ({
+    issueCode: 'FXD1/2020/010',
+    auctionDate,
+    actualRate: 12,
+    low: 11,
+    p25: 11.5,
+    median: 12 + errorPp,
+    p75: 12.5,
+    high: 13,
+    sampleSize: 30,
+    thin: false,
+    hitRange: true,
+    hitMiddleHalf: true,
+    errorPp,
+  });
+
+  /** n claims dated in order, each carrying the given error. */
+  const run = (errors: number[]): BacktestResult[] =>
+    errors.map((e, i) => claim(`2026-01-${String(i + 1).padStart(2, '0')}`, e));
+
+  it('says nothing rather than zero when the sample is short', () => {
+    // Absence is not zero: a short record must not read as "no bias".
+    expect(recentBiasPp(run([0.5, 0.5, 0.5]))).toBeNull();
+    expect(recentBiasPp(run(Array(RECENT_CLAIMS - 1).fill(0.5)))).toBeNull();
+  });
+
+  it('reads the recent window, not the whole record', () => {
+    // An old era biased hard one way, the recent one biased the other. This is
+    // the shipped situation: all-period -0.14pp against a current +0.42pp.
+    const old = run(Array(40).fill(-3));
+    const recent = run(Array(RECENT_CLAIMS).fill(1)).map((r, i) => ({
+      ...r,
+      auctionDate: `2026-06-${String(i + 1).padStart(2, '0')}`,
+    }));
+    const all = [...old, ...recent];
+    expect(recentBiasPp(all)).toBeCloseTo(1, 10);
+    expect(summariseBacktest(all).medianBiasPp).toBeLessThan(0);
+  });
+
+  it('ignores thin forecasts, exactly as the hit rates do', () => {
+    // A thin range is marked not-a-claim in the UI, so scoring its bias would
+    // grade the product for something it declined to assert.
+    const thin = run(Array(RECENT_CLAIMS).fill(9)).map((r) => ({ ...r, thin: true }));
+    const real = run(Array(RECENT_CLAIMS).fill(0.4));
+    expect(recentBiasPp([...thin, ...real])).toBeCloseTo(0.4, 10);
+  });
+
+  it('names the direction a bidder can act on', () => {
+    expect(biasPhrase(0.42)).toContain('above');
+    expect(biasPhrase(-0.14)).toContain('below');
   });
 });

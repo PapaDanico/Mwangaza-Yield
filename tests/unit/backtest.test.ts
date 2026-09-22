@@ -4,9 +4,10 @@ import {
   backtest,
   summariseBacktest,
   pointInTimePrints,
-  recentBiasPp,
   biasPhrase,
-  RECENT_CLAIMS,
+  guidanceCalibration,
+  CORRECTION_WINDOW,
+  BAND_SCALE,
 } from '../../src/lib/backtest';
 import { bidGuidance } from '../../src/lib/bid';
 import type { BacktestResult } from '../../src/lib/backtest';
@@ -146,52 +147,69 @@ describe('what the backtest reports', () => {
   });
 });
 
-describe('bias measured by regime, not just over the whole archive', () => {
-  const claim = (auctionDate: string, errorPp: number): BacktestResult => ({
-    issueCode: 'FXD1/2020/010',
-    auctionDate,
-    actualRate: 12,
-    low: 11,
-    p25: 11.5,
-    median: 12 + errorPp,
-    p75: 12.5,
-    high: 13,
-    sampleSize: 30,
-    thin: false,
-    hitRange: true,
-    hitMiddleHalf: true,
-    errorPp,
+describe('calibration: correcting the measured lag and widening the band', () => {
+  const prints: AuctionPrint[] = read('public/data/auction-results.json');
+
+  it('leaves the raw method exactly as it was when not asked to calibrate', () => {
+    // The raw replay is the measuring stick. If calibration changed it, every
+    // before-and-after figure the page prints would be comparing two moving
+    // things.
+    const a = summariseBacktest(backtest(prints, BONDS));
+    const b = summariseBacktest(backtest(prints, BONDS, { calibrate: false }));
+    expect(b).toEqual(a);
   });
 
-  /** n claims dated in order, each carrying the given error. */
-  const run = (errors: number[]): BacktestResult[] =>
-    errors.map((e, i) => claim(`2026-01-${String(i + 1).padStart(2, '0')}`, e));
-
-  it('says nothing rather than zero when the sample is short', () => {
-    // Absence is not zero: a short record must not read as "no bias".
-    expect(recentBiasPp(run([0.5, 0.5, 0.5]))).toBeNull();
-    expect(recentBiasPp(run(Array(RECENT_CLAIMS - 1).fill(0.5)))).toBeNull();
+  it('beats the raw method on coverage, bias and error together', () => {
+    // Not one metric traded off against another: all three move the right way.
+    const raw = summariseBacktest(backtest(prints, BONDS));
+    const cal = summariseBacktest(backtest(prints, BONDS, { calibrate: true }));
+    expect(cal.hitRange / cal.claims).toBeGreaterThan(raw.hitRange / raw.claims);
+    expect(cal.hitMiddleHalf / cal.claims).toBeGreaterThan(raw.hitMiddleHalf / raw.claims);
+    expect(Math.abs(cal.medianBiasPp)).toBeLessThan(Math.abs(raw.medianBiasPp));
+    expect(cal.medianAbsErrorPp).toBeLessThanOrEqual(raw.medianAbsErrorPp);
   });
 
-  it('reads the recent window, not the whole record', () => {
-    // An old era biased hard one way, the recent one biased the other. This is
-    // the shipped situation: all-period -0.14pp against a current +0.42pp.
-    const old = run(Array(40).fill(-3));
-    const recent = run(Array(RECENT_CLAIMS).fill(1)).map((r, i) => ({
-      ...r,
-      auctionDate: `2026-06-${String(i + 1).padStart(2, '0')}`,
-    }));
-    const all = [...old, ...recent];
-    expect(recentBiasPp(all)).toBeCloseTo(1, 10);
-    expect(summariseBacktest(all).medianBiasPp).toBeLessThan(0);
+  it('lands the middle half near the half it claims to be', () => {
+    // The whole point of widening. A band right ~50% of the time is calibrated;
+    // 22% was overconfident and 70% would be uselessly wide.
+    const cal = summariseBacktest(backtest(prints, BONDS, { calibrate: true }));
+    const share = cal.hitMiddleHalf / cal.claims;
+    expect(share).toBeGreaterThan(0.4);
+    expect(share).toBeLessThan(0.62);
   });
 
-  it('ignores thin forecasts, exactly as the hit rates do', () => {
-    // A thin range is marked not-a-claim in the UI, so scoring its bias would
-    // grade the product for something it declined to assert.
-    const thin = run(Array(RECENT_CLAIMS).fill(9)).map((r) => ({ ...r, thin: true }));
-    const real = run(Array(RECENT_CLAIMS).fill(0.4));
-    expect(recentBiasPp([...thin, ...real])).toBeCloseTo(0.4, 10);
+  it('never lets an auction be corrected by its own outcome', () => {
+    // THE discipline of this file. The correction for auction N may use only
+    // errors from auctions before N, so truncating the archive after N must
+    // not change N's forecast.
+    const all = backtest(prints, BONDS, { calibrate: true });
+    expect(all.length).toBeGreaterThan(CORRECTION_WINDOW + 5);
+    const cut = all[all.length - 3];
+    const truncated = prints.filter((p) => (p.auctionDate ?? '') <= cut.auctionDate);
+    const replayed = backtest(truncated, BONDS, { calibrate: true });
+    const same = replayed.find(
+      (r) => r.auctionDate === cut.auctionDate && r.issueCode === cut.issueCode
+    );
+    expect(same).toBeDefined();
+    expect(same!.median).toBeCloseTo(cut.median, 10);
+    expect(same!.errorPp).toBeCloseTo(cut.errorPp, 10);
+  });
+
+  it('declines to correct at all until the window is earned', () => {
+    // Absence is not zero's cousin here: a shift fitted to three auctions is
+    // noise wearing a decimal point, so it is simply not applied.
+    const cal = guidanceCalibration(prints.slice(0, 3), BONDS);
+    expect(cal.sample).toBe(0);
+    expect(cal.correctionPp).toBe(0);
+    expect(cal.bandScale).toBe(BAND_SCALE);
+  });
+
+  it('reports the live correction over exactly the stated window', () => {
+    const cal = guidanceCalibration(prints, BONDS);
+    expect(cal.sample).toBe(CORRECTION_WINDOW);
+    expect(Number.isFinite(cal.correctionPp)).toBe(true);
+    // Sanity: a plausible shift, not a runaway one.
+    expect(Math.abs(cal.correctionPp)).toBeLessThan(3);
   });
 
   it('names the direction a bidder can act on', () => {

@@ -23,7 +23,7 @@ import {
   type BidVerdict,
   windowPhrase,
 } from '@/lib/bid';
-import { backtest } from '@/lib/backtest';
+import { backtest, guidanceCalibration } from '@/lib/backtest';
 import { calibratedBand, empiricalCoverage } from '@/lib/calibration';
 import { cn } from '@/lib/utils';
 import { track } from '@/lib/analytics';
@@ -60,8 +60,17 @@ export function BidAssistant({
     const target = known
       ? yearsToMaturityAt(known, new Date(auction.auctionDate))
       : auction.tenorYears;
+    /* Calibrated, because this is the number a reader actually bids on.
+     *
+     * The shift and the widening are measured by replaying this same function
+     * over the archive; TrackRecord publishes both, and the raw figures beside
+     * them. Quoting the raw distribution here while publishing a calibration
+     * of the corrected one would describe a product nobody is using. */
+    const cal = guidanceCalibration(prints, bonds);
     const g = bidGuidance(prints, bonds, target, {
       taxExempt: known ? known.taxExempt : auction.category === 'IFB',
+      correctionPp: cal.correctionPp,
+      bandScale: cal.bandScale,
     });
     return {
       guidance: g,

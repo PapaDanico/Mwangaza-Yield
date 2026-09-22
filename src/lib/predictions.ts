@@ -19,6 +19,7 @@
 import type { AuctionPrint, AuctionSchedule, Bond } from '../types/bond';
 import { normaliseCode, clearingRate, auctionKind } from './auction-history';
 import { bidGuidance, yearsToMaturityAt } from './bid';
+import { guidanceCalibration } from './backtest';
 
 export interface Prediction {
   /** One bond within one auction; multi-bond offers get one entry per code. */
@@ -80,6 +81,18 @@ export interface Prediction {
   high: number;
   /** True when the sample was below MIN_SAMPLE — recorded, but not a claim. */
   thin: boolean;
+  /**
+   * The calibration this range was quoted under: percentage points subtracted
+   * for measured lag, and the factor the middle band was widened by.
+   *
+   * Recorded for the same reason `windowDays` is — a hit rate pooled across
+   * two different methods is one number describing neither. Rows predating
+   * calibration leave both ABSENT rather than claiming 0 and 1, which are real
+   * values meaning "raw" and would be indistinguishable from a row that
+   * genuinely ran uncorrected.
+   */
+  correctionPp?: number;
+  bandScale?: number;
   // ---- filled in by scoring, never at recording time ----
   actualRate?: number;
   scoredOn?: string;
@@ -117,6 +130,10 @@ export function recordPredictions(
   bonds: Bond[],
   today: string
 ): Prediction[] {
+  /* Measured once for the whole run, not per auction: it depends only on the
+   * archive, and recomputing it inside the loop would replay the backtest for
+   * every upcoming issue for an identical answer. */
+  const calibration = guidanceCalibration(prints, bonds);
   const have = new Set(ledger.map((p) => `${normaliseCode(p.issueCode)}|${p.auctionDate}`));
   const byCode = new Map(bonds.map((b) => [normaliseCode(b.issueCode), b]));
   const added: Prediction[] = [];
@@ -137,7 +154,19 @@ export function recordPredictions(
       if (!Number.isFinite(target) || target <= 0) continue;
 
       const taxExempt = known ? known.taxExempt : code.startsWith('IFB');
-      const g = bidGuidance(prints, bonds, target, { taxExempt });
+      /* The ledger records what the assistant SHOWS, calibration included.
+       *
+       * Recording the raw range while the page quotes a corrected one would
+       * make the track record a claim about a product that does not exist —
+       * the one failure mode a track record cannot survive. Rows written
+       * before calibration existed keep their own figures untouched: the
+       * ledger is append-only and `assertLedgerIntegrity` enforces it, so the
+       * record stays a record rather than a rewrite. */
+      const g = bidGuidance(prints, bonds, target, {
+        taxExempt,
+        correctionPp: calibration.correctionPp,
+        bandScale: calibration.bandScale,
+      });
       if (!g.count) continue; // nothing to state, so state nothing
 
       have.add(key);
@@ -155,6 +184,8 @@ export function recordPredictions(
         p75: g.p75,
         high: g.high,
         thin: g.thin,
+        correctionPp: g.correctionPp,
+        bandScale: g.bandScale,
       });
     }
   }

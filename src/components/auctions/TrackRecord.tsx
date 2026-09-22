@@ -15,7 +15,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import { summariseLedger, type Prediction } from '@/lib/predictions';
 import { scoringVerdict } from '@/lib/prediction-verdict';
-import { backtest, summariseBacktest, recentBiasPp, biasPhrase, RECENT_CLAIMS } from '@/lib/backtest';
+import {
+  backtest,
+  summariseBacktest,
+  biasPhrase,
+  guidanceCalibration,
+  CORRECTION_WINDOW,
+} from '@/lib/backtest';
 import { useBondStore } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
 
@@ -50,18 +56,35 @@ export default function TrackRecord() {
   /* Replayed in the browser from data the store already holds, so this costs
    * no extra fetch. Memoised because it is a few hundred guidance rebuilds and
    * the inputs only change when the archive reloads. */
-  const replay = useMemo(
+  /* BOTH REPLAYS, BECAUSE THE READER IS OWED THE COMPARISON
+   *
+   * `calibrate: true` is the method as it actually quotes today — lag
+   * corrected from its own measured history, middle band widened. Raw is the
+   * same method with both switched off. Publishing only the calibrated figure
+   * would be quoting the flattering number; publishing only the raw one would
+   * describe a product nobody is using. */
+  const calibrated = useMemo(
     () =>
       auctionResults.length && bonds.length
-        ? backtest(auctionResults, bonds)
+        ? summariseBacktest(backtest(auctionResults, bonds, { calibrate: true }))
         : null,
     [auctionResults, bonds]
   );
-  const bt = useMemo(() => (replay ? summariseBacktest(replay) : null), [replay]);
-  /* The all-period bias and the CURRENT one disagree in sign — see
-   * recentBiasPp for the measured table and why the whole-archive figure was
-   * answering the wrong question. Null when the sample is too short to say. */
-  const recentBias = useMemo(() => (replay ? recentBiasPp(replay) : null), [replay]);
+  const raw = useMemo(
+    () =>
+      auctionResults.length && bonds.length
+        ? summariseBacktest(backtest(auctionResults, bonds))
+        : null,
+    [auctionResults, bonds]
+  );
+  const cal = useMemo(
+    () =>
+      auctionResults.length && bonds.length
+        ? guidanceCalibration(auctionResults, bonds)
+        : null,
+    [auctionResults, bonds]
+  );
+  const bt = calibrated;
 
   useEffect(() => {
     fetch('/data/predictions.json')
@@ -267,33 +290,55 @@ export default function TrackRecord() {
             <span className="num font-semibold">
               {Math.round((100 * bt.hitMiddleHalf) / bt.claims)}%
             </span>{' '}
-            of the time. A well-judged middle range should be right about half the time, so{' '}
-            <strong>the range we quote is too narrow</strong> — it sounds more certain than the
-            method has earned. The wider low-to-high range did contain it{' '}
+            of the time — a well-judged middle range should be right about half the time, so this
+            one is honestly drawn. The wider low-to-high range contained it{' '}
             <span className="num">{Math.round((100 * bt.hitRange) / bt.claims)}%</span> of the
             time, and the typical miss was{' '}
             <span className="num">{bt.medianAbsErrorPp.toFixed(2)}</span> percentage points
             {`, ${biasPhrase(bt.medianBiasPp)}`}.
           </p>
-          {/* WHICH WAY IT LEANS NOW, WHEN THAT IS NOT WHICH WAY IT HAS LEANT
+          {/* WHAT WE DID TO THE RAW NUMBERS, AND WHAT IT BOUGHT
             *
-            * Printed only when the recent slice disagrees in sign with the
-            * whole-archive figure above, because then the sentence above is
-            * true about the record and misleading about Thursday. Kenyan
-            * yields fell through 2025-26; a method built from past prints
-            * lags a falling market, and the live ledger's three scored
-            * predictions all missed on this exact side. Saying so is the
-            * point of publishing a calibration at all. */}
-          {recentBias !== null && recentBias * bt.medianBiasPp < 0 && (
-            <p className="mt-1.5 rounded bg-gold-500/10 px-2 py-1.5 text-xs text-ink-soft">
-              <strong>It leans the other way now.</strong> Over the last{' '}
-              <span className="num">{RECENT_CLAIMS}</span> auctions the method is{' '}
-              {biasPhrase(recentBias)}, by{' '}
-              <span className="num">{Math.abs(recentBias).toFixed(2)}</span> percentage points —
-              the opposite of its long-run habit. Yields have been falling, and a range built from
-              past auctions follows a falling market down rather than leading it. Read the quoted
-              range as more likely to sit{' '}
-              {recentBias > 0 ? 'above' : 'below'} the outturn than beneath it while that holds.
+            * The figures above describe the method AS IT QUOTES — lag
+            * corrected, band widened. Both adjustments are measured, so both
+            * are disclosed with the before-and-after beside them. A quoted
+            * range that has been shifted without saying so is a worse defect
+            * than the miscalibration it fixes: the reader cannot tell the
+            * difference between a market observation and our adjustment to
+            * it.
+            *
+            * The raw comparison is not decoration. This panel used to read
+            * "the range we quote is too narrow" off a 22% middle-half hit
+            * rate, which was an honest confession and is now simply out of
+            * date — the fix landed. Keeping the old number visible is what
+            * lets a reader check that claim rather than take it. */}
+          {raw && raw.claims > 0 && cal && (
+            <p className="mt-1.5 rounded bg-sand-100 px-2 py-1.5 text-xs text-ink-soft">
+              <strong>These quotes are adjusted, and here is the adjustment.</strong> Past auctions
+              are a lagging guide in a moving market, so every figure is shifted by the method&apos;s
+              own median error over its last <span className="num">{CORRECTION_WINDOW}</span>{' '}
+              scored auctions{' '}
+              {cal.sample > 0 ? (
+                <>
+                  (currently{' '}
+                  <span className="num">
+                    {cal.correctionPp > 0 ? '−' : '+'}
+                    {Math.abs(cal.correctionPp).toFixed(2)}
+                  </span>{' '}
+                  percentage points)
+                </>
+              ) : (
+                <>(not yet applied — fewer than {CORRECTION_WINDOW} scored auctions)</>
+              )}
+              , and the middle band is widened{' '}
+              <span className="num">{cal.bandScale.toFixed(2)}×</span>. Without both, the same
+              replay scores{' '}
+              <span className="num">{Math.round((100 * raw.hitRange) / raw.claims)}%</span> on the
+              wide range and{' '}
+              <span className="num">{Math.round((100 * raw.hitMiddleHalf) / raw.claims)}%</span> on
+              the middle — the second being the number that said the old band was too narrow.
+              Shortening the lookback does not substitute for this: a one-year window still
+              measured a <span className="num">0.53</span>pp lag.
             </p>
           )}
           <details className="mt-2 text-xs">

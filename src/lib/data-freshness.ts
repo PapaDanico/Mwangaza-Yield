@@ -390,3 +390,22 @@ export function readerNotice(now: Date = new Date()): string | null {
     `figures before acting on the ones named.`
   );
 }
+
+/**
+ * The date of the newest reader-facing figure, as YYYY-MM-DD, or null.
+ *
+ * Reads the per-dataset `asOf` dates the pipeline's own healthcheck publishes,
+ * excluding `meta.json` — which records when the PIPELINE ran, not when any
+ * figure was published, and is exactly the date the provenance footer used
+ * to show readers by mistake. Null when nothing is dated, because a footer
+ * inventing a date is worse than one that states none.
+ */
+export function latestFigureDate(): string | null {
+  const dates = datasetFreshness()
+    .filter((d) => d.file !== 'meta.json')
+    .map((d) => d.asOf)
+    .filter((d): d is string => /^\d{4}-\d{2}-\d{2}/.test(d ?? ''))
+    .map((d) => d.slice(0, 10))
+    .sort();
+  return dates.length ? dates[dates.length - 1] : null;
+}

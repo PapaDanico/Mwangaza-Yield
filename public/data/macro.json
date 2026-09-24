@@ -83,5 +83,18 @@
     "via": "imf-weo",
     "lastChecked": "2026-09-24",
     "sourceNote": "General government gross debt, WEO subject GGXWDG_NGDP, 2024 OUTTURN from the April 2026 vintage already held in imf-outlook.json. The outturn, not the 2025 estimate (69.33) or 2026 projection (71.58), because a verdict should rest on a measurement. Corroborated 24 Sept against four independent reports of the same series: 2023 73.41 (press \"73.4% peak\"), 2025 69.33 (Statista, republishing the WEO), 2026 71.58 and 2027 72.39 (IMF April 2026 Regional Economic Outlook, \"71.6% ... 72.4%\"). April 2026 is the current vintage; the October edition is not yet published."
+  },
+  {
+    "id": "interest-revenue-fy2526",
+    "indicator": "INTEREST_TO_REVENUE",
+    "value": 42.7,
+    "date": "2026-06-30",
+    "unit": "% of ordinary revenue",
+    "source": "National Treasury, FY2025/26 exchequer outturn",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-budgetary-review-qebr/",
+    "period": "FY2025/26",
+    "via": "search-corroborated",
+    "lastChecked": "2026-09-24",
+    "sourceNote": "Interest on public debt as a share of ordinary revenue, FY2025/26 (July 2025-June 2026), as reported from National Treasury outturn data; NOT read from the primary QEBR, which is egress-blocked. Corroborated 24 Sept: (1) the 42.7% and its components, domestic interest KSh 862.7bn and external KSh 205bn (sum 1,067.7bn), returned by three differently-phrased searches, with the 862.7bn domestic figure carried independently in a second article; (2) it brackets correctly — above the KSh 804.3bn domestic paid by May 2026 and below the 883.76bn annual allocation; (3) the implied ordinary revenue, 1,067.7 / 0.427 = KSh 2.50tn, reconciles with Treasury's reported KSh 53.5bn ordinary-revenue shortfall and 6.9% growth for the year. Replace with the Fourth Quarter FY2025/26 QEBR figure when that document is in hand."
   }
 ]

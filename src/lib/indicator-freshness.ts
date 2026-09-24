@@ -43,6 +43,7 @@ export const INDICATOR_BUDGETS: Record<string, IndicatorBudget> = {
   CBR: { days: 130, cadence: 'set at MPC meetings, roughly every two months' },
   GDP: { days: 400, cadence: 'KNBS Economic Survey published annually' },
   DEBT_TO_GDP: { days: 240, cadence: 'IMF World Economic Outlook, published April and October' },
+  INTEREST_TO_REVENUE: { days: 455, cadence: 'fiscal-year outturn, published annually after June' },
 };
 
 /**

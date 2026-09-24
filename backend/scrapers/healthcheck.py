@@ -287,6 +287,7 @@ PER_INDICATOR_BUDGETS = {
     # by the year it describes, as GDP is. The WEO ships in April and October,
     # so 240 days is one cycle plus lag — matching imf-outlook.json's budget.
     "DEBT_TO_GDP": (240, "IMF World Economic Outlook, published April and October"),
+    "INTEREST_TO_REVENUE": (455, "fiscal-year outturn, published annually after June"),
 }
 
 

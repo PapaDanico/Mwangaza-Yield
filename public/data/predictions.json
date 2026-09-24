@@ -88,5 +88,39 @@
     "scoredOn": "2026-08-12",
     "hitRange": false,
     "hitMiddleHalf": false
+  },
+  {
+    "issueCode": "FXD3/2019/015",
+    "auctionDate": "2026-09-30",
+    "recordedOn": "2026-09-24",
+    "targetYears": 7.8,
+    "toleranceYears": 1.5,
+    "windowDays": 180,
+    "sampleSize": 5,
+    "low": 12.473975,
+    "p25": 12.516525,
+    "median": 13.051675,
+    "p75": 13.41515,
+    "high": 13.600575,
+    "thin": false,
+    "correctionPp": -0.2885749999999998,
+    "bandScale": 1.75
+  },
+  {
+    "issueCode": "FXD1/2019/020",
+    "auctionDate": "2026-09-30",
+    "recordedOn": "2026-09-24",
+    "targetYears": 12.51,
+    "toleranceYears": 1.5,
+    "windowDays": 365,
+    "sampleSize": 7,
+    "low": 13.036075,
+    "p25": 13.450162499999998,
+    "median": 13.627175,
+    "p75": 14.079025,
+    "high": 14.211975,
+    "thin": false,
+    "correctionPp": -0.2885749999999998,
+    "bandScale": 1.75
   }
 ]

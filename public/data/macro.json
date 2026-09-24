@@ -61,14 +61,14 @@
     "lastChecked": "2026-08-19"
   },
   {
-    "id": "fx-2026-09-21",
+    "id": "fx-2026-09-24",
     "indicator": "FX_USD_KES",
-    "value": 129.49,
-    "date": "2026-09-21",
+    "value": 129.48,
+    "date": "2026-09-24",
     "unit": "KES/USD",
     "source": "CBK indicative",
     "via": "supplied-document",
-    "lastChecked": "2026-09-22",
-    "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 21 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down). Consistent with the CBK Weekly Bulletin of 18 September 2026, Table 1, which reports 129.62 on 17 September and a 129.59 average for the week ending 17 September."
+    "lastChecked": "2026-09-24",
+    "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 24 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down). Consistent with 129.49 on 21 September."
   }
 ]

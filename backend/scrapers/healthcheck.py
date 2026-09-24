@@ -71,7 +71,12 @@ BUDGETS = [
     # an expectation quoted long after the survey that formed it is worse than
     # a stale measurement: the reader cannot tell by looking that the world has
     # moved on underneath it.
-    ("expectations.json", "Market expectations", "surveyDate", 75,
+    # CORRECTED 24 Sept: 75 undercounted. The budget has to span fieldwork to
+    # the NEXT report, not this one: the MPC gap (11 Aug -> 7 Oct is 57 days)
+    # plus the publication lag (21 Jul fieldwork -> 24 Aug on CBK's site, 34
+    # days) is ~91 days, so 75 would have fired a false stale notice from
+    # 4 Oct until the September survey appeared. 100 leaves a week of slack.
+    ("expectations.json", "Market expectations", "surveyDate", 100,
      "survey precedes every MPC, roughly every two months"),
     # Secondary trades are OPTIONAL_IF_EMPTY (see below). This file is empty
     # and stays empty: exchange price data is licensed, and we publish none of

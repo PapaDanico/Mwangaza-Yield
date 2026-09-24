@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-24T19:56:40.457879+00:00",
+  "checkedAt": "2026-09-24T20:08:45.352010+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -38,7 +38,7 @@
       "label": "Market expectations",
       "asOf": "2026-07-21",
       "ageDays": 65,
-      "budgetDays": 75,
+      "budgetDays": 100,
       "stale": false
     },
     {

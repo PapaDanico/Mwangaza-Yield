@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, BarChart, Bar, CartesianGrid,
 } from 'recharts';
 import { useBondStore } from '@/stores/bondStore';
+import MPC_NEXT from '../../../public/data/mpc-next.json';
 import {
   sustainabilitySignal,
   trendArrow,
@@ -100,9 +101,15 @@ export default function MacroPage() {
   const upcomingMpc = useMemo(() => {
     const sorted = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date));
     const latestDate = new Date(sorted[0]?.date ?? new Date().toISOString());
+    // CBK announces the next date about a month ahead; use it while it is in
+    // the future. Beyond it, and before any announcement, the ~60-day MPC
+    // rhythm is an estimate — it put the 7 Oct 2026 meeting on 10 Oct.
+    const announced = new Date(`${MPC_NEXT.date}T00:00:00`);
+    const anchor = announced > latestDate && announced.getTime() >= Date.now() - 86_400_000 ? announced : null;
     const meetings: Date[] = [];
-    for (let i = 1; i <= 4; i += 1) {
-      const d = new Date(latestDate);
+    if (anchor) meetings.push(anchor);
+    for (let i = 1; meetings.length < 4; i += 1) {
+      const d = new Date(anchor ?? latestDate);
       d.setDate(d.getDate() + 60 * i);
       meetings.push(d);
     }
@@ -439,7 +446,12 @@ export default function MacroPage() {
             const days = Math.max(0, Math.ceil((d.getTime() - now.getTime()) / 86_400_000));
             return (
               <div key={d.toISOString()} className={`flex items-center justify-between rounded-xl border p-3 text-sm ${i === 0 ? 'border-gold-400 bg-gold-500/[0.04]' : 'border-sand-300'}`}>
-                <span className="text-ink">{d.toLocaleDateString('en-KE', { dateStyle: 'medium' })}</span>
+                <span className="text-ink">
+                  {d.toLocaleDateString('en-KE', { dateStyle: 'medium' })}
+                  <span className="ml-2 text-[11px] text-ink-faint">
+                    {i === 0 && d.toISOString().slice(0, 10) === new Date(`${MPC_NEXT.date}T00:00:00`).toISOString().slice(0, 10) ? 'announced by CBK' : 'estimated'}
+                  </span>
+                </span>
                 <span className="num text-ink-soft">{days} days</span>
               </div>
             );

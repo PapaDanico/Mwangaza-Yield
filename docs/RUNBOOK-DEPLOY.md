@@ -99,26 +99,20 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab531551ec9da0008cb3943`, commit `fceab55` (#295,
-carrying #294's calendar, FX and first calibrated predictions), published
-2026-09-24T14:19:57Z, 51s build. Verified: `state: ready`, `error_message:
-null`, secret scan 543 files / 0 matches, `available_functions: [track]`,
+**Current production** — `6ab539e01dee1200081ba530`, commit `084af16` (#297:
+IMF outlook wired, prose figures computed from data), published
+2026-09-24T14:56:18Z, 46s build. Verified: `state: ready`, `error_message:
+null`, secret scan 550 files / 0 matches, `available_functions: [track]`,
 `edge_functions_present: true`, `plugin_state: success`, 29 pages regenerated.
 
 **Rollback target** — the deploy it replaced:
 
 | | |
 |---|---|
-| deploy ID | `6ab2281e0974390008cae528` |
-| permalink | `https://6ab2281e0974390008cae528--mwangazayield.netlify.app` |
-| commit | `bdc3c70` — #291, the calibration and single-pass backtest |
-| published | 2026-09-22T07:03:49Z |
-
-#294 merged at 14:14 and did not build on its own before #295 merged at 14:18;
-Netlify built once, on `fceab55`, and that one build carries both. The skip
-script compares against the last DEPLOYED commit, not the last merged one, so
-a docs-only merge landing on top of an unbuilt data merge still builds —
-which is correct.
+| deploy ID | `6ab531551ec9da0008cb3943` |
+| permalink | `https://6ab531551ec9da0008cb3943--mwangazayield.netlify.app` |
+| commit | `fceab55` — #295, carrying #294's calendar, FX and first calibrated predictions |
+| published | 2026-09-24T14:19:57Z |
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

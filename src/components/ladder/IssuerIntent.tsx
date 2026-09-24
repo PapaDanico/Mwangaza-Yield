@@ -15,7 +15,7 @@ import { formatKES } from '@/lib/financial-engine';
  * hand-curated and what happens when it ages out.
  */
 export default function IssuerIntent() {
-  const { issuanceIntent: intent, nearTermSupply: supply, outturn } = FISCAL_CONTEXT;
+  const { issuanceIntent: intent, nearTermSupply: supply, outturn, fy2026_27Outlook: fy } = FISCAL_CONTEXT;
 
   if (fiscalIsStale()) {
     // An old strategy stated confidently is worse than an admitted gap. The
@@ -55,17 +55,22 @@ export default function IssuerIntent() {
         the life of most ladders built here.
       </p>
       <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Nearer in, the {supply.fiscalYear} supplementary budget raised planned net domestic
-        borrowing from {kesbn(supply.revisedFromKESBn)} to{' '}
-        <strong>{kesbn(supply.netDomesticBorrowingKESBn)}</strong> — a wave of new
-        paper, which historically favours buyers at auction.
+        For the current year, {fy.fiscalYear}, the budget targets{' '}
+        <strong>{kesbn(fy.netDomesticBorrowingTargetKESBn)}</strong> of net domestic
+        borrowing against a deficit of {fy.budgetDeficitPctGDP}% of GDP — up from the{' '}
+        {kesbn(supply.netDomesticBorrowingKESBn)} the {supply.fiscalYear} supplementary
+        settled on (itself raised from {kesbn(supply.revisedFromKESBn)}). Steady new supply
+        of that size has historically favoured buyers at auction. The revenue side matters
+        because it sets how much must be borrowed: KRA collected{' '}
+        {kestn(fy.kraRevenueFY2526KESBn / 1000)} in {supply.fiscalYear}, up{' '}
+        {fy.kraRevenueGrowthPct}% on the year before.
       </p>
       <Explain label="Why believe it — and why you still might not">
         Stated intent is not a promise. In {outturn.fiscalYear} the same issuer sold{' '}
         {kestn(outturn.tbillsIssuedKESTn)} of T-bills against{' '}
         {kestn(outturn.bondsIssuedKESTn)} of bonds — nearly the reverse of the
         strategy&apos;s direction — so treat the plan as a leaning, not a schedule. Sources:{' '}
-        {intent.source}; {supply.source}; {outturn.source}.{' '}
+        {intent.source}; {supply.source}; {outturn.source}; {fy.source}.{' '}
         {/* Rendered only when we have a URL somebody has actually opened.
             This card linked http://www.parliament.go.ke/2026-2027-budget under
             "Read the documents" and that path answers 404 over both http and

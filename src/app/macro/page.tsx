@@ -334,7 +334,7 @@ export default function MacroPage() {
               {debt.debtServiceRatio > 35 ? 'High share of revenue committed to interest — before any principal is repaid.' : debt.debtServiceRatio > 25 ? 'Elevated — limits fiscal flexibility.' : 'Manageable interest burden.'}
             </p>
             <p className="mt-1 text-[11px] text-ink-faint">
-              National Treasury basis: interest on all public debt against ordinary revenue, FY2025/26. The World Bank&apos;s figure further down is lower because it measures a different year against general-government revenue.
+              National Treasury basis: interest on all public debt against ordinary revenue, FY2025/26 (Q4 QEBR).
             </p>
           </div>
           <div className="rounded-xl border border-sand-300 p-3">

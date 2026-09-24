@@ -29,7 +29,51 @@
     "asOf": "2026-06-30",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "Everything the government owes, domestic and external together — KSh 13,011.89 billion, provisional, against KSh 12,299.48 billion in December 2025. External debt is USD 43.90 billion of it. Deliberately shown as a level and not as a share of GDP: no nominal GDP figure is held here that could be verified, and the ratio is the number this site refuses to estimate. Compiled by the National Treasury and CBK.",
+    "note": "Everything the government owes, domestic and external together — KSh 13,011.89 billion provisional in CBK's bulletin; the Treasury's Q4 FY2025/26 QEBR gives KSh 13,013.2 billion, up 9.2% on June 2025 (domestic 7,328.5bn, external 5,684.7bn). External debt is USD 43.90 billion of it. Shown here as a level; the ratio to GDP is the IMF's, in the Government debt / GDP row. Compiled by the National Treasury and CBK.",
     "sentiment": "watch"
+  },
+  {
+    "id": "qebr4-current-account",
+    "label": "Current account / GDP",
+    "value": -2.5,
+    "unit": "% of GDP",
+    "asOf": "2026-05-31",
+    "source": "National Treasury QEBR, Q4 FY2025/26",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "The gap between what Kenya earns from and pays to the rest of the world — US$ 3,785.1 million in the year to May 2026, against US$ 2,247.4 million (1.7%) a year earlier. A wider gap has to be financed by capital inflows or reserves. Read from the owner-supplied Q4 FY2025/26 QEBR, para 25.",
+    "sentiment": "good"
+  },
+  {
+    "id": "qebr4-external-debt",
+    "label": "External debt stock",
+    "value": 43.9,
+    "unit": "US$ bn",
+    "asOf": "2026-06-30",
+    "source": "National Treasury QEBR, Q4 FY2025/26",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "US$ 43,897.2 million at June 2026, up US$ 1,428.1 million on the year: 54.6% multilateral, 27.0% commercial, 18.2% bilateral. Owed in foreign currency, so a weaker shilling raises its cost. Q4 FY2025/26 QEBR, para 15.",
+    "sentiment": "watch"
+  },
+  {
+    "id": "qebr4-interest-revenue",
+    "label": "Interest / government revenue",
+    "value": 41.5,
+    "unit": "%",
+    "asOf": "2026-06-30",
+    "source": "National Treasury QEBR, Q4 FY2025/26",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "Interest on all public debt, KSh 1,074.4 billion, against ordinary revenue of KSh 2,588.4 billion in FY2025/26 — computed from QEBR paras 36 and 40, which do not print the ratio. Up from about 24% on the World Bank's 2023 general-government basis; the bases differ, but the direction is the story. Interest is paid before any other spending.",
+    "sentiment": "caution"
+  },
+  {
+    "id": "qebr4-fiscal-balance",
+    "label": "Fiscal balance / GDP",
+    "value": -6.8,
+    "unit": "% of GDP",
+    "asOf": "2026-06-30",
+    "source": "National Treasury QEBR, Q4 FY2025/26",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
+    "note": "The FY2025/26 outturn: a deficit of KSh 1,264.7 billion on a commitment basis including grants, against a 7.3% target and 6.7% the year before (QEBR paras 47-48). Every shilling of it is borrowed, most of it at the auctions this site covers. The IMF's 2025 estimate, on a general-government calendar-year basis, was -6.4%.",
+    "sentiment": "caution"
   }
 ]

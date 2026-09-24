@@ -276,5 +276,39 @@
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-09-30-reopen",
+    "issueCode": "FXD3/2019/015 + FXD1/2019/020",
+    "bondName": "Re-opened 15 & 20-Year Fixed Coupon Bonds (Ksh 50B, budgetary support)",
+    "category": "FXD",
+    "offerOpenDate": "2026-09-24",
+    "offerCloseDate": "2026-09-30",
+    "auctionDate": "2026-09-30",
+    "settlementDate": "2026-10-05",
+    "amountOfferedKES": 50000000000,
+    "couponRate": null,
+    "tenorYears": 20,
+    "maturityDate": "2039-03-21",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-10-05-switch",
+    "issueCode": "FXD1/2024/003 + FXD2/2013/015 → FXD1/2018/015",
+    "bondName": "Switch auction into 15-Year Fixed Coupon Bond FXD1/2018/015 (Ksh 10B)",
+    "category": "FXD",
+    "offerOpenDate": "2026-09-24",
+    "offerCloseDate": "2026-10-05",
+    "auctionDate": "2026-10-05",
+    "settlementDate": "2026-10-07",
+    "amountOfferedKES": 10000000000,
+    "couponRate": 12.65,
+    "tenorYears": 15,
+    "maturityDate": "2033-05-09",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "switch"
   }
 ]

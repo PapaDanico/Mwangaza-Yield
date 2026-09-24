@@ -59,6 +59,19 @@ export interface FiscalContext {
     source: string;
     sourceUrl?: string;
   };
+  fy2025_26Outturn: {
+    fiscalYear: string;
+    deficitInclGrantsPctGDP: number;
+    deficitTargetPctGDP: number;
+    deficitInclGrantsKESBn: number;
+    publicDebtKESBn: number;
+    publicDebtGrowthPct: number;
+    ordinaryRevenueKESBn: number;
+    interestPaidKESBn: number;
+    asOf: string;
+    source: string;
+    sourceUrl?: string;
+  };
   fy2026_27Outlook: {
     fiscalYear: string;
     netDomesticBorrowingTargetKESBn: number;

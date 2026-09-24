@@ -15,7 +15,7 @@ import { formatKES } from '@/lib/financial-engine';
  * hand-curated and what happens when it ages out.
  */
 export default function IssuerIntent() {
-  const { issuanceIntent: intent, nearTermSupply: supply, outturn, fy2026_27Outlook: fy } = FISCAL_CONTEXT;
+  const { issuanceIntent: intent, nearTermSupply: supply, outturn, fy2026_27Outlook: fy, fy2025_26Outturn: done } = FISCAL_CONTEXT;
 
   if (fiscalIsStale()) {
     // An old strategy stated confidently is worse than an admitted gap. The
@@ -65,12 +65,21 @@ export default function IssuerIntent() {
         {kestn(fy.kraRevenueFY2526KESBn / 1000)} in {supply.fiscalYear}, up{' '}
         {fy.kraRevenueGrowthPct}% on the year before.
       </p>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+        How last year actually closed: a deficit of{' '}
+        <strong>{done.deficitInclGrantsPctGDP}% of GDP</strong> against a{' '}
+        {done.deficitTargetPctGDP}% target, public debt of {kestn(done.publicDebtKESBn / 1000)}{' '}
+        (up {done.publicDebtGrowthPct}%), and interest of {kesbn(done.interestPaidKESBn)} —{' '}
+        {Math.round((done.interestPaidKESBn / done.ordinaryRevenueKESBn) * 100)} shillings of
+        every 100 of ordinary revenue. Interest is paid before anything else, which is why the
+        borrower keeps coming to auction.
+      </p>
       <Explain label="Why believe it — and why you still might not">
         Stated intent is not a promise. In {outturn.fiscalYear} the same issuer sold{' '}
         {kestn(outturn.tbillsIssuedKESTn)} of T-bills against{' '}
         {kestn(outturn.bondsIssuedKESTn)} of bonds — nearly the reverse of the
         strategy&apos;s direction — so treat the plan as a leaning, not a schedule. Sources:{' '}
-        {intent.source}; {supply.source}; {outturn.source}; {fy.source}.{' '}
+        {intent.source}; {supply.source}; {outturn.source}; {fy.source}; {done.source}.{' '}
         {/* Rendered only when we have a URL somebody has actually opened.
             This card linked http://www.parliament.go.ke/2026-2027-budget under
             "Read the documents" and that path answers 404 over both http and

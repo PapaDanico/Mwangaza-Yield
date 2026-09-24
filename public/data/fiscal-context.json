@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "curatedAt": "2026-08-19",
+  "curatedAt": "2026-09-24",
   "note": "Hand-curated quarterly from statutory fiscal documents. Updated 2026-08-19 with FY 2025/26 KRA outturn and FY 2026/27 supply target.",
   "issuanceIntent": {
     "grossDomesticBorrowingSharePct": 82,
@@ -37,5 +37,18 @@
     "asOf": "2026-06-30",
     "source": "National Treasury Draft Budget Statement FY 2026/27; KRA Annual Revenue Performance FY 2025/26",
     "sourceUrl": "https://www.kra.go.ke/annual-revenue-performance-fy-2025-2026"
+  },
+  "fy2025_26Outturn": {
+    "fiscalYear": "2025/26",
+    "deficitInclGrantsPctGDP": 6.8,
+    "deficitTargetPctGDP": 7.3,
+    "deficitInclGrantsKESBn": 1264.7,
+    "publicDebtKESBn": 13013.2,
+    "publicDebtGrowthPct": 9.2,
+    "ordinaryRevenueKESBn": 2588.4,
+    "interestPaidKESBn": 1074.4,
+    "asOf": "2026-06-30",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review, Fourth Quarter FY2025/26 (paras 36, 40, 47, 52)",
+    "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report"
   }
 }

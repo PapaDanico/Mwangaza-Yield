@@ -87,14 +87,14 @@
   {
     "id": "interest-revenue-fy2526",
     "indicator": "INTEREST_TO_REVENUE",
-    "value": 42.7,
+    "value": 41.508,
     "date": "2026-06-30",
     "unit": "% of ordinary revenue",
-    "source": "National Treasury, FY2025/26 exchequer outturn",
+    "source": "National Treasury, Quarterly Economic and Budgetary Review, Fourth Quarter FY2025/26",
     "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-budgetary-review-qebr/",
     "period": "FY2025/26",
-    "via": "search-corroborated",
+    "via": "supplied-document",
     "lastChecked": "2026-09-24",
-    "sourceNote": "Interest on public debt as a share of ordinary revenue, FY2025/26 (July 2025-June 2026), as reported from National Treasury outturn data; NOT read from the primary QEBR, which is egress-blocked. Corroborated 24 Sept: (1) the 42.7% and its components, domestic interest KSh 862.7bn and external KSh 205bn (sum 1,067.7bn), returned by three differently-phrased searches, with the 862.7bn domestic figure carried independently in a second article; (2) it brackets correctly — above the KSh 804.3bn domestic paid by May 2026 and below the 883.76bn annual allocation; (3) the implied ordinary revenue, 1,067.7 / 0.427 = KSh 2.50tn, reconciles with Treasury's reported KSh 53.5bn ordinary-revenue shortfall and 6.9% growth for the year. Replace with the Fourth Quarter FY2025/26 QEBR figure when that document is in hand."
+    "sourceNote": "Computed from the Fourth Quarter FY2025/26 QEBR supplied by the owner (period ending 30 June 2026, provisional): interest payments KSh 1,074.4bn (domestic 862.7bn + foreign 211.8bn, para 40) over ordinary revenue KSh 2,588.4bn (para 36) = 41.508%. The QEBR does not print the ratio itself. Supersedes a search-corroborated 42.7 written earlier the same day: press had foreign interest at 205bn and a ratio the primary figures do not reproduce. Domestic 862.7bn matched the press exactly; the ordinary-revenue shortfall is 52.2bn in the document against 53.5bn reported."
   }
 ]

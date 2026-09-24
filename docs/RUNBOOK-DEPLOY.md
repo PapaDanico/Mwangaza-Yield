@@ -99,20 +99,27 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab539e01dee1200081ba530`, commit `084af16` (#297:
-IMF outlook wired, prose figures computed from data), published
-2026-09-24T14:56:18Z, 46s build. Verified: `state: ready`, `error_message:
-null`, secret scan 550 files / 0 matches, `available_functions: [track]`,
-`edge_functions_present: true`, `plugin_state: success`, 29 pages regenerated.
+**Current production** — `6ab569731aa6dd000834a4c7`, commit `1212673` (#301:
+FY2026/27 borrowing target and KRA outturn on the ladder; carries #300's
+24 Sep T-bill results), published 2026-09-24T18:19:13Z, 45s build. Verified:
+`state: ready`, `error_message: null`, secret scan 552 files / 0 matches,
+`available_functions: [track]`, `edge_functions_present: true`,
+`plugin_state: success`.
 
-**Rollback target** — the deploy it replaced:
+**Rollback target** — the last deploy verified before it:
 
 | | |
 |---|---|
-| deploy ID | `6ab531551ec9da0008cb3943` |
-| permalink | `https://6ab531551ec9da0008cb3943--mwangazayield.netlify.app` |
-| commit | `fceab55` — #295, carrying #294's calendar, FX and first calibrated predictions |
-| published | 2026-09-24T14:19:57Z |
+| deploy ID | `6ab539e01dee1200081ba530` |
+| permalink | `https://6ab539e01dee1200081ba530--mwangazayield.netlify.app` |
+| commit | `084af16` — #297, IMF outlook wired, prose figures computed from data |
+| published | 2026-09-24T14:56:18Z |
+
+#300 (`4f141f1`) merged six minutes before #301 and its own production
+deploy was superseded before its ID was captured; with no list-deploys tool
+it cannot be recovered from a session. Rolling back to `6ab539e0` also drops
+the 24 Sep T-bill rows, so prefer reverting #301 in git if only the card is
+at fault.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

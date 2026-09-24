@@ -1,38 +1,38 @@
 [
   {
-    "id": "tb-91-2026-09-17",
+    "id": "tb-91-2026-09-24",
     "tenorDays": 91,
-    "discountRate": 8.7837,
-    "auctionDate": "2026-09-17",
-    "nextAuctionDate": "2026-09-24",
+    "discountRate": 8.7781,
+    "auctionDate": "2026-09-24",
+    "nextAuctionDate": "2026-10-01",
     "amountOfferedKES": 8000000000,
-    "amountAcceptedKES": 23231010000,
+    "amountAcceptedKES": 16546140000,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 17 Sep 2026, entered by hand",
-    "sourceNote": "Central Bank of Kenya — Results of 91, 182 & 364 Days Treasury Bills Issue Nos. 2700/091, 2674/182 & 2629/364 dated 21-09-2026, auction of 17 September 2026 (document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Column totals reconcile: 23,231.01 + 10,046.13 + 9,415.69 = 42,692.83M accepted against 28,000.00M offered. Rates corroborated by CBK Weekly Bulletin, 18 September 2026, Table 4 (8.784 / 8.910 / 9.057)."
+    "source": "CBK auction, 24 Sep 2026, entered by hand",
+    "sourceNote": "Supplied document: CBK results notice for issues 2701/091, 2675/182, 2630/364 DATED 28-09-2026 (auction Thu 24 Sep 2026). Accepted column reconciles: 16,546.14 + 10,260.23 + 6,543.85 = 33,350.22M against 28,000.00M offered. Next auction: issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (Thu 1 Oct)."
   },
   {
-    "id": "tb-182-2026-09-17",
+    "id": "tb-182-2026-09-24",
     "tenorDays": 182,
-    "discountRate": 8.9099,
-    "auctionDate": "2026-09-17",
-    "nextAuctionDate": "2026-09-24",
+    "discountRate": 8.8949,
+    "auctionDate": "2026-09-24",
+    "nextAuctionDate": "2026-10-01",
     "amountOfferedKES": 10000000000,
-    "amountAcceptedKES": 10046130000,
+    "amountAcceptedKES": 10260230000,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 17 Sep 2026, entered by hand",
-    "sourceNote": "Central Bank of Kenya — Results of 91, 182 & 364 Days Treasury Bills Issue Nos. 2700/091, 2674/182 & 2629/364 dated 21-09-2026, auction of 17 September 2026 (document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Column totals reconcile: 23,231.01 + 10,046.13 + 9,415.69 = 42,692.83M accepted against 28,000.00M offered. Rates corroborated by CBK Weekly Bulletin, 18 September 2026, Table 4 (8.784 / 8.910 / 9.057)."
+    "source": "CBK auction, 24 Sep 2026, entered by hand",
+    "sourceNote": "Supplied document: CBK results notice for issues 2701/091, 2675/182, 2630/364 DATED 28-09-2026 (auction Thu 24 Sep 2026). Accepted column reconciles: 16,546.14 + 10,260.23 + 6,543.85 = 33,350.22M against 28,000.00M offered. Next auction: issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (Thu 1 Oct)."
   },
   {
-    "id": "tb-364-2026-09-17",
+    "id": "tb-364-2026-09-24",
     "tenorDays": 364,
-    "discountRate": 9.0566,
-    "auctionDate": "2026-09-17",
-    "nextAuctionDate": "2026-09-24",
+    "discountRate": 9.0431,
+    "auctionDate": "2026-09-24",
+    "nextAuctionDate": "2026-10-01",
     "amountOfferedKES": 10000000000,
-    "amountAcceptedKES": 9415690000,
+    "amountAcceptedKES": 6543850000,
     "minInvestmentKES": 100000,
-    "source": "CBK auction, 17 Sep 2026, entered by hand",
-    "sourceNote": "Central Bank of Kenya — Results of 91, 182 & 364 Days Treasury Bills Issue Nos. 2700/091, 2674/182 & 2629/364 dated 21-09-2026, auction of 17 September 2026 (document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Column totals reconcile: 23,231.01 + 10,046.13 + 9,415.69 = 42,692.83M accepted against 28,000.00M offered. Rates corroborated by CBK Weekly Bulletin, 18 September 2026, Table 4 (8.784 / 8.910 / 9.057)."
+    "source": "CBK auction, 24 Sep 2026, entered by hand",
+    "sourceNote": "Supplied document: CBK results notice for issues 2701/091, 2675/182, 2630/364 DATED 28-09-2026 (auction Thu 24 Sep 2026). Accepted column reconciles: 16,546.14 + 10,260.23 + 6,543.85 = 33,350.22M against 28,000.00M offered. Next auction: issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (Thu 1 Oct)."
   }
 ]

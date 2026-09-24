@@ -59,8 +59,19 @@ const DEBT_TO_GDP_GAP: SovereignGap = {
  * missing indicator, and claiming otherwise during the first paint would put
  * a gap notice on every cold load.
  */
-export function sovereignGaps(context: ContextIndicator[]): SovereignGap[] {
-  if (!context.length) return [];
+export function sovereignGaps(
+  context: ContextIndicator[],
+  /**
+   * Whether the figure is held from ANOTHER source. The World Bank series is
+   * still empty for Kenya, but the IMF World Economic Outlook carries it
+   * (GGXWDG_NGDP) and has been in imf-outlook.json since 29 August — read by
+   * nothing until 24 September. Absent from the World Bank is not absent from
+   * the site, and a notice saying "we do not have this" beside a page that
+   * shows it would be the contradiction this function exists to prevent.
+   */
+  heldElsewhere = false
+): SovereignGap[] {
+  if (!context.length || heldElsewhere) return [];
   const present = new Set(context.map((c) => c.label));
   return present.has(DEBT_TO_GDP_LABEL) ? [] : [DEBT_TO_GDP_GAP];
 }

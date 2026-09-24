@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import InteractiveModules from './InteractiveModules';
+import { realSentence, realAtCpi, cpiNow } from '@/lib/narrative-figures';
 
 export const metadata: Metadata = {
   title: 'Tutorials — Mwangaza Yield',
@@ -139,8 +140,7 @@ const LESSONS = [
         <p>
           Government bonds carry minimal credit risk in shillings, but they are not risk-free.{' '}
           <strong>Rates rise, prices fall</strong> — sell early after a rate rise and you lose
-          money. <strong>Inflation erodes fixed coupons</strong>: 12% net against 6.4% inflation is
-          about 5.6% in real terms. <strong>Liquidity is thin</strong> for many issues, so selling
+          money. <strong>Inflation erodes fixed coupons</strong>: {realSentence(12)}. <strong>Liquidity is thin</strong> for many issues, so selling
           quickly may mean selling cheaply.
         </p>
         <p>
@@ -285,7 +285,7 @@ const LESSONS = [
           blended pool, which is an artefact and not an opportunity.{' '}
           <strong>Remaining term</strong>, never the tenor in the issue code, because re-openings
           keep their original code for life. And <strong>recency</strong>: the 7–12 year band
-          medians 12.78% over the last year and 13.67% over two.
+          medians 12.65% over the last year and 13.65% over two (auctions to 16 September 2026).
         </p>
         <p>
           All four at once is expensive. On the shipped archive this can judge 29 of the 58

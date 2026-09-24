@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { realSentence, realAtCpi, cpiNow } from '@/lib/narrative-figures';
 
 export const metadata: Metadata = { title: 'FAQs — Mwangaza Yield' };
 
@@ -62,8 +63,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
       <>
         The Kenyan government has never defaulted on a shilling-denominated bond, so if you hold to
         maturity you expect your principal back. But you can lose money by selling early: bond
-        prices fall when rates rise. Inflation is the other risk — a 12% net yield with 6.4%
-        inflation is roughly 5.6% in real purchasing power.
+        prices fall when rates rise. Inflation is the other risk — {realSentence(12)}.
       </>
     ),
   },
@@ -116,12 +116,14 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
         <p>
           Partly. Every figure quoted anywhere in Kenyan finance is <strong>nominal</strong> —
           counted in shillings, without asking what those shillings will buy. At the CPI figure we
-          publish, an 11.56% net yield is about <strong>4.84% real</strong>. You are getting ahead,
+          publish ({cpiNow()?.pct}% for {cpiNow()?.label}), an 11.56% net yield is about{' '}
+          <strong>{realAtCpi(11.56)?.toFixed(2)}% real</strong>. You are getting ahead,
           by roughly half as much as the headline suggests.
         </p>
         <p>
-          Divide rather than subtract — (1 + return) ÷ (1 + inflation) − 1. Subtracting gives 5.15%
-          here, which overstates by 31 basis points, and the error grows as rates rise. The
+          Divide rather than subtract — (1 + return) ÷ (1 + inflation) − 1. Subtracting gives{' '}
+          {(11.56 - (cpiNow()?.pct ?? 0)).toFixed(2)}% here, which overstates by{' '}
+          {Math.round((11.56 - (cpiNow()?.pct ?? 0) - (realAtCpi(11.56) ?? 0)) * 100)} basis points, and the error grows as rates rise. The
           calculator shows the real figure for every bond, with the inflation rate on a slider so
           you can disagree with our assumption rather than inherit it.
         </p>

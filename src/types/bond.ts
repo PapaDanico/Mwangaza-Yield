@@ -198,6 +198,11 @@ export interface TBill {
   amountAcceptedKES: number | null;
   minInvestmentKES: number;
   source: string;
+  /* The same tenor's rate at the auction before, so a reader can see the
+   * week's move. Hand-carried forward: when a new auction is entered, the
+   * old discountRate moves here. Absent or null means no comparison is shown,
+   * never a comparison against zero. */
+  previousDiscountRate?: number | null;
 }
 
 export interface ContextIndicator {

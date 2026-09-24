@@ -491,6 +491,8 @@ cd backend/scrapers && python healthcheck.py --publish   # writes freshness.json
 npm run build:engine && npm run build:rates              # writes rates.json/.csv
 ```
 
+**When entering a new T-bill auction, move each tenor's old `discountRate` into `previousDiscountRate`** — the dashboard's "What changed" strip compares the two, and a missing value hides the comparison rather than showing a move from zero.
+
 **The exception is `public/data/tbills.json`**, which no scraper writes — see the
 docstring in `probe_tbill_rates.py`. Hand-editing it is the intended mechanism
 until a parser exists. Its `auctionDate` is the **auction day (a Thursday)**,

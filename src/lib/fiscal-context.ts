@@ -59,6 +59,16 @@ export interface FiscalContext {
     source: string;
     sourceUrl?: string;
   };
+  fy2026_27Outlook: {
+    fiscalYear: string;
+    netDomesticBorrowingTargetKESBn: number;
+    budgetDeficitPctGDP: number;
+    kraRevenueFY2526KESBn: number;
+    kraRevenueGrowthPct: number;
+    asOf: string;
+    source: string;
+    sourceUrl?: string;
+  };
 }
 
 export const FISCAL_CONTEXT: FiscalContext = raw;

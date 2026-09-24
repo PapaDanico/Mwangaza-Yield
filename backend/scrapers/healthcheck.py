@@ -283,6 +283,10 @@ PER_INDICATOR_BUDGETS = {
     # The KNBS Economic Survey is published once a year, typically in April.
     # A 400-day budget covers the gap between annual publications with headroom.
     "GDP": (400, "KNBS Economic Survey published annually"),
+    # IMF WEO debt/GDP. Dated by VINTAGE (the date the IMF published it), not
+    # by the year it describes, as GDP is. The WEO ships in April and October,
+    # so 240 days is one cycle plus lag — matching imf-outlook.json's budget.
+    "DEBT_TO_GDP": (240, "IMF World Economic Outlook, published April and October"),
 }
 
 

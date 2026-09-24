@@ -350,6 +350,7 @@ const INDICATOR_LABELS: Record<string, string> = {
   CPI_NONCORE: 'Non-core inflation',
   CBR: 'Central Bank Rate',
   GDP: 'GDP growth',
+  DEBT_TO_GDP: 'Government debt / GDP',
 };
 export function readerNotice(now: Date = new Date()): string | null {
   const overdue: string[] = datasetFreshness()

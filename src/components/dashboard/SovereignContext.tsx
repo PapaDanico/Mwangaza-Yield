@@ -25,7 +25,9 @@ const SENTIMENT: Record<string, { dot: string; label: string }> = {
  */
 export default function SovereignContext() {
   const context = useBondStore((s) => s.context);
-  const gaps = sovereignGaps(context);
+  const macro = useBondStore((s) => s.macro);
+  const debtHeld = macro.some((m) => m.indicator === 'DEBT_TO_GDP' && Number.isFinite(m.value));
+  const gaps = sovereignGaps(context, debtHeld);
   const [open, setOpen] = useState<string | null>(null);
   /* Measured on the built page at 390px and 1280px, not estimated.
   *

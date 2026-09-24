@@ -1,5 +1,5 @@
 /* Mwangaza Yield service worker: offline shell + data SWR + update controls. */
-const VERSION = 'mwangaza-v37';
+const VERSION = 'mwangaza-v38';
 const STATIC_CACHE = `${VERSION}-static`;
 const DATA_CACHE = `${VERSION}-data`;
 const IMAGE_CACHE = `${VERSION}-image`;

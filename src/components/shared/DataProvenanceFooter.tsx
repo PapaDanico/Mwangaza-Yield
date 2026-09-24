@@ -26,7 +26,7 @@ export default function DataProvenanceFooter() {
   const latest = latestFigureDate();
   return (
     <div className="mx-auto mt-8 max-w-6xl px-4 text-[12px] text-ink">
-      Bonds: CBK | Auctions: CBK | Macro: KNBS/CBK/World Bank
+      Bonds: CBK | Auctions: CBK | Macro: KNBS/CBK/World Bank/IMF
       {latest ? ` | Latest figure: ${latest}` : ''}
     </div>
   );

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Bond, AuctionSchedule, AuctionPrint, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
 import { db, type CpiPoint } from '@/lib/db';
+import { imfContextRows, type WeoSeries } from '@/lib/imf-context';
 import { mergeSovereign } from '@/lib/sovereign-merge';
 
 interface BondState {
@@ -83,7 +84,15 @@ export const useBondStore = create<BondState>((set) => ({
           // when it returns fewer indicators than the file already holds, so a
           // row added to context.json would wedge it shut permanently.
           loadJSON<ContextIndicator[]>('/data/cbk-context.json').catch(() => []),
-        ]).then(([wb, qebr, cbk]) => mergeSovereign(mergeSovereign(wb, qebr), cbk)),
+          // The IMF WEO series: held since 29 Aug, read by nothing until
+          // 24 Sept. imfContextRows emits only what no other file supplies.
+          loadJSON<WeoSeries[]>('/data/imf-outlook.json').catch(() => []),
+        ]).then(([wb, qebr, cbk, imf]) =>
+          mergeSovereign(
+            mergeSovereign(mergeSovereign(wb, qebr), cbk),
+            imfContextRows(imf, new Date().getFullYear())
+          )
+        ),
         loadJSON<RateDecision[]>('/data/cbr-history.json').catch(() => []),
         loadJSON<AuctionPrint[]>('/data/auction-results.json').catch(() => []),
         loadJSON<CpiPoint[]>('/data/cpi-history.json').catch(() => []),

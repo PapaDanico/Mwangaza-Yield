@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Prose from '@/components/shared/Prose';
+import { realSentence, realAtCpi, cpiNow } from '@/lib/narrative-figures';
 
 export const metadata: Metadata = { title: 'Risk disclaimer — Mwangaza Yield' };
 
@@ -26,7 +27,7 @@ export default function DisclaimerPage() {
         </li>
         <li>
           <strong>Inflation risk.</strong> A fixed coupon loses purchasing power if inflation rises.
-          At 6.4% inflation, a 12% net yield is roughly 5.6% in real terms.
+          {realSentence(12).replace(/^a/, 'A')}.
         </li>
         <li>
           <strong>Liquidity risk.</strong> The Kenyan secondary market is thin for many issues. You

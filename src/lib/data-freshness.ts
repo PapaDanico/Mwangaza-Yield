@@ -351,6 +351,7 @@ const INDICATOR_LABELS: Record<string, string> = {
   CBR: 'Central Bank Rate',
   GDP: 'GDP growth',
   DEBT_TO_GDP: 'Government debt / GDP',
+  INTEREST_TO_REVENUE: 'Interest / revenue',
 };
 export function readerNotice(now: Date = new Date()): string | null {
   const overdue: string[] = datasetFreshness()

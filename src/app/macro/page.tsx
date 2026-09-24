@@ -85,7 +85,7 @@ export default function MacroPage() {
 
   const debtSeries = useMemo(() => {
     const debtRows = macro.filter((m) => m.indicator === 'DEBT_TO_GDP').sort((a, b) => a.date.localeCompare(b.date));
-    if (debtRows.length) return debtRows.map((m) => ({ date: m.date.slice(0, 4), value: m.value }));
+    if (debtRows.length) return debtRows.map((m) => ({ date: m.period ?? m.date.slice(0, 4), value: m.value }));
     // A single synthetic "Now" point drew a one-dot trend line out of the
     // current value. With no value there is no line and no point pretending.
     return debt.debtToGDP === null ? [] : [{ date: 'Now', value: debt.debtToGDP }];
@@ -328,10 +328,13 @@ export default function MacroPage() {
             </p>
           </div>
           <div className={`rounded-xl border p-3 ${debt.debtServiceRatio > 35 ? 'border-red-300 bg-red-500/[0.06]' : debt.debtServiceRatio > 25 ? 'border-gold-400 bg-gold-500/[0.06]' : 'border-sand-300'}`}>
-            <p className="text-xs text-ink-muted">Debt service ratio</p>
+            <p className="text-xs text-ink-muted">Interest / revenue</p>
             <p className="num mt-1 font-bold text-lg text-ink">{debt.debtServiceRatio.toFixed(1)}%</p>
             <p className="mt-1 text-[11px] text-ink-faint">
-              {debt.debtServiceRatio > 35 ? 'High share of revenue committed to debt service.' : debt.debtServiceRatio > 25 ? 'Elevated — limits fiscal flexibility.' : 'Manageable debt service burden.'}
+              {debt.debtServiceRatio > 35 ? 'High share of revenue committed to interest — before any principal is repaid.' : debt.debtServiceRatio > 25 ? 'Elevated — limits fiscal flexibility.' : 'Manageable interest burden.'}
+            </p>
+            <p className="mt-1 text-[11px] text-ink-faint">
+              National Treasury basis: interest on all public debt against ordinary revenue, FY2025/26. The World Bank&apos;s figure further down is lower because it measures a different year against general-government revenue.
             </p>
           </div>
           <div className="rounded-xl border border-sand-300 p-3">

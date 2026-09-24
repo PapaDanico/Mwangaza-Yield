@@ -99,27 +99,26 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab569731aa6dd000834a4c7`, commit `1212673` (#301:
-FY2026/27 borrowing target and KRA outturn on the ladder; carries #300's
-24 Sep T-bill results), published 2026-09-24T18:19:13Z, 45s build. Verified:
-`state: ready`, `error_message: null`, secret scan 552 files / 0 matches,
+**Current production** — `6ab584ba7586f20008c657ab`, commit `926849e` (#306:
+announced MPC date, survey budget; carries #305's Treasury Q4 context rows),
+published 2026-09-24T20:15:40Z, 47s build. Verified: `state: ready`,
+`error_message: null`, secret scan 557 files / 0 matches,
 `available_functions: [track]`, `edge_functions_present: true`,
 `plugin_state: success`.
 
-**Rollback target** — the last deploy verified before it:
+**Rollback target** — the deploy it replaced:
 
 | | |
 |---|---|
-| deploy ID | `6ab539e01dee1200081ba530` |
-| permalink | `https://6ab539e01dee1200081ba530--mwangazayield.netlify.app` |
-| commit | `084af16` — #297, IMF outlook wired, prose figures computed from data |
-| published | 2026-09-24T14:56:18Z |
+| deploy ID | `6ab57faea34e4a00088f33a5` |
+| permalink | `https://6ab57faea34e4a00088f33a5--mwangazayield.netlify.app` |
+| commit | `9a94979` — #304, interest/revenue 41.5% from the Q4 FY2025/26 QEBR |
+| published | 2026-09-24T19:54:10Z |
 
-#300 (`4f141f1`) merged six minutes before #301 and its own production
-deploy was superseded before its ID was captured; with no list-deploys tool
-it cannot be recovered from a session. Rolling back to `6ab539e0` also drops
-the 24 Sep T-bill rows, so prefer reverting #301 in git if only the card is
-at fault.
+**Pending:** #307 (`155f1ad`, dashboard "What changed" strip) merged 20:27Z
+and was still queued when this was written. When it publishes, `6ab584ba`
+above becomes its rollback target. #303's own deploy was superseded before
+its ID was captured; its content is carried by every deploy since.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

@@ -99,26 +99,24 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab584ba7586f20008c657ab`, commit `926849e` (#306:
-announced MPC date, survey budget; carries #305's Treasury Q4 context rows),
-published 2026-09-24T20:15:40Z, 47s build. Verified: `state: ready`,
-`error_message: null`, secret scan 557 files / 0 matches,
-`available_functions: [track]`, `edge_functions_present: true`,
-`plugin_state: success`.
+**Current production** — `6ab587e087a6e60008c717f8`, commit `503da16` (#308's
+merge, which carries #307's dashboard "What changed" strip), published
+2026-09-24T20:29:12Z, 45s build. Verified: `state: ready`, `error_message:
+null`, secret scan 561 files / 0 matches, `available_functions: [track]`,
+`edge_functions_present: true`, `plugin_state: success`.
 
 **Rollback target** — the deploy it replaced:
 
 | | |
 |---|---|
-| deploy ID | `6ab57faea34e4a00088f33a5` |
-| permalink | `https://6ab57faea34e4a00088f33a5--mwangazayield.netlify.app` |
-| commit | `9a94979` — #304, interest/revenue 41.5% from the Q4 FY2025/26 QEBR |
-| published | 2026-09-24T19:54:10Z |
+| deploy ID | `6ab584ba7586f20008c657ab` |
+| permalink | `https://6ab584ba7586f20008c657ab--mwangazayield.netlify.app` |
+| commit | `926849e` — #306, announced MPC date; carries #305's Treasury rows |
+| published | 2026-09-24T20:15:40Z |
 
-**Pending:** #307 (`155f1ad`, dashboard "What changed" strip) merged 20:27Z
-and was still queued when this was written. When it publishes, `6ab584ba`
-above becomes its rollback target. #303's own deploy was superseded before
-its ID was captured; its content is carried by every deploy since.
+A docs-only merge (#308) DID build here, because the commit it landed on
+carried #307's unbuilt code — the skip list judges the whole range since the
+last build, not the PR's own diff.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

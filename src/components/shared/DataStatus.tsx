@@ -41,10 +41,9 @@ import { computeDataQuality, type QualityScore } from '@/lib/data-quality';
 import {
   datasetFreshness,
   freshness,
-  freshnessNotice,
+  latestFigureDate,
   type DatasetFreshness,
 } from '@/lib/data-freshness';
-import meta from '../../../public/data/meta.json';
 
 /**
  * Datasets whose contents we can score for quality, and where to read them.
@@ -126,8 +125,15 @@ export default function DataStatus() {
       ),
     [rows]
   );
+  /* The READER'S signal is the figures, judged by their own publishers'
+   * cadence; the pipeline's liveness is the operator's, and stays in the
+   * panel's "Pipeline last ran" row. This button used to go red on every page
+   * and say "last updated 2026-08-19 ... scheduled updates have been missed"
+   * above T-bill rates from late September — the lie readerNotice was built to
+   * retire in August, still printed here. */
   const fresh = useMemo(() => freshness(new Date()), []);
-  const notice = useMemo(() => freshnessNotice(fresh), [fresh]);
+  const latest = useMemo(() => latestFigureDate(), []);
+  const figuresStale = rows.some((d) => d.stale && d.file !== 'meta.json');
 
   /**
    * Fetch the datasets only when the panel is opened.
@@ -167,7 +173,7 @@ export default function DataStatus() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const anyStale = rows.some((d) => d.stale) || fresh.stale;
+  const anyStale = figuresStale;
   const dot = offline ? 'bg-slate-400' : anyStale ? 'bg-red-600' : 'bg-mint-600';
 
   return (
@@ -178,7 +184,9 @@ export default function DataStatus() {
         title={
           offline
             ? 'You are offline. Showing the data saved on this device.'
-            : notice ?? `Data current as of ${fresh.generatedAt.slice(0, 10)}. Refreshes twice a day, Monday to Saturday.`
+            : figuresStale
+              ? `Latest figure ${latest ?? 'unknown'}. Some figures are past their publisher's schedule — open for details.`
+              : `Latest figure ${latest ?? 'unknown'}. Every figure is within its publisher's schedule.`
         }
       >
         <span className={`h-2.5 w-2.5 rounded-full ${dot}`} />
@@ -193,8 +201,12 @@ export default function DataStatus() {
               <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 hover:bg-sand-200"><X size={15} /></button>
             </div>
             <p className="mt-1 text-xs text-ink-muted">
-              Last successful scrape: {meta.generatedAt.slice(0, 19)}
-              {notice && <span className="ml-2 text-gold-700">{notice}</span>}
+              Latest figure: {latest ?? 'unknown'} · Automated pipeline last ran: {fresh.generatedAt.slice(0, 10)}
+              {fresh.stale && (
+                <span className="ml-2 text-ink-faint">
+                  (figures since then were entered from the publishers&apos; own notices)
+                </span>
+              )}
             </p>
 
             <div className="mt-3 overflow-x-auto">

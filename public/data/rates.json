@@ -1,6 +1,7 @@
 {
   "schema": 1,
-  "generatedAt": "2026-08-19T15:49:06.097414+00:00",
+  "generatedAt": "2026-09-24T00:00:00+00:00",
+  "pipelineRanAt": "2026-08-19T15:49:06.097414+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
   "notes": {
@@ -129,8 +130,8 @@
         "label": "12–20y",
         "fromYears": 12,
         "toYears": 20,
-        "auctions": 19,
-        "medianClearingRate": 13.529,
+        "auctions": 17,
+        "medianClearingRate": 13.362,
         "lowClearingRate": 12.688,
         "highClearingRate": 14.34,
         "latestAuctionDate": "2026-09-16"
@@ -139,7 +140,7 @@
         "label": "20y+",
         "fromYears": 20,
         "toYears": 40,
-        "auctions": 9,
+        "auctions": 8,
         "medianClearingRate": 13.756,
         "lowClearingRate": 12.949,
         "highClearingRate": 14.617,
@@ -147,9 +148,9 @@
       }
     ],
     "demand": {
-      "auctions": 19,
+      "auctions": 17,
       "medianCoverRatio": 1.917,
-      "medianAcceptanceRate": 0.678
+      "medianAcceptanceRate": 0.7
     }
   }
 }

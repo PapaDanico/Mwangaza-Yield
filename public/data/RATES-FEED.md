@@ -138,8 +138,13 @@ show the gap, don't fill it.
 per bond, and one auction routinely covers several bonds; dividing per row
 produces a confident, meaningless number well below 1.0x.
 
-**`generatedAt` dates the evidence, not the build.** A feed rebuilt from
-unchanged scrapes carries the old stamp on purpose.
+**`generatedAt` dates the evidence, not the build.** It is the newest date
+any published figure carries — the latest T-bill or bond auction, or the latest
+macro reading or its confirmation. A feed rebuilt from unchanged data carries
+the old stamp on purpose. **`pipelineRanAt`** (added September 2026, additive)
+is when the automated scrape last ran; figures may be newer than it when they
+were entered from CBK's own published notices, and each row's own `date`,
+`auctionDate` or `sourceNote` says which.
 
 ## What is deliberately absent
 

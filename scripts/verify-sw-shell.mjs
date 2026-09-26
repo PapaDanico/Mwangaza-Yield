@@ -46,8 +46,8 @@ const ROOT = process.cwd();
 const SW = readFileSync(join(ROOT, 'public', 'sw.js'), 'utf8');
 
 /* Recorded pair. Update BOTH, in the same commit, or not at all. */
-const SHIPPED_VERSION = 'mwangaza-v48';
-const SHIPPED_DIGEST = 'a6badffe7ee6ede4';
+const SHIPPED_VERSION = 'mwangaza-v49';
+const SHIPPED_DIGEST = 'c9e93e377f1d73be';
 
 function version() {
   const m = SW.match(/const VERSION = '([^']+)'/);

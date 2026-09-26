@@ -53,8 +53,39 @@ const prints = read('public/data/auction-results.json');
 const bonds = read('public/data/bonds.json');
 const meta = read('public/data/meta.json');
 
-/** The dataset's own refresh stamp — not "now" — so the feed dates its EVIDENCE. */
-const generatedAt = meta.generatedAt ?? new Date().toISOString();
+/**
+ * The feed dates its EVIDENCE — never the build, and never "now".
+ *
+ * This used to be meta.generatedAt alone, which is when the automated pipeline
+ * last ran. While the pipeline is down and figures arrive by hand from CBK's
+ * own notices, that stamp stood at 2026-08-19 above T-bill rates from late
+ * September — and downstream consumers (JiPange among them) read the header,
+ * not every row, and told their readers the data was frozen. The evidence was
+ * current; the stamp was not.
+ *
+ * So the stamp is now the NEWEST date any published figure carries: the latest
+ * T-bill auction, the latest bond auction, the latest macro reading (or when it
+ * was last confirmed), and the pipeline run itself. Every input is a date
+ * written into committed data, so a rebuild of unchanged data still carries an
+ * unchanged stamp. `pipelineRanAt` is published beside it, additively, so the
+ * machinery's state stays visible rather than being hidden by fresh figures.
+ */
+const EVIDENCE_MACRO = ['CBR', 'CPI', 'CPI_CORE', 'CPI_NONCORE', 'FX_USD_KES'];
+const dayOf = (d) => (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d) ? d.slice(0, 10) : null);
+const evidenceDates = [
+  dayOf(meta.generatedAt),
+  ...bills.map((b) => dayOf(b.auctionDate)),
+  ...prints.map((p) => dayOf(p.auctionDate)),
+  ...macro
+    .filter((m) => EVIDENCE_MACRO.includes(m.indicator))
+    .flatMap((m) => [dayOf(m.date), dayOf(m.lastChecked)]),
+].filter((d) => d !== null);
+const newest = evidenceDates.sort().at(-1);
+const generatedAt =
+  newest && newest > (dayOf(meta.generatedAt) ?? '')
+    ? `${newest}T00:00:00+00:00`
+    : meta.generatedAt ?? `${newest}T00:00:00+00:00`;
+const pipelineRanAt = meta.generatedAt ?? null;
 const asOf = new Date(generatedAt);
 
 const round = (n, dp = 4) => Math.round(n * 10 ** dp) / 10 ** dp;
@@ -136,6 +167,7 @@ const feed = {
   // should refuse a schema they do not know rather than guess at it.
   schema: 1,
   generatedAt,
+  pipelineRanAt,
   publisher: 'Mwangaza Yield',
   homepage: 'https://mwangazayield.org',
   /**

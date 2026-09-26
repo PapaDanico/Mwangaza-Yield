@@ -104,7 +104,7 @@ export default function IncomeStabilityDashboard() {
 
         {showSwaps && (
           <div className="mt-3 rounded-xl border border-sand-300 bg-sand-100 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Swap optimizer</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Swap optimiser</p>
             <ul className="mt-2 space-y-1 text-sm text-ink-soft">
               {swaps.length === 0 && <li>No immediate swap recommendation for this target.</li>}
               {swaps.map((s, i) => (

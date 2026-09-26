@@ -54,7 +54,7 @@ export const NAVIGATION_SHORTCUT_ROUTES = APP_ROUTES.filter((route) => route.sho
 
 export const JOURNEY_STAGES = [
   { label: 'Discover', key: 'discover' },
-  { label: 'Analyze', key: 'analyze' },
+  { label: 'Analyse', key: 'analyze' },
   { label: 'Plan', key: 'plan' },
   { label: 'Execute', key: 'execute' },
   { label: 'Track', key: 'track' },

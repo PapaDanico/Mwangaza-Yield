@@ -200,9 +200,9 @@ export default function PricesClient() {
         <div className="flex-1 min-w-0">
           <p className="text-[12px] leading-relaxed text-ink-soft">
             <strong className="text-ink">
-              Your prices are anonymized and stored only on your device. We never see them.
+              Your prices are anonymised and stored only on your device. We never see them.
             </strong>{' '}
-            When you enable &ldquo;Contribute to Community Book&rdquo;, an anonymized copy of each
+            When you enable &ldquo;Contribute to Community Book&rdquo;, an anonymised copy of each
             saved price is added to your local community book. Timestamps are stripped to day-level,
             prices rounded to the nearest 0.25, and privacy noise added when you have fewer than
             five entries for a bond. No individual price is ever displayed.
@@ -424,7 +424,7 @@ export default function PricesClient() {
                   {error && <p className="text-[12px] font-medium text-red-700">{error}</p>}
                   {contributeEnabled && (
                     <p className="text-[11px] text-ink-faint">
-                      An anonymized copy of this price will be added to your local community book.
+                      An anonymised copy of this price will be added to your local community book.
                       Nothing leaves your device.
                     </p>
                   )}

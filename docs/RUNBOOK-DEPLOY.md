@@ -99,24 +99,24 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab587e087a6e60008c717f8`, commit `503da16` (#308's
-merge, which carries #307's dashboard "What changed" strip), published
-2026-09-24T20:29:12Z, 45s build. Verified: `state: ready`, `error_message:
-null`, secret scan 561 files / 0 matches, `available_functions: [track]`,
+**Current production** — `6ab68edd86c5ec00083f33e3`, commit `be55774` (#310:
+CBK Weekly Bulletin of 25 Sep; carries #309's provenance badges), published
+2026-09-25T15:11:09Z, 46s build. Verified: `state: ready`, `error_message:
+null`, secret scan 567 files / 0 matches, `available_functions: [track]`,
 `edge_functions_present: true`, `plugin_state: success`.
 
-**Rollback target** — the deploy it replaced:
+**Rollback target** — the last deploy verified before it:
 
 | | |
 |---|---|
-| deploy ID | `6ab584ba7586f20008c657ab` |
-| permalink | `https://6ab584ba7586f20008c657ab--mwangazayield.netlify.app` |
-| commit | `926849e` — #306, announced MPC date; carries #305's Treasury rows |
-| published | 2026-09-24T20:15:40Z |
+| deploy ID | `6ab587e087a6e60008c717f8` |
+| permalink | `https://6ab587e087a6e60008c717f8--mwangazayield.netlify.app` |
+| commit | `503da16` — #308's merge, carrying #307's "What changed" strip |
+| published | 2026-09-24T20:29:12Z |
 
-A docs-only merge (#308) DID build here, because the commit it landed on
-carried #307's unbuilt code — the skip list judges the whole range since the
-last build, not the PR's own diff.
+#309 (provenance badges) published between the two and was superseded
+before its ID was captured; rolling back to `6ab587e0` removes the badges
+and the 25 Sep bulletin figures together.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

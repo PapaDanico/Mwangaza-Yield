@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Bond, AuctionSchedule, AuctionPrint, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
 import { db, type CpiPoint } from '@/lib/db';
+import { whenIdle } from '@/lib/idle';
 import { imfContextRows, type WeoSeries } from '@/lib/imf-context';
 import { mergeSovereign } from '@/lib/sovereign-merge';
 
@@ -99,7 +100,10 @@ export const useBondStore = create<BondState>((set) => ({
       ]);
       set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory, loaded: true, offline: false });
       // Replace, don't merge: retired issues must not linger from old datasets.
-      await db
+      // Offline cache only: a later or offline visit reads it, this one never
+      // does. Written when idle so it stays out of hydration — see lib/idle.ts.
+      whenIdle(() => {
+        void db
         .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.context, db.cbrHistory, db.auctionResults, db.cpiHistory], async () => {
           await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.context.clear(), db.cbrHistory.clear(), db.auctionResults.clear(), db.cpiHistory.clear()]);
           await Promise.all([
@@ -115,6 +119,7 @@ export const useBondStore = create<BondState>((set) => ({
           ]);
         })
         .catch(() => {});
+      });
     } catch {
       set((s) => ({ offline: true, loaded: s.bonds.length > 0 }));
     }

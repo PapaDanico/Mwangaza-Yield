@@ -6,6 +6,7 @@ import { usePortfolioStore } from '@/stores/portfolioStore';
 import { useAlertStore } from '@/stores/alertStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { useCommunityPriceStore } from '@/stores/communityPriceStore';
+import { whenIdle } from '@/lib/idle';
 
 export default function AppInit() {
   const fetchData = useBondStore((s) => s.fetchData);
@@ -24,10 +25,16 @@ export default function AppInit() {
       // reads them synchronously, and arriving late would render one set of
       // yields at par and then silently restate them.
       await Promise.all([fetchData(), loadPortfolio(), loadPrices(), loadCommunityPrices()]);
-      await loadAlerts();
-      const { bonds, auctions, tbills } = useBondStore.getState();
-      const { holdings } = usePortfolioStore.getState();
-      await refreshAlerts({ bonds, auctions, tbills, holdings });
+      // Alert evaluation walks every rule against the full calendar; nothing on
+      // screen waits for it, so it runs once the main thread is idle.
+      whenIdle(() => {
+        (async () => {
+          await loadAlerts();
+          const { bonds, auctions, tbills } = useBondStore.getState();
+          const { holdings } = usePortfolioStore.getState();
+          await refreshAlerts({ bonds, auctions, tbills, holdings });
+        })().catch(() => {});
+      });
     })().catch(() => {});
 
     if ('serviceWorker' in navigator) {

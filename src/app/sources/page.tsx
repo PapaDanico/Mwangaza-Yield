@@ -162,7 +162,7 @@ export default function SourcesPage() {
     <Prose
       title="Where our numbers come from"
       lead="Every source we use, what it feeds, and — just as important — what we deliberately do not use."
-      updated="31 July 2026"
+      updated="27 September 2026"
     >
       <p>
         A tool that tells you what to do with your money owes you a straight answer about where
@@ -221,6 +221,15 @@ export default function SourcesPage() {
       <h2>Freshness and honesty</h2>
       <ul>
         <li>Auction results and rates carry the date of the auction they came from.</li>
+        <li>
+          <strong>While our automated refresh is paused</strong>, figures are entered by hand from
+          the publishers&apos; own documents: CBK&apos;s auction results notices, daily exchange
+          rates and Weekly Bulletin, the National Treasury&apos;s Quarterly Economic and Budgetary
+          Review, and CBK&apos;s Market Perceptions Survey. Each such figure records which document
+          it came from, and carries an &ldquo;Official notice&rdquo; badge. Where a document could
+          not be obtained, a figure agreed across independent reports is marked
+          &ldquo;Corroborated&rdquo; until the document replaces it.
+        </li>
         <li>
           The rate-cycle chart compares today against the level the <em>current</em> cycle
           started from, not the 2011 record high. Measuring against the record would show a

@@ -411,3 +411,17 @@ export function latestFigureDate(): string | null {
     .sort();
   return dates.length ? dates[dates.length - 1] : null;
 }
+
+/**
+ * The schedule a reader can actually rely on, as a phrase.
+ *
+ * refreshCadence() describes the automated job, and while that job runs it is
+ * the truth. While it is down (meta.json past its budget) the same words were
+ * printed on the homepage and the feed page as a promise nobody was keeping —
+ * figures moved weekly, by hand, from CBK's own notices. Evaluated at build,
+ * which is also when every hand-entered figure ships, so the phrase and the
+ * data it describes are published together.
+ */
+export function updateCadence(now: Date = new Date()): string {
+  return freshness(now).stale ? 'as each official figure is published' : refreshCadence();
+}

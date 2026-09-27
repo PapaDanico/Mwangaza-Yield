@@ -197,3 +197,18 @@ describe('refreshCadence', () => {
     }
   });
 });
+
+describe('updateCadence — the promise shown to readers', () => {
+  it('keeps the schedule wording while the pipeline is running', async () => {
+    const { updateCadence, refreshCadence } = await import('../../src/lib/data-freshness');
+    const meta = (await import('../../public/data/meta.json')).default;
+    const justAfter = new Date(new Date(meta.generatedAt).getTime() + 60 * 60 * 1000);
+    expect(updateCadence(justAfter)).toBe(refreshCadence());
+  });
+  it('stops promising a schedule once the pipeline is past its budget', async () => {
+    const { updateCadence } = await import('../../src/lib/data-freshness');
+    const meta = (await import('../../public/data/meta.json')).default;
+    const muchLater = new Date(new Date(meta.generatedAt).getTime() + 60 * 86_400_000);
+    expect(updateCadence(muchLater)).toBe('as each official figure is published');
+  });
+});

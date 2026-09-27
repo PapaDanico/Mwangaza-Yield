@@ -12,7 +12,7 @@
 import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
-import { refreshCadence } from '@/lib/data-freshness';
+import { updateCadence } from '@/lib/data-freshness';
 import {
   demandPulse,
   recentClearingByTerm,
@@ -144,7 +144,7 @@ export default function MarketPulse() {
               the wrong cron for hours after it changed. The exact stale
               wording is not repeated here: schedule-matches-workflow.test.ts
               greps for it, and a comment quoting it would trip that guard. */}
-          {' '}the archive is rebuilt {refreshCadence()}.
+          {' '}the archive is rebuilt {updateCadence()}.
         </p>
       </Explain>
     </div>

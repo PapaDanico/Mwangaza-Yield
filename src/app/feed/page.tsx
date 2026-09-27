@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Prose from '@/components/shared/Prose';
 import FeedSnippets from '@/components/feed/FeedSnippets';
-import { refreshCadence } from '@/lib/data-freshness';
+import { updateCadence } from '@/lib/data-freshness';
 
 /**
  * The feed, made findable.
@@ -35,7 +35,7 @@ export default function FeedPage() {
       >
         <p>
           Everything this site computes from public Central Bank of Kenya and National Treasury
-          releases is published as a feed. It refreshes {refreshCadence()}, it needs no key, and it
+          releases is published as a feed. It is updated {updateCadence()}, it needs no key, and it
           sets{' '}
           <code>Access-Control-Allow-Origin: *</code> so a browser on your own domain can read it
           directly.

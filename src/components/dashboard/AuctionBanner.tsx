@@ -5,6 +5,16 @@ import { Radar, ArrowRight } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, effectiveAuctionStatus } from '@/lib/utils';
 import Reserve from '@/components/shared/Reserve';
+import PREDICTIONS from '../../../public/data/predictions.json';
+
+interface Forecast { issueCode: string; auctionDate: string; median: number; p25: number; p75: number }
+
+/** The calibrated forecasts recorded for this auction, in the order the code lists them. */
+function forecastsFor(auctionDate: string, issueCode: string): Forecast[] {
+  return (PREDICTIONS as Forecast[])
+    .filter((p) => p.auctionDate === auctionDate && issueCode.includes(p.issueCode))
+    .sort((a, b) => issueCode.indexOf(a.issueCode) - issueCode.indexOf(b.issueCode));
+}
 
 export default function AuctionBanner() {
   const auctions = useBondStore((s) => s.auctions);
@@ -27,9 +37,11 @@ export default function AuctionBanner() {
    * shift the other way either. Both states now occupy one height at each
    * breakpoint, which is the only arrangement that shifts in neither
    * direction. */
-  const SLOT = 'min-h-[144px] sm:min-h-[119px]';
+  const SLOT = 'min-h-[174px] sm:min-h-[151px]'; // re-measured 27 Sept with the forecast line: 174 at 390px, 151 at 640px
   if (!next) return <Reserve height={92} className={SLOT} />;
   const days = daysUntil(next.offerCloseDate);
+  // The ledger forecasts bonds only; a T-bill auction simply shows no line.
+  const forecasts = forecastsFor(next.auctionDate, next.issueCode);
 
   return (
     <Link
@@ -89,6 +101,14 @@ export default function AuctionBanner() {
           {(next.amountOfferedKES ?? 0) > 0 ? `${formatCompactKES(next.amountOfferedKES)} on offer · ` : ''}
           closes {next.offerCloseDate}
         </p>
+        {forecasts.length > 0 && (
+          <p className="num text-xs text-gold-800">
+            Our forecast: {forecasts.map((f) => `${f.median.toFixed(2)}%`).join(' / ')}
+            <span className="hidden text-ink-faint sm:inline">
+              {' '}· likely {forecasts.map((f) => `${f.p25.toFixed(2)}–${f.p75.toFixed(2)}`).join(' / ')}
+            </span>
+          </p>
+        )}
       </div>
       <div className="text-right">
         <p className="num text-2xl font-bold text-gold-700">{Math.max(days, 0)}</p>

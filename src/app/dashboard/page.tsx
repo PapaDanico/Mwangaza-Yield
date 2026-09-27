@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Calculator, Briefcase, Radar, Globe } from 'lucide-react';
+import { Calculator, Briefcase, Radar, Globe, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Rates, Curve and Auctions at a Glance — Mwangaza Yield',
@@ -64,9 +64,14 @@ export default function DashboardPage() {
 
       <div className="grid gap-3 md:grid-cols-3">
         {actions.map(({ href, title, desc, Icon }) => (
-          <Link key={href} href={href} className="card transition hover:border-gold-500">
-            <Icon size={22} className="mb-3 text-gold-600" />
-            <p className="font-display font-semibold text-ink">{title}</p>
+          <Link key={href} href={href} className="card card-link group">
+            <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gold-50 ring-1 ring-gold-100">
+              <Icon size={20} className="text-gold-700" aria-hidden />
+            </span>
+            <p className="flex items-center gap-1 font-display font-semibold text-ink">
+              {title}
+              <ArrowRight size={16} className="text-gold-700 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </p>
             <p className="mt-1 text-sm text-ink-muted">{desc}</p>
           </Link>
         ))}
@@ -98,7 +103,7 @@ export default function DashboardPage() {
         <p>
           Everything here is public: bond and bill terms and auction results from the Central Bank
           of Kenya, fiscal figures from the National Treasury, inflation from KNBS, and the
-          sovereign context panel from the World Bank. Each figure carries the date of the document
+          sovereign context panel from the Central Bank, the IMF and the World Bank. Each figure carries the date of the document
           it came from, because a rate is only meaningful with its vintage attached.{' '}
           <Link href="/sources/">See the full list</Link>.
         </p>
@@ -112,8 +117,9 @@ export default function DashboardPage() {
           <Link href="/prices/">your price book</Link> replaces the assumption.
         </p>
         <p>
-          Nor is it a forecast, and nor is it advice. What rates have done is a matter of record;
-          what they do next is not, and no figure on this page should be read as a view on it.
+          Nor is it advice. What rates have done is a matter of record; what they do next is not.
+          Where a bid range is shown for a coming auction, it is a statistical range drawn from past
+          results and scored in public against what actually cleared — not a view on the market.
         </p>
       </div>
     </div>

@@ -52,7 +52,11 @@ export default function WhatChanged() {
             <span className="flex min-w-0 items-center gap-1.5">
               <span className="num text-ink">{c.value}</span>
               {c.change && (
-                <span className="inline-flex items-center gap-0.5 text-xs text-ink-muted">
+                <span
+                  className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs ${
+                    c.direction === 'up' ? 'bg-red-50 text-red-800' : c.direction === 'down' ? 'bg-emerald-50 text-emerald-800' : 'bg-sand-200 text-ink-muted'
+                  }`}
+                >
                   <Arrow d={c.direction} />
                   {c.change}
                 </span>

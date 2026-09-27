@@ -8,8 +8,8 @@ export default function PrivacyPage() {
   return (
     <Prose
       title="Privacy policy"
-      lead="Everything you enter stays on your device. The one exception is price alerts, which you have to switch on — and this page says exactly what that stores."
-      updated="31 July 2026"
+      lead="Everything you enter stays on your device, and nothing of yours is stored on a server — not even price alerts, which since July 2026 are worked out on your device."
+      updated="27 September 2026"
     >
       {/* Named, because this page ends by pointing readers at the ODPC.
           Sending somebody to complain about an entity the notice will not

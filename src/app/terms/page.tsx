@@ -9,7 +9,7 @@ export default function TermsPage() {
     <Prose
       title="Terms of use"
       lead="Plain terms for a free analytics tool."
-      updated="25 July 2026"
+      updated="27 September 2026"
     >
       <h2>1. What you are using</h2>
       <p>
@@ -70,9 +70,9 @@ export default function TermsPage() {
 
       <h2>8. Your data</h2>
       <p>
-        Everything you enter stays on your device. The single exception is price alerts, which
-        you have to switch on, and which store a push endpoint and the market-wide rules you
-        chose — never anything about your holdings. The{' '}
+        Everything you enter stays on your device, and nothing of yours is stored on a server.
+        Price alerts once stored a push endpoint; since July 2026 they are worked out on your
+        device instead, and that server-side store has been removed. The{' '}
         <a href="/privacy/">privacy notice</a> sets that out in full, written to the duty to
         notify in section 29 of the Data Protection Act, 2019.
       </p>

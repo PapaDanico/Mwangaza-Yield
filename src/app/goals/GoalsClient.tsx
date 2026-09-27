@@ -907,7 +907,7 @@ export default function GoalsClient() {
                   <Stat label="Net interest" value={formatCompactKES(park.netInterestKES)} accent="text-mint-700" />
                   <Stat label="You receive" value={formatCompactKES(park.netProceedsKES)} accent="text-gold-700" />
                 </div>
-                <Link href="/tbills/" className="card flex items-center gap-3 transition hover:border-gold-500">
+                <Link href="/tbills/" className="card card-link flex items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-display font-semibold text-ink">Compare all tenors</p>
                     <p className="text-sm text-ink-muted">91, 182 and 364-day bills with rollover projections.</p>

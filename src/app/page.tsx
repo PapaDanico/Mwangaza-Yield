@@ -109,7 +109,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ Icon, title, desc }) => (
-            <div key={title} className="card transition hover:border-gold-500">
+            <div key={title} className="card">
               <div className="mb-3 inline-flex rounded-xl bg-ink p-2.5 text-gold-500">
                 <Icon size={20} />
               </div>

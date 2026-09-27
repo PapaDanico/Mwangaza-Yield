@@ -50,6 +50,23 @@ function currentBenchmark(): { rate: number; asOf: string } | null {
   return { rate: newest.medianClearingRate, asOf: newest.latestAuctionDate };
 }
 
+const BENCHMARK = currentBenchmark();
+
+function BenchmarkNote() {
+  if (!BENCHMARK) return null;
+  return (
+    <p className="px-1 text-xs leading-relaxed text-ink-muted">
+      Those are yields <strong>at the price shown</strong>, not offers. The most recent
+      primary auction cleared at{' '}
+      <Link href="/auctions/" className="font-semibold text-ink underline-offset-2 hover:underline">
+        <span className="num">{BENCHMARK.rate.toFixed(2)}%</span>
+      </Link>{' '}
+      gross ({BENCHMARK.asOf}) — what the market is paying now, as against what these bonds
+      pay on money at face value.
+    </p>
+  );
+}
+
 export default function TopYields() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
@@ -68,12 +85,17 @@ export default function TopYields() {
   * Two numbers because one cannot be right at both ends: the height prop
   * carries the desktop figure and the min-h carries the phone's, so neither
   * breakpoint swaps into a different height. */
-  if (!bonds.length) return <Reserve height={210} className="min-h-[348px] sm:min-h-[210px]" />;
+  /* The note below the tiles reads only the static rates feed, so it renders
+   * during prerender rather than after the bond store loads. It was the page's
+   * largest-contentful-paint element on a phone and, gated behind the store,
+   * painted at 8.3s under Lighthouse's mobile throttle. The reservation now
+   * covers the tiles alone. */
 
   // Ranked from the price book like everywhere else. Left on the old par-only
   // fallback, the dashboard would name a "best yield" the calculator and ladder
   // disagreed with the moment a reader recorded a price — and this tile is the
   // first number anyone sees.
+  const loading = !bonds.length;
   const priceInfoOf = makePriceResolver(secondary, userPrices);
   const ranked: Ranked[] = bonds.map((bond) => {
     const { price, source } = priceInfoOf(bond);
@@ -93,8 +115,6 @@ export default function TopYields() {
     bestFXD && { ...bestFXD, label: 'Best taxable (FXD)', Icon: Sparkles, accent: 'text-gold-700' },
   ].filter(Boolean) as (Ranked & { label: string; Icon: typeof Sparkles; accent: string })[];
 
-  const benchmark = currentBenchmark();
-
   return (
     <div className="space-y-2">
       {/* Two columns from the smallest screen. Stacked, these two tiles cost
@@ -102,6 +122,13 @@ export default function TopYields() {
           the reader had to scroll before learning anything else existed. Side
           by side they are also the comparison they were always meant to be:
           tax-free against taxable, at a glance. */}
+      {/* The same tree in both states: swapping the whole component for a
+          placeholder remounted the note below, and a remounted node is a new
+          largest-contentful-paint candidate — so it registered at hydration
+          time even though its text was in the prerendered HTML. */}
+      {loading ? (
+        <Reserve height={170} className="min-h-[262px] sm:min-h-[170px]" />
+      ) : (
       <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {tiles.map(({ bond, netYTM, price, isPar, label, Icon, accent }) => (
           <div
@@ -141,18 +168,9 @@ export default function TopYields() {
           </div>
         ))}
       </div>
-
-      {benchmark && (
-        <p className="px-1 text-xs leading-relaxed text-ink-muted">
-          Those are yields <strong>at the price shown</strong>, not offers. The most recent
-          primary auction cleared at{' '}
-          <Link href="/auctions/" className="font-semibold text-ink underline-offset-2 hover:underline">
-            <span className="num">{benchmark.rate.toFixed(2)}%</span>
-          </Link>{' '}
-          gross ({benchmark.asOf}) — what the market is paying now, as against what these bonds
-          pay on money at face value.
-        </p>
       )}
+
+      <BenchmarkNote />
       <BondDetailCard
         bond={selected}
         related={bonds.filter((b) => b.taxExempt === selected?.taxExempt && b.isin !== selected?.isin)}

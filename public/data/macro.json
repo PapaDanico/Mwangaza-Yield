@@ -11,43 +11,43 @@
     "sourceNote": "Set at the MPC meeting of 11 August 2026 and unchanged since. Still current as of the CBK Weekly Bulletin dated 18 September 2026, which reports KESONIA \"remained stable at 8.75 percent\" through the week ending 17 September and the Cash Reserve Ratio at 3.25 percent. Note precisely what that corroborates: the bulletin does not print the CBR itself, but an overnight interbank average sitting exactly on 8.75 is inconsistent with a policy rate that has moved. The next MPC is due early October."
   },
   {
-    "id": "cpi-2026-08",
+    "id": "cpi-2026-09",
     "indicator": "CPI",
-    "value": 6.6,
-    "date": "2026-08-31",
+    "value": 6.8,
+    "date": "2026-09-30",
     "unit": "% y/y",
     "source": "CBK",
     "fallback": false,
     "via": "supplied-document",
-    "period": "2026-08",
-    "lastChecked": "2026-09-07",
-    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
+    "period": "2026-09",
+    "lastChecked": "2026-09-30",
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, September 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Cross-check: the document states August 2026 was 6.6 percent, matching the value already held."
   },
   {
-    "id": "cpi-core-2026-08",
+    "id": "cpi-core-2026-09",
     "indicator": "CPI_CORE",
-    "value": 3.4,
-    "date": "2026-08-31",
+    "value": 4.0,
+    "date": "2026-09-30",
     "unit": "% y/y",
     "source": "CBK",
     "fallback": false,
-    "lastChecked": "2026-09-07",
-    "period": "2026-08",
+    "lastChecked": "2026-09-30",
+    "period": "2026-09",
     "via": "supplied-document",
-    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, September 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Cross-check: the document states August 2026 was 6.6 percent, matching the value already held."
   },
   {
-    "id": "cpi-noncore-2026-08",
+    "id": "cpi-noncore-2026-09",
     "indicator": "CPI_NONCORE",
-    "value": 14.7,
-    "date": "2026-08-31",
+    "value": 14.0,
+    "date": "2026-09-30",
     "unit": "% y/y",
     "source": "CBK",
     "fallback": false,
-    "lastChecked": "2026-09-07",
-    "period": "2026-08",
+    "lastChecked": "2026-09-30",
+    "period": "2026-09",
     "via": "supplied-document",
-    "sourceNote": "Central Bank of Kenya — Inflation Highlights, August 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down)."
+    "sourceNote": "Central Bank of Kenya — Inflation Highlights, September 2026 (figures originated by KNBS and republished by CBK, which is the route licences.ts records as satisfiable; document supplied directly to Mwangaza Yield, entered by hand while the pipeline is down). Cross-check: the document states August 2026 was 6.6 percent, matching the value already held."
   },
   {
     "id": "gdp-2025",
@@ -61,15 +61,15 @@
     "lastChecked": "2026-08-19"
   },
   {
-    "id": "fx-2026-09-24",
+    "id": "fx-2026-09-30",
     "indicator": "FX_USD_KES",
-    "value": 129.48,
-    "date": "2026-09-24",
+    "value": 129.79,
+    "date": "2026-09-30",
     "unit": "KES/USD",
     "source": "CBK indicative",
     "via": "supplied-document",
-    "lastChecked": "2026-09-24",
-    "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 24 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down). Consistent with 129.49 on 21 September."
+    "lastChecked": "2026-09-30",
+    "sourceNote": "Central Bank of Kenya — Daily KES Exchange Rates, 30 September 2026 (document supplied directly to Mwangaza Yield; entered by hand while the pipeline is down). Consistent with 129.48 on 24 September and a 129.71 market mid-rate the same morning."
   },
   {
     "id": "debt-gdp-2024",

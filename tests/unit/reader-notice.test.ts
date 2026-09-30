@@ -29,9 +29,18 @@ import { readerNotice } from '../../src/lib/data-freshness';
 import macro from '../../public/data/macro.json';
 import freshnessReport from '../../public/data/freshness.json';
 
-/** The newest date the shipped data carries, whatever it happens to be. */
+/**
+ * The date of the shipped USD/KES figure — the binding constraint, at a
+ * 4-day budget. This used to take the newest date of ANY macro row, which
+ * assumed FX was always the newest. It is not: CPI is dated to month-end, so
+ * the September print (published 30 Sept) out-dated a 24 Sept FX row and the
+ * "+3 days" probe landed past FX's budget — a correct notice, tested against a
+ * premise the data no longer met. Anchoring on FX tests what the comments
+ * below say they test.
+ */
 function newestMacroDate(): string {
-  return (macro as { date?: string }[])
+  return (macro as { date?: string; indicator?: string }[])
+    .filter((r) => r.indicator === 'FX_USD_KES')
     .map((r) => r.date ?? '')
     .filter(Boolean)
     .sort()

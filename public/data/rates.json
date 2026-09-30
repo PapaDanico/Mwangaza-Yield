@@ -60,34 +60,34 @@
       "fallback": false
     },
     "inflation": {
-      "value": 6.6,
+      "value": 6.8,
       "unit": "% y/y",
-      "date": "2026-08-31",
-      "lastChecked": "2026-09-07",
+      "date": "2026-09-30",
+      "lastChecked": "2026-09-30",
       "source": "CBK",
       "fallback": false
     },
     "inflationCore": {
-      "value": 3.4,
+      "value": 4,
       "unit": "% y/y",
-      "date": "2026-08-31",
-      "lastChecked": "2026-09-07",
+      "date": "2026-09-30",
+      "lastChecked": "2026-09-30",
       "source": "CBK",
       "fallback": false
     },
     "inflationNonCore": {
-      "value": 14.7,
+      "value": 14,
       "unit": "% y/y",
-      "date": "2026-08-31",
-      "lastChecked": "2026-09-07",
+      "date": "2026-09-30",
+      "lastChecked": "2026-09-30",
       "source": "CBK",
       "fallback": false
     },
     "usdKes": {
-      "value": 129.48,
+      "value": 129.79,
       "unit": "KES/USD",
-      "date": "2026-09-24",
-      "lastChecked": "2026-09-24",
+      "date": "2026-09-30",
+      "lastChecked": "2026-09-30",
       "source": "CBK indicative",
       "fallback": false
     }

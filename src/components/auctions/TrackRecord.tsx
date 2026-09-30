@@ -84,6 +84,7 @@ export default function TrackRecord() {
   // here: this component owns its own loading state rather than the store's.
   if (!ledger) return <div className="card h-40 animate-pulse" aria-hidden="true" />;
   const s = summariseLedger(ledger);
+  const sc = summariseLedger(ledger.filter((p) => p.bandScale !== undefined));
   /* THE INTERPRETATION, FIXED BEFORE THE RESULTS.
    *
    * Written on 6 August with all five predictions unscored, so the sentence
@@ -137,6 +138,18 @@ export default function TrackRecord() {
                   <span className="num">{pending}</span> more{' '}
                   {pending === 1 ? 'is' : 'are'} on the record and still waiting on CBK to
                   publish.
+                </>
+              )}
+              {/* Split out the forecasts quoted under calibration (they carry
+                * `bandScale`). The pooled line mixes the lag-biased method that
+                * preceded 22 Sept with the corrected one, and a reader judging
+                * the range quoted TODAY needs the second on its own. */}
+              {sc.claims > 0 && sc.claims < s.claims && (
+                <>
+                  {' '}Since the method was calibrated on 22 September:{' '}
+                  <span className="num font-semibold">{sc.hitRange}</span> of{' '}
+                  <span className="num">{sc.claims}</span> in range (middle half:{' '}
+                  <span className="num">{sc.hitMiddleHalf}</span>).
                 </>
               )}
               {excluded.length > 0 && (

@@ -104,7 +104,11 @@
     "high": 13.600575,
     "thin": false,
     "correctionPp": -0.2885749999999998,
-    "bandScale": 1.75
+    "bandScale": 1.75,
+    "actualRate": 12.7338,
+    "scoredOn": "2026-09-30",
+    "hitRange": true,
+    "hitMiddleHalf": true
   },
   {
     "issueCode": "FXD1/2019/020",
@@ -121,6 +125,10 @@
     "high": 14.211975,
     "thin": false,
     "correctionPp": -0.2885749999999998,
-    "bandScale": 1.75
+    "bandScale": 1.75,
+    "actualRate": 13.6016,
+    "scoredOn": "2026-09-30",
+    "hitRange": true,
+    "hitMiddleHalf": true
   }
 ]

@@ -37,4 +37,12 @@ describe('the track record explains every state it can be in', () => {
   it('still has the empty-ledger copy it always had', () => {
     expect(SRC).toMatch(/Nothing to show yet — and that is deliberate/);
   });
+
+  it('reports calibrated forecasts on their own, not only pooled with the old method', () => {
+    // The pooled rate mixes the lag-biased method used before 22 Sept with the
+    // corrected one. The split is keyed on `bandScale`, which only calibrated
+    // entries carry, and it is shown only when it differs from the pooled count.
+    expect(SRC).toMatch(/summariseLedger\(ledger\.filter\(\(p\) => p\.bandScale !== undefined\)\)/);
+    expect(SRC).toMatch(/sc\.claims > 0 && sc\.claims < s\.claims/);
+  });
 });

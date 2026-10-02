@@ -107,18 +107,8 @@ matches, `available_functions: [track]`, `edge_functions_present: true`,
 
 **Rollback target** — `6ab971436d931400084ced65` (#319, dashboard LCP), verified ready 27 Sep.
 
-**Rollback target** — the last deploy verified before it:
-
-| | |
-|---|---|
-| deploy ID | `6ab587e087a6e60008c717f8` |
-| permalink | `https://6ab587e087a6e60008c717f8--mwangazayield.netlify.app` |
-| commit | `503da16` — #308's merge, carrying #307's "What changed" strip |
-| published | 2026-09-24T20:29:12Z |
-
-#309 (provenance badges) published between the two and was superseded
-before its ID was captured; rolling back to `6ab587e0` removes the badges
-and the 25 Sep bulletin figures together.
+Rolling back to `6ab97143` removes #320-#322: the 30 Sep bond results and
+forecast scores, the calibrated track-record line, and September CPI/USD-KES.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

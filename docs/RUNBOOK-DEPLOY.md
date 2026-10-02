@@ -99,30 +99,16 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab9431a7e221500084e91d6`, commit `05a9f04` (#317:
-dashboard polish, SW v54), published 2026-09-27T16:24:59Z, 47s build. Verified:
-`state: ready`, `error_message: null`, secret scan 574 files / 0 matches,
-`available_functions: [track]`, `edge_functions_present: true`,
-`plugin_state: success`, Lighthouse `/` Performance 72.
+**Current production** — `6abd1f93f8e06100089d6cb3`, commit `afebc67` (#322:
+September CPI and USD/KES 30 Sep), published 2026-09-30T14:42:18Z, 51s build.
+Verified: `state: ready`, `error_message: null`, secret scan 579 files / 0
+matches, `available_functions: [track]`, `edge_functions_present: true`,
+`plugin_state: success`, Lighthouse `/` Performance 73.
 
-**Rollback target** — `6ab68edd86c5ec00083f33e3`, commit `be55774` (#310:
-CBK Weekly Bulletin of 25 Sep; carries #309's provenance badges), published
-2026-09-25T15:11:09Z, 46s build. Verified: `state: ready`, `error_message:
-null`, secret scan 567 files / 0 matches, `available_functions: [track]`,
-`edge_functions_present: true`, `plugin_state: success`.
+**Rollback target** — `6ab971436d931400084ced65` (#319, dashboard LCP), verified ready 27 Sep.
 
-**Rollback target** — the last deploy verified before it:
-
-| | |
-|---|---|
-| deploy ID | `6ab587e087a6e60008c717f8` |
-| permalink | `https://6ab587e087a6e60008c717f8--mwangazayield.netlify.app` |
-| commit | `503da16` — #308's merge, carrying #307's "What changed" strip |
-| published | 2026-09-24T20:29:12Z |
-
-#309 (provenance badges) published between the two and was superseded
-before its ID was captured; rolling back to `6ab587e0` removes the badges
-and the 25 Sep bulletin figures together.
+Rolling back to `6ab97143` removes #320-#322: the 30 Sep bond results and
+forecast scores, the calibrated track-record line, and September CPI/USD-KES.
 
 Update this block whenever a production deploy publishes — capturing the
 outgoing ID first, per the paragraph above.

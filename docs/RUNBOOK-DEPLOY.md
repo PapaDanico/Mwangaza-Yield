@@ -99,17 +99,13 @@ moment, or it is only recoverable from the Netlify dashboard by hand.
 
 ## Rollback target, recorded
 
-**Current production** — `6ab9431a7e221500084e91d6`, commit `05a9f04` (#317:
-dashboard polish, SW v54), published 2026-09-27T16:24:59Z, 47s build. Verified:
-`state: ready`, `error_message: null`, secret scan 574 files / 0 matches,
-`available_functions: [track]`, `edge_functions_present: true`,
-`plugin_state: success`, Lighthouse `/` Performance 72.
+**Current production** — `6abd1f93f8e06100089d6cb3`, commit `afebc67` (#322:
+September CPI and USD/KES 30 Sep), published 2026-09-30T14:42:18Z, 51s build.
+Verified: `state: ready`, `error_message: null`, secret scan 579 files / 0
+matches, `available_functions: [track]`, `edge_functions_present: true`,
+`plugin_state: success`, Lighthouse `/` Performance 73.
 
-**Rollback target** — `6ab68edd86c5ec00083f33e3`, commit `be55774` (#310:
-CBK Weekly Bulletin of 25 Sep; carries #309's provenance badges), published
-2026-09-25T15:11:09Z, 46s build. Verified: `state: ready`, `error_message:
-null`, secret scan 567 files / 0 matches, `available_functions: [track]`,
-`edge_functions_present: true`, `plugin_state: success`.
+**Rollback target** — `6ab971436d931400084ced65` (#319, dashboard LCP), verified ready 27 Sep.
 
 **Rollback target** — the last deploy verified before it:
 

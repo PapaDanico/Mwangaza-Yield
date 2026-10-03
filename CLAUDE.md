@@ -474,6 +474,7 @@ that came by a fallback can never be mistaken for one that did not:
   `search-corroborated` for a figure that was NOT read from the primary PDF.
 - `sourceNote` says which document, which date, and what was checked.
 - Anything unsourced is `null`, never the last known value.
+- In `auction-results.json`, every record needs a `sourceUrl` on CBK (the results listing page plus a `#<date>-<type>` anchor when the PDF's own URL is unknown). `auctionDemand` groups by it and silently drops records without one; eight September entries vanished from the demand panel that way until 3 Oct. `auction-results-provenance.test.ts` now fails on a missing one.
 
 `tbills.json`, `cbk-context.json` and `macro.json` are all maintained this way
 while the pipeline is down. What remains forbidden outright is `meta.json`,

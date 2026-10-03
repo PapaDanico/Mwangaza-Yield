@@ -47,7 +47,7 @@ export default function LadderReport({
           </div>
         </div>
         <div className="text-right text-[11px] text-ink-faint">
-          <p>Bond Ladder Plan</p>
+          <p>Bond ladder plan</p>
           <p>{generatedAt}</p>
         </div>
       </header>
@@ -79,7 +79,7 @@ export default function LadderReport({
         {[
           { label: 'Blended net yield', value: formatPct(plan.blendedNetYTM), accent: 'text-gold-700' },
           { label: 'Net income / year', value: formatKES(plan.netAnnualIncomeKES), accent: 'text-mint-700' },
-          { label: 'Total settlement cost', value: formatKES(plan.totalCostKES), accent: 'text-ink' },
+          { label: 'Total settlement cost (incl. accrued interest)', value: formatKES(plan.totalCostKES), accent: 'text-ink' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-sand-300 p-3">
             <p className="text-[11px] uppercase tracking-wider text-ink-faint">{s.label}</p>

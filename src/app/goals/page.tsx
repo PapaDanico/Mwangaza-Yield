@@ -6,6 +6,7 @@ export default function GoalsPage() {
   return (
     <ToolShell
       title="Plan by objective"
+      printReport
       intro={
         <>
           Start from what the money is for and we will shape the bonds around it — school fees

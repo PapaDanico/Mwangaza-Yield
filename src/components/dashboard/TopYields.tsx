@@ -10,7 +10,12 @@ import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
 import Reserve from '@/components/shared/Reserve';
 import ratesFeed from '../../../public/data/rates.json';
 import type { Bond } from '@/types/bond';
-import BondDetailCard from '@/components/BondDetailCard';
+import dynamic from 'next/dynamic';
+
+/* Loaded on demand. BondDetailCard draws its history with Recharts, and a
+ * static import put the whole charting library (349 KB minified) into the
+ * dashboard's first load for a dialog nobody has opened yet. */
+const BondDetailCard = dynamic(() => import('@/components/BondDetailCard'), { ssr: false });
 
 interface Ranked {
   bond: Bond;
@@ -171,6 +176,7 @@ export default function TopYields() {
       )}
 
       <BenchmarkNote />
+      {selected && (
       <BondDetailCard
         bond={selected}
         related={bonds.filter((b) => b.taxExempt === selected?.taxExempt && b.isin !== selected?.isin)}
@@ -178,6 +184,7 @@ export default function TopYields() {
         open={Boolean(selected)}
         onClose={() => setSelected(null)}
       />
+      )}
     </div>
   );
 }

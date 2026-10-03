@@ -13,7 +13,10 @@ import DemandRecord from '@/components/auctions/DemandRecord';
 import RealRecord from '@/components/auctions/RealRecord';
 import MonthlyReview from '@/components/auctions/MonthlyReview';
 import Reserve from '@/components/shared/Reserve';
-import BondDetailCard from '@/components/BondDetailCard';
+import dynamic from 'next/dynamic';
+
+// On demand: it carries Recharts. See the note in TopYields.
+const BondDetailCard = dynamic(() => import('@/components/BondDetailCard'), { ssr: false });
 import type { Bond } from '@/types/bond';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -208,6 +211,7 @@ export default function AuctionsPage() {
       <DemandRecord />
 
       <TrackRecord />
+      {selectedBond && (
       <BondDetailCard
         bond={selectedBond}
         related={bonds.filter((b) => b.taxExempt === selectedBond?.taxExempt && b.isin !== selectedBond?.isin)}
@@ -215,6 +219,7 @@ export default function AuctionsPage() {
         open={Boolean(selectedBond)}
         onClose={() => setSelectedBond(null)}
       />
+      )}
 
       <a
         href={CBK_WHATSAPP_CHANNEL}

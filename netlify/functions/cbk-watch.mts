@@ -94,13 +94,26 @@ export default async () => {
   await store.setJSON('latest', run);
   await store.setJSON(`run-${at.slice(0, 13)}`, run);
 
-  // Read-back channel; the full run is in the blob store.
+  // Read-back channel; the full run is in the blob store. Netlify's spam
+  // filter discarded the first run's JSON payload (dense, full of URLs), so
+  // the summary is plain prose-like text: one field per page, table rows as
+  // "a | b | c" lines, document links reduced to their file names, no URLs.
   const site = process.env.URL ?? 'https://mwangazayield.org';
-  const body = new URLSearchParams({ 'form-name': 'cbk-watch', at, payload: JSON.stringify(run).slice(0, 60_000) });
+  const fields: Record<string, string> = { 'form-name': 'cbk-watch', at };
+  for (const [key, page] of results) {
+    const p = page as { status: number; tables?: string[][][]; docs?: string[]; error?: string };
+    const lines = [`status ${p.status}${p.error ? ` error ${p.error}` : ''}`];
+    for (const t of p.tables ?? []) {
+      lines.push('--- table');
+      for (const r of t) lines.push(r.join(' | '));
+    }
+    for (const d of p.docs ?? []) lines.push(`doc ${decodeURIComponent(d.split('/').pop() ?? '')}`);
+    fields[key] = lines.join('\n').slice(0, 6000);
+  }
   await fetch(`${site}/cbk-watch-form.html`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body,
+    body: new URLSearchParams(fields),
   }).catch(() => undefined);
 };
 

@@ -64,7 +64,12 @@ export default function BondDetailCard({
   const yearsRemaining = Math.max(0, (new Date(bond.maturityDate).getTime() - Date.now()) / (365.25 * 86_400_000));
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-ink/30">
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-ink/30"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${bond.issueCode} details`}
+    >
       <div className="h-full w-full max-w-3xl overflow-y-auto border-l-2 border-ink bg-sand-50 p-4 sm:p-5">
         <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-3 flex items-center justify-between border-b border-sand-300 bg-sand-50 px-4 py-3 sm:-mx-5 sm:px-5">
           <div>

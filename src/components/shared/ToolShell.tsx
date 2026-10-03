@@ -54,7 +54,11 @@ export default function ToolShell({
   intro,
   children,
   after,
+  printReport = false,
 }: {
+  /** True when the page prints its own report sheet: the shell's heading and
+   *  prose are then hidden in print so they do not wrap the report. */
+  printReport?: boolean;
   /** ReactNode rather than string: two of these headings carry a lucide icon. */
   title: ReactNode;
   /** One or two sentences of plain prose. Rendered server-side, so it is what
@@ -106,13 +110,17 @@ export default function ToolShell({
 }) {
   return (
     <div className="space-y-5">
-      <div>
+      {/* no-print: a tool's printable report carries its own header. Without
+          this, /goals/ printed the page title and intro above the report and
+          the explainer prose below it. Opt-in, so a page with no report of its
+          own still prints its title. */}
+      <div className={printReport ? 'no-print' : undefined}>
         <h1 className="text-2xl font-bold text-ink">{title}</h1>
         <p className="mt-1 max-w-[64ch] text-sm leading-relaxed text-ink-muted">{intro}</p>
       </div>
       {children}
       {after && (
-        <div className="mt-8 max-w-[68ch] space-y-4 border-t border-sand-200 pt-6 text-sm leading-relaxed text-ink-soft [&_a]:text-gold-700 [&_a]:underline-offset-2 hover:[&_a]:underline [&_h2]:font-display [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-ink [&_strong]:text-ink">
+        <div className={`${printReport ? 'no-print ' : ''}mt-8 max-w-[68ch] space-y-4 border-t border-sand-200 pt-6 text-sm leading-relaxed text-ink-soft [&_a]:text-gold-700 [&_a]:underline-offset-2 hover:[&_a]:underline [&_h2]:font-display [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-ink [&_strong]:text-ink`}>
           {after}
         </div>
       )}

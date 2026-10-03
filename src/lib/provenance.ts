@@ -1,4 +1,5 @@
 import meta from '../../public/data/meta.json';
+import { latestFigureDate } from './data-freshness';
 
 /**
  * What a printed report actually rests on.
@@ -29,7 +30,12 @@ export const DATA_GENERATED_AT: string = meta.generatedAt;
 
 /** Just the calendar day; a printed footer does not need microseconds. */
 export function dataAsOf(): string {
-  return DATA_GENERATED_AT.slice(0, 10);
+  /* The newest dated figure, not meta.generatedAt. meta records when the
+   * automated pipeline last ran, which stopped on 19 Aug 2026 while figures
+   * kept arriving by hand with their routes recorded; a printed report saying
+   * "as of 2026-08-19" above 30 September auction yields understated its own
+   * currency by six weeks. Falls back to the pipeline date if no figure is dated. */
+  return latestFigureDate() ?? DATA_GENERATED_AT.slice(0, 10);
 }
 
 /**

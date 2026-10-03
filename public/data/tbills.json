@@ -5,13 +5,13 @@
     "discountRate": 8.7694,
     "auctionDate": "2026-10-01",
     "nextAuctionDate": "2026-10-08",
-    "amountOfferedKES": null,
-    "amountAcceptedKES": null,
+    "amountOfferedKES": 8000000000,
+    "amountAcceptedKES": 12875060000,
     "minInvestmentKES": 100000,
     "source": "CBK auction, 1 Oct 2026, entered by hand",
-    "sourceNote": "Search-corroborated, NOT read from the primary notice. CBK's Treasury Bills page lists 8.7694 as the 'Previous Average Interest Rate' against the 8 Oct 2026 auction's 91-day issue (2703/091, 2677/182, 2632/364 DATED 12-10-2026) — i.e. the 1 Oct result for issue 2702/091 DATED 05-10-2026. Retrieved by two differently-phrased searches, each tenor labelled by its own issue number (guards the tenor trap). Shape check: all three tenors eased 0.3-0.9bp from the 24 Sep notice and kept 91<182<364. No independent press report was indexed by 3 Oct; amounts null as unsourced. Replace with the primary notice when available.",
+    "sourceNote": "Supplied document: CBK results notice for issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (auction Thu 1 Oct 2026). Accepted column reconciles: 12,875.06 + 17,900.87 + 10,420.91 = 41,196.84M against 28,000.00M offered. Next auction: issues 2703/091, 2677/182, 2632/364 DATED 12/10/2026 (Thu 8 Oct). Corroborated by CBK Weekly Bulletin of 2 October 2026, Table 4 (8.769 / 8.886 / 9.040). Confirms the search-corroborated values entered on 3 Oct exactly.",
     "previousDiscountRate": 8.7781,
-    "via": "search-corroborated"
+    "via": "supplied-document"
   },
   {
     "id": "tb-182-2026-10-01",
@@ -19,13 +19,13 @@
     "discountRate": 8.8856,
     "auctionDate": "2026-10-01",
     "nextAuctionDate": "2026-10-08",
-    "amountOfferedKES": null,
-    "amountAcceptedKES": null,
+    "amountOfferedKES": 10000000000,
+    "amountAcceptedKES": 17900870000,
     "minInvestmentKES": 100000,
     "source": "CBK auction, 1 Oct 2026, entered by hand",
-    "sourceNote": "Search-corroborated, NOT read from the primary notice. CBK's Treasury Bills page lists 8.8856 as the 'Previous Average Interest Rate' against the 8 Oct 2026 auction's 182-day issue (2703/091, 2677/182, 2632/364 DATED 12-10-2026) — i.e. the 1 Oct result for issue 2676/182 DATED 05-10-2026. Retrieved by two differently-phrased searches, each tenor labelled by its own issue number (guards the tenor trap). Shape check: all three tenors eased 0.3-0.9bp from the 24 Sep notice and kept 91<182<364. No independent press report was indexed by 3 Oct; amounts null as unsourced. Replace with the primary notice when available.",
+    "sourceNote": "Supplied document: CBK results notice for issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (auction Thu 1 Oct 2026). Accepted column reconciles: 12,875.06 + 17,900.87 + 10,420.91 = 41,196.84M against 28,000.00M offered. Next auction: issues 2703/091, 2677/182, 2632/364 DATED 12/10/2026 (Thu 8 Oct). Corroborated by CBK Weekly Bulletin of 2 October 2026, Table 4 (8.769 / 8.886 / 9.040). Confirms the search-corroborated values entered on 3 Oct exactly.",
     "previousDiscountRate": 8.8949,
-    "via": "search-corroborated"
+    "via": "supplied-document"
   },
   {
     "id": "tb-364-2026-10-01",
@@ -33,12 +33,12 @@
     "discountRate": 9.0397,
     "auctionDate": "2026-10-01",
     "nextAuctionDate": "2026-10-08",
-    "amountOfferedKES": null,
-    "amountAcceptedKES": null,
+    "amountOfferedKES": 10000000000,
+    "amountAcceptedKES": 10420910000,
     "minInvestmentKES": 100000,
     "source": "CBK auction, 1 Oct 2026, entered by hand",
-    "sourceNote": "Search-corroborated, NOT read from the primary notice. CBK's Treasury Bills page lists 9.0397 as the 'Previous Average Interest Rate' against the 8 Oct 2026 auction's 364-day issue (2703/091, 2677/182, 2632/364 DATED 12-10-2026) — i.e. the 1 Oct result for issue 2631/364 DATED 05-10-2026. Retrieved by two differently-phrased searches, each tenor labelled by its own issue number (guards the tenor trap). Shape check: all three tenors eased 0.3-0.9bp from the 24 Sep notice and kept 91<182<364. No independent press report was indexed by 3 Oct; amounts null as unsourced. Replace with the primary notice when available.",
+    "sourceNote": "Supplied document: CBK results notice for issues 2702/091, 2676/182, 2631/364 DATED 05/10/2026 (auction Thu 1 Oct 2026). Accepted column reconciles: 12,875.06 + 17,900.87 + 10,420.91 = 41,196.84M against 28,000.00M offered. Next auction: issues 2703/091, 2677/182, 2632/364 DATED 12/10/2026 (Thu 8 Oct). Corroborated by CBK Weekly Bulletin of 2 October 2026, Table 4 (8.769 / 8.886 / 9.040). Confirms the search-corroborated values entered on 3 Oct exactly.",
     "previousDiscountRate": 9.0431,
-    "via": "search-corroborated"
+    "via": "supplied-document"
   }
 ]

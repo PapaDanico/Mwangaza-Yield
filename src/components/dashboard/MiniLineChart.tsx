@@ -69,6 +69,9 @@ export default function MiniLineChart<T>({
     const xs = data.map(x);
     const ys = data.flatMap((d) => series.map((s) => value(d, s.key))).filter((v): v is number => v != null);
     if (referenceY != null) ys.push(referenceY);
+    // No plottable value at all: Math.min() of nothing is Infinity and every
+    // coordinate would be NaN. The caller's text equivalent still shows.
+    if (ys.length === 0 || xs.length === 0) return null;
     const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
     const pad = (Math.max(...ys) - Math.min(...ys)) * 0.08 || 0.5;
     const [y0, y1] = [Math.min(...ys) - pad, Math.max(...ys) + pad];
@@ -77,13 +80,18 @@ export default function MiniLineChart<T>({
     return { xs, sx, sy, yTicks: niceTicks(y0, y1), y0, y1 };
   }, [data, x, series, value, referenceY, H, W]);
 
-  if (data.length === 0) return null;
+  if (data.length === 0 || !geo) return null;
   const { xs, sx, sy, yTicks } = geo;
 
   const xTickIdx = (() => {
     const max = Math.max(3, Math.floor(W / 90));
     const every = Math.max(1, Math.ceil(data.length / max));
-    return data.map((_, i) => i).filter((i) => i % every === 0 || i === data.length - 1);
+    const last = data.length - 1;
+    // Always label the last point, but drop the regular tick just before it
+    // when the two would sit on top of each other.
+    return data
+      .map((_, i) => i)
+      .filter((i) => (i % every === 0 && (i === last || last - i >= every / 2 + 0.5)) || i === last);
   })();
 
   const path = (s: Series) => {

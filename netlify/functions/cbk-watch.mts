@@ -27,6 +27,7 @@
  */
 import type { Config } from '@netlify/functions';
 import { getStore } from '@netlify/blobs';
+import { extractText, getDocumentProxy } from 'unpdf';
 
 const PAGES: [string, string][] = [
   ['home', 'https://www.centralbank.go.ke/'],
@@ -96,6 +97,25 @@ export function docs(html: string, base: string, max = 25): string[] {
   return [...seen];
 }
 
+/** The results notices among a page's document links, newest first as CBK
+ *  lists them. Only CBK-hosted files: the reader never follows a link off-site. */
+export function resultsPdfs(links: string[], max = 3): string[] {
+  return links
+    .filter((u) => /\.pdf$/i.test(u) && /result/i.test(decodeURIComponent(u)))
+    .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
+    .slice(0, max);
+}
+
+/** A PDF's text layer, whitespace collapsed. Results notices are text PDFs;
+ *  a scanned one returns '' and is reported as such rather than guessed at. */
+async function pdfText(url: string): Promise<string> {
+  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
+  if (!res.ok) return `status ${res.status}`;
+  const pdf = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
+  const { text: t } = await extractText(pdf, { mergePages: true });
+  return (t as string).replace(/\s+/g, ' ').trim() || '(no text layer)';
+}
+
 async function grab(url: string) {
   const started = Date.now();
   try {
@@ -111,6 +131,16 @@ export default async () => {
   const at = new Date().toISOString();
   const results = await Promise.all(PAGES.map(async ([key, url]) => [key, { url, ...(await grab(url)) }] as const));
   const run = { at, pages: Object.fromEntries(results) };
+
+  // Open the newest results notices on the bonds and T-bill pages, so the
+  // figures (rates, amounts, prices) arrive without anyone pasting a document.
+  const links = results.flatMap(([k, p]) => (k === 'bonds' || k === 'tbills' ? ((p as { docs?: string[] }).docs ?? []) : []));
+  const notices: Record<string, string> = {};
+  for (const u of resultsPdfs([...new Set(links)], 4)) {
+    const name = decodeURIComponent(u.split('/').pop() ?? u);
+    notices[name] = await pdfText(u).catch((e) => `error ${String(e).slice(0, 120)}`);
+  }
+  (run as Record<string, unknown>).notices = notices;
 
   const store = getStore('cbk-watch');
   await store.setJSON('latest', run);
@@ -128,6 +158,10 @@ export default async () => {
   fields.extract = Object.entries(rates)
     .map(([k, v]) => `${k}: ${v.value}${v.date ? ` (${v.date})` : ''}`)
     .join('\n');
+  fields.results = Object.entries(notices)
+    .map(([n, t]) => `=== ${n}\n${t.slice(0, 2400)}`)
+    .join('\n')
+    .slice(0, 9000);
   for (const [key, page] of results) {
     const p = page as { status: number; tables?: string[][][]; docs?: string[]; error?: string };
     const lines = [`status ${p.status}${p.error ? ` error ${p.error}` : ''}`];

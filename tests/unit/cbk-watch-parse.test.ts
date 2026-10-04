@@ -22,3 +22,18 @@ describe('cbk-watch parsing', () => {
     expect(t.some((r) => r[0] === 'row 5')).toBe(false);
   });
 });
+
+describe('cbk-watch results notices', () => {
+  it('picks CBK-hosted results PDFs in page order and nothing off-site', async () => {
+    const { resultsPdfs } = await import('../../netlify/functions/cbk-watch.mts');
+    const b = 'https://www.centralbank.go.ke/uploads/treasury_bonds/';
+    expect(
+      resultsPdfs([
+        `${b}123_Prospectus%20FXD1.pdf`,
+        `${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`,
+        'https://evil.example/results.pdf',
+        `${b}789_Results%20Switch.pdf`,
+      ]),
+    ).toEqual([`${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`, `${b}789_Results%20Switch.pdf`]);
+  });
+});

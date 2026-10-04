@@ -19,6 +19,10 @@ export interface Series {
   color: string;
   dashed?: boolean;
   step?: boolean;
+  /** Line width; defaults to 2.5. */
+  width?: number;
+  /** Dot radius; defaults to 3. */
+  dot?: number;
 }
 
 interface Props<T> {
@@ -128,10 +132,10 @@ export default function MiniLineChart<T>({
         )}
         {series.map((s) => (
           <g key={s.key}>
-            <path d={path(s)} fill="none" stroke={s.color} strokeWidth={2.5} strokeDasharray={s.dashed ? '6 4' : undefined} strokeLinejoin="round" />
+            <path d={path(s)} fill="none" stroke={s.color} strokeWidth={s.width ?? 2.5} strokeDasharray={s.dashed ? '6 4' : undefined} strokeLinejoin="round" />
             {data.map((row, i) => {
               const v = value(row, s.key);
-              return v == null ? null : <circle key={i} cx={sx(xs[i])} cy={sy(v)} r={hover === i ? 5 : 3} fill={s.color} />;
+              return v == null ? null : <circle key={i} cx={sx(xs[i])} cy={sy(v)} r={hover === i ? (s.dot ?? 3) + 2 : (s.dot ?? 3)} fill={s.color} />;
             })}
           </g>
         ))}
@@ -145,7 +149,13 @@ export default function MiniLineChart<T>({
           <div className="text-[#8B8676]">{tooltipLabel(h)}</div>
           {series.map((s) => {
             const v = value(h, s.key);
-            return v == null ? null : <div key={s.key} style={{ color: s.color }}>{s.name}: {v.toFixed(2)}%</div>;
+            // Ink text, coloured swatch: light series colours are unreadable as text.
+            return v == null ? null : (
+              <div key={s.key} className="flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: s.color }} aria-hidden="true" />
+                {s.name}: {v.toFixed(2)}%
+              </div>
+            );
           })}
         </div>
       )}

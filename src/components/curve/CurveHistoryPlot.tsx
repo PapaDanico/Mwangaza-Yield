@@ -1,8 +1,7 @@
 'use client';
 
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import { useMemo } from 'react';
+import MiniLineChart from '@/components/dashboard/MiniLineChart';
 
 /**
  * The drawn curve history, split out so Recharts can be deferred.
@@ -14,6 +13,16 @@ import {
  * Split rather than deferring the parent so that table stays in the page's
  * own chunk, rather than waiting on the chart bundle to appear.
  */
+/* Drawn with MiniLineChart since 4 Oct 2026, no longer Recharts — this is the
+   only chart on /yield-curve/, so the page no longer loads Recharts at all.
+   Legend text is ink, the swatch carries the colour: the lightest years of the
+   ramp were unreadable as coloured text (1.43:1). */
+const xOf = (d: Record<string, number | string>) => Number(d.years);
+const valueOf = (d: Record<string, number | string>, k: string) => {
+  const v = d[k];
+  return typeof v === 'number' ? v : null;
+};
+
 export default function CurveHistoryPlot({
   data,
   shown,
@@ -25,44 +34,18 @@ export default function CurveHistoryPlot({
   last: number;
   colours: string[];
 }) {
+  const series = useMemo(
+    () => shown.map((row, i) => ({
+      key: String(row.year), name: String(row.year), color: colours[i % colours.length],
+      width: row.year === last ? 2.5 : 1.5, dot: 2,
+    })),
+    [shown, last, colours],
+  );
+  const label = (x: number) => String(data.find((d) => Number(d.years) === x)?.tenor ?? '');
   return (
-    <ResponsiveContainer>
-      <LineChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -12 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e7e0d3" />
-        <XAxis dataKey="tenor" tick={{ fontSize: 11 }} />
-        <YAxis
-          tick={{ fontSize: 11 }}
-          domain={['dataMin - 1', 'dataMax + 1']}
-          tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-        />
-        <Tooltip
-          formatter={(v: number, name: string) => [`${v.toFixed(2)}%`, name]}
-          labelFormatter={(l: string) => `${l} tenor`}
-        />
-        {/* THE SWATCH CARRIES THE COLOUR, THE TEXT CARRIES THE LABEL.
-            Recharts colours legend text to match its series, which put the
-            three lightest years of the ramp on near-white at 1.43:1, 2.05:1
-            and 2.48:1 — a year label nobody can read is not a legend entry.
-            Darkening the ramp itself would flatten the light-to-dark ordering
-            that makes recent years the most saturated, so the line keeps its
-            colour and only the text is forced to ink. The swatch beside each
-            label still does the identifying, which is what it is for. */}
-        <Legend
-          wrapperStyle={{ fontSize: 11 }}
-          formatter={(value) => <span style={{ color: '#2A2118' }}>{value}</span>}
-        />
-        {shown.map((row, i) => (
-          <Line
-            key={row.year}
-            type="monotone"
-            dataKey={String(row.year)}
-            stroke={colours[i % colours.length]}
-            strokeWidth={row.year === last ? 2.5 : 1.5}
-            dot={{ r: 2 }}
-            connectNulls
-          />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+    <MiniLineChart
+      data={data} x={xOf} series={series} value={valueOf} legend height={320}
+      xLabel={label} tooltipLabel={(d) => `${d.tenor} tenor`}
+    />
   );
 }

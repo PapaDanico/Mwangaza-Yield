@@ -8,7 +8,9 @@ GET https://mwangazayield.org/data/rates.json
 ```
 
 Cross-origin reads are enabled and the file is cached for 15 minutes. It is
-rebuilt every morning by the same CI job that refreshes the underlying data.
+rebuilt whenever the underlying figures change — in practice after each weekly
+CBK T-bill auction and each bond auction. Every file carries its own
+`generatedAt`, so check that rather than assuming a schedule.
 
 ## Or as a spreadsheet
 

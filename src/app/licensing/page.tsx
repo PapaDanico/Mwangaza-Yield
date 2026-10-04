@@ -59,6 +59,35 @@ export default function LicensingPage() {
         * one into a meeting, so the argument is on this page as text and the
         * file sits beside it. The size is stated because on Kenyan mobile data
         * an unlabelled download is a small act of rudeness. */}
+      {/* THE DATA, BEFORE THE CONVERSATION.
+        *
+        * REVENUE.md §2: the buyer's analyst lives in a spreadsheet, and a
+        * prospect who has to ask for a sample does not ask. The feed was
+        * already public; this page never said so. */}
+      <h2>Look at the data first</h2>
+      <p>
+        The figures the engine produces are published as a free feed, so you can judge them before
+        writing to anyone. It covers each Treasury bill tenor and bond maturity band: the rate CBK
+        published, the rate after withholding tax, the tax rate applied, how many auction results
+        each figure rests on, and the date and source of every one.
+      </p>
+      <p>
+        <a href="/data/rates.csv" download>
+          Download as a spreadsheet (CSV) →
+        </a>{' '}
+        <span className="text-sm text-ink-faint">(2 KB, opens in Excel)</span>
+        <br />
+        <a href="/data/rates.json">The same figures as JSON →</a>{' '}
+        <span className="text-sm text-ink-faint">(5 KB, for developers; cross-origin reads allowed)</span>
+      </p>
+      <p>
+        Why the arithmetic matters: one common spreadsheet day-count convention overstated a single
+        bond (<span className="num">FXD2/2018/20</span>) by{' '}
+        <span className="num">Ksh 61,836</span> per million, and by an average of{' '}
+        <span className="num">Ksh 7,923</span> per million across all 58 bonds then listed. On a
+        book of hundreds of millions, that is real money priced wrongly.
+      </p>
+
       <h2>The full case, if you want it on paper</h2>
       <p>
         Everything above is the short version. The partnership deck sets out the gap it addresses,

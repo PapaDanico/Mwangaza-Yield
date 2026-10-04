@@ -37,8 +37,12 @@ both products.
 
 Mwangaza's first-party counter is instrumented and writing (`src/lib/analytics.ts`
 → `netlify/functions/track.mts` → Netlify Blobs). Reads are gated on
-`METRICS_TOKEN`, which **is not configured**, so the counters accumulate where
-only the Blobs dashboard can see them.
+`METRICS_TOKEN`, which was **not configured** when this was written; it was set
+on 21 Aug 2026. Since 4 Oct the monthly figure comes from a command:
+`METRICS_TOKEN=… node scripts/metrics-report.mjs` (counts of tool USES by
+calendar month, with the window held, never "users" — the counter keeps no
+identifiers). It needs ordinary network access, which Claude Code sessions do
+not have to mwangazayield.org.
 
 This is not a tidiness problem. Three of the four revenue paths below require a
 sentence of the form *"N Kenyans used this tool last month"*:

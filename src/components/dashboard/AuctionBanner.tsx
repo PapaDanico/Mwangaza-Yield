@@ -112,7 +112,7 @@ export default function AuctionBanner() {
       </div>
       <div className="text-right">
         <p className="num text-2xl font-bold text-gold-700">{Math.max(days, 0)}</p>
-        <p className="text-xs text-ink-faint">days left</p>
+        <p className="text-xs text-ink-faint">{Math.max(days, 0) === 1 ? 'day left' : 'days left'}</p>
       </div>
       <ArrowRight size={18} className="text-ink-faint" />
     </Link>

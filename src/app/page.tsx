@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
 import EvidenceStrip from '@/components/landing/EvidenceStrip';
+import HeroRates from '@/components/landing/HeroRates';
 import { updateCadence } from '@/lib/data-freshness';
 
 const features = [
@@ -43,6 +44,7 @@ export default function LandingPage() {
           <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">
             Government bonds, made plain
           </p>
+          <HeroRates />
           <p className="mt-5 max-w-lg text-lg text-ink-muted">
             Buying a government bond means lending your money to your own country, and being paid
             for it. The arithmetic behind it is not difficult — it has just rarely been shown to

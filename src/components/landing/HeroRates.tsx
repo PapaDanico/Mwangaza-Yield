@@ -15,14 +15,14 @@ const fmt = (iso: string) =>
  * no layout shift, and refreshed by the deploy that follows every auction
  * entry.
  */
-export default function HeroRates() {
+export default function HeroRates({ className = 'mt-6' }: { className?: string }) {
   const bills = RATES.tbills.filter((t) => typeof t.netEAY === 'number');
   if (bills.length === 0) return null;
   const date = bills[0].auctionDate;
   return (
     <Link
       href="/tbills/"
-      className="card-link mt-6 block rounded-2xl border border-sand-300 bg-sand-50/80 p-4 shadow-card"
+      className={`card-link ${className} block rounded-2xl border border-sand-300 bg-sand-50/80 p-4 shadow-card`}
       aria-label="Treasury bill rates after tax from the latest CBK auction; open the T-bill page"
     >
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-faint">

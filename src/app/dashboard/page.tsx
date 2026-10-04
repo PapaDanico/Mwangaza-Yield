@@ -18,6 +18,7 @@ import YieldInHistory from '@/components/dashboard/YieldInHistory';
 import InflationSplitCard from '@/components/dashboard/InflationSplit';
 import EconomicHealthSummary from '@/components/dashboard/EconomicHealthSummary';
 import WhatChanged from '@/components/dashboard/WhatChanged';
+import LatestForecast from '@/components/dashboard/LatestForecast';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -41,6 +42,7 @@ export default function DashboardPage() {
       <TopYields />
       <AuctionBanner />
       <WhatChanged />
+      <LatestForecast />
       <MacroPanel />
       <EconomicHealthSummary />
       <InflationSplitCard />

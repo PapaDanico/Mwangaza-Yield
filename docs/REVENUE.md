@@ -73,7 +73,7 @@ roughly **KES 4 million**.
 
 `ENGINE-API.md` documents the maths. What does not exist:
 
-1. **A price.** Nothing anywhere states what a licence costs. A prospect who
+1. **A price.** ~~Nothing anywhere states what a licence costs.~~ **Done 4 Oct 2026:** `/licensing/` states pilots from Ksh 150,000 a year, set by the owner; the CSV feed is linked there too (item 2 below). A prospect who
    has to ask does not ask.
 2. **A spreadsheet-shaped delivery.** M3 flags this: the buyer's analyst lives
    in Excel, not in `npm install`. The rates feed is closer to real demand than

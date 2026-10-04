@@ -1,5 +1,6 @@
+// @ts-nocheck -- imports a .mts Netlify function, outside the app's tsconfig module resolution
 import { describe, expect, it } from 'vitest';
-import { keyRates, tables } from '../../netlify/functions/cbk-watch';
+import { keyRates, tables } from '../../netlify/functions/cbk-watch.mts';
 
 /* Fixtures are the rows CBK served on 4 Oct 2026, as the first run returned them. */
 describe('cbk-watch parsing', () => {

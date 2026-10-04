@@ -33,7 +33,6 @@ const PAGES: [string, string][] = [
   ['forex', 'https://www.centralbank.go.ke/rates/forex-exchange-rates/'],
   ['tbills', 'https://www.centralbank.go.ke/bills-bonds/treasury-bills/'],
   ['bonds', 'https://www.centralbank.go.ke/bills-bonds/treasury-bonds/'],
-  ['bond-results', 'https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/'],
   ['cbr', 'https://www.centralbank.go.ke/rates/central-bank-rate/'],
   ['inflation', 'https://www.centralbank.go.ke/inflation-rates/'],
   ['weekly-bulletin', 'https://www.centralbank.go.ke/publication/weekly-bulletin/'],
@@ -45,18 +44,41 @@ const text = (h: string) =>
   h.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 
 /** Every table as rows of cell text, capped so one page cannot swamp the summary. */
-export function tables(html: string, maxTables = 6, maxRows = 14): string[][][] {
+export function tables(html: string, maxTables = 12, keep = 14): string[][][] {
   const out: string[][][] = [];
   for (const t of html.match(/<table[\s\S]*?<\/table>/gi) ?? []) {
     const rows: string[][] = [];
     for (const r of t.match(/<tr[\s\S]*?<\/tr>/gi) ?? []) {
       const cells = (r.match(/<t[hd][\s\S]*?<\/t[hd]>/gi) ?? []).map((c) => text(c).slice(0, 80));
       if (cells.some(Boolean)) rows.push(cells);
-      if (rows.length >= maxRows) break;
     }
-    if (rows.length) out.push(rows);
+    /* Header plus the NEWEST rows. Several CBK tables run oldest-first, so the
+     * first run kept 2012-2019 history and missed every current figure. */
+    if (rows.length > keep) out.push([...rows.slice(0, 2), ['…'], ...rows.slice(-(keep - 3))]);
+    else if (rows.length) out.push(rows);
     if (out.length >= maxTables) break;
   }
+  return out;
+}
+
+/** CBK's "Key Rates" and "Daily KES Exchange Rates" sidebar, which every page
+ *  carries: label -> value, with the date CBK prints beside it. Read from the
+ *  first run, 4 Oct 2026 — e.g. "Central Bank Rate | 8.75% | 11/08/2026",
+ *  "US DOLLAR | 129.76", "Posted On: 02-10-2026". */
+export const KEY_LABELS = [
+  'US DOLLAR', 'Central Bank Rate', 'KESONIA', 'CBK Discount Window', '91-Day T-Bill',
+  'Inflation Rate', 'Lending Rate', 'Deposit Rate', 'Savings Rate',
+];
+export function keyRates(all: string[][][]): Record<string, { value: string; date: string | null }> {
+  const out: Record<string, { value: string; date: string | null }> = {};
+  let fxPosted: string | null = null;
+  for (const t of all) for (const row of t) {
+    const posted = row.join(' ').match(/Posted On:\s*([0-9-]+)/i);
+    if (posted) fxPosted = posted[1];
+    const label = KEY_LABELS.find((l) => row[0]?.toLowerCase() === l.toLowerCase());
+    if (label && row[1] && !out[label]) out[label] = { value: row[1], date: row[2] ?? null };
+  }
+  if (out['US DOLLAR'] && !out['US DOLLAR'].date) out['US DOLLAR'].date = fxPosted;
   return out;
 }
 
@@ -100,6 +122,12 @@ export default async () => {
   // "a | b | c" lines, document links reduced to their file names, no URLs.
   const site = process.env.URL ?? 'https://mwangazayield.org';
   const fields: Record<string, string> = { 'form-name': 'cbk-watch', at };
+  // The parsed figures first, so a reader of the form sees the answer before the evidence.
+  const allTables = results.flatMap(([, p]) => (p as { tables?: string[][][] }).tables ?? []);
+  const rates = keyRates(allTables);
+  fields.extract = Object.entries(rates)
+    .map(([k, v]) => `${k}: ${v.value}${v.date ? ` (${v.date})` : ''}`)
+    .join('\n');
   for (const [key, page] of results) {
     const p = page as { status: number; tables?: string[][][]; docs?: string[]; error?: string };
     const lines = [`status ${p.status}${p.error ? ` error ${p.error}` : ''}`];
@@ -117,6 +145,6 @@ export default async () => {
   }).catch(() => undefined);
 };
 
-// Hourly while the parser is written against real pages; to be narrowed to
-// weekday mornings and afternoons once it is.
-export const config: Config = { schedule: '@hourly' };
+// 06:00 and 13:00 UTC on weekdays = 09:00 and 16:00 Nairobi: after CBK's
+// morning FX card and after the afternoon auction notices.
+export const config: Config = { schedule: '0 6,13 * * 1-5' };

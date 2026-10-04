@@ -88,6 +88,17 @@ export default function LicensingPage() {
         book of hundreds of millions, that is real money priced wrongly.
       </p>
 
+      {/* THE PRICE, STATED. REVENUE.md §2: "a prospect who has to ask does
+        * not ask." Set by the owner on 4 Oct 2026 at the plan's own sizing of
+        * one SACCO pilot. */}
+      <h2>What it costs</h2>
+      <p>
+        Pilots for SACCOs, fund managers and advisers start from{' '}
+        <span className="num font-semibold">Ksh 150,000</span> a year for the first year,
+        with the scope and price confirmed in writing before anything is signed. The tools stay
+        free to individuals either way.
+      </p>
+
       <h2>The full case, if you want it on paper</h2>
       <p>
         Everything above is the short version. The partnership deck sets out the gap it addresses,

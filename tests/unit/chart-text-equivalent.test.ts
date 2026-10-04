@@ -31,7 +31,12 @@ function tsxFiles(dir: string): string[] {
 
 const SRC = join(process.cwd(), 'src');
 
-const chartFiles = tsxFiles(SRC).filter((f) => /from ['"]recharts['"]/.test(readFileSync(f, 'utf8')));
+// A chart is anything drawing with Recharts OR with MiniLineChart, which
+// replaced Recharts on the dashboard on 4 Oct 2026. Matching only the Recharts
+// import let three charts silently leave this guard when they were ported.
+const chartFiles = tsxFiles(SRC).filter(
+  (f) => !f.endsWith('MiniLineChart.tsx') && /from ['"](recharts|[^'"]*MiniLineChart)['"]/.test(readFileSync(f, 'utf8')),
+);
 
 describe('chart text equivalents', () => {
   it('finds the charts at all, so an empty sweep cannot pass silently', () => {

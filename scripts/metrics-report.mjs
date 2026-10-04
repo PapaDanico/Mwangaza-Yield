@@ -9,7 +9,7 @@
  * can be produced from a command, not a dashboard screenshot." The counters
  * have been readable since METRICS_TOKEN was set on 21 Aug, but only through
  * the /metrics page, one token-paste at a time. A fund manager, a sponsor and
- * a pricing decision all need the sentence "N people used this tool last
+ * a pricing decision all need the sentence "this tool was used N times last
  * month", and that sentence should come from something re-runnable.
  *
  * WHAT THE NUMBER IS. Each count is one tool use reported by a reader's

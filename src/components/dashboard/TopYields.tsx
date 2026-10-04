@@ -122,6 +122,12 @@ export default function TopYields() {
 
   return (
     <div className="space-y-2">
+      {/* Says what these are before the reader sees the numbers: since 4 Oct
+          they follow the latest auctions on the dashboard rather than lead it. */}
+      <h2 className="font-display text-sm font-semibold text-ink">
+        Highest-yielding bonds on the list{' '}
+        <span className="font-normal text-ink-muted">— at the last price CBK published for each</span>
+      </h2>
       {/* Two columns from the smallest screen. Stacked, these two tiles cost
           about 500px — most of a phone viewport — to deliver two numbers, and
           the reader had to scroll before learning anything else existed. Side

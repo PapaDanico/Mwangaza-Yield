@@ -19,6 +19,7 @@ import InflationSplitCard from '@/components/dashboard/InflationSplit';
 import EconomicHealthSummary from '@/components/dashboard/EconomicHealthSummary';
 import WhatChanged from '@/components/dashboard/WhatChanged';
 import LatestForecast from '@/components/dashboard/LatestForecast';
+import HeroRates from '@/components/landing/HeroRates';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -35,14 +36,22 @@ export default function DashboardPage() {
           What Kenya is paying <span className="text-gold-700">savers today.</span>
         </h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Every current government bond, ranked by what you would actually keep after tax.
+          What the latest auctions paid first, then every current bond ranked by what you would
+          keep after tax at face value.
         </p>
       </div>
 
-      <TopYields />
+      {/* LEAD WITH THE MARKET, NOT THE ARCHIVE. Until 4 Oct the first figures
+        * here were TopYields' 18.44% and 14.38% — correct, caveated, and from
+        * bonds last auctioned in 2024 at face value, while the market cleared
+        * near 12.7%. A reader takes the biggest number on the page as today's
+        * rate, so today's rates now come first: the latest T-bill auction
+        * after tax, then the latest bond auction against our forecast. */}
+      <HeroRates className="" />
+      <LatestForecast />
       <AuctionBanner />
       <WhatChanged />
-      <LatestForecast />
+      <TopYields />
       <MacroPanel />
       <EconomicHealthSummary />
       <InflationSplitCard />

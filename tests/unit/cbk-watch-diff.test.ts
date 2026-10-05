@@ -13,7 +13,7 @@ const held = {
     { indicator: 'FX_USD_KES', value: 129.71, date: '2026-10-01' },
     { indicator: 'CBR', value: 8.75, date: '2026-08-11' },
   ],
-  tbills: [{ tenorDays: 91, discountRate: 8.7694, auctionDate: '2026-10-01' }],
+  tbills: [{ tenorDays: 91, discountRate: 8.7694, previousDiscountRate: 8.7781, auctionDate: '2026-10-01' }],
   cpiHistory: [{ indicator: 'CPI', value: 6.8, date: '2026-09-01' }],
 };
 
@@ -30,9 +30,9 @@ describe('cbk-watch-diff', () => {
     expect(by['US DOLLAR'].status).toBe('newer');
     expect(by['US DOLLAR'].stub).toMatchObject({ value: 129.76, date: '2026-10-02', via: 'cbk-home' });
     expect(by['CENTRAL BANK RATE'].status).toBe('same');
-    // Same auction (Thursday 1 Oct is value-dated Monday 5 Oct), different
-    // figure: a conflict to look at, never a "newer" to write.
-    expect(by['91-DAY T-BILL'].status).toBe('conflict');
+    // The sidebar shows the PREVIOUS auction's 91-day under the new value
+    // date: it matches previousDiscountRate, so it is a lag, never a write.
+    expect(by['91-DAY T-BILL'].status).toBe('lagging');
     expect(by['91-DAY T-BILL'].stub).toBeUndefined();
     expect(by['INFLATION RATE'].status).toBe('older');
   });

@@ -60,7 +60,11 @@ export function diff(ex, { macro, tbills, cpiHistory }) {
     // CBK's sidebar can lag the site: the September CPI was entered from the
     // KNBS release while the sidebar still read August.
     const older = date && held.date && date < held.date;
-    findings.push({ label, status: newer ? 'newer' : older ? 'older' : 'conflict', held, got, date, stub: newer ? stub(got, date) : undefined });
+    // CBK's sidebar 91-day is the PREVIOUS auction's rate shown under the new
+    // value date — confirmed 5 Oct: sidebar 8.778, results notice 'Last
+    // Auction' 8.7781. A match on the held previous rate is a lag, not a clash.
+    const lagging = held.previous != null && Math.abs(held.previous - got.value) <= tol;
+    findings.push({ label, status: lagging ? 'lagging' : newer ? 'newer' : older ? 'older' : 'conflict', held, got, date, stub: newer && !lagging ? stub(got, date) : undefined });
   };
   const note = (label, raw) =>
     `CBK website Key Rates sidebar, "${label}" as read by the cbk-watch function` +
@@ -84,7 +88,7 @@ export function diff(ex, { macro, tbills, cpiHistory }) {
     d.setUTCDate(d.getUTCDate() + ((8 - d.getUTCDay()) % 7 || 7));
     return d.toISOString().slice(0, 10);
   };
-  check('91-DAY T-BILL', t91 && { value: t91.discountRate, date: valueDate(t91.auctionDate) }, 0.0006, () => ({
+  check('91-DAY T-BILL', t91 && { value: t91.discountRate, previous: t91.previousDiscountRate, date: valueDate(t91.auctionDate) }, 0.0006, () => ({
     action: 'enter the results notice for this auction (the sidebar carries no amounts)',
   }));
   check('INFLATION RATE', latest(cpiHistory, (r) => r.indicator === 'CPI'), 0.05, (g, d) => ({

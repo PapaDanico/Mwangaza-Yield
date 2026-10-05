@@ -24,7 +24,7 @@ describe('cbk-watch parsing', () => {
 });
 
 describe('cbk-watch results notices', () => {
-  it('picks CBK-hosted results PDFs in page order and nothing off-site', async () => {
+  it('picks CBK-hosted results PDFs, newest first, and nothing off-site', async () => {
     const { resultsPdfs } = await import('../../netlify/functions/cbk-watch.mts');
     const b = 'https://www.centralbank.go.ke/uploads/treasury_bonds/';
     expect(
@@ -34,6 +34,16 @@ describe('cbk-watch results notices', () => {
         'https://evil.example/results.pdf',
         `${b}789_Results%20Switch.pdf`,
       ]),
-    ).toEqual([`${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`, `${b}789_Results%20Switch.pdf`]);
+    ).toEqual([`${b}789_Results%20Switch.pdf`, `${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`]);
+  });
+
+  it('orders by CBK upload id, newest first, whatever the page order', async () => {
+    const { resultsPdfs } = await import('../../netlify/functions/cbk-watch.mts');
+    const b = 'https://www.centralbank.go.ke/uploads/treasury_bonds/';
+    // The bonds page lists oldest first; the 5 Oct run never reached the new notice.
+    const old = Array.from({ length: 30 }, (_, i) => `${b}${1000 + i}_RESULTS%20OLD%20${i}.pdf`);
+    expect(resultsPdfs([...old, `${b}2069542746_RESULTS%20FXD1-2019-020.pdf`], 1)).toEqual([
+      `${b}2069542746_RESULTS%20FXD1-2019-020.pdf`,
+    ]);
   });
 });

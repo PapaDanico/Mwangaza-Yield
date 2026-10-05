@@ -100,9 +100,16 @@ export function docs(html: string, base: string, max = 25): string[] {
 /** The results notices among a page's document links, newest first as CBK
  *  lists them. Only CBK-hosted files: the reader never follows a link off-site. */
 export function resultsPdfs(links: string[], max = 3): string[] {
+  /* NEWEST FIRST BY CBK'S UPLOAD ID, not page order. The bonds page lists
+   * documents oldest-first (2008 onward), so the first run of 5 Oct read only
+   * T-bill notices and never reached the 5 Oct bond results. CBK prefixes each
+   * upload with an increasing number (2069542746_... is newer than
+   * 2049865152_...), which orders them whatever the page does. */
+  const id = (u: string) => Number(decodeURIComponent(u.split('/').pop() ?? '').match(/^(\d+)_/)?.[1] ?? 0);
   return links
     .filter((u) => /\.pdf$/i.test(u) && /result/i.test(decodeURIComponent(u)))
     .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
+    .sort((a, b) => id(b) - id(a))
     .slice(0, max);
 }
 
@@ -121,7 +128,7 @@ async function grab(url: string) {
   try {
     const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(15_000) });
     const html = await res.text();
-    return { status: res.status, bytes: html.length, ms: Date.now() - started, tables: tables(html), docs: docs(html, url) };
+    return { status: res.status, bytes: html.length, ms: Date.now() - started, tables: tables(html), docs: docs(html, url), allDocs: docs(html, url, 5000) };
   } catch (e) {
     return { status: 0, error: String(e).slice(0, 200), ms: Date.now() - started };
   }
@@ -134,9 +141,13 @@ export default async () => {
 
   // Open the newest results notices on the bonds and T-bill pages, so the
   // figures (rates, amounts, prices) arrive without anyone pasting a document.
-  const links = results.flatMap(([k, p]) => (k === 'bonds' || k === 'tbills' ? ((p as { docs?: string[] }).docs ?? []) : []));
+  // The two newest results from EACH page, so a busy T-bill week cannot
+  // crowd the bond results out (or the reverse).
+  const pageDocs = (key: string) =>
+    ((results.find(([k]) => k === key)?.[1] as { allDocs?: string[] } | undefined)?.allDocs ?? []);
+  const picks = [...new Set([...resultsPdfs(pageDocs('bonds'), 2), ...resultsPdfs(pageDocs('tbills'), 2)])];
   const notices: Record<string, string> = {};
-  for (const u of resultsPdfs([...new Set(links)], 4)) {
+  for (const u of picks) {
     const name = decodeURIComponent(u.split('/').pop() ?? u);
     notices[name] = await pdfText(u).catch((e) => `error ${String(e).slice(0, 120)}`);
   }

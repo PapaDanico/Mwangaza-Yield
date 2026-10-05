@@ -381,6 +381,18 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
        * rather than cropped. */
       const captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
       const captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
+      /* WAIT FOR THE FONTS. The sheet is display:none until now, so the
+       * faces it uses are only requested at this moment; capturing at once
+       * laid text out in the fallback font and drew it in the real one —
+       * measured 4 Oct on the goals report: "Mwangaza   Yield", "record ,".
+       * fonts.ready settles once every face the visible sheet asks for has
+       * loaded; a second frame lets layout settle on the real metrics. */
+      try {
+        await document.fonts.ready;
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      } catch {
+        /* fonts API unavailable: capture with what is there */
+      }
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,

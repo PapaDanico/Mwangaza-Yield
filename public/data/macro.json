@@ -61,15 +61,15 @@
     "lastChecked": "2026-08-19"
   },
   {
-    "id": "fx-2026-10-02",
+    "id": "fx-2026-10-05",
     "indicator": "FX_USD_KES",
     "value": 129.76,
-    "date": "2026-10-02",
+    "date": "2026-10-05",
     "unit": "KES/USD",
     "source": "CBK indicative",
     "via": "cbk-home",
-    "lastChecked": "2026-10-04",
-    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.76, Posted On: 02-10-2026', read by the cbk-watch Netlify function on 4 Oct 2026 and compared by scripts/cbk-watch-diff.mjs. Replaces 129.71 (1 Oct, Weekly Bulletin of 2 Oct, Table 1); a 0.05 move in one trading day, in line with the bulletin's 129.79 on 30 Sep."
+    "lastChecked": "2026-10-05",
+    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.76, Posted On: 05-10-2026', read by the cbk-watch Netlify function at 16:00 Nairobi on 5 Oct 2026 and compared by scripts/cbk-watch-diff.mjs (NEWER). Unchanged from 129.76 posted 02-10-2026."
   },
   {
     "id": "debt-gdp-2024",

@@ -34,16 +34,17 @@ describe('cbk-watch results notices', () => {
         'https://evil.example/results.pdf',
         `${b}789_Results%20Switch.pdf`,
       ]),
-    ).toEqual([`${b}789_Results%20Switch.pdf`, `${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`]);
+    ).toEqual([`${b}456_RESULTS%20FOR%20FXD3-2019-015.pdf`, `${b}789_Results%20Switch.pdf`]);
   });
 
-  it('orders by CBK upload id, newest first, whatever the page order', async () => {
+  it('orders by the DATED date in the name, not page order or upload id', async () => {
     const { resultsPdfs } = await import('../../netlify/functions/cbk-watch.mts');
     const b = 'https://www.centralbank.go.ke/uploads/treasury_bonds/';
-    // The bonds page lists oldest first; the 5 Oct run never reached the new notice.
-    const old = Array.from({ length: 30 }, (_, i) => `${b}${1000 + i}_RESULTS%20OLD%20${i}.pdf`);
-    expect(resultsPdfs([...old, `${b}2069542746_RESULTS%20FXD1-2019-020.pdf`], 1)).toEqual([
-      `${b}2069542746_RESULTS%20FXD1-2019-020.pdf`,
-    ]);
+    // Real names from the 5 Oct run: the 2018 notice has the HIGHER prefix.
+    const old2018 = `${b}2129006739_AUCTION%20RESULTS%20TREASURY%20BOND%20%20FXD1-2018-15%20DATED%2028-05-2018.pdf`;
+    const old2020 = `${b}2115019172_RESULTS%20RE-OPEN%20FXD3-2019-5%20AND%20FXD4-2019-10%20DATED%2022.06.2020.pdf`;
+    const current = `${b}250350777_RESULTS%20FOR%20FXD3-2019-015%20AND%20%20FXD1-2019-020%20DATED%2005-10-2026.pdf`;
+    expect(resultsPdfs([old2018, old2020, current], 2)).toEqual([current, old2020]);
   });
+
 });

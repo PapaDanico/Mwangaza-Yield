@@ -100,16 +100,19 @@ export function docs(html: string, base: string, max = 25): string[] {
 /** The results notices among a page's document links, newest first as CBK
  *  lists them. Only CBK-hosted files: the reader never follows a link off-site. */
 export function resultsPdfs(links: string[], max = 3): string[] {
-  /* NEWEST FIRST BY CBK'S UPLOAD ID, not page order. The bonds page lists
-   * documents oldest-first (2008 onward), so the first run of 5 Oct read only
-   * T-bill notices and never reached the 5 Oct bond results. CBK prefixes each
-   * upload with an increasing number (2069542746_... is newer than
-   * 2049865152_...), which orders them whatever the page does. */
-  const id = (u: string) => Number(decodeURIComponent(u.split('/').pop() ?? '').match(/^(\d+)_/)?.[1] ?? 0);
+  /* NEWEST FIRST BY THE DATE IN THE FILE NAME. CBK names every results
+   * notice "... DATED dd-mm-yyyy" (or dd.mm.yyyy). The bonds page lists
+   * documents oldest-first, and CBK's numeric upload prefix is NOT a clock —
+   * a 2018 notice carries 2129006739, above this year's 2069542746 — so both
+   * page order and prefix picked 2018 and 2020 notices on 5 Oct. */
+  const dated = (u: string) => {
+    const m = decodeURIComponent(u).match(/dated\s*(\d{1,2})[-.\/](\d{1,2})[-.\/](\d{4})/i);
+    return m ? Number(`${m[3]}${m[2].padStart(2, '0')}${m[1].padStart(2, '0')}`) : 0;
+  };
   return links
     .filter((u) => /\.pdf$/i.test(u) && /result/i.test(decodeURIComponent(u)))
     .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
-    .sort((a, b) => id(b) - id(a))
+    .sort((a, b) => dated(b) - dated(a))
     .slice(0, max);
 }
 

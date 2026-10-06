@@ -327,5 +327,39 @@
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
     "status": "upcoming",
     "transactionType": "switch"
+  },
+  {
+    "id": "auc-2026-10-08-tbills",
+    "issueCode": "2703/091 · 2677/182 · 2632/364",
+    "bondName": "91, 182 & 364-day Treasury Bills",
+    "category": "TBILL",
+    "offerOpenDate": "2026-10-02",
+    "offerCloseDate": "2026-10-08",
+    "auctionDate": "2026-10-08",
+    "settlementDate": "2026-10-12",
+    "amountOfferedKES": null,
+    "couponRate": null,
+    "tenorYears": 1,
+    "maturityDate": null,
+    "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
+    "status": "upcoming",
+    "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-10-14-reopen",
+    "issueCode": "SDB1/2011/030 + FXD1/2026/030",
+    "bondName": "Re-opened 30-Year Fixed Coupon Bonds (Ksh 50B, budgetary support)",
+    "category": "FXD",
+    "offerOpenDate": "2026-10-06",
+    "offerCloseDate": "2026-10-14",
+    "auctionDate": "2026-10-14",
+    "settlementDate": "2026-10-19",
+    "amountOfferedKES": 50000000000,
+    "couponRate": null,
+    "tenorYears": 30,
+    "maturityDate": "2056-03-13",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "issuance"
   }
 ]

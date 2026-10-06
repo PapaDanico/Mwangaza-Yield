@@ -364,17 +364,26 @@ export function bidGuidance(
    * the one a reader can follow. */
   const spread = (edge: number): number => median + (shift(edge) - median) * bandScale;
 
+  /* The widened middle band can reach past the observed extremes (SDB1/2011/030,
+   * 6 Oct 2026: p25 13.10 below a low of 13.25). The band is the calibrated
+   * claim, so the range is widened to enclose it rather than the band clipped,
+   * which would quietly undo the measured coverage. */
+  const p25 = rates.length ? spread(quantile(rates, 0.25)) : 0;
+  const p75 = rates.length ? spread(quantile(rates, 0.75)) : 0;
+  const low = rates.length ? Math.min(shift(rates[0]), p25) : 0;
+  const high = rates.length ? Math.max(shift(rates[rates.length - 1]), p75) : 0;
+
   return {
     targetYears,
     toleranceYears: tolerance,
     windowDays,
     comparables: found.comparables,
     count: rates.length,
-    low: rates.length ? shift(rates[0]) : 0,
-    p25: rates.length ? spread(quantile(rates, 0.25)) : 0,
+    low,
+    p25,
     median: rates.length ? median : 0,
-    p75: rates.length ? spread(quantile(rates, 0.75)) : 0,
-    high: rates.length ? shift(rates[rates.length - 1]) : 0,
+    p75,
+    high,
     latest: found.comparables[0] ?? null,
     thin: rates.length < MIN_SAMPLE,
     droppedForMissingData: found.dropped,

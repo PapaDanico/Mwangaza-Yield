@@ -48,3 +48,21 @@ describe('cbk-watch results notices', () => {
   });
 
 });
+
+describe('lookup (wanted bonds)', () => {
+  it('finds IFB1/2015/012 rows and notices by ISIN or issue code, not its neighbours', async () => {
+    const { lookup } = await import('../../netlify/functions/cbk-watch.mts');
+    const html = `<table>
+      <tr><td>30/03/2015</td><td>IFB1/2015/12</td><td>KE4000001653</td><td>12</td><td>11.000</td><td>11.5</td></tr>
+      <tr><td>14/12/2015</td><td>IFB1/2015/9</td><td>KE5000004100</td></tr>
+      <tr><td>x</td><td>KE4000001653</td></tr></table>
+      <a href="/uploads/a/1_RESULTS IFB 1-2015-12 DATED 30-03-2015.pdf">r</a>
+      <a href="/uploads/a/2_RESULTS IFB1-2015-9.pdf">s</a>
+      <a href="/uploads/a/3_RESULTS IFB1-2015-120.pdf">t</a>`;
+    const r = lookup(html, 'https://www.centralbank.go.ke/bills-bonds/treasury-bonds/');
+    expect(r.rows).toHaveLength(2);
+    expect(r.docs.map((d) => decodeURIComponent(d))).toEqual([
+      'https://www.centralbank.go.ke/uploads/a/1_RESULTS IFB 1-2015-12 DATED 30-03-2015.pdf',
+    ]);
+  });
+});

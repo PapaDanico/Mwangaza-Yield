@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Trash2, Download, Users, ShieldCheck } from 'lucide-react';
 import type { Bond } from '@/types/bond';
+import { outstanding } from '@/lib/outstanding';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { useCommunityPriceStore, selectCommunityPrice } from '@/stores/communityPriceStore';
@@ -47,7 +48,8 @@ function fairValueBadgeClass(color: 'red' | 'green' | 'gold') {
  * planner in the app reads from it.
  */
 export default function PricesClient() {
-  const bonds = useBondStore((s) => s.bonds);
+  const allBonds = useBondStore((s) => s.bonds);
+  const bonds = useMemo(() => outstanding(allBonds), [allBonds]);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
   const auctionResults = useBondStore((s) => s.auctionResults);

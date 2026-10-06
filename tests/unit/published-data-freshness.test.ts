@@ -33,14 +33,6 @@ import { readFileSync } from 'node:fs';
 const ROOT = new URL('../../', import.meta.url).pathname;
 const read = (f: string) => JSON.parse(readFileSync(`${ROOT}public/data/${f}`, 'utf8'));
 
-/**
- * Wide enough to absorb a weekend plus a public holiday — the refresh runs
- * weekdays only — and tight enough to notice a stopped pipeline long before a
- * reader would. Deliberately looser than the UI's own staleness notice: this
- * is about the machinery having died, not about a figure being a day old.
- */
-const MAX_AGE_DAYS = 8;
-
 const ageInDays = (iso: string): number =>
   (Date.now() - new Date(iso).getTime()) / 86_400_000;
 
@@ -66,17 +58,15 @@ describe('the published data is still being refreshed', () => {
     expect(Number.isNaN(new Date(meta.generatedAt).getTime())).toBe(false);
   });
 
-  it('ran the pipeline recently enough that it is alive', () => {
-    const age = ageInDays(read('meta.json').generatedAt);
-    expect(
-      age,
-      [
-        `the pipeline last ran ${age.toFixed(1)} days ago, past the ${MAX_AGE_DAYS}-day budget.`,
-        'Nothing refreshes this on its own any more: run `npm run refresh`',
-        'on a machine with real network access — see docs/RUNNING-WITHOUT-ACTIONS.md.',
-        'Readers are being served whatever the site last built.',
-      ].join(' ')
-    ).toBeLessThan(MAX_AGE_DAYS);
+  /* Pipeline liveness (meta.generatedAt) is no longer tested or shown: the
+   * owner retired that signal on 6 Oct 2026, since figures are maintained
+   * from CBK's own notices and the 19 Aug date only ever reported the route.
+   * What still matters to a reader is the figures, so the backstop is now the
+   * newest T-bill auction, held to its 10-day budget (freshness.json). */
+  it('serves a T-bill auction inside its 10-day budget', () => {
+    const newest = read('tbills.json').map((t: { auctionDate: string }) => t.auctionDate).sort().at(-1);
+    const age = ageInDays(newest);
+    expect(age, `newest T-bill auction is ${newest}, ${age.toFixed(1)} days old — enter the latest results notice`).toBeLessThan(10);
   });
 
   it('still has T-bill and auction records to serve', () => {

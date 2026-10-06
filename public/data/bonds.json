@@ -473,10 +473,10 @@
     "tenorYears": 15,
     "couponRate": 12.65,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.3179,
+    "ytmGross": 12.6126,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-04-15",
+    "ytmAsOf": "2026-10-05",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/376777690_SWITCH RESULTS FXD1-2018-015 DATED 15-04-2026...pdf"
   },
   {

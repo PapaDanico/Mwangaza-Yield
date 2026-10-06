@@ -6013,5 +6013,23 @@
     "transactionType": "issuance",
     "sourceNote": "Central Bank of Kenya — Results for Reopened Fifteen and Twenty Year Treasury Bonds Issue Nos. FXD3/2019/015 and FXD1/2019/020 dated 05/10/2026, signed David Luusa, Director, Financial Markets, 30 September 2026 (document supplied directly to Mwangaza Yield). Column totals reconcile: bids 34,559.26 + 46,003.11 = 80,562.37M, accepted 28,602.50 + 28,902.51 = 57,505.01M against 50,000.00M offered (performance 161.12%). ISIN, coupon and maturity match bonds.json.",
     "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-09-30-issuance"
+  },
+  {
+    "id": "res-fxd1-2018-015-2026-10-05-switch",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2026-10-05",
+    "parserVersion": 14,
+    "couponRate": 12.65,
+    "weightedAverageRate": 12.6112,
+    "marketWeightedAverageRate": 12.6126,
+    "pricePer100": 105.0721,
+    "amountOfferedKESM": 10000.0,
+    "amountAcceptedKESM": 8963.83,
+    "bidsReceivedKESM": 9080.58,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "switch",
+    "sourceNote": "Central Bank of Kenya — Results of Fifteen-Year Treasury Switch Bond Issue No. FXD1/2018/015 dated 07/10/2026, source bonds FXD1/2024/003 and FXD2/2013/015, signed David Luusa, Director, Financial Markets, 05 October 2026 (document supplied directly to Mwangaza Yield). Reconciles: competitive 7,041.25 + non-competitive 1,922.58 = 8,963.83M accepted; performance 9,080.58 / 10,000.00 = 90.81%; 8,779.15M switched from source bonds. ISIN KE5000008432, coupon 12.65 and maturity 09-May-33 match bonds.json.",
+    "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-10-05-switch"
   }
 ]

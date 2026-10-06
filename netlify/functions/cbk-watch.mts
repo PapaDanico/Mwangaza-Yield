@@ -126,12 +126,36 @@ async function pdfText(url: string): Promise<string> {
   return (t as string).replace(/\s+/g, ' ').trim() || '(no text layer)';
 }
 
+/**
+ * Bonds the site is missing a CBK-sourced figure for, searched for on every
+ * run. IFB1/2015/012 (6 Oct 2026): outstanding, coupon confirmed by NSE and
+ * the DhowCSD register, but no CBK results notice found by search, and
+ * bonds.json needs its auction yield. Remove an entry once it is entered.
+ */
+export const LOOKUP: { isin: string; code: RegExp }[] = [
+  { isin: 'KE4000001653', code: /IFB\s*1\s*[-/ ]\s*2015\s*[-/ ]\s*0?12(?!\d)/i },
+];
+
+/** Table rows and document links on a page that mention a LOOKUP bond. */
+export function lookup(html: string, base: string): { rows: string[]; docs: string[] } {
+  const rows: string[] = [];
+  for (const r of html.match(/<tr[\s\S]*?<\/tr>/gi) ?? []) {
+    const t = text(r);
+    if (LOOKUP.some((l) => t.includes(l.isin) || l.code.test(t))) rows.push(t.slice(0, 300));
+  }
+  const found = docs(html, base, 5000).filter((u) => {
+    const n = decodeURIComponent(u);
+    return LOOKUP.some((l) => n.includes(l.isin) || l.code.test(n));
+  });
+  return { rows: rows.slice(0, 20), docs: found.slice(0, 10) };
+}
+
 async function grab(url: string) {
   const started = Date.now();
   try {
     const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(15_000) });
     const html = await res.text();
-    return { status: res.status, bytes: html.length, ms: Date.now() - started, tables: tables(html), docs: docs(html, url), allDocs: docs(html, url, 5000) };
+    return { status: res.status, bytes: html.length, ms: Date.now() - started, tables: tables(html), docs: docs(html, url), allDocs: docs(html, url, 5000), lookup: lookup(html, url) };
   } catch (e) {
     return { status: 0, error: String(e).slice(0, 200), ms: Date.now() - started };
   }
@@ -156,6 +180,16 @@ export default async () => {
   }
   (run as Record<string, unknown>).notices = notices;
 
+  // Wanted bonds (LOOKUP): matching rows, and the text of up to two notices.
+  const hits = results.map(([, p]) => (p as { lookup?: { rows: string[]; docs: string[] } }).lookup);
+  const lookRows = hits.flatMap((h) => h?.rows ?? []);
+  const lookDocs = [...new Set(hits.flatMap((h) => h?.docs ?? []))];
+  const lookText: string[] = [];
+  for (const u of lookDocs.slice(0, 2)) {
+    const t = await pdfText(u).catch((e) => `error ${String(e).slice(0, 120)}`);
+    lookText.push(`=== ${decodeURIComponent(u.split('/').pop() ?? u)}\n${t.slice(0, 3000)}`);
+  }
+
   const store = getStore('cbk-watch');
   await store.setJSON('latest', run);
   await store.setJSON(`run-${at.slice(0, 13)}`, run);
@@ -176,6 +210,12 @@ export default async () => {
     .map(([n, t]) => `=== ${n}\n${t.slice(0, 2400)}`)
     .join('\n')
     .slice(0, 9000);
+  fields.lookup = [
+    `wanted: ${LOOKUP.map((l) => l.isin).join(', ')}`,
+    ...lookRows.map((r) => `row ${r}`),
+    ...lookDocs.map((u) => `doc ${decodeURIComponent(u.split('/').pop() ?? '')}`),
+    ...lookText,
+  ].join('\n').slice(0, 8000);
   for (const [key, page] of results) {
     const p = page as { status: number; tables?: string[][][]; docs?: string[]; error?: string };
     const lines = [`status ${p.status}${p.error ? ` error ${p.error}` : ''}`];

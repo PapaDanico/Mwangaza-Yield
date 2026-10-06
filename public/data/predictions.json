@@ -130,5 +130,39 @@
     "scoredOn": "2026-09-30",
     "hitRange": true,
     "hitMiddleHalf": true
+  },
+  {
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": "2026-10-14",
+    "recordedOn": "2026-10-06",
+    "targetYears": 14.32,
+    "toleranceYears": 1.5,
+    "windowDays": 180,
+    "sampleSize": 5,
+    "low": 13.10375,
+    "p25": 13.10375,
+    "median": 13.945675,
+    "p75": 14.030375000000001,
+    "high": 14.591474999999999,
+    "thin": false,
+    "correctionPp": -0.25197499999999984,
+    "bandScale": 1.75
+  },
+  {
+    "issueCode": "FXD1/2026/030",
+    "auctionDate": "2026-10-14",
+    "recordedOn": "2026-10-06",
+    "targetYears": 29.51,
+    "toleranceYears": 5,
+    "windowDays": null,
+    "sampleSize": 5,
+    "low": 14.007375,
+    "p25": 14.40435,
+    "median": 14.487475,
+    "p75": 14.8436,
+    "high": 14.868575,
+    "thin": false,
+    "correctionPp": -0.25197499999999984,
+    "bandScale": 1.75
   }
 ]

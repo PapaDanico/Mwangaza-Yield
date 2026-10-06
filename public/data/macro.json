@@ -96,5 +96,16 @@
     "via": "supplied-document",
     "lastChecked": "2026-09-24",
     "sourceNote": "Computed from the Fourth Quarter FY2025/26 QEBR supplied by the owner (period ending 30 June 2026, provisional): interest payments KSh 1,074.4bn (domestic 862.7bn + foreign 211.8bn, para 40) over ordinary revenue KSh 2,588.4bn (para 36) = 41.508%. The QEBR does not print the ratio itself. Supersedes a search-corroborated 42.7 written earlier the same day: press had foreign interest at 205bn and a ratio the primary figures do not reproduce. Domestic 862.7bn matched the press exactly; the ordinary-revenue shortfall is 52.2bn in the document against 53.5bn reported."
+  },
+  {
+    "id": "fx-2026-10-06",
+    "indicator": "FX_USD_KES",
+    "value": 129.79,
+    "date": "2026-10-06",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "cbk-home",
+    "lastChecked": "2026-10-06",
+    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.79 (06-10-2026)', read by the cbk-watch Netlify function at 16:00 Nairobi on 6 Oct 2026 and compared by scripts/cbk-watch-diff.mjs (NEWER)."
   }
 ]

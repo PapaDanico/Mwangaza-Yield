@@ -59,7 +59,9 @@ describe('lookup (wanted bonds)', () => {
       <a href="/uploads/a/1_RESULTS IFB 1-2015-12 DATED 30-03-2015.pdf">r</a>
       <a href="/uploads/a/2_RESULTS IFB1-2015-9.pdf">s</a>
       <a href="/uploads/a/3_RESULTS IFB1-2015-120.pdf">t</a>`;
-    const r = lookup(html, 'https://www.centralbank.go.ke/bills-bonds/treasury-bonds/');
+    const r = lookup(html, 'https://www.centralbank.go.ke/bills-bonds/treasury-bonds/', [
+      { isin: 'KE4000001653', code: /IFB\s*1\s*[-/ ]\s*2015\s*[-/ ]\s*0?12(?!\d)/i },
+    ]);
     expect(r.rows).toHaveLength(2);
     expect(r.docs.map((d) => decodeURIComponent(d))).toEqual([
       'https://www.centralbank.go.ke/uploads/a/1_RESULTS IFB 1-2015-12 DATED 30-03-2015.pdf',

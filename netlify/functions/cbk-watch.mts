@@ -130,22 +130,22 @@ async function pdfText(url: string): Promise<string> {
  * Bonds the site is missing a CBK-sourced figure for, searched for on every
  * run. IFB1/2015/012 (6 Oct 2026): outstanding, coupon confirmed by NSE and
  * the DhowCSD register, but no CBK results notice found by search, and
- * bonds.json needs its auction yield. Remove an entry once it is entered.
+ * bonds.json needs its auction yield. Remove an entry once it is entered —
+ * IFB1/2015/012 was found on the first run (6 Oct, 11.556% at 30/03/2015) and removed.
  */
 export const LOOKUP: { isin: string; code: RegExp }[] = [
-  { isin: 'KE4000001653', code: /IFB\s*1\s*[-/ ]\s*2015\s*[-/ ]\s*0?12(?!\d)/i },
 ];
 
 /** Table rows and document links on a page that mention a LOOKUP bond. */
-export function lookup(html: string, base: string): { rows: string[]; docs: string[] } {
+export function lookup(html: string, base: string, wanted = LOOKUP): { rows: string[]; docs: string[] } {
   const rows: string[] = [];
   for (const r of html.match(/<tr[\s\S]*?<\/tr>/gi) ?? []) {
     const t = text(r);
-    if (LOOKUP.some((l) => t.includes(l.isin) || l.code.test(t))) rows.push(t.slice(0, 300));
+    if (wanted.some((l) => t.includes(l.isin) || l.code.test(t))) rows.push(t.slice(0, 300));
   }
   const found = docs(html, base, 5000).filter((u) => {
     const n = decodeURIComponent(u);
-    return LOOKUP.some((l) => n.includes(l.isin) || l.code.test(n));
+    return wanted.some((l) => n.includes(l.isin) || l.code.test(n));
   });
   return { rows: rows.slice(0, 20), docs: found.slice(0, 10) };
 }

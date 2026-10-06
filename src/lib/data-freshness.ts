@@ -327,7 +327,7 @@ export function staleDatasetNotice(stale: DatasetFreshness[] = staleDatasets()):
  * on ageing whether or not the job that wrote it ever runs again.
  *
  * Pipeline liveness has not been discarded, it has been moved to where it
- * belongs: the Data Health panel's "Pipeline last ran" row, which is read by
+ * belongs: the Data Health panel's "Pipeline last ran" row (retired 6 Oct 2026), which is read by
  * whoever operates this, not by somebody pricing a bond.
  *
  * BOTH GRANULARITIES, BECAUSE ONE OF THEM MISSES THE URGENT CASE

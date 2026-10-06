@@ -85,11 +85,11 @@ const SCORED = [
  * So they appear as quality-only rows that say why they have no age, rather
  * than being dropped, or shown with a number that would be fiction. The
  * question "has the pipeline run recently" is answered once, by the
- * "Pipeline last ran" row above them.
+ * "Pipeline last ran" row (retired 6 Oct 2026).
  */
 const NOT_AGE_CHECKED: Record<string, string> = {
-  'bonds.json': 'dated by instrument, not by fetch — see Pipeline last ran',
-  'auctions.json': 'dated by auction, including scheduled ones — see Pipeline last ran',
+  'bonds.json': 'dated by instrument, not by fetch',
+  'auctions.json': 'dated by auction, including scheduled ones',
 };
 
 /** Worst state loudest. The previous order left `expired` grey — calmer than `old`. */
@@ -115,7 +115,8 @@ export default function DataStatus() {
     };
   }, []);
 
-  const rows: DatasetFreshness[] = useMemo(() => datasetFreshness(), []);
+  // Pipeline liveness (meta.json) is not shown: retired by the owner 6 Oct 2026.
+  const rows: DatasetFreshness[] = useMemo(() => datasetFreshness().filter((d) => d.file !== 'meta.json'), []);
 
   /** SCORED entries freshness.json cannot age-check — see NOT_AGE_CHECKED. */
   const qualityOnly = useMemo(
@@ -127,13 +128,12 @@ export default function DataStatus() {
   );
   /* The READER'S signal is the figures, judged by their own publishers'
    * cadence; the pipeline's liveness is the operator's, and stays in the
-   * panel's "Pipeline last ran" row. This button used to go red on every page
+   * panel's "Pipeline last ran" row (retired 6 Oct 2026). This button used to go red on every page
    * and say "last updated 2026-08-19 ... scheduled updates have been missed"
    * above T-bill rates from late September — the lie readerNotice was built to
    * retire in August, still printed here. */
-  const fresh = useMemo(() => freshness(new Date()), []);
   const latest = useMemo(() => latestFigureDate(), []);
-  const figuresStale = rows.some((d) => d.stale && d.file !== 'meta.json');
+  const figuresStale = rows.some((d) => d.stale);
 
   /**
    * Fetch the datasets only when the panel is opened.
@@ -201,12 +201,7 @@ export default function DataStatus() {
               <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 hover:bg-sand-200"><X size={15} /></button>
             </div>
             <p className="mt-1 text-xs text-ink-muted">
-              Latest figure: {latest ?? 'unknown'} · Automated pipeline last ran: {fresh.generatedAt.slice(0, 10)}
-              {fresh.stale && (
-                <span className="ml-2 text-ink-faint">
-                  (figures since then were entered from the publishers&apos; own notices)
-                </span>
-              )}
+              Latest figure: {latest ?? 'unknown'}
             </p>
 
             <div className="mt-3 overflow-x-auto">

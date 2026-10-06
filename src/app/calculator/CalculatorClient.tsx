@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Bond } from '@/types/bond';
+import { outstanding } from '@/lib/outstanding';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
@@ -48,7 +49,8 @@ function Row({ label, value, accent, hint }: {
 }
 
 export default function CalculatorClient() {
-  const bonds = useBondStore((s) => s.bonds);
+  const allBonds = useBondStore((s) => s.bonds);
+  const bonds = useMemo(() => outstanding(allBonds), [allBonds]);
   const secondary = useBondStore((s) => s.secondary);
   const macro = useBondStore((s) => s.macro);
   const userPrices = usePriceStore((s) => s.userPrices);

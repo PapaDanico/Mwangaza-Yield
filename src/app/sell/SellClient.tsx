@@ -7,6 +7,7 @@ import { plural, CURRENCY_LABEL } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
+import { outstanding } from '@/lib/outstanding';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
@@ -31,7 +32,8 @@ import { inputCls, labelCls } from '@/lib/field-styles';
  * fetched, and no market price is needed.
  */
 export default function SellClient() {
-  const bonds = useBondStore((s) => s.bonds);
+  const allBonds = useBondStore((s) => s.bonds);
+  const bonds = useMemo(() => outstanding(allBonds), [allBonds]);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
 

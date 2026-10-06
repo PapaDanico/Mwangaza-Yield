@@ -20,7 +20,7 @@ import { latestFigureDate } from '@/lib/data-freshness';
  *
  * It now states the date of the newest reader-facing figure, which is a fact
  * about the data. Pipeline liveness has not been hidden — it is the Data
- * Health panel's "Pipeline last ran" row, read by whoever operates this.
+ * Health panel; pipeline liveness itself was retired from view on 6 Oct 2026.
  */
 export default function DataProvenanceFooter() {
   const latest = latestFigureDate();

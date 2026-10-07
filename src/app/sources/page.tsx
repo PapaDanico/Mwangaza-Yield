@@ -222,7 +222,7 @@ export default function SourcesPage() {
       <ul>
         <li>Auction results and rates carry the date of the auction they came from.</li>
         <li>
-          <strong>While our automated refresh is paused</strong>, figures are entered by hand from
+          <strong>Current figures are entered by hand</strong> from
           the publishers&apos; own documents: CBK&apos;s auction results notices, daily exchange
           rates and Weekly Bulletin, the National Treasury&apos;s Quarterly Economic and Budgetary
           Review, and CBK&apos;s Market Perceptions Survey. Each such figure records which document

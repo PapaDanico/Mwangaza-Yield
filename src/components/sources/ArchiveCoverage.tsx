@@ -45,7 +45,8 @@ export default function ArchiveCoverage() {
       <p className="mt-1 text-sm text-ink-muted">
         {records.toLocaleString()} auction results across {issueCodes} issue codes
         {earliest && latest ? `, ${earliest.slice(0, 4)} to ${latest.slice(0, 4)}` : ''}, parsed from
-        CBK&apos;s published PDFs. Those PDFs are public; this is the only machine-readable form of
+        CBK&apos;s published PDFs, with recent auctions entered from CBK&apos;s own results notices.
+        Those PDFs are public; this is the only machine-readable form of
         them we know of. Here is how much of it is actually filled in.
       </p>
 
@@ -72,12 +73,12 @@ export default function ArchiveCoverage() {
         // that unsaid would let a reader take a percentage measured mid-rebuild
         // as the parser's ceiling, and judge the dataset on it.
         <p className="mt-4 rounded-xl border border-gold-300 bg-gold-50 p-3 text-xs text-ink-soft">
-          <span className="font-semibold text-ink">Re-read in progress.</span>{' '}
+          <span className="font-semibold text-ink">Older readings kept.</span>{' '}
           <span className="num">{stale.toLocaleString()}</span> of{' '}
-          <span className="num">{records.toLocaleString()}</span> rows were produced by an earlier
-          version of the parser and are being re-read at version{' '}
-          <span className="num">{newest}</span> as each source PDF is next fetched. The percentages
-          here are therefore a floor: a re-read can fill a field, never empty one.
+          <span className="num">{records.toLocaleString()}</span> rows were read by an earlier
+          version of the parser than the current version{' '}
+          <span className="num">{newest}</span>, and are kept as they were read. The percentages
+          here are therefore a floor: re-reading them could fill a field, never empty one.
           {quality.atNewest && (
             <>
               {' '}
@@ -86,8 +87,8 @@ export default function ArchiveCoverage() {
               current parser has already read,{' '}
               <span className="num">{quality.atNewest.complete.toLocaleString()}</span> are complete
               on all six fields, or <span className="num">{quality.atNewest.pct}%</span>. The
-              difference between that and the figure below is unfinished work, not unreadable
-              documents.
+              difference between that and the figure below comes from those older readings, not
+              from unreadable documents.
             </>
           )}
         </p>
@@ -112,7 +113,8 @@ export default function ArchiveCoverage() {
       <p className="mt-4 text-xs text-ink-muted">
         <span className="font-semibold text-ink-soft">On the value date:</span> the JSON key is
         called <code className="num">auctionDate</code>, and it holds the date CBK dates the bond
-        from — the Monday — not the Wednesday bidding closed.{' '}
+        from — the Monday — not the Wednesday bidding closed, for every row read from CBK&apos;s
+        archive.{' '}
         <span className="num">{valueDates.mondays.toLocaleString()}</span> of the{' '}
         <span className="num">{valueDates.dated.toLocaleString()}</span> records that carry a date
         land on a Monday
@@ -126,7 +128,8 @@ export default function ArchiveCoverage() {
             {' '}
             — the{' '}
             <span className="num">{valueDates.exceptions.toLocaleString()}</span> that do not are
-            exchanges and buybacks rather than ordinary auctions, and settle on their own timetable
+            switch auctions, which settle on their own timetable, or recent auctions entered by hand
+            from CBK&apos;s notices, which are dated by the day bidding closed
           </>
         )}
         . The key keeps its name so that anything already reading the file does not break; this note

@@ -21,6 +21,13 @@ import BondPicker from '@/components/shared/BondPicker';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
 import { yearsLabel } from '@/lib/years-label';
+import { mediumTermInflation, type WeoSeries } from '@/lib/imf-context';
+import IMF_OUTLOOK from '../../../public/data/imf-outlook.json';
+
+/* The IMF's medium-term inflation path, read from the WEO vintage on file so
+ * the goals note follows each edition instead of a hard-coded 5%. */
+const MT_INFLATION = mediumTermInflation(IMF_OUTLOOK as WeoSeries[], new Date().getFullYear());
+const HALVING_YEARS = MT_INFLATION ? Math.round(Math.log(2) / Math.log(1 + MT_INFLATION.pct / 100)) : 14;
 import { inputCls } from '@/lib/field-styles';
 
 const ICONS: Record<GoalKey, typeof Flame> = {
@@ -494,8 +501,16 @@ export default function GoalsClient() {
                 Bonds you already hold keep their coupon to maturity; it is what you buy NEXT that
                 reprices, which is why a long plan is a rate bet as much as a savings one. Every
                 coupon is assumed reinvested. Inflation is not modelled, so the target is in
-                today&apos;s shillings — at 5% inflation, money buys about half as much in 14
-                years. This is an estimate for planning, not advice or a forecast.
+                today&apos;s shillings —{' '}
+                {MT_INFLATION ? (
+                  <>
+                    at the {MT_INFLATION.pct.toFixed(1)}% a year the IMF projects for{' '}
+                    {MT_INFLATION.firstYear}–{MT_INFLATION.lastYear} ({MT_INFLATION.source.replace('IMF ', '')}),
+                    money buys about half as much in {HALVING_YEARS} years.
+                  </>
+                ) : (
+                  <>at 5% inflation, money buys about half as much in 14 years.</>
+                )} This is an estimate for planning, not advice or a forecast.
               </p>
             </div>
           </div>

@@ -378,5 +378,22 @@
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-10-22-tbills",
+    "issueCode": "2705/091 · 2679/182 · 2634/364",
+    "bondName": "91, 182 & 364-day Treasury Bills",
+    "category": "TBILL",
+    "offerOpenDate": "2026-10-16",
+    "offerCloseDate": "2026-10-22",
+    "auctionDate": "2026-10-22",
+    "settlementDate": "2026-10-26",
+    "amountOfferedKES": null,
+    "couponRate": null,
+    "tenorYears": 1,
+    "maturityDate": null,
+    "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
+    "status": "upcoming",
+    "transactionType": "issuance"
   }
 ]

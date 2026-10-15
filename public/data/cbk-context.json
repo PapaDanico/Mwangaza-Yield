@@ -2,12 +2,12 @@
   {
     "id": "cbk-import-cover",
     "label": "Reserves (import cover)",
-    "value": 6.1,
+    "value": 5.9,
     "unit": "months",
-    "asOf": "2026-10-01",
+    "asOf": "2026-10-08",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,930 million on this date, about KSh 1.94 trillion at 129.71, down from USD 15,042 million (also 6.1 months) a week earlier. Weekly Bulletin of 2 October 2026, Table 2.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,736 million on this date, about KSh 1.91 trillion at 129.94, down from USD 14,930 million (6.1 months) a week earlier. Weekly Bulletin of 9 October 2026, Table 2.",
     "sentiment": "good"
   },
   {
@@ -15,10 +15,10 @@
     "label": "Gross domestic debt",
     "value": 7.78,
     "unit": "KSh tn",
-    "asOf": "2026-09-25",
+    "asOf": "2026-10-02",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,784.57 billion at 25 September 2026 (Weekly Bulletin of 2 October, Table 7), up from 7,728.83 billion a week earlier; Treasury bonds 84.34 percent of securities, bills 15.66 percent.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,784.63 billion at 2 October 2026 (Weekly Bulletin of 9 October, Table 7), flat on 7,784.57 billion a week earlier; Treasury bonds 84.28 percent of securities, bills 15.72 percent.",
     "sentiment": "watch"
   },
   {

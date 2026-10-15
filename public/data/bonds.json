@@ -809,10 +809,10 @@
     "tenorYears": 30,
     "couponRate": 12,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.1104,
+    "ytmGross": 13.7159,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-04-20",
+    "ytmAsOf": "2026-10-14",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/482629457_RESULTS SDB1-2011-030 AND FXD1-2026-030 DATED 20-04-2026.pdf"
   },
   {
@@ -937,10 +937,10 @@
     "tenorYears": 30,
     "couponRate": 12.5,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.2355,
+    "ytmGross": 14.2789,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-09-16",
+    "ytmAsOf": "2026-10-14",
     "source": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/"
   }
 ]

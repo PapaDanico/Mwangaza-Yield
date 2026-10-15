@@ -107,5 +107,49 @@
     "via": "cbk-home",
     "lastChecked": "2026-10-06",
     "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.79 (06-10-2026)', read by the cbk-watch Netlify function at 16:00 Nairobi on 6 Oct 2026 and compared by scripts/cbk-watch-diff.mjs (NEWER)."
+  },
+  {
+    "id": "cbr-2026-10-07",
+    "indicator": "CBR",
+    "value": 8.75,
+    "date": "2026-10-07",
+    "unit": "%",
+    "source": "CBK",
+    "via": "supplied-document",
+    "lastChecked": "2026-10-15",
+    "sourceNote": "CBK press release, Monetary Policy Committee meeting of 7 October 2026 (signed Dr. Kamau Thugge): CBR maintained at 8.75 percent; the Committee meets again in December 2026. Supplied directly to Mwangaza Yield; corroborated by the Weekly Bulletin of 9 October 2026 and by KESONIA 8.75 through 8 October."
+  },
+  {
+    "id": "fx-2026-10-07",
+    "indicator": "FX_USD_KES",
+    "value": 129.89,
+    "date": "2026-10-07",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "supplied-document",
+    "lastChecked": "2026-10-15",
+    "sourceNote": "Central Bank of Kenya, Weekly Bulletin of 9 October 2026, Table 1 (supplied directly to Mwangaza Yield). The bulletin table also confirms 129.79 on 6 Oct, matching the value cbk-watch read."
+  },
+  {
+    "id": "fx-2026-10-08",
+    "indicator": "FX_USD_KES",
+    "value": 129.94,
+    "date": "2026-10-08",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "supplied-document",
+    "lastChecked": "2026-10-15",
+    "sourceNote": "Central Bank of Kenya, Weekly Bulletin of 9 October 2026, Table 1 (supplied directly to Mwangaza Yield). The bulletin table also confirms 129.79 on 6 Oct, matching the value cbk-watch read."
+  },
+  {
+    "id": "fx-2026-10-15",
+    "indicator": "FX_USD_KES",
+    "value": 129.81,
+    "date": "2026-10-15",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "supplied-document",
+    "lastChecked": "2026-10-15",
+    "sourceNote": "Central Bank of Kenya, CBK Daily KES Exchange Rates card, 15 October 2026 (supplied directly to Mwangaza Yield). The bulletin table also confirms 129.79 on 6 Oct, matching the value cbk-watch read."
   }
 ]

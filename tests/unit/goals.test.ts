@@ -64,7 +64,7 @@ describe('planSchoolFees', () => {
   it('counts maturing principal in the year it lands', () => {
     const y2032 = p.years.find((y) => y.year === 2032)!;
     expect(y2032.principalMaturingKES).toBeGreaterThan(0);
-    expect(y2032.coveredKES).toBe(y2032.principalMaturingKES + y2032.couponsKES);
+    expect(y2032.coveredKES).toBe(y2032.carriedInKES + y2032.principalMaturingKES + y2032.couponsKES);
   });
 
   it('flags a shortfall when fees exceed what lands that year', () => {
@@ -412,5 +412,18 @@ describe('smoothing income across the year', () => {
       // would be an invitation to discard it.
       expect(priceIncomeSpreads(many, [], 3_000_000, [], ['A/JAN', 'B/FEB'])).toEqual([]);
     });
+  });
+});
+
+describe('planSchoolFees carries money forward', () => {
+  it('a year\'s surplus reaches the next year, and nothing is created or lost', () => {
+    const p = planSchoolFees(universe, [], 3_000_000, 2032, 3, 400_000, asOf);
+    for (let i = 1; i < p.years.length; i++) {
+      const prev = p.years[i - 1];
+      expect(p.years[i].carriedInKES).toBeCloseTo(Math.max(0, prev.coveredKES - prev.feeKES), 6);
+    }
+    // Conservation: everything paid out is either spent on a fee or left over.
+    const paid = p.ladder.yearlyPayouts.reduce((s, y) => s + y.principalKES + y.couponsKES, 0);
+    expect(p.totalCoveredKES + p.leftOverKES).toBeCloseTo(paid, 4);
   });
 });

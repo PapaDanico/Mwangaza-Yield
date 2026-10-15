@@ -92,7 +92,7 @@ export default function GoalReport({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="" width={48} height={48} className="h-12 w-12 rounded-lg" />
           <div>
-            <p className="font-display text-xl font-bold">
+            <p className="font-display text-xl font-bold [word-spacing:0.12em]">
               Mwangaza <span className="text-gold-600">Yield</span>
             </p>
             <p className="text-[11px] uppercase tracking-widest text-ink-faint">
@@ -108,7 +108,7 @@ export default function GoalReport({
 
       {/* h2 for the same reason as the ladder report: this sheet lives inside a
           page that already owns the h1, and two h1s is a document outline lie. */}
-      <h2 className="mt-5 font-display text-2xl font-bold">{goal.tagline}</h2>
+      <h2 className="mt-5 font-display text-2xl font-bold [word-spacing:0.12em]">{goal.tagline}</h2>
       <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-ink-muted">
         {goal.description}
       </p>
@@ -178,9 +178,10 @@ export default function GoalReport({
               <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Year</th>
                 <th className="py-1.5 text-right">Fee due</th>
+                <th className="py-1.5 text-right">Carried in</th>
                 <th className="py-1.5 text-right">Principal maturing</th>
                 <th className="py-1.5 text-right">Coupons</th>
-                <th className="py-1.5 text-right">Covered</th>
+                <th className="py-1.5 text-right">Available</th>
                 <th className="py-1.5 text-right">Shortfall</th>
               </tr>
             </thead>
@@ -189,6 +190,9 @@ export default function GoalReport({
                 <tr key={y.year} className="border-b border-sand-200 last:border-0">
                   <td className="num py-1.5 font-medium">{y.year}</td>
                   <td className="num py-1.5 text-right">{formatKES(y.feeKES)}</td>
+                  <td className="num py-1.5 text-right">
+                    {y.carriedInKES > 0 ? formatKES(y.carriedInKES) : '—'}
+                  </td>
                   {/* '—', not 'Ksh 0', in the years no rung matures. The screen
                     * renders it that way and the printout must agree: this test
                     * ("the printout says what the screen says") caught a Ksh 0
@@ -206,6 +210,14 @@ export default function GoalReport({
               ))}
             </tbody>
           </table>
+          <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">
+            Carried in is money that arrived earlier — a bond maturing before the fees begin, or a
+            year&apos;s surplus — held as cash at no interest until the next invoice.
+            {fees.leftOverKES > 0 && (
+              <> {formatKES(fees.leftOverKES)} is paid out after the last fee or left unspent, and
+              funds none of these years.</>
+            )}
+          </p>
           <Section title="The bonds behind it" />
           <BondTable rungs={fees.ladder.rungs} />
           {/* School fees are the one plan whose TARGET inflates too — fees rise

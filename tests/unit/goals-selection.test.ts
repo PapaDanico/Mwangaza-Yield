@@ -41,7 +41,10 @@ describe('school fees: choosing the bonds that fund them', () => {
 
   /**
    * The point of tailoring: a reader who picks paper maturing away from the fee
-   * years must SEE the coverage fall, not have it quietly repaired.
+   * years must SEE the consequence. Since 7 Oct 2026 early money is carried
+   * forward as idle cash rather than discarded (it is real money and does pay
+   * a later invoice), so the consequence shows as carried-in cash earning
+   * nothing for years, not as a fee left unpaid.
    */
   it('shows the coverage consequence of a poor choice', () => {
     // Everything maturing well before the first fee year.
@@ -51,7 +54,8 @@ describe('school fees: choosing the bonds that fund them', () => {
     // Principal comes back long before the invoices, so the fee years are bare.
     const principalInFeeYears = tailored.years.reduce((s, y) => s + y.principalMaturingKES, 0);
     expect(principalInFeeYears).toBe(0);
-    expect(tailored.fullyFunded).toBe(false);
+    expect(tailored.years[0].carriedInKES).toBeGreaterThan(0);
+    expect(tailored.years[0].principalMaturingKES).toBe(0);
   });
 
   it('still recomputes fee coverage from the chosen bonds', () => {
@@ -60,7 +64,7 @@ describe('school fees: choosing the bonds that fund them', () => {
     // Every fee year is accounted for, and covered never exceeds the fee.
     expect(plan.years).toHaveLength(4);
     for (const y of plan.years) {
-      expect(y.coveredKES).toBeCloseTo(y.principalMaturingKES + y.couponsKES, 6);
+      expect(y.coveredKES).toBeCloseTo(y.carriedInKES + y.principalMaturingKES + y.couponsKES, 6);
       expect(y.shortfallKES).toBeCloseTo(Math.max(0, y.feeKES - y.coveredKES), 6);
     }
     expect(plan.totalFeesKES).toBe(1_600_000);

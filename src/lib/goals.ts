@@ -192,6 +192,9 @@ export interface FeeYear {
   feeKES: number;
   principalMaturingKES: number;
   couponsKES: number;
+  /** Cash brought in from earlier years: payouts before the first fee year,
+   *  plus any year's surplus over its fee. Held as cash, earning nothing. */
+  carriedInKES: number;
   coveredKES: number;
   shortfallKES: number;
 }
@@ -201,6 +204,9 @@ export interface SchoolFeesPlan {
   years: FeeYear[];
   totalFeesKES: number;
   totalCoveredKES: number;
+  /** Cash not spent on any fee: the last year's surplus plus every payout
+   *  after the last fee year (a rung that matures too late). */
+  leftOverKES: number;
   fullyFunded: boolean;
 }
 
@@ -266,22 +272,34 @@ export function planSchoolFees(
 
   const escalation = Number.isFinite(feeEscalation) ? Math.max(0, feeEscalation) : 0;
 
+  /* Money is not lost because it arrives early. A rung maturing before the
+   * first fee year, coupons paid before then, and any year's surplus over its
+   * fee are carried forward as cash — at no interest, which understates the
+   * plan rather than flatters it. Before 7 Oct 2026 each year stood alone: a
+   * report showed 2028 over-covered by Ksh 360,786 and 2029 short by 585,580,
+   * and a bond maturing in January 2027 contributed nothing at all. */
+  let carry = ladder.yearlyPayouts
+    .filter((p) => p.year < firstFeeYear)
+    .reduce((s, p) => s + p.principalKES + p.couponsKES, 0);
   const years: FeeYear[] = [];
   for (let i = 0; i < yearsOfFees; i++) {
     const year = firstFeeYear + i;
     const payout = ladder.yearlyPayouts.find((p) => p.year === year);
     const principalMaturingKES = payout?.principalKES ?? 0;
     const couponsKES = payout?.couponsKES ?? 0;
-    const coveredKES = principalMaturingKES + couponsKES;
+    const carriedInKES = carry;
+    const coveredKES = carriedInKES + principalMaturingKES + couponsKES;
     /* Escalated from TODAY, not from the first fee year: the figure the reader
      * typed is one they have seen on an invoice, and the years between now and
      * the first fee year are exactly the ones doing the damage. */
     const feeKES = Math.round(annualFeeKES * Math.pow(1 + escalation, year - thisYear));
+    carry = Math.max(0, coveredKES - feeKES);
     years.push({
       year,
       feeKES,
       principalMaturingKES,
       couponsKES,
+      carriedInKES,
       coveredKES,
       shortfallKES: Math.max(0, feeKES - coveredKES),
     });
@@ -289,12 +307,18 @@ export function planSchoolFees(
 
   const totalFeesKES = years.reduce((s, y) => s + y.feeKES, 0);
   const totalCoveredKES = years.reduce((s, y) => s + Math.min(y.coveredKES, y.feeKES), 0);
+  const leftOverKES =
+    carry +
+    ladder.yearlyPayouts
+      .filter((p) => p.year > lastFeeYear)
+      .reduce((s, p) => s + p.principalKES + p.couponsKES, 0);
 
   return {
     ladder,
     years,
     totalFeesKES,
     totalCoveredKES,
+    leftOverKES,
     fullyFunded: years.every((y) => y.shortfallKES === 0),
   };
 }

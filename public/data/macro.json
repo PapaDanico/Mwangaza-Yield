@@ -74,15 +74,15 @@
   {
     "id": "debt-gdp-2024",
     "indicator": "DEBT_TO_GDP",
-    "value": 67.338,
-    "date": "2026-04-30",
+    "value": 67.3,
+    "date": "2026-10-15",
     "unit": "% of GDP",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "period": "2024",
     "via": "imf-weo",
-    "lastChecked": "2026-09-24",
-    "sourceNote": "General government gross debt, WEO subject GGXWDG_NGDP, 2024 OUTTURN from the April 2026 vintage already held in imf-outlook.json. The outturn, not the 2025 estimate (69.33) or 2026 projection (71.58), because a verdict should rest on a measurement. Corroborated 24 Sept against four independent reports of the same series: 2023 73.41 (press \"73.4% peak\"), 2025 69.33 (Statista, republishing the WEO), 2026 71.58 and 2027 72.39 (IMF April 2026 Regional Economic Outlook, \"71.6% ... 72.4%\"). April 2026 is the current vintage; the October edition is not yet published."
+    "lastChecked": "2026-10-15",
+    "sourceNote": "General government gross debt, WEO subject GGXWDG_NGDP, 2024 OUTTURN from the October 2026 vintage (IMF DataMapper export supplied by the owner, 15 Oct 2026); unchanged from April (67.338, now published to one decimal). The outturn, not the 2025 estimate (71.3, revised up from 69.3) or 2026 projection (72.9, up from 71.6), because a verdict should rest on a measurement."
   },
   {
     "id": "interest-revenue-fy2526",

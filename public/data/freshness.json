@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-15T14:08:33.288143+00:00",
+  "checkedAt": "2026-10-15T15:56:13.910107+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -68,8 +68,8 @@
     {
       "file": "imf-outlook.json",
       "label": "IMF WEO outlook",
-      "asOf": "2026-04-30",
-      "ageDays": 168,
+      "asOf": "2026-10-15",
+      "ageDays": 0,
       "budgetDays": 240,
       "stale": false
     }

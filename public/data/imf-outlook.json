@@ -4,25 +4,74 @@
     "indicator": "Real GDP growth",
     "weoSubject": "NGDP_RPCH",
     "unit": "% y/y",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "The WEO ships outturns and projections in one undifferentiated year map; the status labels here are OUR reading of the April 2026 vintage (2025 estimated, 2026 onward projected), not the IMF's own flag. See docs/DATA-SOURCES.md §22.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": -0.273, "status": "outturn" },
-      { "year": 2021, "value": 7.59, "status": "outturn" },
-      { "year": 2022, "value": 4.86, "status": "outturn" },
-      { "year": 2023, "value": 5.72, "status": "outturn" },
-      { "year": 2024, "value": 4.725, "status": "outturn" },
-      { "year": 2025, "value": 4.88, "status": "estimate" },
-      { "year": 2026, "value": 4.474, "status": "projection" },
-      { "year": 2027, "value": 4.662, "status": "projection" },
-      { "year": 2028, "value": 5.061, "status": "projection" },
-      { "year": 2029, "value": 5.0, "status": "projection" },
-      { "year": 2030, "value": 5.008, "status": "projection" }
+      {
+        "year": 2020,
+        "value": -0.3,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": 7.6,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": 4.9,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": 5.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": 4.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": 4.6,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": 4.5,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": 4.7,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": 4.9,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": 5.0,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": 5.0,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": 5.0,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -30,25 +79,74 @@
     "indicator": "Inflation, average consumer prices",
     "weoSubject": "PCPIPCH",
     "unit": "% y/y (annual average)",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "Annual AVERAGE — not a point-in-time y/y like the KNBS monthly print in macro.json. The two answer different questions; do not substitute one for the other. Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": 5.29, "status": "outturn" },
-      { "year": 2021, "value": 6.109, "status": "outturn" },
-      { "year": 2022, "value": 7.648, "status": "outturn" },
-      { "year": 2023, "value": 7.675, "status": "outturn" },
-      { "year": 2024, "value": 4.496, "status": "outturn" },
-      { "year": 2025, "value": 4.068, "status": "estimate" },
-      { "year": 2026, "value": 5.949, "status": "projection" },
-      { "year": 2027, "value": 5.892, "status": "projection" },
-      { "year": 2028, "value": 5.7, "status": "projection" },
-      { "year": 2029, "value": 5.724, "status": "projection" },
-      { "year": 2030, "value": 5.25, "status": "projection" }
+      {
+        "year": 2020,
+        "value": 5.3,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": 6.1,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": 7.6,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": 7.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": 4.5,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": 4.1,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": 6.0,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": 5.0,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": 5.3,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": 5.2,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": 5.0,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": 5.0,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -56,25 +154,74 @@
     "indicator": "General government gross debt",
     "weoSubject": "GGXWDG_NGDP",
     "unit": "% of GDP",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "The series DATA-SOURCES.md §7 investigated. Vintages disagree (FRED's redistribution of an older WEO reads 2026 as 70.08); this file quotes 71.583 as the APRIL 2026 vintage, with the vintage named so the difference is explainable. Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": 67.959, "status": "outturn" },
-      { "year": 2021, "value": 68.232, "status": "outturn" },
-      { "year": 2022, "value": 67.8, "status": "outturn" },
-      { "year": 2023, "value": 73.405, "status": "outturn" },
-      { "year": 2024, "value": 67.338, "status": "outturn" },
-      { "year": 2025, "value": 69.334, "status": "estimate" },
-      { "year": 2026, "value": 71.583, "status": "projection" },
-      { "year": 2027, "value": 72.392, "status": "projection" },
-      { "year": 2028, "value": 73.344, "status": "projection" },
-      { "year": 2029, "value": 73.55, "status": "projection" },
-      { "year": 2030, "value": 74.218, "status": "projection" }
+      {
+        "year": 2020,
+        "value": 68.0,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": 68.2,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": 67.8,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": 73.4,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": 67.3,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": 71.3,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": 72.9,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": 73.8,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": 74.4,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": 74.4,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": 74.3,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": 74.0,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -82,25 +229,74 @@
     "indicator": "General government net lending/borrowing",
     "weoSubject": "GGXCNL_NGDP",
     "unit": "% of GDP",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "Negative is a deficit. Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": -8.13, "status": "outturn" },
-      { "year": 2021, "value": -7.196, "status": "outturn" },
-      { "year": 2022, "value": -6.011, "status": "outturn" },
-      { "year": 2023, "value": -5.615, "status": "outturn" },
-      { "year": 2024, "value": -5.74, "status": "outturn" },
-      { "year": 2025, "value": -6.412, "status": "estimate" },
-      { "year": 2026, "value": -6.425, "status": "projection" },
-      { "year": 2027, "value": -5.969, "status": "projection" },
-      { "year": 2028, "value": -5.959, "status": "projection" },
-      { "year": 2029, "value": -6.052, "status": "projection" },
-      { "year": 2030, "value": -6.159, "status": "projection" }
+      {
+        "year": 2020,
+        "value": -8.1,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": -7.2,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": -6.0,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": -5.6,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": -5.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": -6.5,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": -6.6,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": -6.1,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": -5.9,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": -5.8,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": -5.8,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": -5.8,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -108,25 +304,74 @@
     "indicator": "Current account balance",
     "weoSubject": "BCA_NGDPD",
     "unit": "% of GDP",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "Negative is a deficit. Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": -3.66, "status": "outturn" },
-      { "year": 2021, "value": -5.129, "status": "outturn" },
-      { "year": 2022, "value": -5.04, "status": "outturn" },
-      { "year": 2023, "value": -3.606, "status": "outturn" },
-      { "year": 2024, "value": -2.275, "status": "outturn" },
-      { "year": 2025, "value": -2.687, "status": "estimate" },
-      { "year": 2026, "value": -4.07, "status": "projection" },
-      { "year": 2027, "value": -3.728, "status": "projection" },
-      { "year": 2028, "value": -3.439, "status": "projection" },
-      { "year": 2029, "value": -3.332, "status": "projection" },
-      { "year": 2030, "value": -3.213, "status": "projection" }
+      {
+        "year": 2020,
+        "value": -3.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": -5.1,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": -5.0,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": -3.7,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": -2.5,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": -2.8,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": -4.5,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": -4.1,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": -3.7,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": -3.5,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": -3.2,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": -3.1,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -134,25 +379,74 @@
     "indicator": "Gross domestic product, current prices",
     "weoSubject": "NGDPD",
     "unit": "USD billions",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "Dollar-denominated, so the 2023 dip and 2025 jump are exchange-rate movements as much as output. Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": 100.922, "status": "outturn" },
-      { "year": 2021, "value": 109.875, "status": "outturn" },
-      { "year": 2022, "value": 114.733, "status": "outturn" },
-      { "year": 2023, "value": 108.206, "status": "outturn" },
-      { "year": 2024, "value": 119.307, "status": "outturn" },
-      { "year": 2025, "value": 136.455, "status": "estimate" },
-      { "year": 2026, "value": 147.265, "status": "projection" },
-      { "year": 2027, "value": 154.744, "status": "projection" },
-      { "year": 2028, "value": 161.992, "status": "projection" },
-      { "year": 2029, "value": 171.533, "status": "projection" },
-      { "year": 2030, "value": 183.628, "status": "projection" }
+      {
+        "year": 2020,
+        "value": 100.922,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": 109.875,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": 114.733,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": 108.206,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": 119.364,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": 135.919,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": 151.151,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": 162.289,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": 170.065,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": 179.506,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": 191.041,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": 203.811,
+        "status": "projection"
+      }
     ]
   },
   {
@@ -160,25 +454,74 @@
     "indicator": "Gross domestic product per capita, current prices",
     "weoSubject": "NGDPDPC",
     "unit": "USD",
-    "source": "IMF World Economic Outlook, April 2026",
-    "sourceUrl": "https://data.imf.org/en/datasets/IMF.RES:WEO",
+    "source": "IMF World Economic Outlook, October 2026",
+    "sourceUrl": "https://www.imf.org/external/datamapper/profile/KEN",
     "licence": "IMF Data terms — redistribution permitted with attribution (src/lib/licences.ts, checked 2026-08-16)",
-    "vintageDate": "2026-04-30",
-    "retrievedAt": "2026-08-29",
+    "vintageDate": "2026-10-15",
+    "retrievedAt": "2026-10-15",
     "forecast": true,
-    "statusNote": "Status labels are our reading of the vintage, per the gdp-growth record.",
+    "statusNote": "October 2026 WEO, from the IMF DataMapper export for Kenya supplied by the owner on 15 Oct 2026 (DataMapper publishes one decimal for rates). Status labels are OUR reading (2024 outturn, 2025 estimate, 2026 onward projected); DataMapper's own 'estimates start after' column reads 2026 for every series. vintageDate is the export date, on which the edition was certainly published. Cross-checked against press reports of the same edition: growth 4.5/4.7, inflation 6.0/5.0, nominal GDP US$151.151bn all match.",
     "observations": [
-      { "year": 2020, "value": 2068.176, "status": "outturn" },
-      { "year": 2021, "value": 2208.691, "status": "outturn" },
-      { "year": 2022, "value": 2265.658, "status": "outturn" },
-      { "year": 2023, "value": 2099.499, "status": "outturn" },
-      { "year": 2024, "value": 2274.946, "status": "outturn" },
-      { "year": 2025, "value": 2557.539, "status": "estimate" },
-      { "year": 2026, "value": 2713.604, "status": "projection" },
-      { "year": 2027, "value": 2803.882, "status": "projection" },
-      { "year": 2028, "value": 2886.836, "status": "projection" },
-      { "year": 2029, "value": 3007.089, "status": "projection" },
-      { "year": 2030, "value": 3167.319, "status": "projection" }
+      {
+        "year": 2020,
+        "value": 2068.176,
+        "status": "outturn"
+      },
+      {
+        "year": 2021,
+        "value": 2208.691,
+        "status": "outturn"
+      },
+      {
+        "year": 2022,
+        "value": 2265.658,
+        "status": "outturn"
+      },
+      {
+        "year": 2023,
+        "value": 2099.499,
+        "status": "outturn"
+      },
+      {
+        "year": 2024,
+        "value": 2276.042,
+        "status": "outturn"
+      },
+      {
+        "year": 2025,
+        "value": 2547.502,
+        "status": "estimate"
+      },
+      {
+        "year": 2026,
+        "value": 2785.219,
+        "status": "projection"
+      },
+      {
+        "year": 2027,
+        "value": 2940.599,
+        "status": "projection"
+      },
+      {
+        "year": 2028,
+        "value": 3030.708,
+        "status": "projection"
+      },
+      {
+        "year": 2029,
+        "value": 3146.864,
+        "status": "projection"
+      },
+      {
+        "year": 2030,
+        "value": 3295.191,
+        "status": "projection"
+      },
+      {
+        "year": 2031,
+        "value": 3459.571,
+        "status": "projection"
+      }
     ]
   }
 ]

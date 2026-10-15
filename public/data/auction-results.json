@@ -6031,5 +6031,41 @@
     "transactionType": "switch",
     "sourceNote": "Central Bank of Kenya — Results of Fifteen-Year Treasury Switch Bond Issue No. FXD1/2018/015 dated 07/10/2026, source bonds FXD1/2024/003 and FXD2/2013/015, signed David Luusa, Director, Financial Markets, 05 October 2026 (document supplied directly to Mwangaza Yield). Reconciles: competitive 7,041.25 + non-competitive 1,922.58 = 8,963.83M accepted; performance 9,080.58 / 10,000.00 = 90.81%; 8,779.15M switched from source bonds. ISIN KE5000008432, coupon 12.65 and maturity 09-May-33 match bonds.json.",
     "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-10-05-switch"
+  },
+  {
+    "id": "res-sdb1-2011-030-2026-10-14",
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": "2026-10-14",
+    "parserVersion": 14,
+    "couponRate": 12.0,
+    "weightedAverageRate": 13.6507,
+    "marketWeightedAverageRate": 13.7159,
+    "pricePer100": 91.9966,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 19161.61,
+    "bidsReceivedKESM": 23722.22,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Thirty Year Treasury Bonds Issue Nos. SDB1/2011/030 and FXD1/2026/030 dated 19/10/2026, signed Robert Aloo for Director, Financial Markets, 14 October 2026 (document supplied directly to Mwangaza Yield). Column totals reconcile: bids 23,722.22 + 60,103.63 = 83,825.85M; accepted 19,161.61 + 33,883.42 = 53,045.03M against 50,000.00M offered (performance 167.65%); competitive + non-competitive per bond sum to accepted. ISIN, coupon and maturity match bonds.json.",
+    "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-10-14-issuance"
+  },
+  {
+    "id": "res-fxd1-2026-030-2026-10-14",
+    "issueCode": "FXD1/2026/030",
+    "auctionDate": "2026-10-14",
+    "parserVersion": 14,
+    "couponRate": 12.5,
+    "weightedAverageRate": 14.183,
+    "marketWeightedAverageRate": 14.2789,
+    "pricePer100": 88.342,
+    "amountOfferedKESM": 50000.0,
+    "amountAcceptedKESM": 33883.42,
+    "bidsReceivedKESM": 60103.63,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "offeredScope": "auction",
+    "transactionType": "issuance",
+    "sourceNote": "Central Bank of Kenya — Results for Reopened Thirty Year Treasury Bonds Issue Nos. SDB1/2011/030 and FXD1/2026/030 dated 19/10/2026, signed Robert Aloo for Director, Financial Markets, 14 October 2026 (document supplied directly to Mwangaza Yield). Column totals reconcile: bids 23,722.22 + 60,103.63 = 83,825.85M; accepted 19,161.61 + 33,883.42 = 53,045.03M against 50,000.00M offered (performance 167.65%); competitive + non-competitive per bond sum to accepted. ISIN, coupon and maturity match bonds.json.",
+    "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-10-14-issuance"
   }
 ]

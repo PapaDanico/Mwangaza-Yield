@@ -1,35 +1,35 @@
 {
-  "checkedAt": "2026-10-03T16:49:38.264824+00:00",
+  "checkedAt": "2026-10-15T13:44:34.417292+00:00",
   "datasets": [
     {
       "file": "meta.json",
       "label": "Pipeline last ran",
       "asOf": "2026-08-19",
-      "ageDays": 45,
+      "ageDays": 57,
       "budgetDays": 7,
       "stale": true
     },
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-10-01",
-      "ageDays": 2,
+      "asOf": "2026-10-15",
+      "ageDays": 0,
       "budgetDays": 40,
       "stale": false
     },
     {
       "file": "tbills.json",
       "label": "Treasury bills",
-      "asOf": "2026-10-01",
-      "ageDays": 2,
+      "asOf": "2026-10-08",
+      "ageDays": 7,
       "budgetDays": 10,
       "stale": false
     },
     {
       "file": "cbk-context.json",
       "label": "CBK sovereign context",
-      "asOf": "2026-10-01",
-      "ageDays": 2,
+      "asOf": "2026-10-08",
+      "ageDays": 7,
       "budgetDays": 14,
       "stale": false
     },
@@ -37,7 +37,7 @@
       "file": "expectations.json",
       "label": "Market expectations",
       "asOf": "2026-07-21",
-      "ageDays": 74,
+      "ageDays": 86,
       "budgetDays": 100,
       "stale": false
     },
@@ -45,15 +45,15 @@
       "file": "context.json",
       "label": "Sovereign context",
       "asOf": "2025-01-01",
-      "ageDays": 640,
+      "ageDays": 652,
       "budgetDays": 900,
       "stale": false
     },
     {
       "file": "cbr-history.json",
       "label": "CBR decision history",
-      "asOf": "2026-08-11",
-      "ageDays": 53,
+      "asOf": "2026-10-07",
+      "ageDays": 8,
       "budgetDays": 130,
       "stale": false
     },
@@ -61,7 +61,7 @@
       "file": "cpi-history.json",
       "label": "CPI history",
       "asOf": "2026-09-01",
-      "ageDays": 32,
+      "ageDays": 44,
       "budgetDays": 75,
       "stale": false
     },
@@ -69,7 +69,7 @@
       "file": "imf-outlook.json",
       "label": "IMF WEO outlook",
       "asOf": "2026-04-30",
-      "ageDays": 156,
+      "ageDays": 168,
       "budgetDays": 240,
       "stale": false
     }

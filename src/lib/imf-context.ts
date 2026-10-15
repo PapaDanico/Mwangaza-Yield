@@ -147,3 +147,24 @@ export function imfContextRows(series: WeoSeries[], asOfYear: number): ContextIn
   }
   return rows;
 }
+
+/**
+ * The IMF's average projected inflation over the five years after `fromYear`,
+ * with the span and vintage it came from. Used where a plan states what
+ * inflation does to money over a long horizon: before 15 Oct 2026 the goals
+ * page hard-coded "5%"; it now follows each WEO vintage. Null when the series
+ * or the projections are missing — absence is not zero.
+ */
+export function mediumTermInflation(
+  series: WeoSeries[],
+  fromYear: number,
+): { pct: number; firstYear: number; lastYear: number; source: string } | null {
+  const s = series.find((x) => x.weoSubject === 'PCPIPCH');
+  if (!s) return null;
+  const obs = s.observations
+    .filter((o) => o.status === 'projection' && o.year > fromYear && o.year <= fromYear + 5)
+    .sort((a, b) => a.year - b.year);
+  if (obs.length === 0) return null;
+  const pct = obs.reduce((t, o) => t + o.value, 0) / obs.length;
+  return { pct, firstYear: obs[0].year, lastYear: obs[obs.length - 1].year, source: s.source };
+}

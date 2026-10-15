@@ -38,7 +38,7 @@ export default function LadderReport({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="" width={48} height={48} className="h-12 w-12 rounded-lg" />
           <div>
-            <p className="font-display text-xl font-bold">
+            <p className="font-display text-xl font-bold [word-spacing:0.12em]">
               Mwangaza <span className="text-gold-600">Yield</span>
             </p>
             <p className="text-[11px] uppercase tracking-widest text-ink-faint">
@@ -61,7 +61,7 @@ export default function LadderReport({
         looks identical either way; the level is doing semantic work only, and
         the page it lives in is what decides it.
       */}
-      <h2 className="mt-5 font-display text-2xl font-bold">
+      <h2 className="mt-5 font-display text-2xl font-bold [word-spacing:0.12em]">
         {formatKES(plan.totalCostKES)} over {horizon} years
       </h2>
       <p className="mt-1 text-xs text-ink-muted">

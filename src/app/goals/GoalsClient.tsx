@@ -575,6 +575,7 @@ export default function GoalsClient() {
                   <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
                     <th className="px-4 py-3">Year</th>
                     <th className="px-4 py-3 text-right">Fees due</th>
+                    <th className="px-4 py-3 text-right">Carried in</th>
                     <th className="px-4 py-3 text-right">Principal lands</th>
                     <th className="px-4 py-3 text-right">Coupons</th>
                     {/* The column the reader is actually looking for.
@@ -585,7 +586,7 @@ export default function GoalsClient() {
                       * them up to answer the only question the row is for: is
                       * this year funded? The shortfall column answers it only
                       * when the answer is no. */}
-                    <th className="px-4 py-3 text-right">Covered</th>
+                    <th className="px-4 py-3 text-right">Available</th>
                     <th className="px-4 py-3 text-right">Shortfall</th>
                   </tr>
                 </thead>
@@ -594,6 +595,9 @@ export default function GoalsClient() {
                     <tr key={y.year} className="border-b border-sand-300/60 last:border-0">
                       <td className="num px-4 py-3 font-medium text-ink">{y.year}</td>
                       <td className="num px-4 py-3 text-right text-ink">{formatKES(y.feeKES)}</td>
+                      <td className="num px-4 py-3 text-right text-ink-soft">
+                        {y.carriedInKES > 0 ? formatKES(y.carriedInKES) : '—'}
+                      </td>
                       <td className="num px-4 py-3 text-right text-mint-700">
                         {y.principalMaturingKES > 0 ? formatKES(y.principalMaturingKES) : '—'}
                       </td>
@@ -608,6 +612,13 @@ export default function GoalsClient() {
                   ))}
                 </tbody>
               </table>
+              <p className="px-4 py-3 text-[11px] leading-relaxed text-ink-muted">
+                Carried in is money that arrived earlier — a bond maturing before the fees begin, or a
+                year&apos;s surplus — held as cash at no interest until the next invoice.
+                {fees.leftOverKES > 0 && (
+                  <> {formatKES(fees.leftOverKES)} is paid out after the last fee or left unspent.</>
+                )}
+              </p>
             </div>
 
             <div className="card">

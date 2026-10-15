@@ -212,7 +212,7 @@ export function scoringVerdict(ledger: Prediction[], summary: LedgerSummary): Ve
 
   if (archive > 0) {
     caveats.push(
-      `${archive === n ? 'Every one' : `${archive} of ${n}`} of these ranges was computed ` +
+      `${archive === n ? 'Every one of these ranges was' : `${archive} of these ${n} ranges were`} computed ` +
       `from the whole comparable archive back to 2022 rather than a recent-only pool — a span ` +
       `that contains Kenya's 425bp easing cycle. That was recorded before the auctions, not ` +
       `argued afterwards, and it is the first thing to examine either way.`

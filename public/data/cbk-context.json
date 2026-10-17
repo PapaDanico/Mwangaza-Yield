@@ -4,21 +4,21 @@
     "label": "Reserves (import cover)",
     "value": 5.9,
     "unit": "months",
-    "asOf": "2026-10-08",
+    "asOf": "2026-10-15",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,736 million on this date, about KSh 1.91 trillion at 129.94, down from USD 14,930 million (6.1 months) a week earlier. Weekly Bulletin of 9 October 2026, Table 2.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,689 million on this date, about KSh 1.91 trillion at 129.81, down from USD 14,736 million (also 5.9 months) a week earlier and 15,088 million (6.1) on 17 September. Weekly Bulletin of 16 October 2026, Table 2.",
     "sentiment": "good"
   },
   {
     "id": "cbk-domestic-debt",
     "label": "Gross domestic debt",
-    "value": 7.78,
+    "value": 7.85,
     "unit": "KSh tn",
-    "asOf": "2026-10-02",
+    "asOf": "2026-10-09",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,784.63 billion at 2 October 2026 (Weekly Bulletin of 9 October, Table 7), flat on 7,784.57 billion a week earlier; Treasury bonds 84.28 percent of securities, bills 15.72 percent.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,845.96 billion at 9 October 2026 (Weekly Bulletin of 16 October, Table 7), up from 7,784.63 billion a week earlier as the 14 October-cycle bonds and bills settled; Treasury bonds 84.30 percent of securities, bills 15.70 percent.",
     "sentiment": "watch"
   },
   {
@@ -29,7 +29,7 @@
     "asOf": "2026-07-31",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "Everything the government owes, domestic and external together — KSh 13,228.89 billion at end-July 2026, provisional (CBK Weekly Bulletin of 2 October 2026, Table 10: domestic 7,463.16bn, external KSh 5,765.73bn), up from 13,011.89bn at end-June; the Treasury's Q4 FY2025/26 QEBR gives KSh 13,013.2 billion for June. The same table prints July's external debt in dollars as 5.77, inconsistent with 43.90 a month earlier and with its own shilling figure, so only the shilling values are used here. Shown as a level; the ratio to GDP is the IMF's, in the Government debt / GDP row.",
+    "note": "Everything the government owes, domestic and external together — KSh 13,228.89 billion at end-July 2026, provisional (CBK Weekly Bulletin of 16 October 2026, Table 10: domestic 7,463.16bn, external KSh 5,765.73bn, US$ 44.56bn), up from 13,011.89bn at end-June; the Treasury's Q4 FY2025/26 QEBR gives KSh 13,013.2 billion for June. Earlier bulletins printed July's external debt as US$ 5.77bn, a misprint the 16 October edition corrects. Shown as a level; the ratio to GDP is the IMF's, in the Government debt / GDP row.",
     "sentiment": "watch"
   },
   {

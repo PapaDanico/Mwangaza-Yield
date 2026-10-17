@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-15T15:56:13.910107+00:00",
+  "checkedAt": "2026-10-17T04:59:37.303708+00:00",
   "datasets": [
     {
       "file": "meta.json",
       "label": "Pipeline last ran",
       "asOf": "2026-08-19",
-      "ageDays": 57,
+      "ageDays": 59,
       "budgetDays": 7,
       "stale": true
     },
@@ -13,7 +13,7 @@
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
       "asOf": "2026-10-15",
-      "ageDays": 0,
+      "ageDays": 2,
       "budgetDays": 40,
       "stale": false
     },
@@ -21,15 +21,15 @@
       "file": "tbills.json",
       "label": "Treasury bills",
       "asOf": "2026-10-15",
-      "ageDays": 0,
+      "ageDays": 2,
       "budgetDays": 10,
       "stale": false
     },
     {
       "file": "cbk-context.json",
       "label": "CBK sovereign context",
-      "asOf": "2026-10-08",
-      "ageDays": 7,
+      "asOf": "2026-10-15",
+      "ageDays": 2,
       "budgetDays": 14,
       "stale": false
     },
@@ -37,7 +37,7 @@
       "file": "expectations.json",
       "label": "Market expectations",
       "asOf": "2026-07-21",
-      "ageDays": 86,
+      "ageDays": 88,
       "budgetDays": 100,
       "stale": false
     },
@@ -45,7 +45,7 @@
       "file": "context.json",
       "label": "Sovereign context",
       "asOf": "2025-01-01",
-      "ageDays": 652,
+      "ageDays": 654,
       "budgetDays": 900,
       "stale": false
     },
@@ -53,7 +53,7 @@
       "file": "cbr-history.json",
       "label": "CBR decision history",
       "asOf": "2026-10-07",
-      "ageDays": 8,
+      "ageDays": 10,
       "budgetDays": 130,
       "stale": false
     },
@@ -61,7 +61,7 @@
       "file": "cpi-history.json",
       "label": "CPI history",
       "asOf": "2026-09-01",
-      "ageDays": 44,
+      "ageDays": 46,
       "budgetDays": 75,
       "stale": false
     },
@@ -69,7 +69,7 @@
       "file": "imf-outlook.json",
       "label": "IMF WEO outlook",
       "asOf": "2026-10-15",
-      "ageDays": 0,
+      "ageDays": 2,
       "budgetDays": 240,
       "stale": false
     }

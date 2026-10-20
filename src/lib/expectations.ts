@@ -72,7 +72,7 @@ export function expectationsSource(): { source: string; sourceUrl: string; surve
  * Inflation expectations grouped by horizon, shortest first.
  *
  * Banks and non-banks are reported separately by CBK and differ materially —
- * 6.24 against 5.05 at one year in the July 2026 survey. Averaging them into a
+ * 6.4 against 5.9 at one year in the September 2026 survey. Averaging them into a
  * single number would hide a disagreement that is itself the information, so
  * both are carried and the midpoint is offered as a convenience rather than as
  * the headline.

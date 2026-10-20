@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-17T04:59:37.303708+00:00",
+  "checkedAt": "2026-10-20T16:18:50.566353+00:00",
   "datasets": [
     {
       "file": "meta.json",
       "label": "Pipeline last ran",
       "asOf": "2026-08-19",
-      "ageDays": 59,
+      "ageDays": 62,
       "budgetDays": 7,
       "stale": true
     },
@@ -13,7 +13,7 @@
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
       "asOf": "2026-10-15",
-      "ageDays": 2,
+      "ageDays": 5,
       "budgetDays": 40,
       "stale": false
     },
@@ -21,7 +21,7 @@
       "file": "tbills.json",
       "label": "Treasury bills",
       "asOf": "2026-10-15",
-      "ageDays": 2,
+      "ageDays": 5,
       "budgetDays": 10,
       "stale": false
     },
@@ -29,15 +29,15 @@
       "file": "cbk-context.json",
       "label": "CBK sovereign context",
       "asOf": "2026-10-15",
-      "ageDays": 2,
+      "ageDays": 5,
       "budgetDays": 14,
       "stale": false
     },
     {
       "file": "expectations.json",
       "label": "Market expectations",
-      "asOf": "2026-07-21",
-      "ageDays": 88,
+      "asOf": "2026-09-21",
+      "ageDays": 29,
       "budgetDays": 100,
       "stale": false
     },
@@ -45,7 +45,7 @@
       "file": "context.json",
       "label": "Sovereign context",
       "asOf": "2025-01-01",
-      "ageDays": 654,
+      "ageDays": 657,
       "budgetDays": 900,
       "stale": false
     },
@@ -53,7 +53,7 @@
       "file": "cbr-history.json",
       "label": "CBR decision history",
       "asOf": "2026-10-07",
-      "ageDays": 10,
+      "ageDays": 13,
       "budgetDays": 130,
       "stale": false
     },
@@ -61,7 +61,7 @@
       "file": "cpi-history.json",
       "label": "CPI history",
       "asOf": "2026-09-01",
-      "ageDays": 46,
+      "ageDays": 49,
       "budgetDays": 75,
       "stale": false
     },
@@ -69,7 +69,7 @@
       "file": "imf-outlook.json",
       "label": "IMF WEO outlook",
       "asOf": "2026-10-15",
-      "ageDays": 2,
+      "ageDays": 5,
       "budgetDays": 240,
       "stale": false
     }

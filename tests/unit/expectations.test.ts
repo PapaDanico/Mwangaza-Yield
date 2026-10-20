@@ -48,8 +48,8 @@ describe('grouping keeps the disagreement visible', () => {
   it('reports banks and non-banks separately, not averaged away', () => {
     const oneYear = inflationExpectations().find((h) => h.horizonMonths === 12);
     expect(oneYear).toBeDefined();
-    expect(oneYear!.banks).toBe(6.24);
-    expect(oneYear!.nonBanks).toBe(5.05);
+    expect(oneYear!.banks).toBe(6.4);
+    expect(oneYear!.nonBanks).toBe(5.9);
     // The gap between the two panels is over a point. Publishing only a blend
     // would hide the single most interesting thing in the July survey.
     expect(Math.abs(oneYear!.banks! - oneYear!.nonBanks!)).toBeGreaterThan(1);
@@ -92,8 +92,8 @@ describe('expectedRealRate', () => {
   it('subtracts the matching expectation from the nominal', () => {
     const r = expectedRealRate(13.24, 5, 'banks');
     expect(r).not.toBeNull();
-    expect(r!.expectedInflation).toBe(5.42);
-    expect(r!.realRate).toBeCloseTo(13.24 - 5.42, 6);
+    expect(r!.expectedInflation).toBe(5.6);
+    expect(r!.realRate).toBeCloseTo(13.24 - 5.6, 6);
   });
 
   it('returns null for a missing nominal rather than treating it as zero', () => {

@@ -5,11 +5,13 @@
     "horizon": "Next 3 months",
     "horizonMonths": 3,
     "respondent": "Banks",
-    "value": 6.7,
+    "value": 6.9,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Printed as a data label on Chart 1 of the owner-supplied survey."
   },
   {
     "id": "infl-exp-3m-nonbanks",
@@ -17,11 +19,13 @@
     "horizon": "Next 3 months",
     "horizonMonths": 3,
     "respondent": "Non-banks",
-    "value": 6.13,
+    "value": 6.7,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Printed as a data label on Chart 1 of the owner-supplied survey."
   },
   {
     "id": "infl-exp-1y-banks",
@@ -29,11 +33,13 @@
     "horizon": "Next 1 year",
     "horizonMonths": 12,
     "respondent": "Banks",
-    "value": 6.24,
+    "value": 6.4,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   },
   {
     "id": "infl-exp-1y-nonbanks",
@@ -41,11 +47,13 @@
     "horizon": "Next 1 year",
     "horizonMonths": 12,
     "respondent": "Non-banks",
-    "value": 5.05,
+    "value": 5.9,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   },
   {
     "id": "infl-exp-2y-banks",
@@ -53,11 +61,13 @@
     "horizon": "Next 2 years",
     "horizonMonths": 24,
     "respondent": "Banks",
-    "value": 5.9,
+    "value": 6.1,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   },
   {
     "id": "infl-exp-2y-nonbanks",
@@ -65,11 +75,13 @@
     "horizon": "Next 2 years",
     "horizonMonths": 24,
     "respondent": "Non-banks",
-    "value": 4.65,
+    "value": 5.5,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   },
   {
     "id": "infl-exp-5y-banks",
@@ -77,11 +89,13 @@
     "horizon": "Next 5 years",
     "horizonMonths": 60,
     "respondent": "Banks",
-    "value": 5.42,
+    "value": 5.6,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   },
   {
     "id": "infl-exp-5y-nonbanks",
@@ -89,10 +103,12 @@
     "horizon": "Next 5 years",
     "horizonMonths": 60,
     "respondent": "Non-banks",
-    "value": 4.29,
+    "value": 5.4,
     "unit": "%",
-    "surveyDate": "2026-07-21",
-    "source": "CBK Market Perceptions Survey, July 2026",
-    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/413134844_Market%20Perceptions%20Survey,%20July%202026.pdf"
+    "surveyDate": "2026-09-21",
+    "source": "CBK Market Perceptions Survey, September 2026",
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/market_perception_surveys/264125534_Market%20Perceptions%20Survey%20-%20September%202026.pdf",
+    "via": "supplied-document",
+    "sourceNote": "Chart 2 of the owner-supplied survey prints no data labels; read from the rasterised chart against its 0 and 10 gridlines (300 dpi), so good to about 0.1pp."
   }
 ]

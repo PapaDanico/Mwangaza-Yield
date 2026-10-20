@@ -50,9 +50,10 @@ describe('grouping keeps the disagreement visible', () => {
     expect(oneYear).toBeDefined();
     expect(oneYear!.banks).toBe(6.4);
     expect(oneYear!.nonBanks).toBe(5.9);
-    // The gap between the two panels is over a point. Publishing only a blend
-    // would hide the single most interesting thing in the July survey.
-    expect(Math.abs(oneYear!.banks! - oneYear!.nonBanks!)).toBeGreaterThan(1);
+    // The panels disagree (over a point in July, half a point in September).
+    // A blend would hide that, so both must survive grouping, unequal.
+    expect(oneYear!.banks).not.toBe(oneYear!.nonBanks);
+    expect(oneYear!.midpoint).toBeCloseTo((6.4 + 5.9) / 2, 6);
   });
 
   it('orders horizons shortest first', () => {

@@ -151,5 +151,16 @@
     "via": "supplied-document",
     "lastChecked": "2026-10-15",
     "sourceNote": "Central Bank of Kenya, CBK Daily KES Exchange Rates card, 15 October 2026 (supplied directly to Mwangaza Yield). The bulletin table also confirms 129.79 on 6 Oct, matching the value cbk-watch read."
+  },
+  {
+    "id": "fx-2026-10-22",
+    "indicator": "FX_USD_KES",
+    "value": 129.91,
+    "date": "2026-10-22",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "cbk-home",
+    "lastChecked": "2026-10-23",
+    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.91, Posted On: 22-10-2026', read by the cbk-watch Netlify function on 23 Oct 2026 (06:00 UTC run). Up from 129.81 on 15 Oct (Weekly Bulletin of 16 Oct, Table 1)."
   }
 ]

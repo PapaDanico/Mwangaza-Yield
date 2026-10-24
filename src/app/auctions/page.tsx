@@ -8,6 +8,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
 import { BidAssistant } from '@/components/auctions/BidAssistant';
+import { SwitchCalculator } from '@/components/auctions/SwitchCalculator';
 import TrackRecord from '@/components/auctions/TrackRecord';
 import DemandRecord from '@/components/auctions/DemandRecord';
 import RealRecord from '@/components/auctions/RealRecord';
@@ -194,6 +195,9 @@ export default function AuctionsPage() {
                     Offer closes <span className="num text-ink">{lead.offerCloseDate}</span> ·
                     settles <span className="num text-ink">{lead.settlementDate}</span>
                   </p>
+                  {live && lead.transactionType === 'switch' && (
+                    <SwitchCalculator auction={lead} bonds={bonds} prints={auctionResults} />
+                  )}
                   {live && (
                     <BidAssistant auction={lead} bonds={bonds} prints={auctionResults} />
                   )}

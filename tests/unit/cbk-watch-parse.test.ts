@@ -117,3 +117,22 @@ describe('cbk-watch weekly bulletin', () => {
     expect(Object.values(bulletinFigures('nothing useful here')).every((v) => v === null)).toBe(true);
   });
 });
+
+describe('cbk-watch T-bill archive', () => {
+  // The 22 Oct 2026 notice, as cbk-watch's PDF reader returned it on 23 Oct.
+  const notice =
+    'A. RESULTS OF 91, 182 & 364 DAYS TREASURY BILLS ISSUES 2705/091, 2679/182 & 2634/364 DATED 26-10-2026 Tenor 91 DAYS ' +
+    'Market Weighted Average Interest Rate 8.7479% 8.8608% 9.0341% Weighted Average Interest Rate of accepted bids ' +
+    '8.7478% 8.8591% 9.0267% Price per Kshs 100 at average interest rate 97.8656 95.7695 91.7415';
+
+  it('reads accepted-bid rates, not the market rates printed just before them', async () => {
+    const { tbillNoticeRates } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(tbillNoticeRates(notice)).toEqual({ dated: '2026-10-26', r91: 8.7478, r182: 8.8591, r364: 9.0267 });
+  });
+
+  it('returns null for a notice it cannot read, never a partial row', async () => {
+    const { tbillNoticeRates } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(tbillNoticeRates('RESULTS DATED 26-10-2026 no rates here')).toBeNull();
+    expect(tbillNoticeRates('')).toBeNull();
+  });
+});

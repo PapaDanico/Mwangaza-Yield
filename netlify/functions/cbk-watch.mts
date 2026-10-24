@@ -189,6 +189,25 @@ export function bulletinFigures(t: string) {
 }
 
 /**
+ * The three weighted average rates of ACCEPTED bids from a T-bill results
+ * notice, with its value date. These are the rates tbills.json carries, so an
+ * archive of them is what a T-bill bid range can be calibrated against. CBK's
+ * T-bill page links every weekly notice but renders only the first ten rows
+ * of its history table (2016), so the archive is built from the notices.
+ */
+export function tbillNoticeRates(t: string): { dated: string; r91: number; r182: number; r364: number } | null {
+  const war = t.match(/Weighted Average Interest Rate of accepted bids\s+([\d.]+)%\s+([\d.]+)%\s+([\d.]+)%/i);
+  const dated = t.match(/DATED\s+(\d{2})[-.\/](\d{2})[-.\/](\d{4})/i);
+  if (!war || !dated) return null;
+  return { dated: `${dated[3]}-${dated[2]}-${dated[1]}`, r91: +war[1], r182: +war[2], r364: +war[3] };
+}
+
+/** How many past T-bill notices one run adds to the archive. Kept small:
+ *  a scheduled function has a short time limit, and the archive fills
+ *  across runs instead (two a weekday). */
+export const TBILL_BACKFILL_PER_RUN = 6;
+
+/**
  * Bonds the site is missing a CBK-sourced figure for, searched for on every
  * run. IFB1/2015/012 (6 Oct 2026): outstanding, coupon confirmed by NSE and
  * the DhowCSD register, but no CBK results notice found by search, and
@@ -251,6 +270,24 @@ export default async () => {
     : null;
   (run as Record<string, unknown>).bulletin = bulletin;
 
+  // T-bill rate archive, filled a few notices per run (see tbillNoticeRates).
+  const store0 = getStore('cbk-watch');
+  const archive = ((await store0.get('tbill-history', { type: 'json' }).catch(() => null)) ?? {}) as Record<
+    string,
+    ReturnType<typeof tbillNoticeRates> | 'unreadable'
+  >;
+  const unseen = resultsPdfs(pageDocs('tbills'), 1000)
+    .filter((u) => !(decodeURIComponent(u.split('/').pop() ?? u) in archive))
+    .slice(0, TBILL_BACKFILL_PER_RUN);
+  await Promise.all(
+    unseen.map(async (u) => {
+      const name = decodeURIComponent(u.split('/').pop() ?? u);
+      const t = await pdfText(u).catch(() => '');
+      archive[name] = tbillNoticeRates(t) ?? 'unreadable';
+    })
+  );
+  await store0.setJSON('tbill-history', archive);
+
   // Wanted bonds (LOOKUP): matching rows, and the text of up to two notices.
   const hits = results.map(([, p]) => (p as { lookup?: { rows: string[]; docs: string[] } }).lookup);
   const lookRows = hits.flatMap((h) => h?.rows ?? []);
@@ -284,6 +321,11 @@ export default async () => {
   fields.bulletin = bulletin
     ? Object.entries(bulletin).map(([k, v]) => `${k}: ${v ?? 'not found'}`).join('\n')
     : 'no bulletin link found on the weekly-bulletin page';
+  fields['tbill-history'] = Object.values(archive)
+    .filter((r): r is NonNullable<ReturnType<typeof tbillNoticeRates>> => !!r && r !== 'unreadable')
+    .sort((a, b) => a.dated.localeCompare(b.dated))
+    .map((r) => `${r.dated} ${r.r91} ${r.r182} ${r.r364}`)
+    .join('\n') + `\nunreadable: ${Object.values(archive).filter((r) => r === 'unreadable').length}`;
   fields.lookup = [
     `wanted: ${LOOKUP.map((l) => l.isin).join(', ')}`,
     ...lookRows.map((r) => `row ${r}`),

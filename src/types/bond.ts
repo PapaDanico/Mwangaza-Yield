@@ -49,6 +49,9 @@ export interface AuctionSchedule {
   status: 'upcoming' | 'open' | 'closed' | 'settled';
   /** A switch/tap/buyback is visible in the calendar but not a cash issuance. */
   transactionType?: AuctionTransactionType;
+  /** Switch auctions only: what CBK pays for each source bond, from the
+   *  prospectus. The price is DIRTY per 100, as CBK quotes it. */
+  switchSources?: { issueCode: string; pricePer100: number; marketYieldPct: number }[];
 }
 
 export interface Holding {

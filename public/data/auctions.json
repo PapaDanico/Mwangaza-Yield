@@ -428,6 +428,13 @@
     "maturityDate": "2029-11-12",
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
     "status": "upcoming",
-    "transactionType": "switch"
+    "transactionType": "switch",
+    "switchSources": [
+      {
+        "issueCode": "FXD1/2023/005",
+        "pricePer100": 115.8913,
+        "marketYieldPct": 9.9627
+      }
+    ]
   }
 ]

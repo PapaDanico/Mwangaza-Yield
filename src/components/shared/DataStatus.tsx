@@ -44,6 +44,8 @@ import {
   latestFigureDate,
   type DatasetFreshness,
 } from '@/lib/data-freshness';
+import { newestRoute } from '@/lib/figure-route';
+import ProvenanceBadge from '@/components/shared/ProvenanceBadge';
 
 /**
  * Datasets whose contents we can score for quality, and where to read them.
@@ -213,6 +215,7 @@ export default function DataStatus() {
                     <th>Age</th>
                     <th>Expected within</th>
                     <th>State</th>
+                    <th title="How the newest figure in this dataset arrived">Source</th>
                     <th>Quality</th>
                     <th className="text-right">Actions</th>
                   </tr>
@@ -231,6 +234,13 @@ export default function DataStatus() {
                           <span className={`rounded-full px-2 py-0.5 text-xs ${badgeClass(d.stale)}`}>
                             {d.stale ? 'overdue' : 'on schedule'}
                           </span>
+                        </td>
+                        <td className="text-xs">
+                          {rows_ && newestRoute(rows_) ? (
+                            <ProvenanceBadge via={newestRoute(rows_)} />
+                          ) : (
+                            <span className="text-ink-faint">{loading ? '…' : '—'}</span>
+                          )}
                         </td>
                         <td className="num">{q ? q.score : loading ? '…' : '—'}</td>
                         <td className="text-right">
@@ -266,7 +276,7 @@ export default function DataStatus() {
                     return (
                       <tr key={d.file} className="border-t border-sand-200">
                         <td className="py-2 font-medium text-ink">{d.label}</td>
-                        <td colSpan={4} className="text-xs italic text-ink-faint">
+                        <td colSpan={5} className="text-xs italic text-ink-faint">
                           {NOT_AGE_CHECKED[d.file]}
                         </td>
                         <td className="num">{q ? q.score : loading ? '…' : '—'}</td>

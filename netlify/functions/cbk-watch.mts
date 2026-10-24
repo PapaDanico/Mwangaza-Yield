@@ -118,8 +118,8 @@ export function resultsPdfs(links: string[], max = 3): string[] {
 
 /** A PDF's text layer, whitespace collapsed. Results notices are text PDFs;
  *  a scanned one returns '' and is reported as such rather than guessed at. */
-async function pdfText(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
+async function pdfText(url: string, timeoutMs = 20_000): Promise<string> {
+  const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) return `status ${res.status}`;
   const pdf = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
   const { text: t } = await extractText(pdf, { mergePages: true });
@@ -242,7 +242,16 @@ async function grab(url: string) {
   }
 }
 
+/**
+ * Netlify stops a scheduled function at about 30 s, and a run that is stopped
+ * posts NOTHING — including the rates and notices that are the point of it.
+ * So the optional archive back-fill runs only inside this budget, measured
+ * from the start of the run, and gives way first when CBK is slow.
+ */
+export const BACKFILL_DEADLINE_MS = 18_000;
+
 export default async () => {
+  const started = Date.now();
   const at = new Date().toISOString();
   const results = await Promise.all(PAGES.map(async ([key, url]) => [key, { url, ...(await grab(url)) }] as const));
   const run = { at, pages: Object.fromEntries(results) };
@@ -264,7 +273,11 @@ export default async () => {
   // The newest Weekly Bulletin: reserves, debt and growth, which no results
   // notice carries and which otherwise had to be pasted in by hand each Friday.
   const bulletinUrl = newestBulletin(pageDocs('weekly-bulletin'));
-  const bulletinText = bulletinUrl ? await pdfText(bulletinUrl).catch((e) => `error ${String(e).slice(0, 120)}`) : '';
+  const bulletinBudget = BACKFILL_DEADLINE_MS - (Date.now() - started);
+  const bulletinText =
+    bulletinUrl && bulletinBudget > 3_000
+      ? await pdfText(bulletinUrl, bulletinBudget).catch((e) => `error ${String(e).slice(0, 120)}`)
+      : 'skipped: run near its time limit';
   const bulletin = bulletinUrl
     ? { file: decodeURIComponent(bulletinUrl.split('/').pop() ?? ''), ...bulletinFigures(bulletinText) }
     : null;
@@ -276,13 +289,16 @@ export default async () => {
     string,
     ReturnType<typeof tbillNoticeRates> | 'unreadable'
   >;
-  const unseen = resultsPdfs(pageDocs('tbills'), 1000)
+  const remaining = BACKFILL_DEADLINE_MS - (Date.now() - started);
+  const unseen = remaining < 4_000 ? [] : resultsPdfs(pageDocs('tbills'), 1000)
     .filter((u) => !(decodeURIComponent(u.split('/').pop() ?? u) in archive))
     .slice(0, TBILL_BACKFILL_PER_RUN);
   await Promise.all(
     unseen.map(async (u) => {
       const name = decodeURIComponent(u.split('/').pop() ?? u);
-      const t = await pdfText(u).catch(() => '');
+      const t = await pdfText(u, remaining).catch(() => null);
+      // A timeout is not an unreadable notice: leave it out so a later run retries it.
+      if (t === null || /^status \d/.test(t)) return;
       archive[name] = tbillNoticeRates(t) ?? 'unreadable';
     })
   );

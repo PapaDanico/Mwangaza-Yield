@@ -4,32 +4,32 @@
     "label": "Reserves (import cover)",
     "value": 5.9,
     "unit": "months",
-    "asOf": "2026-10-15",
+    "asOf": "2026-10-22",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,689 million on this date, about KSh 1.91 trillion at 129.81, down from USD 14,736 million (also 5.9 months) a week earlier and 15,088 million (6.1) on 17 September. Weekly Bulletin of 16 October 2026, Table 2.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,693 million on this date, about KSh 1.91 trillion at 129.91, flat on USD 14,689 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin of 23 October 2026, Table 3.",
     "sentiment": "good"
   },
   {
     "id": "cbk-domestic-debt",
     "label": "Gross domestic debt",
-    "value": 7.85,
+    "value": 7.82,
     "unit": "KSh tn",
-    "asOf": "2026-10-09",
+    "asOf": "2026-10-16",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,845.96 billion at 9 October 2026 (Weekly Bulletin of 16 October, Table 7), up from 7,784.63 billion a week earlier as the 14 October-cycle bonds and bills settled; Treasury bonds 84.30 percent of securities, bills 15.70 percent.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,821.53 billion at 16 October 2026 (Weekly Bulletin of 23 October, Table 8), down from 7,845.96 billion a week earlier; securities 7,716.30bn + CBK overdraft 6.28bn + other 98.94bn reconcile to the total. Treasury bonds 84.26 percent of securities, bills 15.74 percent.",
     "sentiment": "watch"
   },
   {
     "id": "cbk-public-debt",
     "label": "Public debt (total)",
-    "value": 13.23,
+    "value": 13.48,
     "unit": "KSh tn",
-    "asOf": "2026-07-31",
+    "asOf": "2026-08-31",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "Everything the government owes, domestic and external together — KSh 13,228.89 billion at end-July 2026, provisional (CBK Weekly Bulletin of 16 October 2026, Table 10: domestic 7,463.16bn, external KSh 5,765.73bn, US$ 44.56bn), up from 13,011.89bn at end-June; the Treasury's Q4 FY2025/26 QEBR gives KSh 13,013.2 billion for June. Earlier bulletins printed July's external debt as US$ 5.77bn, a misprint the 16 October edition corrects. Shown as a level; the ratio to GDP is the IMF's, in the Government debt / GDP row.",
+    "note": "Everything the government owes, domestic and external together — KSh 13,475.15 billion at end-August 2026, provisional (CBK Weekly Bulletin of 23 October 2026, Table 11: domestic 7,676.02bn + external KSh 5,799.13bn, which reconcile to the total; external US$ 44.80bn), up from 13,228.89bn at end-July. Shown as a level; the ratio to GDP is the IMF's, in the Government debt / GDP row.",
     "sentiment": "watch"
   },
   {
@@ -75,5 +75,16 @@
     "sourceUrl": "https://www.treasury.go.ke/quarterly-economic-and-budgetary-review-report",
     "note": "The FY2025/26 outturn: a deficit of KSh 1,264.7 billion on a commitment basis including grants, against a 7.3% target and 6.7% the year before (QEBR paras 47-48). Every shilling of it is borrowed, most of it at the auctions this site covers. The IMF's 2025 estimate, on a general-government calendar-year basis, was -6.4%.",
     "sentiment": "caution"
+  },
+  {
+    "id": "cbk-gdp-growth-q2",
+    "label": "GDP growth",
+    "value": 5.1,
+    "unit": "% y/y",
+    "asOf": "2026-06-30",
+    "source": "CBK Weekly Bulletin (KNBS)",
+    "sourceUrl": "https://www.centralbank.go.ke/publications/",
+    "note": "Whether the economy behind the borrowing is still expanding. Real GDP grew 5.1 percent in 2026Q2 against 4.9 percent in 2025Q2, led by services (5.8 percent); agriculture slowed to 3.5 and industry to 4.4. KNBS figures as reported in the CBK Weekly Bulletin of 23 October 2026, Table 1 and page 1 text. Growth is what eventually pays debt down without new borrowing.",
+    "sentiment": "good"
   }
 ]

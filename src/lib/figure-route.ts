@@ -37,3 +37,23 @@ const ROUTES: Record<string, Provenance> = {
 export function provenanceOf(via: string | undefined | null): Provenance | null {
   return via ? ROUTES[via] ?? null : null;
 }
+
+const DATE_KEYS = ['date', 'asOf', 'auctionDate', 'surveyDate'] as const;
+
+/**
+ * How the NEWEST figure in a dataset arrived — the one a reader is looking at.
+ * Rows without a recorded route (scraper output) are skipped only if a newer
+ * hand-entered row exists; when the newest row has no route, the answer is
+ * null, not the route of some older row.
+ */
+export function newestRoute(rows: unknown[]): string | null {
+  let best: { at: string; via: string | null } | null = null;
+  for (const r of rows) {
+    if (!r || typeof r !== 'object') continue;
+    const o = r as Record<string, unknown>;
+    const at = DATE_KEYS.map((k) => o[k]).find((v): v is string => typeof v === 'string');
+    if (!at) continue;
+    if (!best || at > best.at) best = { at, via: typeof o.via === 'string' ? o.via : null };
+  }
+  return best?.via ?? null;
+}

@@ -434,6 +434,12 @@
         "issueCode": "FXD1/2023/005",
         "pricePer100": 115.8913,
         "marketYieldPct": 9.9627
+      },
+      {
+        "issueCode": "2696/091 · 2657/182 · 2585/364",
+        "pricePer100": 99.7132,
+        "marketYieldPct": 8.7499,
+        "maturityDate": "2026-11-23"
       }
     ]
   }

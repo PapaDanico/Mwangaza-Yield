@@ -105,7 +105,12 @@ function runPath(bond: Bond, face: number, settlement: Date, horizon: Date, rein
     netCouponsKES,
     principalKES,
     endValueKES,
-    netYieldPct: solveYTMFromPrice(bond, pricePer100, settlement, 1 - wht),
+    // A bill's tax falls on its discount, not on coupons it does not pay, so
+    // the coupon factor alone would report its PRE-tax yield as after-tax.
+    netYieldPct:
+      bond.couponRate === 0
+        ? solveYTMFromPrice(bond, pricePer100, settlement) * (1 - wht)
+        : solveYTMFromPrice(bond, pricePer100, settlement, 1 - wht),
     whtRate: wht,
   };
 }

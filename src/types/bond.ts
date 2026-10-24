@@ -51,7 +51,13 @@ export interface AuctionSchedule {
   transactionType?: AuctionTransactionType;
   /** Switch auctions only: what CBK pays for each source bond, from the
    *  prospectus. The price is DIRTY per 100, as CBK quotes it. */
-  switchSources?: { issueCode: string; pricePer100: number; marketYieldPct: number }[];
+  switchSources?: {
+    issueCode: string;
+    pricePer100: number;
+    marketYieldPct: number;
+    /** Bills are not in bonds.json, so a bill source carries its own maturity. */
+    maturityDate?: string;
+  }[];
 }
 
 export interface Holding {

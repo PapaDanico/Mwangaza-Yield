@@ -17,6 +17,34 @@ import { formatKES } from '@/lib/financial-engine';
 import { normaliseCode } from '@/lib/auction-history';
 import { cn } from '@/lib/utils';
 
+/**
+ * A T-bill source as a zero-coupon bond maturing at par, so the same
+ * arithmetic prices it. Withholding tax on a bill falls on its discount, which
+ * this leaves out: on a bill weeks from maturity that is a few shillings per
+ * KSh 100,000, and it would only make keeping look slightly worse.
+ */
+function billAsBond(
+  s: { issueCode: string; maturityDate?: string },
+  settlement: string
+): Bond | undefined {
+  if (!s.maturityDate) return undefined;
+  return {
+    isin: '',
+    issueCode: s.issueCode,
+    name: 'Treasury bills',
+    category: 'TBILL',
+    issueDate: settlement,
+    maturityDate: s.maturityDate,
+    tenorYears: 1,
+    couponRate: 0,
+    couponFrequencyPerYear: 2,
+    ytmGross: 0,
+    minInvestmentKES: 100000,
+    // Bills pay 15% WHT, so the table says so; with no coupons it changes no figure.
+    taxExempt: false,
+  };
+}
+
 const pct = (v: number) => `${v.toFixed(2)}%`;
 // Amounts are labelled once, under the table, so the cells carry digits alone and fit a phone.
 const kes = (v: number) => formatKES(v).replace('Ksh ', '');
@@ -33,7 +61,10 @@ export function SwitchCalculator({
   const destCode = auction.issueCode.split('→').pop()?.trim() ?? '';
   const dest = bonds.find((b) => normaliseCode(b.issueCode) === normaliseCode(destCode));
   const sources = (auction.switchSources ?? [])
-    .map((s) => ({ ...s, bond: bonds.find((b) => normaliseCode(b.issueCode) === normaliseCode(s.issueCode)) }))
+    .map((s) => ({
+      ...s,
+      bond: bonds.find((b) => normaliseCode(b.issueCode) === normaliseCode(s.issueCode)) ?? billAsBond(s, auction.settlementDate),
+    }))
     .filter((s): s is typeof s & { bond: Bond } => !!s.bond);
 
   // Default bid: where this bond last cleared, which is the best guide the
@@ -85,7 +116,7 @@ export function SwitchCalculator({
       <div className="grid gap-3 sm:grid-cols-4">
         {sources.length > 1 && (
           <label className="text-xs text-ink-muted">
-            Bond you hold
+            Security you hold
             <select
               className="mt-1 w-full rounded-md border border-sand-300 bg-white px-2 py-1.5 text-sm text-ink"
               value={srcIdx}

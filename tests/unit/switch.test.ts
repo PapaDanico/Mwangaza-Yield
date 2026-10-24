@@ -64,3 +64,40 @@ describe('the comparison', () => {
     );
   });
 });
+
+describe('a T-bill source', () => {
+  // 2696/091, 2657/182, 2585/364 all mature 23 Nov 2026; CBK prices them at
+  // 99.7132 (8.7499%) in the same prospectus.
+  const bill: Bond = {
+    isin: '', issueCode: 'bills', name: 'Treasury bills', category: 'TBILL',
+    issueDate: settlement, maturityDate: '2026-11-23', tenorYears: 1,
+    couponRate: 0, couponFrequencyPerYear: 2, ytmGross: 0, minInvestmentKES: 100000, taxExempt: false,
+  };
+
+  it('pays par at the bill maturity and nothing before it', () => {
+    const r = analyseSwitch({ ...base, source: bill, sourcePricePer100: 99.7132 });
+    expect(r.keep.netCouponsKES).toBe(0);
+    expect(r.keep.principalKES).toBeCloseTo(1_000_000, 0);
+    expect(r.proceedsKES).toBeCloseTo(997_132, 0);
+  });
+
+  it('keeping a bill only wins if its cash can be rolled above the bond’s yield', () => {
+    const r = analyseSwitch({ ...base, source: bill, sourcePricePer100: 99.7132 });
+    expect(r.advantageKES).toBeGreaterThan(0);
+    expect(r.breakevenReinvestPct).not.toBeNull();
+    expect(r.breakevenReinvestPct!).toBeGreaterThan(9);
+  });
+});
+
+describe('a bill’s after-tax yield', () => {
+  it('is taxed on the discount, not reported gross', () => {
+    const bill: Bond = {
+      isin: '', issueCode: 'bills', name: 'Treasury bills', category: 'TBILL',
+      issueDate: settlement, maturityDate: '2026-11-23', tenorYears: 1,
+      couponRate: 0, couponFrequencyPerYear: 2, ytmGross: 0, minInvestmentKES: 100000, taxExempt: false,
+    };
+    const r = analyseSwitch({ ...base, source: bill, sourcePricePer100: 99.7132 });
+    expect(r.keep.netYieldPct).toBeLessThan(8);
+    expect(r.keep.netYieldPct).toBeGreaterThan(7);
+  });
+});

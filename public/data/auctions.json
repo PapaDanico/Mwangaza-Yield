@@ -412,5 +412,22 @@
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-11-09-switch",
+    "issueCode": "FXD1/2023/005 + 2696/091 · 2657/182 · 2585/364 → FXD4/2019/010",
+    "bondName": "Switch auction into 10-Year Fixed Coupon Bond FXD4/2019/010 (Ksh 10B)",
+    "category": "FXD",
+    "offerOpenDate": "2026-10-23",
+    "offerCloseDate": "2026-11-09",
+    "auctionDate": "2026-11-09",
+    "settlementDate": "2026-11-11",
+    "amountOfferedKES": 10000000000,
+    "couponRate": 12.28,
+    "tenorYears": 10,
+    "maturityDate": "2029-11-12",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "switch"
   }
 ]

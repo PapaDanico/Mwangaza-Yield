@@ -68,3 +68,52 @@ describe('lookup (wanted bonds)', () => {
     ]);
   });
 });
+
+describe('cbk-watch weekly bulletin', () => {
+  it('dates bulletins from every file-name form CBK uses', async () => {
+    const { bulletinDate } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(bulletinDate('1082633218_Weekly_CBK_Bulletin_October_16_2026.pdf')).toBe(20261016);
+    expect(bulletinDate('1017471980_Weekly_CBK_Bulletin_23_October_2026.pdf')).toBe(20261023);
+    expect(bulletinDate('Weekly%20CBK%20Bulletin%20September%204,%202026.pdf')).toBe(20260904);
+    expect(bulletinDate('29-01-2016.pdf')).toBe(20160129);
+    expect(bulletinDate('AuctionRulesGuidelines.pdf')).toBe(0);
+  });
+
+  it('picks the newest CBK-hosted bulletin, whatever the page order', async () => {
+    const { newestBulletin } = await import('../../netlify/functions/cbk-watch.mts');
+    const b = 'https://www.centralbank.go.ke/uploads/weekly_bulletin/';
+    expect(
+      newestBulletin([
+        `${b}Weekly_Bulletin_-_January_8_2016.pdf`,
+        `${b}1017471980_Weekly_CBK_Bulletin_23_October_2026.pdf`,
+        `${b}1082633218_Weekly_CBK_Bulletin_October_16_2026.pdf`,
+        'https://example.com/Weekly_Bulletin_December_31_2026.pdf',
+        `${b}2025-Remittances-Household-Survey-Report.pdf`,
+      ])
+    ).toBe(`${b}1017471980_Weekly_CBK_Bulletin_23_October_2026.pdf`);
+  });
+
+  it('reads the figures from the 23 Oct 2026 bulletin as unpdf extracts it', async () => {
+    const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    const fs = await import('node:fs');
+    const text = fs.readFileSync(new URL('../fixtures/cbk-bulletin-2026-10-23.txt', import.meta.url), 'utf8');
+    expect(bulletinFigures(text)).toEqual({
+      reservesUSDm: '14,693',
+      importCoverMonths: '5.9',
+      reservesAsOf: 'October 22',
+      usdKes: '129.91',
+      usdKesOn: 'October 22',
+      gdpGrowthPct: '5.1',
+      gdpQuarter: 'second quarter 2026',
+      domesticDebtKSHbn: '7,821.53',
+      domesticDebtAsOf: '16-Oct-26',
+      publicDebtKSHbn: '13,475.15',
+      publicDebtAsOf: 'Aug-2026*',
+    });
+  });
+
+  it('reports a missing figure as null rather than guessing', async () => {
+    const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(Object.values(bulletinFigures('nothing useful here')).every((v) => v === null)).toBe(true);
+  });
+});

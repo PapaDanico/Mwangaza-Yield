@@ -126,6 +126,68 @@ async function pdfText(url: string): Promise<string> {
   return (t as string).replace(/\s+/g, ' ').trim() || '(no text layer)';
 }
 
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+/** A weekly bulletin's date from its file name, which CBK writes several ways:
+ *  "Weekly_CBK_Bulletin_October_16_2026", "..._23_October_2026",
+ *  "Weekly Bulletin - January 8 2016", "29-01-2016". 0 when none is found. */
+export function bulletinDate(name: string): number {
+  const n = decodeURIComponent(name).toLowerCase().replace(/[_,]+/g, ' ');
+  const num = n.match(/\b(\d{1,2})[-.](\d{1,2})[-.](20\d{2})\b/);
+  if (num) return Number(`${num[3]}${num[2].padStart(2, '0')}${num[1].padStart(2, '0')}`);
+  const mi = MONTHS.findIndex((m) => n.includes(m));
+  const year = n.match(/\b(20\d{2})\b/);
+  if (mi < 0 || !year) return 0;
+  const rest = n.replace(year[1], ' ');
+  const day = rest.match(/\b(\d{1,2})\b/);
+  return day ? Number(`${year[1]}${String(mi + 1).padStart(2, '0')}${day[1].padStart(2, '0')}`) : 0;
+}
+
+/** The newest weekly bulletin PDF among a page's links, CBK-hosted only. */
+export function newestBulletin(links: string[]): string | null {
+  return (
+    links
+      .filter((u) => /\.pdf$/i.test(u) && /bulletin/i.test(decodeURIComponent(u)))
+      .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
+      .map((u) => ({ u, d: bulletinDate(u.split('/').pop() ?? '') }))
+      .filter((x) => x.d > 0)
+      .sort((a, b) => b.d - a.d)[0]?.u ?? null
+  );
+}
+
+const lastNumber = (run: string) => run.trim().split(/\s+/).at(-1) ?? null;
+
+/**
+ * The figures this site carries from a Weekly Bulletin, read from its text.
+ * Each is null when its sentence or table is not found, never a guess: CBK
+ * rewords the front page occasionally, and a missed match should show as a
+ * gap in the form, not as a wrong number. Pinned against the 23 Oct 2026
+ * bulletin in tests/unit/cbk-watch-parse.test.ts.
+ */
+export function bulletinFigures(t: string) {
+  const reserves = t.match(/USD ([\d,]+) million \(([\d.]+) months of import cover\) as of (\w+ \d{1,2})/);
+  const fx = t.match(/exchanged at KSh ([\d.]+) per U\.S\. dollar on (\w+ \d{1,2})/);
+  const gdp = t.match(/grew by ([\d.]+) percent in the (\w+) quarter of (\d{4})/);
+  const nums = '((?:\\s+[\\d,]+\\.\\d{2})+)';
+  const dom = t.match(new RegExp(`Gross Domestic Debt \\(3\\+4\\+5\\)${nums}`));
+  const domHead = t.match(/Government Domestic Debt \(KSh Billion\)((?:\s+\d{1,2}-\w{3}-\d{2})+)/);
+  const pub = t.match(new RegExp(`Public\\s+Debt \\(Ksh Bn\\)${nums}`));
+  const pubHead = t.match(/Table \d+: Public Debt((?:\s+\w{3}-\d{2,4}\*?)+)/);
+  return {
+    reservesUSDm: reserves?.[1] ?? null,
+    importCoverMonths: reserves?.[2] ?? null,
+    reservesAsOf: reserves?.[3] ?? null,
+    usdKes: fx?.[1] ?? null,
+    usdKesOn: fx?.[2] ?? null,
+    gdpGrowthPct: gdp?.[1] ?? null,
+    gdpQuarter: gdp ? `${gdp[2]} quarter ${gdp[3]}` : null,
+    domesticDebtKSHbn: dom ? lastNumber(dom[1]) : null,
+    domesticDebtAsOf: domHead ? lastNumber(domHead[1]) : null,
+    publicDebtKSHbn: pub ? lastNumber(pub[1]) : null,
+    publicDebtAsOf: pubHead ? lastNumber(pubHead[1]) : null,
+  };
+}
+
 /**
  * Bonds the site is missing a CBK-sourced figure for, searched for on every
  * run. IFB1/2015/012 (6 Oct 2026): outstanding, coupon confirmed by NSE and
@@ -180,6 +242,15 @@ export default async () => {
   }
   (run as Record<string, unknown>).notices = notices;
 
+  // The newest Weekly Bulletin: reserves, debt and growth, which no results
+  // notice carries and which otherwise had to be pasted in by hand each Friday.
+  const bulletinUrl = newestBulletin(pageDocs('weekly-bulletin'));
+  const bulletinText = bulletinUrl ? await pdfText(bulletinUrl).catch((e) => `error ${String(e).slice(0, 120)}`) : '';
+  const bulletin = bulletinUrl
+    ? { file: decodeURIComponent(bulletinUrl.split('/').pop() ?? ''), ...bulletinFigures(bulletinText) }
+    : null;
+  (run as Record<string, unknown>).bulletin = bulletin;
+
   // Wanted bonds (LOOKUP): matching rows, and the text of up to two notices.
   const hits = results.map(([, p]) => (p as { lookup?: { rows: string[]; docs: string[] } }).lookup);
   const lookRows = hits.flatMap((h) => h?.rows ?? []);
@@ -210,6 +281,9 @@ export default async () => {
     .map(([n, t]) => `=== ${n}\n${t.slice(0, 2400)}`)
     .join('\n')
     .slice(0, 9000);
+  fields.bulletin = bulletin
+    ? Object.entries(bulletin).map(([k, v]) => `${k}: ${v ?? 'not found'}`).join('\n')
+    : 'no bulletin link found on the weekly-bulletin page';
   fields.lookup = [
     `wanted: ${LOOKUP.map((l) => l.isin).join(', ')}`,
     ...lookRows.map((r) => `row ${r}`),

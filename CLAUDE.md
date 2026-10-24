@@ -492,6 +492,8 @@ cd backend/scrapers && python healthcheck.py --publish   # writes freshness.json
 npm run build:engine && npm run build:rates              # writes rates.json/.csv
 ```
 
+**When entering a switch-auction prospectus, add `switchSources` to its `auctions.json` entry** — one `{issueCode, pricePer100, marketYieldPct}` per source bond, the price exactly as CBK prints it (it is DIRTY: 115.8913 reproduces the quoted 9.9627% only read that way), plus `maturityDate` for a bill group (bills are not in `bonds.json`). Without it the Auction Radar's switch calculator (`src/lib/switch.ts`, pinned to CBK's own worked example) does not render for that switch.
+
 **When entering a new T-bill auction, move each tenor's old `discountRate` into `previousDiscountRate`** — the dashboard's "What changed" strip compares the two, and a missing value hides the comparison rather than showing a move from zero.
 
 **The exception is `public/data/tbills.json`**, which no scraper writes — see the

@@ -42,3 +42,20 @@ export const COLUMNS: Record<number, string> = {
   3: 'grid-cols-3',
   4: 'grid-cols-2 sm:grid-cols-4',
 };
+
+/**
+ * One card per headline indicator: its NEWEST row, in HEADLINE order.
+ *
+ * macro.json keeps history — every daily USD/KES reading and every CBR
+ * decision is a row — and the grid used to render all of them, so a reader
+ * saw six USD/KES cards and two Central Bank Rates, one dated August. The
+ * history belongs in charts; the headline is the latest reading.
+ */
+export function headlineRows<T extends { indicator: string; date: string }>(rows: T[], headline: string[] = HEADLINE): T[] {
+  return headline.flatMap((ind) => {
+    const newest = rows
+      .filter((r) => r.indicator === ind)
+      .reduce<T | null>((best, r) => (!best || r.date > best.date ? r : best), null);
+    return newest ? [newest] : [];
+  });
+}

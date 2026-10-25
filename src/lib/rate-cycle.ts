@@ -175,3 +175,35 @@ export function monthYear(iso: string): string {
   const d = new Date(`${iso}T00:00:00Z`);
   return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
+
+/** A run of consecutive identical holds, or a single move, newest first. */
+export interface DecisionRow {
+  latest: RateDecision;
+  /** How many meetings the row stands for (1 unless it is a run of holds). */
+  meetings: number;
+  /** Date of the earliest meeting in the run. */
+  since: string;
+}
+
+/**
+ * Recent decisions with runs of holds at one rate collapsed into a single row.
+ *
+ * Four "Held at 8.75%" lines in a row told the reader one thing four times and
+ * pushed the last actual cut off the list. A run reads as one fact — held for
+ * N meetings since a date — and the freed rows show what came before it.
+ */
+export function groupDecisions(decisions: RateDecision[], rows = 4): DecisionRow[] {
+  const sorted = [...decisions].sort((a, b) => b.date.localeCompare(a.date));
+  const out: DecisionRow[] = [];
+  for (const d of sorted) {
+    const prev = out[out.length - 1];
+    if (prev && d.move === 'hold' && prev.latest.move === 'hold' && d.rate === prev.latest.rate) {
+      prev.meetings += 1;
+      prev.since = d.date;
+    } else {
+      if (out.length === rows) break;
+      out.push({ latest: d, meetings: 1, since: d.date });
+    }
+  }
+  return out;
+}

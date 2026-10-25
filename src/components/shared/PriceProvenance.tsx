@@ -21,7 +21,7 @@ export function PriceBadge({ info, className }: { info: ResolvedPrice; className
         : 'bg-emerald-100 text-emerald-800';
 
   const label =
-    info.source === 'par' ? 'par placeholder' : info.source === 'user' ? 'your price' : 'last traded';
+    info.source === 'par' ? 'par' : info.source === 'user' ? 'your price' : 'last traded';
 
   const title =
     info.source === 'par'

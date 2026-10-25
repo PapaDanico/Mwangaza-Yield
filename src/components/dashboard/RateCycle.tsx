@@ -11,7 +11,7 @@ const RateCyclePlot = dynamic(() => import('./RateCyclePlot'), {
   ssr: false,
   loading: () => <div className="h-52" aria-hidden="true" />,
 });
-import { analyseCycle, recentDecisions, describeCycle, whatItMeans, phaseLabel, monthYear } from '@/lib/rate-cycle';
+import { analyseCycle, groupDecisions, recentDecisions, describeCycle, whatItMeans, phaseLabel, monthYear } from '@/lib/rate-cycle';
 import { cn } from '@/lib/utils';
 import Term from '@/components/shared/Term';
 import Reserve from '@/components/shared/Reserve';
@@ -67,7 +67,7 @@ export default function RateCycle() {
   * breakpoint swaps into a different height. */
   if (!cycle || series.length < 2) return <Reserve height={695} className="min-h-[917px] sm:min-h-[695px]" />;
 
-  const recent = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  const recent = groupDecisions(cbrHistory, 4);
   const fell = cycle.runBps < 0;
 
   return (
@@ -151,7 +151,7 @@ export default function RateCycle() {
           Recent decisions
         </p>
         <ul className="space-y-0.5">
-          {recent.map((d) => {
+          {recent.map(({ latest: d, meetings, since }) => {
             const Icon = MOVE_ICON[d.move];
             return (
               <li key={d.id}>
@@ -166,7 +166,9 @@ export default function RateCycle() {
                   <span className="num shrink-0 tabular-nums text-ink-muted">{d.date}</span>
                   <span className="min-w-0 flex-1 truncate text-ink-soft">
                     {d.move === 'hold'
-                      ? `Held at ${d.rate.toFixed(2)}%`
+                      ? meetings > 1
+                        ? `Held at ${d.rate.toFixed(2)}% · ${meetings} meetings since ${monthYear(since)}`
+                        : `Held at ${d.rate.toFixed(2)}%`
                       : d.move === 'start'
                         ? `Rate published at ${d.rate.toFixed(2)}%`
                         : `${d.move === 'cut' ? 'Cut' : 'Raised'} ${Math.abs(d.changeBps)}bps to ${d.rate.toFixed(2)}%`}

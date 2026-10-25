@@ -162,5 +162,18 @@
     "via": "cbk-home",
     "lastChecked": "2026-10-23",
     "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 129.91, Posted On: 22-10-2026', read by the cbk-watch Netlify function on 23 Oct 2026 (06:00 UTC run). Up from 129.81 on 15 Oct (Weekly Bulletin of 16 Oct, Table 1)."
+  },
+  {
+    "id": "gdp-2026q2",
+    "indicator": "GDP",
+    "value": 5.1,
+    "date": "2026-10-23",
+    "unit": "% y/y",
+    "source": "CBK Weekly Bulletin",
+    "sourceUrl": "https://www.centralbank.go.ke/publications/",
+    "period": "2026 Q2",
+    "via": "supplied-document",
+    "lastChecked": "2026-10-25",
+    "sourceNote": "Real GDP growth for the second quarter of 2026, 5.1 percent against 4.9 percent in 2025Q2, as reported on page 1 of the CBK Weekly Bulletin of 23 October 2026 (Table 1: Real GDP Growth by Sector, source KNBS). Supplied by the owner. Dated by publication, like the World Bank row it supersedes on the dashboard, which is the 2025 annual figure (4.63)."
   }
 ]

@@ -5,7 +5,7 @@ import { useBondStore } from '@/stores/bondStore';
 import Reserve from '@/components/shared/Reserve';
 import { indicatorAge, indicatorStaleNote, vintageLabel } from '@/lib/indicator-freshness';
 import { cn } from '@/lib/utils';
-import { COLUMNS, HEADLINE } from '@/lib/macro-headline';
+import { COLUMNS, HEADLINE, headlineRows } from '@/lib/macro-headline';
 
 const LABELS: Record<string, string> = {
   CBR: 'Central Bank Rate',
@@ -31,7 +31,7 @@ const SHORT_LABELS: Record<string, string> = {
 
 export default function MacroPanel() {
   const all = useBondStore((s) => s.macro);
-  const macro = all.filter((m) => HEADLINE.includes(m.indicator));
+  const macro = headlineRows(all, HEADLINE);
   /* Measured on the built page at 390px and 1280px, not estimated.
   *
   * Reserve's contract is "roughly what the real card occupies, so the swap

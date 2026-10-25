@@ -104,8 +104,9 @@ describe('the core / non-core split', () => {
      * shrink every label past legibility. */
     const panel = readFileSync(`${ROOT}src/components/dashboard/MacroPanel.tsx`, 'utf8');
     expect(panel).toMatch(/HEADLINE/);
+    // headlineRows filters to HEADLINE AND keeps only each indicator's newest row.
     expect(panel, 'the panel no longer filters, so the grid will carry five cards').toMatch(
-      /filter\(/
+      /filter\(|headlineRows\(/
     );
     expect(panel).not.toMatch(/'CPI_CORE'/);
   });

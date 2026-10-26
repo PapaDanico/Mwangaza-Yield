@@ -202,6 +202,31 @@ export function tbillNoticeRates(t: string): { dated: string; r91: number; r182:
   return { dated: `${dated[3]}-${dated[2]}-${dated[1]}`, r91: +war[1], r182: +war[2], r364: +war[3] };
 }
 
+/** The archive key for a notice: its value date (ISO) from "DATED dd-mm-yyyy" in
+ *  the file name, else the file name. CBK links ONE combined notice under each
+ *  of the 91, 182 and 364-day tabs, as three differently-prefixed files, so a
+ *  file-name key stored every auction three times and spent the per-run quota
+ *  on copies (seen on the first live run, 26 Oct 2026). */
+export function archiveKey(url: string): string {
+  const name = decodeURIComponent(url.split('/').pop() ?? url);
+  const m = name.match(/dated\s*(\d{1,2})[-.\/](\d{1,2})[-.\/](\d{4})/i);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : name;
+}
+
+/** Notices not yet archived, one per value date, newest first, at most `max`. */
+export function unseenNotices(urls: string[], archive: Record<string, unknown>, max: number): string[] {
+  const seen = new Set(Object.keys(archive));
+  const out: string[] = [];
+  for (const u of urls) {
+    const k = archiveKey(u);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(u);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
 /** How many past T-bill notices one run adds to the archive. Kept small:
  *  a scheduled function has a short time limit, and the archive fills
  *  across runs instead (two a weekday). */
@@ -285,21 +310,22 @@ export default async () => {
 
   // T-bill rate archive, filled a few notices per run (see tbillNoticeRates).
   const store0 = getStore('cbk-watch');
-  const archive = ((await store0.get('tbill-history', { type: 'json' }).catch(() => null)) ?? {}) as Record<
+  const stored = ((await store0.get('tbill-history', { type: 'json' }).catch(() => null)) ?? {}) as Record<
     string,
     ReturnType<typeof tbillNoticeRates> | 'unreadable'
   >;
+  // Re-key anything stored under a file name by its value date, so the first
+  // run's three-copies-per-auction entries collapse into one.
+  const archive: typeof stored = {};
+  for (const [k, v] of Object.entries(stored)) archive[v && v !== 'unreadable' ? v.dated : k] = v;
   const remaining = BACKFILL_DEADLINE_MS - (Date.now() - started);
-  const unseen = remaining < 4_000 ? [] : resultsPdfs(pageDocs('tbills'), 1000)
-    .filter((u) => !(decodeURIComponent(u.split('/').pop() ?? u) in archive))
-    .slice(0, TBILL_BACKFILL_PER_RUN);
+  const unseen = remaining < 4_000 ? [] : unseenNotices(resultsPdfs(pageDocs('tbills'), 1000), archive, TBILL_BACKFILL_PER_RUN);
   await Promise.all(
     unseen.map(async (u) => {
-      const name = decodeURIComponent(u.split('/').pop() ?? u);
       const t = await pdfText(u, remaining).catch(() => null);
       // A timeout is not an unreadable notice: leave it out so a later run retries it.
       if (t === null || /^status \d/.test(t)) return;
-      archive[name] = tbillNoticeRates(t) ?? 'unreadable';
+      archive[archiveKey(u)] = tbillNoticeRates(t) ?? 'unreadable';
     })
   );
   await store0.setJSON('tbill-history', archive);

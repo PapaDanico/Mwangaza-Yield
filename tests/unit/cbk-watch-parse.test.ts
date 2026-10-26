@@ -136,3 +136,28 @@ describe('cbk-watch T-bill archive', () => {
     expect(tbillNoticeRates('')).toBeNull();
   });
 });
+
+describe('cbk-watch T-bill archive keys', () => {
+  const b = 'https://www.centralbank.go.ke/uploads/treasury_bills/';
+  // As served on 26 Oct 2026: the same combined notice, once per tenor tab.
+  const urls = [
+    `${b}991623375_RESULTS 2705-091 2679-182 2634-364 DATED 26-10-2026.xlsx.pdf`,
+    `${b}555111222_RESULTS 2705-091 2679-182 2634-364 DATED 26-10-2026.pdf`,
+    `${b}777333444_RESULTS 2705-091 2679-182 2634-364 DATED 26-10-2026 (1).pdf`,
+    `${b}1647758237_RESULTS 2704-091 2678-182 2633-364 DATED 19-10-2026.pdf`,
+    `${b}71747979_RESULTS 2703-091 2677-182 2632-364 DATED 12-10-2026.pdf`,
+  ];
+
+  it('keys a notice by its value date, not its file name', async () => {
+    const { archiveKey } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(archiveKey(urls[0])).toBe('2026-10-26');
+    expect(archiveKey(urls[1])).toBe(archiveKey(urls[2]));
+    expect(archiveKey(`${b}Guide.pdf`)).toBe('Guide.pdf');
+  });
+
+  it('spends the quota on distinct auctions and skips ones already archived', async () => {
+    const { unseenNotices } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(unseenNotices(urls, {}, 3).map((u) => u.includes('26-10') ? '26' : u.includes('19-10') ? '19' : '12')).toEqual(['26', '19', '12']);
+    expect(unseenNotices(urls, { '2026-10-26': {}, '2026-10-19': {} }, 3)).toEqual([urls[4]]);
+  });
+});

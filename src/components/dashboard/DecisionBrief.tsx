@@ -32,7 +32,7 @@ export default function DecisionBrief() {
     return decisionBrief({ tbills, macro, bonds, prints, expectedInflation1y: oneYear?.midpoint ?? null });
   }, [tbills, macro, bonds, prints]);
 
-  if (!tbills.length) return <Reserve height={454} className="min-h-[718px] sm:min-h-[454px]" />;
+  if (!tbills.length) return <Reserve height={454} className="min-h-[764px] sm:min-h-[454px]" />;
   if (!items.length) return null;
 
   return (

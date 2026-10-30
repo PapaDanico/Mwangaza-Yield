@@ -24,6 +24,10 @@ import {
   windowPhrase,
 } from '@/lib/bid';
 import { backtest, guidanceCalibration } from '@/lib/backtest';
+import { bidPayoff, describePayoff } from '@/lib/bid-payoff';
+import { bestTBill } from '@/lib/tbills';
+import { determineWHTRate } from '@/lib/financial-engine';
+import { useBondStore } from '@/stores/bondStore';
 import { calibratedBand, empiricalCoverage } from '@/lib/calibration';
 import { cn } from '@/lib/utils';
 import { track } from '@/lib/analytics';
@@ -52,8 +56,9 @@ export function BidAssistant({
   prints: AuctionPrint[];
 }) {
   const [rateStr, setRateStr] = useState('');
+  const tbills = useBondStore((st) => st.tbills);
 
-  const { guidance, targetYears, reopening, demandLine } = useMemo(() => {
+  const { guidance, targetYears, reopening, demandLine, whtRate } = useMemo(() => {
     // A re-opening keeps its original issue code, so if this code is already in
     // our bond list the reader is bidding on the REMAINING term, not the label.
     const known = bonds.find((b) => normaliseCode(b.issueCode) === normaliseCode(auction.issueCode));
@@ -73,6 +78,10 @@ export function BidAssistant({
       bandScale: cal.bandScale,
     });
     return {
+      whtRate: determineWHTRate({
+        taxExempt: known ? known.taxExempt : auction.category === 'IFB',
+        tenorYears: known ? known.tenorYears : auction.tenorYears,
+      }),
       guidance: g,
       targetYears: target,
       reopening: Boolean(known),
@@ -95,6 +104,23 @@ export function BidAssistant({
     () => (calibrated ? empiricalCoverage(pastAbsErrors, calibrated.halfWidth).share : 0),
     [calibrated, pastAbsErrors]
   );
+
+  /* What the range pays after tax, set against the best T-bill: the go/no-go
+   * question on the day. Dropped when there is no bill or no range, never
+   * guessed (see "Absence is not zero" in CLAUDE.md). */
+  const payoffLine = useMemo(() => {
+    const best = bestTBill(tbills);
+    if (!calibrated || !best) return null;
+    const bestNet = best.result.netEAY;
+    const p = bidPayoff({
+      lowPct: calibrated.low,
+      medianPct: guidance.median,
+      highPct: calibrated.high,
+      whtRate,
+      bestBillNetPct: bestNet,
+    });
+    return p ? describePayoff(p, whtRate, bestNet) : null;
+  }, [calibrated, guidance.median, tbills, whtRate]);
 
   const rate = parseFloat(rateStr);
   // The calendar sometimes carries a placeholder before CBK announces the bond
@@ -211,6 +237,7 @@ export function BidAssistant({
                 our midpoint give or take{' '}
                 <span className="num">{calibrated.halfWidth.toFixed(2)}</span> points.
               </p>
+              {payoffLine && <p className="mt-1.5 text-xs text-ink-soft">{payoffLine}</p>}
               <p className="mt-1.5 text-[11px] text-ink-faint">
                 Built from how far off we actually were on {calibrated.sampleSize} past auctions,
                 not from how spread out the comparables are. Checked by replaying it: it caught{' '}

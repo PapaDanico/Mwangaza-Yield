@@ -31,12 +31,15 @@ export default function WhatChanged() {
   const tbills = useBondStore((s) => s.tbills);
   const prints = useBondStore((s) => s.auctionResults);
   const cpi = useBondStore((s) => s.cpiHistory);
-  const items = useMemo(() => weekChanges(tbills, prints, cpi), [tbills, prints, cpi]);
+  /* T-bill moves only. The bond-auction row repeats "Our forecast against the
+   * result" above it and the inflation row repeats the CPI card (which already
+   * shows "was 6.60%") — the same figure twice on one screen. */
+  const items = useMemo(() => weekChanges(tbills, prints, cpi).filter((c) => c.id === 'tbills'), [tbills, prints, cpi]);
 
   const mpc = new Date(`${MPC_NEXT.date}T00:00:00`);
   const mpcDays = Math.ceil((mpc.getTime() - Date.now()) / 86_400_000);
 
-  if (!tbills.length) return <Reserve height={199} className="min-h-[283px] sm:min-h-[199px]" />;
+  if (!tbills.length) return <Reserve height={98} className="min-h-[140px] sm:min-h-[98px]" />;
 
   return (
     <section className="card" aria-labelledby="what-changed">

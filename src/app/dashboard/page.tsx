@@ -11,7 +11,6 @@ import AuctionBanner from '@/components/dashboard/AuctionBanner';
 import TopYields from '@/components/dashboard/TopYields';
 import YieldCurveChart from '@/components/dashboard/YieldCurveChart';
 import MacroPanel from '@/components/dashboard/MacroPanel';
-import SovereignContext from '@/components/dashboard/SovereignContext';
 import RateCycle from '@/components/dashboard/RateCycle';
 import MarketPulse from '@/components/dashboard/MarketPulse';
 import YieldInHistory from '@/components/dashboard/YieldInHistory';
@@ -72,7 +71,6 @@ export default function DashboardPage() {
       <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
         <MarketPulse />
         <YieldInHistory />
-        <SovereignContext />
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">

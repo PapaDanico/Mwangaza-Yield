@@ -96,10 +96,10 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
       id: 'lock-in',
       headline,
       detail:
-        `After tax the 364-day bill yields ${pp(n364)} against ${pp(n91)} for the 91-day: ` +
+        `After tax the 364-day bill pays ` +
         (pickup >= 0
-          ? `${pts(pickup)} more, about ${ksh(perMillion)} a year on Ksh 1 million`
-          : `${pts(-pickup)} less, about ${ksh(-perMillion)} a year on Ksh 1 million`) +
+          ? `${pts(pickup)} more than the 91-day, about ${ksh(perMillion)} a year on Ksh 1 million`
+          : `${pts(-pickup)} less than the 91-day, about ${ksh(-perMillion)} a year on Ksh 1 million`) +
         (pickup < LOCK_IN_WORTH_IT_PP
           ? '. That is little reward for losing the chance to reinvest if rates rise.'
           : '. That is the reward for not being able to reinvest if rates change.'),
@@ -119,8 +119,7 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
       id: 'real-return',
       headline: real >= 0 ? 'The best T-bill beats inflation, after tax' : 'Inflation is ahead of the best T-bill, after tax',
       detail:
-        `${pp(bestBill)} after tax against inflation of ${pp(cpi.rate, 1)}: ` +
-        `${pts(Math.abs(real))} ${real >= 0 ? 'above' : 'below'} inflation` +
+        `${pts(Math.abs(real))} ${real >= 0 ? 'above' : 'below'} the ${pp(cpi.rate, 1)} inflation reading` +
         (vsExpected !== null && expected !== null
           ? `. Firms surveyed by CBK expect ${pp(expected, 1)} over the next year, which would put it ` +
             `${pts(Math.abs(vsExpected))} ${vsExpected >= 0 ? 'above' : 'below'} (an opinion, not a measurement).`
@@ -160,8 +159,7 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
           id: 'long-bond',
           headline: `A ${years.toFixed(0)}-year bond pays ${pts(netApprox - bestBill, 1)} more than the best bill`,
           detail:
-            `${bond.issueCode} cleared at ${pp(gross)} on ${newest.auctionDate}, about ${pp(netApprox)} after ` +
-            `${Math.round(wht * 100)}% tax, against ${pp(bestBill)} for the best bill. ` +
+            `${bond.issueCode} pays about ${pp(netApprox)} after ${Math.round(wht * 100)}% tax. ` +
             `If market yields rose one point, its price would fall about ${pp(-drop, 1)}: a loss only if you sell before maturity.` +
             (pickupPts > 0
               ? ` The extra ${pts(pickupPts, 1)} a year would take about ${breakevenYears(-drop, pickupPts)} to make up that fall.`

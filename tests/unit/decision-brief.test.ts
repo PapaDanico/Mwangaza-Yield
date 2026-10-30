@@ -3,7 +3,7 @@ import tbills from '../../public/data/tbills.json';
 import macro from '../../public/data/macro.json';
 import bonds from '../../public/data/bonds.json';
 import prints from '../../public/data/auction-results.json';
-import { decisionBrief, LOCK_IN_NEGLIGIBLE_PP, type BriefInput } from '../../src/lib/decision-brief';
+import { breakevenYears, decisionBrief, LOCK_IN_NEGLIGIBLE_PP, type BriefInput } from '../../src/lib/decision-brief';
 import { computeTBill } from '../../src/lib/tbills';
 import type { AuctionPrint, Bond, MacroIndicator, TBill } from '../../src/types/bond';
 
@@ -73,5 +73,21 @@ describe('absence is not zero', () => {
     const item = get('lock-in', { ...base, tbills: inverted })!;
     expect(item.headline).toMatch(/Short bills pay more/);
     expect(item.tone).toBe('watch');
+  });
+});
+
+describe('break-even holding period', () => {
+  it('is the price fall divided by the extra yearly pickup, in words', () => {
+    expect(breakevenYears(6.5, 5.1)).toBe('1.3 years');
+    expect(breakevenYears(2, 6)).toBe('4 months');
+    expect(breakevenYears(0.1, 6)).toBe('less than a month');
+    expect(breakevenYears(80, 4)).toBe('more than ten years');
+  });
+
+  it('appears on the shipped long-bond line, consistent with its own numbers', () => {
+    const d = get('long-bond')!.detail;
+    const fall = Number(d.match(/fall about ([\d.]+)%/)![1]);
+    const pick = Number(get('long-bond')!.headline.match(/pays ([\d.]+) points/)![1]);
+    expect(d).toContain(`take about ${breakevenYears(fall, pick)} to make up that fall`);
   });
 });

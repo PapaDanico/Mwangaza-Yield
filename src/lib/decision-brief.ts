@@ -35,6 +35,20 @@ export const LOCK_IN_WORTH_IT_PP = 0.6;
 
 const pp = (v: number, d = 2) => `${v.toFixed(d)}%`;
 /** A gap between two rates is in percentage POINTS, not percent. */
+/**
+ * How long the bond's extra yearly pickup takes to earn back a price fall,
+ * as a phrase. A price fall is an untaxed loss and the pickup is after tax,
+ * so this errs against the bond. Under a month and over ten years are both
+ * stated as such, since neither is a useful precise figure.
+ */
+export function breakevenYears(fallPct: number, pickupPtsPerYear: number): string {
+  const years = fallPct / pickupPtsPerYear;
+  if (years < 1 / 12) return 'less than a month';
+  if (years > 10) return 'more than ten years';
+  if (years < 1) return `${Math.max(1, Math.round(years * 12))} months`;
+  return `${years.toFixed(1)} years`;
+}
+
 const pts = (v: number, d = 2) => `${v.toFixed(d)} ${Math.abs(v) === 1 ? 'point' : 'points'}`;
 const ksh = (v: number) => `Ksh ${Math.round(v).toLocaleString('en-KE')}`;
 
@@ -137,6 +151,7 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
       const gross = newest.weightedAverageRate as number;
       const wht = determineWHTRate(bond);
       const netApprox = gross * (1 - wht);
+      const pickupPts = netApprox - bestBill;
       const base = dirtyPriceAtYield(bond, gross, asOf);
       const shocked = dirtyPriceAtYield(bond, gross + 1, asOf);
       const drop = (shocked / base - 1) * 100;
@@ -147,7 +162,10 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
           detail:
             `${bond.issueCode} cleared at ${pp(gross)} on ${newest.auctionDate}, about ${pp(netApprox)} after ` +
             `${Math.round(wht * 100)}% tax, against ${pp(bestBill)} for the best bill. ` +
-            `If market yields rose one point, its price would fall about ${pp(-drop, 1)}: a loss only if you sell before maturity.`,
+            `If market yields rose one point, its price would fall about ${pp(-drop, 1)}: a loss only if you sell before maturity.` +
+            (pickupPts > 0
+              ? ` The extra ${pts(pickupPts, 1)} a year would take about ${breakevenYears(-drop, pickupPts)} to make up that fall.`
+              : ''),
           tone: 'neutral',
           href: '/ladder/',
           linkLabel: 'Build a ladder',

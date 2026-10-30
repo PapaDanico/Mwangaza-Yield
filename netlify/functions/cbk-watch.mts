@@ -391,6 +391,8 @@ export default async () => {
   }).catch(() => undefined);
 };
 
-// 06:00 and 13:00 UTC on weekdays = 09:00 and 16:00 Nairobi: after CBK's
-// morning FX card and after the afternoon auction notices.
-export const config: Config = { schedule: '0 6,13 * * 1-5' };
+// 06:00 and 16:00 UTC on weekdays = 09:00 and 19:00 Nairobi: after CBK's
+// morning FX card, and after the afternoon's results notices, which CBK
+// posts after the 16:00 Nairobi run this used to make (29 Oct 2026: the
+// T-bill results were out by evening and the 16:00 run missed them).
+export const config: Config = { schedule: '0 6,16 * * 1-5' };

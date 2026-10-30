@@ -18,6 +18,7 @@ import YieldInHistory from '@/components/dashboard/YieldInHistory';
 import InflationSplitCard from '@/components/dashboard/InflationSplit';
 import EconomicHealthSummary from '@/components/dashboard/EconomicHealthSummary';
 import WhatChanged from '@/components/dashboard/WhatChanged';
+import DecisionBrief from '@/components/dashboard/DecisionBrief';
 import LatestForecast from '@/components/dashboard/LatestForecast';
 import HeroRates from '@/components/landing/HeroRates';
 
@@ -50,6 +51,7 @@ export default function DashboardPage() {
       <HeroRates className="" />
       <LatestForecast />
       <AuctionBanner />
+      <DecisionBrief />
       <WhatChanged />
       <TopYields />
       <MacroPanel />

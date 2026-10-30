@@ -4,21 +4,21 @@
     "label": "Reserves (import cover)",
     "value": 5.9,
     "unit": "months",
-    "asOf": "2026-10-22",
+    "asOf": "2026-10-29",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,693 million on this date, about KSh 1.91 trillion at 129.91, flat on USD 14,689 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin of 23 October 2026, Table 3.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,740 million on this date, about KSh 1.92 trillion at 129.96, up from USD 14,693 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin of 30 October 2026, read by the cbk-watch function from CBK's own PDF.",
     "sentiment": "good"
   },
   {
     "id": "cbk-domestic-debt",
     "label": "Gross domestic debt",
-    "value": 7.82,
+    "value": 7.88,
     "unit": "KSh tn",
-    "asOf": "2026-10-16",
+    "asOf": "2026-10-23",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,821.53 billion at 16 October 2026 (Weekly Bulletin of 23 October, Table 8), down from 7,845.96 billion a week earlier; securities 7,716.30bn + CBK overdraft 6.28bn + other 98.94bn reconcile to the total. Treasury bonds 84.26 percent of securities, bills 15.74 percent.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,884.79 billion at 23 October 2026 (Weekly Bulletin of 30 October, gross domestic debt), up from 7,821.53 billion a week earlier as the 14 October bond and 22 October bill settlements added to the stock. Read by the cbk-watch function from CBK's own PDF.",
     "sentiment": "watch"
   },
   {

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-30T06:38:25.178217+00:00",
+  "checkedAt": "2026-10-30T16:50:26.085822+00:00",
   "datasets": [
     {
       "file": "meta.json",
@@ -12,8 +12,8 @@
     {
       "file": "macro.json",
       "label": "Macro (CBR, CPI, FX)",
-      "asOf": "2026-10-29",
-      "ageDays": 1,
+      "asOf": "2026-10-30",
+      "ageDays": 0,
       "budgetDays": 40,
       "stale": false
     },
@@ -28,8 +28,8 @@
     {
       "file": "cbk-context.json",
       "label": "CBK sovereign context",
-      "asOf": "2026-10-22",
-      "ageDays": 8,
+      "asOf": "2026-10-29",
+      "ageDays": 1,
       "budgetDays": 14,
       "stale": false
     },

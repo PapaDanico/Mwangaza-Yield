@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Tag } from 'lucide-react';
 import ToolShell from '@/components/shared/ToolShell';
+import Fold from '@/components/shared/Fold';
 import PricesClient from './PricesClient';
 
 export default function Page() {
@@ -15,7 +16,7 @@ export default function Page() {
         </>
       }
       after={
-        <>
+        <Fold title="Why there are no market prices here, what 100 means, and where your entries go">
           <h2>Why this app asks you for prices instead of fetching them</h2>
           <p>
             Bond prices in Kenya are the Exchange&apos;s data. Its terms make them proprietary and
@@ -46,7 +47,7 @@ export default function Page() {
             <Link href="/privacy/">Read the privacy notice</Link>, which sets out the one thing
             this app used to store on a server and no longer does.
           </p>
-        </>
+        </Fold>
       }
     >
       <PricesClient />

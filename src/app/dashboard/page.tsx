@@ -20,6 +20,7 @@ import WhatChanged from '@/components/dashboard/WhatChanged';
 import DecisionBrief from '@/components/dashboard/DecisionBrief';
 import LatestForecast from '@/components/dashboard/LatestForecast';
 import HeroRates from '@/components/landing/HeroRates';
+import Fold from '@/components/shared/Fold';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
@@ -102,6 +103,7 @@ export default function DashboardPage() {
         * what they are not — which is the part a reader arriving cold actually
         * needs, and the part no chart conveys. */}
       <div className="mt-10 max-w-[68ch] space-y-4 border-t border-sand-200 pt-6 text-sm leading-relaxed text-ink-soft [&_a]:text-gold-700 [&_a]:underline-offset-2 hover:[&_a]:underline [&_h2]:font-display [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-ink [&_strong]:text-ink">
+        <Fold title="What these figures mean, where they come from, and what this page is not">
         <h2>What &ldquo;what you keep&rdquo; means here</h2>
         <p>
           Bonds are ranked by yield <strong>after Kenyan withholding tax</strong>, not by coupon.
@@ -132,6 +134,7 @@ export default function DashboardPage() {
           Where a bid range is shown for a coming auction, it is a statistical range drawn from past
           results and scored in public against what actually cleared — not a view on the market.
         </p>
+        </Fold>
       </div>
     </div>
   );

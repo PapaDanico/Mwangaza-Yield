@@ -41,6 +41,7 @@ export default function AuctionsPage() {
   const auctionResults = useBondStore((s) => s.auctionResults);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showEarlier, setShowEarlier] = useState(false);
   const [selectedBond, setSelectedBond] = useState<Bond | null>(null);
 
   const effective = auctions.map((a) => ({ ...a, status: effectiveAuctionStatus(a) }));
@@ -70,6 +71,17 @@ export default function AuctionsPage() {
       b.lead.offerCloseDate.localeCompare(a.lead.offerCloseDate)
     );
   });
+
+  /* 22 calendar rows ran 4,000px on a phone, nearly all of them settled history
+   * that the demand and track-record sections below already summarise. What a
+   * reader acts on is what is open, upcoming or awaiting settlement, plus the
+   * latest few results; the rest is one tap away. */
+  const RECENT_SETTLED = 4;
+  let settledSeen = 0;
+  const visibleAuctions = showEarlier
+    ? sorted
+    : sorted.filter((g) => g.lead.status !== 'settled' || settledSeen++ < RECENT_SETTLED);
+  const hiddenCount = sorted.length - visibleAuctions.length;
 
   return (
     <div className="space-y-5">
@@ -109,7 +121,7 @@ export default function AuctionsPage() {
             everything below it — the demand card, the track record and the
             bidding guide. Measured 0.77 CLS at 390px before this. */}
         {!sorted.length && <Reserve height={900} />}
-        {sorted.map(({ key, legs, lead }) => {
+        {visibleAuctions.map(({ key, legs, lead }) => {
           const days = daysUntil(lead.offerCloseDate);
           const isOpen = expanded === key;
           const live = lead.status === 'open' || lead.status === 'upcoming';
@@ -206,6 +218,15 @@ export default function AuctionsPage() {
             </div>
           );
         })}
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowEarlier(true)}
+            className="min-h-11 w-full rounded-xl border border-sand-300 bg-sand-50 px-4 text-sm font-semibold text-ink hover:border-gold-500"
+          >
+            Show {hiddenCount} earlier auctions
+          </button>
+        )}
       </div>
 
       <MonthlyReview />

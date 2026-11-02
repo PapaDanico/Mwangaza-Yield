@@ -204,6 +204,10 @@ describe('cbk-watch Monthly Economic Indicators picker', () => {
     `${base}1296032873_Monthly%20Economic%20Indicators%20December%202023.pdf`,
     'https://example.com/Monthly%20Economic%20Indicators%20Sept%202030.pdf',
     `${base}9_Weekly%20Bulletin%20Oct%202026.pdf`,
+    // CBK's 2026 issues are named "MEI - <Month> <Year>", not "Monthly Economic Indicators".
+    `${base}305206407_MEI%20-%20July%202026.pdf`,
+    `${base}1193178686_MEI%20-%20June%202026.pdf`,
+    `${base}730714238_Monthly%20Economic%20Indicators%20-%20May%202026.pdf`,
   ];
 
   it('dates an issue from the month and year in its file name', async () => {
@@ -216,7 +220,18 @@ describe('cbk-watch Monthly Economic Indicators picker', () => {
 
   it('picks the newest CBK-hosted issue and never follows a link off-site', async () => {
     const { newestMonthly } = await import('../../netlify/functions/cbk-watch.mts');
-    expect(newestMonthly(links)).toBe(links[1]);
+    expect(newestMonthly(links)).toBe(links[6]); // MEI - July 2026
     expect(newestMonthly([])).toBeNull();
+  });
+
+  it('skips the contents page: sections are read from their second heading', async () => {
+    const { monthlyExcerpts } = await import('../../netlify/functions/cbk-watch.mts');
+    const text = 'TABLE OF CONTENTS REAL SECTOR INDICATORS ..... 13 BALANCE OF PAYMENTS AND EXTERNAL SECTOR INDICATORS ..... 16 ' +
+      'x'.repeat(50) + ' REAL SECTOR INDICATORS real-body ' + 'y'.repeat(50) +
+      ' BALANCE OF PAYMENTS AND EXTERNAL SECTOR INDICATORS bop-body';
+    const parts = monthlyExcerpts(text, 120);
+    expect(parts.real).toContain('real-body');
+    expect(parts.external).toContain('bop-body');
+    expect(monthlyExcerpts('nothing here').real).toBe('(heading not found)');
   });
 });

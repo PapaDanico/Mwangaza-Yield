@@ -221,14 +221,14 @@ export default function PricesClient() {
             aria-label="Contribute to Community Book"
             onClick={() => setContributeEnabled((v) => !v)}
             className={cn(
-              'relative h-5 w-9 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-1',
+              'relative h-6 w-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gold-500 focus:ring-offset-1',
               contributeEnabled ? 'bg-gold-500' : 'bg-sand-400',
             )}
           >
             <span
               className={cn(
-                'absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform',
-                contributeEnabled ? 'translate-x-4' : 'translate-x-0.5',
+                'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
+                contributeEnabled ? 'translate-x-5' : 'translate-x-0.5',
               )}
             />
           </button>

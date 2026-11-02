@@ -169,10 +169,10 @@ export default function TopYields() {
               </p>
             )}
             <div className="mt-2 flex gap-2">
-              <button onClick={() => setSelected(bond)} className="text-xs font-semibold text-gold-700 hover:underline">
+              <button onClick={() => setSelected(bond)} className="-my-1.5 inline-flex items-center px-0.5 py-1.5 text-xs font-semibold text-gold-700 hover:underline">
                 View details
               </button>
-              <Link href="/calculator/" className="text-xs text-ink-muted hover:underline">
+              <Link href="/calculator/" className="-my-1.5 inline-flex items-center px-0.5 py-1.5 text-xs text-ink-muted hover:underline">
                 Calculate
               </Link>
             </div>

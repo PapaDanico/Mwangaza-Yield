@@ -97,5 +97,16 @@
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
     "note": "The largest regular source of dollars into Kenya, and the reason the shilling has held near 130. September 2026 brought US$ 438.5 million (+4.5 percent on a year earlier, below August's record US$ 451.8 million); the twelve months to September total about US$ 5.03 billion, 1.0 percent under a year earlier. North America is weakening (-11.2 percent January to September) while Europe set a monthly record. Not read from CBK's release: five outlets agree on the monthly figure, and give the twelve-month total between 5.01 and 5.03, so treat the second decimal as approximate. Replace with the CBK document when supplied.",
     "sentiment": "good"
+  },
+  {
+    "id": "cbk-goods-trade-deficit",
+    "label": "Goods trade deficit, 12 months",
+    "value": -12.84,
+    "unit": "US$ bn",
+    "asOf": "2026-07-31",
+    "source": "CBK Monthly Economic Indicators (July 2026)",
+    "sourceUrl": "https://www.centralbank.go.ke/publication/monthly-economic-indicators/",
+    "note": "The dollars Kenya must find each year to pay for what it imports, which is what the shilling and the reserves rest on. In the twelve months to July 2026 goods exports were US$ 13.49 billion against imports of US$ 26.34 billion. Twelve months to August 2025 the gap was US$ 10.64 billion: imports have grown 12.0 percent over that span and exports 4.8 percent, and the current account deficit widened from US$ 2.81 billion to US$ 4.64 billion. Oil explains part of it: the table prints Murban crude at US$ 116 a barrel in March 2026 against US$ 71 in July 2025. Balance of payments figures are provisional until KNBS releases its quarterly data. Read from CBK's Monthly Economic Indicators for July 2026 by the cbk-watch reader.",
+    "sentiment": "watch"
   }
 ]

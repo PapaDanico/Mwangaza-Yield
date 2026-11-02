@@ -235,3 +235,26 @@ describe('cbk-watch Monthly Economic Indicators picker', () => {
     expect(monthlyExcerpts('nothing here').real).toBe('(heading not found)');
   });
 });
+
+describe('cbk-watch Monthly Economic Indicators figures', () => {
+  it('reads the newest month of each row from the July 2026 issue', async () => {
+    const { monthlyFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    const fs = await import('node:fs');
+    const text = fs.readFileSync(new URL('../fixtures/cbk-mei-2026-07.txt', import.meta.url), 'utf8');
+    const [real, external] = text.split('=====EXTERNAL=====');
+    expect(monthlyFigures(real, external)).toEqual({
+      // Visitor arrivals print "…" for July, so the newest AVAILABLE month is June.
+      visitorArrivals: '197,564',
+      visitorArrivalsMonth: 'Jun-26',
+      goodsExportsUSDm12m: '13,492.0',
+      goodsImportsUSDm12m: '26,336.5',
+      currentAccountUSDm12m: '-4,638.9',
+      balanceOfPaymentsMonth: 'Jul-26',
+    });
+  });
+
+  it('reports a missing table as null, not a number', async () => {
+    const { monthlyFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(Object.values(monthlyFigures('nothing', 'nothing')).every((v) => v === null)).toBe(true);
+  });
+});

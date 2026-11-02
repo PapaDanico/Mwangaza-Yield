@@ -65,6 +65,7 @@ export default function PricesClient() {
   const [source, setSource] = useState<PriceSource>('Broker');
   const [error, setError] = useState('');
   const [contributeEnabled, setContributeEnabled] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   // Set after mount: a build-time date would mismatch on hydration, and this
   // page is statically exported.
@@ -95,6 +96,13 @@ export default function PricesClient() {
   }, [bonds, secondary, userPrices, query]);
 
   const priced = userPrices.length;
+
+  /* A catalogue of ~76 near-identical cards ran 9,000px on a phone. Searching
+   * shows every match; otherwise the first dozen, and always every bond the
+   * reader has priced (they sort first), with a button for the rest. */
+  const COLLAPSED_ROWS = 12;
+  const visibleRows =
+    query.trim() || showAll ? rows : rows.slice(0, Math.max(COLLAPSED_ROWS, priced));
 
   // Never print the solver's own ceiling as though it were measured — the same
   // guard the calculator uses.
@@ -179,23 +187,6 @@ export default function PricesClient() {
   return (
     <>
 
-      <div className="card space-y-2">
-        <p className="text-sm leading-relaxed text-ink-soft">
-          We publish no market prices at all. This app is built only on public Central Bank of
-          Kenya, National Treasury and KNBS data, and exchange price data is none of those — so
-          the price of a bond is something only you can supply.
-        </p>
-        <p className="text-sm leading-relaxed text-ink-soft">
-          Use the price you actually paid, or the price your broker or DhowCSD quotes you. That is
-          the number your own return depends on anyway, and it is more accurate for you than any
-          published average.
-        </p>
-        <p className="text-[12px] leading-relaxed text-ink-faint">
-          Prices you enter are stored only on this device, in the same local database as your
-          holdings. They are never uploaded, and clearing your browser data removes them.
-        </p>
-      </div>
-
       {/* Privacy notice + opt-in toggle */}
       <div className="flex flex-col gap-3 rounded-xl border border-sand-300 bg-sand-50 px-4 py-3 sm:flex-row sm:items-start">
         <ShieldCheck size={16} className="mt-0.5 shrink-0 text-mint-700" />
@@ -268,8 +259,16 @@ export default function PricesClient() {
         </div>
       </div>
 
+      {rows.some((r) => r.daysToMaturity > 0 && r.daysToMaturity < SHORT_DATED_DAYS) && (
+        <p className="text-xs leading-relaxed text-ink-faint">
+          Bonds that redeem within a year show very large annualised yields: the repayment, not the
+          coupon, dominates, so a small discount annualises to a big number. It is not an income
+          you can hold.
+        </p>
+      )}
+
       <div className="space-y-2">
-        {rows.map(({ bond, info, netYTM, daysToMaturity }) => {
+        {visibleRows.map(({ bond, info, netYTM, daysToMaturity }) => {
           const cp = selectCommunityPrice(communityState, bond.isin);
 
           return (
@@ -376,11 +375,7 @@ export default function PricesClient() {
               })()}
 
               {daysToMaturity > 0 && daysToMaturity < SHORT_DATED_DAYS && (
-                <p className="mt-1 text-xs leading-snug text-ink-faint">
-                  Redeems in {daysToMaturity} days — at that range the yield is dominated by the
-                  repayment rather than the coupon, so a small discount annualises to a very large
-                  number. It is not an income you can hold.
-                </p>
+                <p className="mt-1 text-xs text-ink-faint">Redeems in {daysToMaturity} days</p>
               )}
 
               {editing === bond.isin ? (
@@ -470,6 +465,15 @@ export default function PricesClient() {
         })}
         {!rows.length && (
           <p className="card text-sm text-ink-muted">No bond matches &ldquo;{query}&rdquo;.</p>
+        )}
+        {visibleRows.length < rows.length && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="min-h-11 w-full rounded-xl border border-sand-300 bg-sand-50 px-4 text-sm font-semibold text-ink hover:border-gold-500"
+          >
+            Show all {rows.length} bonds
+          </button>
         )}
       </div>
 

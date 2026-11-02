@@ -171,12 +171,34 @@ export function monthlyIssue(name: string): number {
 export function newestMonthly(links: string[]): string | null {
   return (
     links
-      .filter((u) => /\.pdf$/i.test(u) && /monthly\s*economic\s*indicators/i.test(decodeURIComponent(u)))
+      .filter((u) => /\.pdf$/i.test(u) && /(monthly\s*economic\s*indicators|(?<![A-Za-z])MEI(?![A-Za-z]))/i.test(decodeURIComponent(u)))
       .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
       .map((u) => ({ u, d: monthlyIssue(u.split('/').pop() ?? '') }))
       .filter((x) => x.d > 0)
       .sort((a, b) => b.d - a.d)[0]?.u ?? null
   );
+}
+
+/**
+ * The parts of a Monthly Economic Indicators issue worth reading. The issue
+ * opens with a table of contents and definitions, so its first few thousand
+ * characters say nothing; the real sections start at the SECOND occurrence of
+ * their heading (the first is the contents page). Returns the head of the
+ * document plus a window from each wanted section.
+ */
+export function monthlyExcerpts(text: string, window = 9000): { head: string; real: string; external: string } {
+  const from = (heading: string) => {
+    const first = text.indexOf(heading);
+    if (first < 0) return '(heading not found)';
+    const second = text.indexOf(heading, first + heading.length);
+    const at = second >= 0 ? second : first;
+    return text.slice(at, at + window);
+  };
+  return {
+    head: text.slice(0, 1500),
+    real: from('REAL SECTOR INDICATORS'),
+    external: from('BALANCE OF PAYMENTS AND EXTERNAL SECTOR INDICATORS'),
+  };
 }
 
 const lastNumber = (run: string) => run.trim().split(/\s+/).at(-1) ?? null;
@@ -411,7 +433,10 @@ export default async () => {
   fields.bulletin = bulletin
     ? Object.entries(bulletin).map(([k, v]) => `${k}: ${v ?? 'not found'}`).join('\n')
     : 'no bulletin link found on the weekly-bulletin page';
-  fields.monthly = `${monthlyUrl ? decodeURIComponent(monthlyUrl.split('/').pop() ?? '') : 'none'}\n${monthlyText.slice(0, 7000)}`;
+  const monthlyParts = monthlyExcerpts(monthlyText);
+  fields.monthly = `${monthlyUrl ? decodeURIComponent(monthlyUrl.split('/').pop() ?? '') : 'none'}\n${monthlyParts.head}`;
+  fields['monthly-real'] = monthlyParts.real;
+  fields['monthly-external'] = monthlyParts.external;
   fields['tbill-history'] = Object.values(archive)
     .filter((r): r is NonNullable<ReturnType<typeof tbillNoticeRates>> => !!r && r !== 'unreadable')
     .sort((a, b) => a.dated.localeCompare(b.dated))

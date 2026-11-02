@@ -31,7 +31,7 @@ export function PriceBadge({ info, className }: { info: ResolvedPrice; className
   return (
     <span
       title={title}
-      className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-medium tracking-wide', tone, className)}
+      className={cn('rounded-md px-1.5 py-0.5 text-xs font-medium tracking-wide', tone, className)}
     >
       {label}
       {info.stale && ' · check'}

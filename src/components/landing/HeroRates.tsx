@@ -33,7 +33,7 @@ export default function HeroRates({ className = 'mt-6' }: { className?: string }
           <div key={t.tenorDays}>
             <p className="num text-2xl font-bold text-ink">{t.netEAY.toFixed(2)}%</p>
             <p className="text-xs text-ink-muted">{t.tenorDays}-day</p>
-            <p className="num text-[11px] text-ink-faint">CBK rate {t.quotedDiscountRate.toFixed(2)}%</p>
+            <p className="num text-xs text-ink-faint">CBK rate {t.quotedDiscountRate.toFixed(2)}%</p>
           </div>
         ))}
       </div>

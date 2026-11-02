@@ -146,7 +146,7 @@ export default function TopYields() {
             key={bond.isin}
             className="card group relative overflow-hidden p-3 transition hover:border-gold-500 sm:p-4"
           >
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-faint sm:gap-2 sm:text-xs">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint sm:gap-2 sm:text-xs">
               <Icon size={13} className={`shrink-0 ${accent}`} /> {label}
             </div>
             <p className={`num mt-1.5 text-3xl font-bold sm:mt-2 sm:text-4xl ${accent}`}>
@@ -155,7 +155,7 @@ export default function TopYields() {
             <p className="mt-1 text-xs text-ink-soft sm:text-sm">
               net of tax · <span className="font-semibold text-ink">{bond.issueCode}</span>
             </p>
-            <p className="text-[11px] text-ink-faint sm:text-xs">
+            <p className="text-xs text-ink-faint sm:text-xs">
               {bond.couponRate}% coupon · at {price.toFixed(2)}
               {isPar && ' (par — no market price published)'} · {bond.maturityDate.slice(0, 4)} maturity
             </p>
@@ -164,7 +164,7 @@ export default function TopYields() {
                 ranges from days to years — and the reader cannot tell which
                 from a percentage alone. */}
             {bond.ytmAsOf && (
-              <p className="mt-1 text-[11px] text-ink-faint">
+              <p className="mt-1 text-xs text-ink-faint">
                 Last auctioned {bond.ytmAsOf} at {bond.ytmGross?.toFixed(2)}% gross
               </p>
             )}

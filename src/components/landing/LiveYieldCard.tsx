@@ -52,7 +52,7 @@ export default function LiveYieldCard() {
 
   return (
     <div className="card w-64 rotate-2 border-gold-500/60 shadow-card transition hover:rotate-0">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
         {best.bond.taxExempt ? <ShieldCheck size={13} className="text-mint-700" /> : <TrendingUp size={13} className="text-gold-700" />}
         {atPar ? 'Best net yield at par' : 'Best net yield today'}
       </div>
@@ -61,7 +61,7 @@ export default function LiveYieldCard() {
         {best.bond.issueCode}{best.bond.taxExempt ? ' · tax-free' : ' · after tax'}
       </p>
       {atPar && (
-        <p className="mt-1.5 text-[11px] leading-snug text-ink-faint">
+        <p className="mt-1.5 text-xs leading-snug text-ink-faint">
           Priced at par 100 — a placeholder, not the market. Enter the price you are quoted in the{' '}
           <a href="/calculator/" className="underline">
             calculator

@@ -76,7 +76,7 @@ export default function RealRecord() {
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg bg-sand-100 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-ink-faint">
+          <p className="text-xs uppercase tracking-wide text-ink-faint">
             Best on record
           </p>
           <p className="mt-1 font-display text-lg font-semibold tabular-nums text-mint-700">
@@ -90,7 +90,7 @@ export default function RealRecord() {
           </p>
         </div>
         <div className="rounded-lg bg-sand-100 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-ink-faint">
+          <p className="text-xs uppercase tracking-wide text-ink-faint">
             Worst on record
           </p>
           <p className="mt-1 font-display text-lg font-semibold tabular-nums text-ink">

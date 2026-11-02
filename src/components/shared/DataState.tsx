@@ -65,7 +65,7 @@ export default function DataState({
       >
         <RefreshCw size={14} /> Try again
       </button>
-      <p className="text-[11px] text-ink-faint">
+      <p className="text-xs text-ink-faint">
         Still stuck? <a href="/support/" className="text-gold-700 hover:underline">Tell us</a> — a
         blank screen is worth reporting.
       </p>

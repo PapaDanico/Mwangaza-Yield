@@ -198,7 +198,7 @@ export default function LadderPage() {
               className="h-11 w-full cursor-pointer accent-gold-600"
             />
           </div>
-          <p className="text-[11px] leading-relaxed text-ink-faint">
+          <p className="text-xs leading-relaxed text-ink-faint">
             Rungs are spread across the horizon — best net yield in each window, one bond per
             maturity year, tax-free IFBs competing on equal footing. Where the market has no paper
             in a window, the next-best yield fills in. Equal split in Ksh 50k steps, priced from
@@ -379,14 +379,14 @@ export default function LadderPage() {
                     const total = p.couponsKES + p.principalKES;
                     return (
                       <div key={p.year} className="flex min-w-[3rem] flex-1 flex-col items-center gap-1">
-                        <span className="num text-[10px] text-ink-soft">
+                        <span className="num text-xs text-ink-soft">
                           {total >= 1e6 ? `${(total / 1e6).toFixed(1)}M` : `${Math.round(total / 1000)}k`}
                         </span>
                         <div className="flex h-28 w-full flex-col-reverse rounded-lg bg-sand-200 p-1" title={`${p.year}: ${formatKES(total)}`}>
                           <div className="w-full rounded-b bg-gold-500" style={{ height: `${(p.couponsKES / maxYear) * 100}%`, minHeight: p.couponsKES > 0 ? 3 : 0 }} />
                           <div className="w-full rounded-t bg-mint-600" style={{ height: `${(p.principalKES / maxYear) * 100}%`, minHeight: p.principalKES > 0 ? 3 : 0 }} />
                         </div>
-                        <span className="num text-[10px] text-ink-muted">{p.year}</span>
+                        <span className="num text-xs text-ink-muted">{p.year}</span>
                       </div>
                     );
                   })}

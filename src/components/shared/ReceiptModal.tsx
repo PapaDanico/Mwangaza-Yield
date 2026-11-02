@@ -22,7 +22,7 @@ function downloadText(content: string, filename: string, mime: string) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-gold-700">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-gold-700">
         {title}
       </h3>
       {children}
@@ -102,7 +102,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
               Calculation Receipt
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-ink-faint">
+          <div className="flex items-center gap-2 text-xs text-ink-faint">
             <span>{receipt.timestamp.replace('T', ' ').slice(0, 16)} UTC</span>
             <span>·</span>
             <span>v{receipt.appVersion}</span>
@@ -129,7 +129,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
                   <tr key={i} className="border-b border-sand-200/70 last:border-0">
                     <td className="py-1.5 pr-3 text-ink-muted">{inp.label}</td>
                     <td className="py-1.5 font-medium text-ink">{inp.value}</td>
-                    <td className="py-1.5 pl-2 text-right text-[11px] text-ink-faint">{inp.source}</td>
+                    <td className="py-1.5 pl-2 text-right text-xs text-ink-faint">{inp.source}</td>
                   </tr>
                 ))}
               </tbody>
@@ -165,7 +165,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
             </p>
             <pre className={cn(
               'overflow-x-auto rounded-lg border border-sand-300 bg-treasury-navy/5 p-3',
-              'font-mono text-[11px] leading-relaxed text-ink',
+              'font-mono text-xs leading-relaxed text-ink',
             )}>
               {receipt.formulaNotation}
             </pre>
@@ -184,11 +184,11 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
             </p>
             <p className={cn(
               'break-all rounded-lg border border-sand-300 bg-treasury-navy/5 p-2',
-              'font-mono text-[11px] text-ink',
+              'font-mono text-xs text-ink',
             )}>
               {receipt.hash}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">Receipt ID: {receipt.id}</p>
+            <p className="mt-1 text-xs text-ink-faint">Receipt ID: {receipt.id}</p>
           </Section>
         </div>
 

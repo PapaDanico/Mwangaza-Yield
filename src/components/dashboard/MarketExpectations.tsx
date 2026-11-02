@@ -44,7 +44,7 @@ export default function MarketExpectations() {
     <section className="card">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-semibold text-ink">What the market expects of inflation</h2>
-        <span className="rounded-full bg-sand-200 px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
+        <span className="rounded-full bg-sand-200 px-2 py-0.5 text-xs font-semibold text-ink-soft">
           Survey, not measurement
         </span>
       </div>
@@ -89,14 +89,14 @@ export default function MarketExpectations() {
       </div>
 
       {actualCpi !== null && (
-        <p className="mt-3 border-t border-sand-200 pt-2 text-[11px] leading-relaxed text-ink-faint">
+        <p className="mt-3 border-t border-sand-200 pt-2 text-xs leading-relaxed text-ink-faint">
           For comparison, inflation last <em>measured</em>{' '}
           <span className="num font-semibold text-ink-soft">{actualCpi.toFixed(2)}%</span>. Expectations
           above that imply the market thinks prices will accelerate; below it, that they will ease.
         </p>
       )}
 
-      <p className="mt-2 text-[11px] text-ink-faint">
+      <p className="mt-2 text-xs text-ink-faint">
         Source:{' '}
         <a
           href={survey.sourceUrl}

@@ -138,7 +138,7 @@ export default function CouponCalendarHeatmap({ events }: { events: PortfolioPay
             </button>
           )}
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-ink-faint">
+        <div className="grid grid-cols-7 gap-1 text-center text-xs uppercase tracking-wide text-ink-faint">
           {WEEKDAYS.map((day) => <div key={day}>{day}</div>)}
         </div>
         <div className="grid grid-cols-7 gap-1">
@@ -152,7 +152,7 @@ export default function CouponCalendarHeatmap({ events }: { events: PortfolioPay
                 onMouseLeave={() => setHoveredDate((current) => (current === cell.date ? null : current))}
                 className={`aspect-square rounded-lg border text-center ${
                   cell.selected ? 'border-ink ring-1 ring-ink' : 'border-transparent'
-                } ${amountTone(cell.total, maxAmount)} ${compact ? 'text-[10px]' : 'text-xs font-medium'}`}
+                } ${amountTone(cell.total, maxAmount)} ${compact ? 'text-xs' : 'text-xs font-medium'}`}
                 aria-label={`${cell.date}${cell.hasEvents ? `, ${formatKES(cell.total)} scheduled` : ''}`}
               >
                 {cell.dayNumber}

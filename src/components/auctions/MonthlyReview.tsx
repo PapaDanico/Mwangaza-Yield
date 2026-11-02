@@ -118,7 +118,7 @@ export default function MonthlyReview() {
       <div className="mt-3 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
+            <tr className="text-left text-xs uppercase tracking-wide text-ink-faint">
               <th className="pb-1 font-medium">Auction</th>
               <th className="pb-1 font-medium">Type</th>
               <th className="pb-1 text-right font-medium">Bid</th>
@@ -129,7 +129,7 @@ export default function MonthlyReview() {
               <tr key={`${row.date}-${row.issueCodes.join()}`} className="border-t border-sand-200">
                 <td className="py-1.5 text-ink-soft">
                   {row.date}
-                  <span className="block text-[11px] text-ink-faint">
+                  <span className="block text-xs text-ink-faint">
                     {row.issueCodes.join(', ') || '—'}
                   </span>
                 </td>
@@ -147,7 +147,7 @@ export default function MonthlyReview() {
         </table>
       </div>
 
-      <p className="mt-2 text-[11px] text-ink-faint">{evidenceLine(r)}</p>
+      <p className="mt-2 text-xs text-ink-faint">{evidenceLine(r)}</p>
 
       <Explain label="What counts as an auction here, and what is left blank">
         Only primary issuances produce a bid-to-cover ratio. A switch is a debt

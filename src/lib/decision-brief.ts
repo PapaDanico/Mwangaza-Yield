@@ -33,6 +33,11 @@ export const LOCK_IN_NEGLIGIBLE_PP = 0.15;
 /** At or above this a longer bill pays visibly more for the wait. */
 export const LOCK_IN_WORTH_IT_PP = 0.6;
 
+/** Upper edge of CBK's inflation target band (2.5% +/- 2.5 points). */
+export const INFLATION_CEILING = 7.5;
+/** Within this many points of the ceiling the gap is worth a sentence. */
+export const CEILING_WATCH_PP = 0.5;
+
 const pp = (v: number, d = 2) => `${v.toFixed(d)}%`;
 /** A gap between two rates is in percentage POINTS, not percent. */
 /**
@@ -123,7 +128,12 @@ export function decisionBrief(input: BriefInput): BriefItem[] {
         (vsExpected !== null && expected !== null
           ? `. Firms surveyed by CBK expect ${pp(expected, 1)} over the next year, which would put it ` +
             `${pts(Math.abs(vsExpected))} ${vsExpected >= 0 ? 'above' : 'below'} (an opinion, not a measurement).`
-          : '.'),
+          : '.') +
+        (cpi.rate >= INFLATION_CEILING - CEILING_WATCH_PP
+          ? cpi.rate > INFLATION_CEILING
+            ? ` Inflation is above CBK's ${pp(INFLATION_CEILING, 1)} ceiling, which makes a rate rise more likely than a cut.`
+            : ` That is ${pts(INFLATION_CEILING - cpi.rate, 1)} under CBK's ${pp(INFLATION_CEILING, 1)} ceiling; above it, a rate rise becomes more likely than a cut.`
+          : ''),
       tone: real >= 1 ? 'good' : real >= 0 ? 'neutral' : 'watch',
       href: '/macro/',
       linkLabel: 'See the inflation picture',

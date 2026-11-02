@@ -81,7 +81,7 @@ export default function EconomicHealthSummary() {
           <div key={m.key} className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">{m.label}</p>
             <p className="num mt-1 text-lg font-bold text-ink">{m.arrow ? `${m.arrow} ` : ''}{m.value}</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-ink-faint">{m.note}</p>
+            <p className="mt-1 text-xs leading-relaxed text-ink-faint">{m.note}</p>
           </div>
         ))}
       </div>

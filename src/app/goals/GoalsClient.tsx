@@ -456,10 +456,10 @@ export default function GoalsClient() {
             </div>
 
             <div className="rounded-xl border border-sand-300 bg-sand-200/60 p-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-soft">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
                 What this assumes
               </p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-soft">
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">
                 {fire.ladderRungs > 1 ? (
                   <>
                     The headline figures price a{' '}
@@ -497,7 +497,7 @@ export default function GoalsClient() {
                   </>
                 )}
               </p>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
                 Bonds you already hold keep their coupon to maturity; it is what you buy NEXT that
                 reprices, which is why a long plan is a rate bet as much as a savings one. Every
                 coupon is assumed reinvested. Inflation is not modelled, so the target is in
@@ -627,7 +627,7 @@ export default function GoalsClient() {
                   ))}
                 </tbody>
               </table>
-              <p className="px-4 py-3 text-[11px] leading-relaxed text-ink-muted">
+              <p className="px-4 py-3 text-xs leading-relaxed text-ink-muted">
                 Carried in is money that arrived earlier — a bond maturing before the fees begin, or a
                 year&apos;s surplus — held as cash at no interest until the next invoice.
                 {fees.leftOverKES > 0 && (
@@ -640,7 +640,7 @@ export default function GoalsClient() {
               <h3 className="mb-1 font-display text-sm font-semibold text-ink">
                 The bonds funding these fees
               </h3>
-              <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+              <p className="mb-3 text-xs leading-relaxed text-ink-muted">
                 We pick for the best net yield in each maturity window. If you know the term the
                 first invoice lands, or you already hold something, say so — capital re-splits
                 evenly across whatever you choose.
@@ -654,7 +654,7 @@ export default function GoalsClient() {
               />
             </div>
 
-            <p className="text-[11px] leading-relaxed text-ink-faint">
+            <p className="text-xs leading-relaxed text-ink-faint">
               Maturities are matched to fee years so principal returns near the invoice rather than
               forcing a sale at whatever price the market offers. Where the market has no bond
               maturing in a fee year, coupons and neighbouring maturities carry the load — see the{' '}
@@ -835,7 +835,7 @@ export default function GoalsClient() {
                         style={{ height: `${(v / maxMonthly) * 100}%`, minHeight: v > 0 ? 3 : 0 }}
                         title={formatKES(v)} />
                     </div>
-                    <span className="text-[10px] text-ink-muted">{MONTHS[i]}</span>
+                    <span className="text-xs text-ink-muted">{MONTHS[i]}</span>
                   </div>
                 ))}
               </div>
@@ -852,7 +852,7 @@ export default function GoalsClient() {
               <div className="-mx-5 mt-5 overflow-x-auto border-t border-sand-300 px-0 pt-1">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wide text-ink-muted">
+                    <tr className="text-left text-xs uppercase tracking-wide text-ink-muted">
                       <th className="px-5 py-2 font-medium">Bond</th>
                       <th className="px-3 py-2 text-right font-medium">Face value</th>
                       <th className="px-3 py-2 text-right font-medium">Net coupon</th>
@@ -865,7 +865,7 @@ export default function GoalsClient() {
                         <td className="px-5 py-2.5 font-medium text-ink">
                           {h.bond.issueCode}
                           {h.bond.taxExempt && (
-                            <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-[10px] font-semibold text-mint-700">TAX-FREE</span>
+                            <span className="ml-2 rounded-full bg-mint-500/15 px-2 py-0.5 text-xs font-semibold text-mint-700">TAX-FREE</span>
                           )}
                         </td>
                         <td className="num px-3 py-2.5 text-right text-ink">{formatKES(h.faceValueKES)}</td>
@@ -885,7 +885,7 @@ export default function GoalsClient() {
             <h3 className="mb-1 font-display text-sm font-semibold text-ink">
               The bonds paying this income
             </h3>
-            <p className="mb-3 text-[11px] leading-relaxed text-ink-muted">
+            <p className="mb-3 text-xs leading-relaxed text-ink-muted">
               We pick for the widest spread of payout months. Swap any of them and the calendar
               above recomputes from your choice — including if that leaves a month empty, because
               seeing the real consequence beats being quietly corrected.
@@ -899,7 +899,7 @@ export default function GoalsClient() {
             />
           </div>
 
-          <p className="text-[11px] leading-relaxed text-ink-faint">
+          <p className="text-xs leading-relaxed text-ink-faint">
             Bonds are chosen to add new payout months first and yield second, which is why the
             options above cost income as they widen. Figures are net of the 10% or 15%
             withholding rate for each issue; infrastructure bonds are exempt.

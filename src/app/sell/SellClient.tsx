@@ -199,7 +199,7 @@ export default function SellClient() {
             <p className="text-[12px] font-medium text-ink-soft">
               Does this bond repay principal early?
             </p>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-ink-faint">
+            <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
               Many infrastructure bonds do. Your sheet may show it as
               &ldquo;Amortization Dates&rdquo;. Leaving it out overstates the bond — on a real
               18-year IFB quote it was worth <span className="num">1.83</span> per 100.
@@ -370,7 +370,7 @@ export default function SellClient() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-sand-300 text-left text-[10px] uppercase tracking-wide text-ink-muted">
+                    <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
                       <th className="py-2">Bond</th>
                       <th className="py-2 text-right">Net yield</th>
                       <th className="py-2 text-right">vs break-even</th>
@@ -382,7 +382,7 @@ export default function SellClient() {
                         <td className="py-2">
                           <span className="font-medium text-ink">{r.bond.issueCode}</span>
                           {r.bond.taxExempt && (
-                            <span className="ml-1.5 rounded-full bg-mint-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-mint-700">
+                            <span className="ml-1.5 rounded-full bg-mint-500/15 px-1.5 py-0.5 text-xs font-semibold text-mint-700">
                               TAX-FREE
                             </span>
                           )}
@@ -396,7 +396,7 @@ export default function SellClient() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-[11px] leading-relaxed text-ink-faint">
+              <p className="text-xs leading-relaxed text-ink-faint">
                 Candidates are priced from your{' '}
                 <Link href="/prices/" className="text-gold-700 underline underline-offset-2">
                   price book
@@ -445,7 +445,7 @@ function Row({ label, value, hint, accent }: {
     <tr className="border-b border-sand-300/60 last:border-0">
       <td className="px-4 py-2.5">
         <span className="text-sm text-ink-muted">{label}</span>
-        {hint && <p className="mt-0.5 max-w-[36ch] text-[11px] leading-snug text-ink-faint">{hint}</p>}
+        {hint && <p className="mt-0.5 max-w-[36ch] text-xs leading-snug text-ink-faint">{hint}</p>}
       </td>
       <td className={`num px-4 py-2.5 text-right text-sm font-semibold ${accent ? 'text-base text-gold-700' : 'text-ink'}`}>
         {value}

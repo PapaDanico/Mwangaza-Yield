@@ -43,7 +43,7 @@ function Row({ label, value, accent, hint }: {
           {value}
         </span>
       </div>
-      {hint && <p className="mt-0.5 max-w-[34ch] text-[11px] leading-snug text-ink-faint">{hint}</p>}
+      {hint && <p className="mt-0.5 max-w-[34ch] text-xs leading-snug text-ink-faint">{hint}</p>}
     </div>
   );
 }
@@ -269,7 +269,7 @@ export default function CalculatorClient() {
               </button>
             )}
             {saved && (
-              <p className="mt-1.5 text-[11px] text-emerald-800">
+              <p className="mt-1.5 text-xs text-emerald-800">
                 Saved. Your ladder and goal plans now price {bond?.issueCode} at{' '}
                 <span className="num">{price.toFixed(2)}</span>.
               </p>
@@ -295,7 +295,7 @@ export default function CalculatorClient() {
               // prices at all — the app is built on CBK, Treasury and KNBS data
               // and nothing else — so the only price that can be right is the
               // one the reader is actually being offered.
-              <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
                 We are showing <span className="num">100</span> because we hold no price for this
                 bond — that is a placeholder, not the market. We publish no market prices at all.
                 Set the slider to the price you paid, or the one your broker or DhowCSD quotes
@@ -337,7 +337,7 @@ export default function CalculatorClient() {
               hint="Income only — it ignores any gain or loss when the bond is repaid." />
             <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
               hint="Every 182 days from the issue date, which is why these always fall on a Monday." />
-            <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
+            <p className="mt-3 text-xs leading-relaxed text-ink-faint">
               Accrued interest uses Actual/364, and coupon dates run in exact 182-day steps from
               issue — the basis Kenyan government bonds are built on, which is why a ten-year bond
               runs 3,640 days and every payment lands on a Monday. Yields are solved from your
@@ -375,7 +375,7 @@ export default function CalculatorClient() {
                 try { await db.receipts.put(r); } catch { /* non-critical */ }
                 setReceipt(r);
               }}
-              className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-gold-700 underline-offset-2 hover:underline"
+              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-700 underline-offset-2 hover:underline"
             >
               Generate calculation receipt
             </button>

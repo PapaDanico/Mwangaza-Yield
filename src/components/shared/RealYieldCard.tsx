@@ -130,7 +130,7 @@ export default function RealYieldCard({
         )}
       </div>
 
-      <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
+      <p className="mt-3 text-xs leading-relaxed text-ink-faint">
         Real return uses the Fisher relation — (1 + nominal) ÷ (1 + inflation) − 1 — applied to
         the yield <em>after</em> withholding tax, because tax is charged on the nominal coupon
         and inflation deflates what survives it. Inflation is{' '}

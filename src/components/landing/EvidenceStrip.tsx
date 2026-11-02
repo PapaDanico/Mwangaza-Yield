@@ -111,7 +111,7 @@ export default function EvidenceStrip() {
         ))}
       </div>
 
-      <p className="mt-4 text-[11px] leading-relaxed text-ink-faint">
+      <p className="mt-4 text-xs leading-relaxed text-ink-faint">
         Figures recomputed from the Central Bank of Kenya auction record and MPC decisions each time
         this page is published. Tax impact is the median across taxable bonds currently on issue, on
         Ksh 1,000,000 of face value at par. Analytics for education, not investment advice.

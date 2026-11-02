@@ -137,7 +137,7 @@ export function BidAssistant({
           CBK has not announced which bond this will be, so there is no maturity to compare against
           history yet. Check back once the prospectus is out.
         </p>
-        {demandLine && <p className="mt-2 text-[11px] text-ink-faint">{demandLine}</p>}
+        {demandLine && <p className="mt-2 text-xs text-ink-faint">{demandLine}</p>}
       </div>
     );
   }
@@ -178,7 +178,7 @@ export function BidAssistant({
         <>
           {/* The distribution: where comparable auctions actually cleared. */}
           <div className="mt-3">
-            <div className="flex justify-between text-[11px] text-ink-faint">
+            <div className="flex justify-between text-xs text-ink-faint">
               <span className="num">{guidance.low.toFixed(2)}%</span>
               <span className="num font-semibold text-ink-soft">median {guidance.median.toFixed(2)}%</span>
               <span className="num">{guidance.high.toFixed(2)}%</span>
@@ -196,7 +196,7 @@ export function BidAssistant({
                 style={{ left: `${((guidance.median - guidance.low) / (guidance.high - guidance.low || 1)) * 100}%` }}
               />
             </div>
-            <p className="mt-1.5 text-[11px] text-ink-faint">
+            <p className="mt-1.5 text-xs text-ink-faint">
               {guidance.count} auctions of paper within ±{guidance.toleranceYears}y of this term{' '}
               {windowPhrase(guidance.windowDays)}. That middle band is where PEERS cleared — not how close this
               estimate usually lands, which is the band below.
@@ -238,7 +238,7 @@ export function BidAssistant({
                 <span className="num">{calibrated.halfWidth.toFixed(2)}</span> points.
               </p>
               {payoffLine && <p className="mt-1.5 text-xs text-ink-soft">{payoffLine}</p>}
-              <p className="mt-1.5 text-[11px] text-ink-faint">
+              <p className="mt-1.5 text-xs text-ink-faint">
                 Built from how far off we actually were on {calibrated.sampleSize} past auctions,
                 not from how spread out the comparables are. Checked by replaying it: it caught{' '}
                 <span className="num">{Math.round(calibratedCoverage * 100)}%</span> of outturns
@@ -277,9 +277,9 @@ export function BidAssistant({
         </>
       )}
 
-      {demandLine && <p className="mt-3 text-[11px] text-ink-faint">{demandLine}</p>}
+      {demandLine && <p className="mt-3 text-xs text-ink-faint">{demandLine}</p>}
 
-      <p className="mt-2 text-[11px] text-ink-faint">
+      <p className="mt-2 text-xs text-ink-faint">
         History, not advice. Non-competitive bids (up to Ksh 50M) take the weighted average rate and
         skip this question entirely — usually the right choice for retail.
       </p>

@@ -75,7 +75,7 @@ export default function MacroPanel() {
               breakpoint. The figure is the reason the card exists, so it
               scales with the card rather than being stranded at 20px in a
               365px box. */}
-          <p className="truncate text-[11px] text-ink-faint sm:text-xs lg:text-sm">
+          <p className="truncate text-xs text-ink-faint sm:text-xs lg:text-sm">
             <span className="sm:hidden">{SHORT_LABELS[m.indicator] ?? m.indicator}</span>
             <span className="hidden sm:inline">{LABELS[m.indicator] ?? m.indicator}</span>
           </p>
@@ -94,13 +94,13 @@ export default function MacroPanel() {
               A CPI print scraped on 5 August reports July; dating it to
               August overstated its currency by a month on the one line whose
               job is to say how current the number is. See vintageLabel. */}
-          <p className="mt-1 text-[11px] text-ink-faint">
+          <p className="mt-1 text-xs text-ink-faint">
             <span className="hidden sm:inline">{m.source} · </span>
             {vintageLabel(m.date, m.period)}
             <ProvenanceBadge via={m.via} />
           </p>
           {note && (
-            <p className="mt-1 text-[11px] font-medium leading-snug text-gold-800">{note}</p>
+            <p className="mt-1 text-xs font-medium leading-snug text-gold-800">{note}</p>
           )}
         </div>
         );

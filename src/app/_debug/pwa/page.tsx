@@ -197,7 +197,7 @@ export default function PwaDiagnosticsPage() {
         ))}
       </div>
 
-      <p className="text-[11px] text-ink-faint">
+      <p className="text-xs text-ink-faint">
         This page is accessible at /_debug/pwa/ and is not linked from the main navigation.
         All data shown is local to this device — nothing is sent to a server.
       </p>

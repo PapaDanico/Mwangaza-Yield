@@ -166,7 +166,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
             aria-autocomplete="list"
             aria-controls="palette-results"
           />
-          <kbd className="hidden shrink-0 rounded-md border border-sand-300 px-1.5 py-0.5 font-mono text-[10px] text-ink-faint sm:block">
+          <kbd className="hidden shrink-0 rounded-md border border-sand-300 px-1.5 py-0.5 font-mono text-xs text-ink-faint sm:block">
             Esc
           </kbd>
         </div>
@@ -181,7 +181,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
         >
           {Object.entries(grouped).map(([category, items]) => (
             <li key={category} role="presentation">
-              <p className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-ink-faint">
+              <p className="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.15em] text-ink-faint">
                 {category}
               </p>
               <ul role="group" aria-label={category}>
@@ -208,7 +208,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
                       <span className="min-w-0 flex-1">
                         <span className="block font-medium">{item.label}</span>
                         {item.description && (
-                          <span className="block truncate text-[11px] text-ink-faint">{item.description}</span>
+                          <span className="block truncate text-xs text-ink-faint">{item.description}</span>
                         )}
                       </span>
                       {item.shortcut && (
@@ -216,7 +216,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
                           {item.shortcut.split(' ').map((k) => (
                             <kbd
                               key={k}
-                              className="rounded border border-sand-300 px-1.5 py-0.5 font-mono text-[10px] text-ink-faint"
+                              className="rounded border border-sand-300 px-1.5 py-0.5 font-mono text-xs text-ink-faint"
                             >
                               {k}
                             </kbd>
@@ -237,7 +237,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
         </ul>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-3 border-t border-sand-300 bg-sand-100/80 px-4 py-2 text-[11px] text-ink-faint">
+        <div className="flex items-center gap-3 border-t border-sand-300 bg-sand-100/80 px-4 py-2 text-xs text-ink-faint">
           <span><kbd className="rounded border border-sand-300 px-1 font-mono">↑↓</kbd> navigate</span>
           <span><kbd className="rounded border border-sand-300 px-1 font-mono">↵</kbd> open</span>
           <span className="ml-auto">{cmdKey()} K to close</span>

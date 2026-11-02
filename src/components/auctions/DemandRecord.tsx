@@ -60,7 +60,7 @@ export default function DemandRecord() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
+            <tr className="text-left text-xs uppercase tracking-wide text-ink-faint">
               <th className="pb-1 font-medium">Auction</th>
               <th className="pb-1 text-right font-medium">Offered</th>
               <th className="pb-1 text-right font-medium">Bid</th>
@@ -72,7 +72,7 @@ export default function DemandRecord() {
               <tr key={a.sourceUrl} className="border-t border-sand-200">
                 <td className="py-1.5 text-ink-soft">
                   {a.auctionDate}
-                  <span className="block text-[11px] text-ink-faint">
+                  <span className="block text-xs text-ink-faint">
                     {a.issueCodes.join(', ') || '—'}
                   </span>
                 </td>

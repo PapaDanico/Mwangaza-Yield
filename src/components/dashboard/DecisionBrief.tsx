@@ -54,7 +54,7 @@ export default function DecisionBrief() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[11px] text-ink-faint">
+      <p className="mt-3 text-xs text-ink-faint">
         Worked out from CBK&apos;s latest published figures. Education, not investment advice.
       </p>
     </section>

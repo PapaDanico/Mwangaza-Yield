@@ -63,22 +63,22 @@ export default function SovereignContext() {
       <div className="mb-4 rounded-xl border border-sand-300 bg-sand-50 p-3">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <span className="text-xs font-medium text-ink-muted">Credit rating</span>
-          <span className="text-[11px] text-ink-faint">
+          <span className="text-xs text-ink-faint">
             {RATING_SOURCE.publisher} · {RATING_SOURCE.title}
           </span>
         </div>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {SOVEREIGN_RATINGS.map((r) => (
             <div key={r.agency} className="min-w-0">
-              <div className="truncate text-[11px] text-ink-muted">{r.agency}</div>
+              <div className="truncate text-xs text-ink-muted">{r.agency}</div>
               <div className="num text-lg font-bold text-ink">
                 {r.rating}
-                <span className="ml-1.5 text-[11px] font-normal text-ink-muted">{r.outlook}</span>
+                <span className="ml-1.5 text-xs font-normal text-ink-muted">{r.outlook}</span>
               </div>
               {/* The previous rating is the only part a reader can act on: a
                   B3 that came up from Caa1 and a B3 on the way down are the
                   same letter and opposite news. */}
-              <div className="text-[11px] text-ink-faint">
+              <div className="text-xs text-ink-faint">
                 since {r.since}
                 {r.previous && r.previous.rating !== r.rating && (
                   <> · was {r.previous.rating}</>
@@ -115,7 +115,7 @@ export default function SovereignContext() {
                         position. Someone weighing whether to lend to this borrower
                         should see the vintage without having to go looking. */}
                     {c.asOf && (
-                      <span className="ml-1.5 text-[11px] font-normal text-ink-faint">
+                      <span className="ml-1.5 text-xs font-normal text-ink-faint">
                         ({c.asOf})
                       </span>
                     )}
@@ -133,7 +133,7 @@ export default function SovereignContext() {
                     href={c.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-[11px] text-gold-700 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-gold-700 hover:underline"
                   >
                     {c.source} · {c.asOf} <ExternalLink size={11} />
                   </a>

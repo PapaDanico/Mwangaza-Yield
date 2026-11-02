@@ -237,7 +237,7 @@ export default function MacroPage() {
             {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
                  and the flat arrow above already says the figure held. */}
             {prevCbr !== null && trendArrow(cbr, prevCbr) !== '→' && (
-              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
+              <p className="mt-1 text-xs text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
             )}
           </div>
           <div className="rounded-xl border border-sand-300 p-3">
@@ -249,7 +249,7 @@ export default function MacroPage() {
             {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
                  and the flat arrow above already says the figure held. */}
             {prevCpi !== null && trendArrow(cpi, prevCpi) !== '→' && (
-              <p className="mt-1 text-[11px] text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
+              <p className="mt-1 text-xs text-ink-faint">Was {prevCpi.toFixed(2)}%</p>
             )}
           </div>
           <div className={`rounded-xl border p-3 ${realRate > 0 ? 'border-mint-300 bg-mint-500/[0.06]' : 'border-red-300 bg-red-500/[0.06]'}`}>
@@ -258,7 +258,7 @@ export default function MacroPage() {
               {realRate > 0 ? '+' : ''}{realRate.toFixed(2)}%
               {trendArrow(realRate, prevRealRate) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(realRate, prevRealRate)}</span>}
             </p>
-            <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+            <p className="mt-1 text-xs leading-snug text-ink-faint">
               {realRate > 0
                 ? 'Positive — nominal yield exceeds inflation. Bond returns have real purchasing power.'
                 : 'Negative — inflation is eroding real returns. Assess whether yield compensates for the shortfall.'}
@@ -267,7 +267,7 @@ export default function MacroPage() {
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Latest MPC sentiment</p>
             <p className={`mt-1 font-semibold capitalize ${sentimentMeta[sentiment].color}`}>{sentimentMeta[sentiment].label}</p>
-            <p className="mt-1 text-[11px] leading-snug text-ink-faint">{sentimentMeta[sentiment].note}</p>
+            <p className="mt-1 text-xs leading-snug text-ink-faint">{sentimentMeta[sentiment].note}</p>
           </div>
         </div>
       </section>
@@ -330,31 +330,31 @@ export default function MacroPage() {
               {debt.debtToGDP.toFixed(1)}%
               {trendArrow(debt.debtToGDP, prevDebt) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(debt.debtToGDP, prevDebt)}</span>}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">
+            <p className="mt-1 text-xs text-ink-faint">
               {debt.debtToGDP > 70 ? 'Above amber threshold — elevated refinancing risk.' : debt.debtToGDP > 55 ? 'Above IMF indicative ceiling of 55%.' : 'Within IMF indicative threshold.'}
             </p>
           </div>
           <div className={`rounded-xl border p-3 ${debt.debtServiceRatio > 35 ? 'border-red-300 bg-red-500/[0.06]' : debt.debtServiceRatio > 25 ? 'border-gold-400 bg-gold-500/[0.06]' : 'border-sand-300'}`}>
             <p className="text-xs text-ink-muted">Interest / revenue</p>
             <p className="num mt-1 font-bold text-lg text-ink">{debt.debtServiceRatio.toFixed(1)}%</p>
-            <p className="mt-1 text-[11px] text-ink-faint">
+            <p className="mt-1 text-xs text-ink-faint">
               {debt.debtServiceRatio > 35 ? 'High share of revenue committed to interest — before any principal is repaid.' : debt.debtServiceRatio > 25 ? 'Elevated — limits fiscal flexibility.' : 'Manageable interest burden.'}
             </p>
-            <p className="mt-1 text-[11px] text-ink-faint">
+            <p className="mt-1 text-xs text-ink-faint">
               National Treasury basis: interest on all public debt against ordinary revenue, FY2025/26 (Q4 QEBR).
             </p>
           </div>
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Fiscal space index</p>
             <p className="num mt-1 font-bold text-lg text-ink">{debt.fiscalSpace.toFixed(1)}</p>
-            <p className="mt-1 text-[11px] text-ink-faint">Composite headroom score (0 = none, 100 = maximum). Tighter space raises rollover risk for bond holders.</p>
+            <p className="mt-1 text-xs text-ink-faint">Composite headroom score (0 = none, 100 = maximum). Tighter space raises rollover risk for bond holders.</p>
           </div>
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Sustainability signal</p>
             <span className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${sustainability === 'green' ? 'bg-mint-500/15 text-mint-700' : sustainability === 'yellow' ? 'bg-gold-500/15 text-gold-700' : 'bg-red-500/15 text-red-700'}`}>
               {sustainability === 'green' ? 'Sustainable' : sustainability === 'yellow' ? 'Under Pressure' : 'Stressed'}
             </span>
-            <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+            <p className="mt-1 text-xs leading-snug text-ink-faint">
               {sustainability === 'green' ? 'Debt metrics within IMF guardrails.' : sustainability === 'yellow' ? 'Metrics elevated but not yet critical.' : 'Both debt and service ratios exceed comfort thresholds.'}
             </p>
           </div>
@@ -376,7 +376,7 @@ export default function MacroPage() {
               <p className="num mt-0.5 text-lg font-bold text-ink">
                 {s.value.toFixed(2)}{s.unit}
               </p>
-              <p className="mt-1 text-[11px] leading-relaxed text-ink-faint">
+              <p className="mt-1 text-xs leading-relaxed text-ink-faint">
                 {spilloverMeta[s.label]?.note}
               </p>
             </div>
@@ -398,9 +398,9 @@ export default function MacroPage() {
                 <p className="num text-xl font-bold text-ink">{termPremium.toFixed(2)}%</p>
                 <span className={`text-sm font-semibold ${curve.color}`}>{curve.label}</span>
               </div>
-              <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">{curve.note}</p>
+              <p className="mt-2 text-xs leading-relaxed text-ink-faint">{curve.note}</p>
               <div className="mt-2 border-t border-sand-200 pt-2">
-                <p className="text-[11px] text-ink-faint">
+                <p className="text-xs text-ink-faint">
                   <span className="font-medium text-ink-soft">{longBenchmark?.label ?? 'Long bond yield'}:</span>{' '}
                   <span className="num">{(longBenchmark?.value ?? 0).toFixed(2)}%</span>
                   {'  ·  '}
@@ -448,7 +448,7 @@ export default function MacroPage() {
               <div key={d.toISOString()} className={`flex items-center justify-between rounded-xl border p-3 text-sm ${i === 0 ? 'border-gold-400 bg-gold-500/[0.04]' : 'border-sand-300'}`}>
                 <span className="text-ink">
                   {d.toLocaleDateString('en-KE', { dateStyle: 'medium' })}
-                  <span className="ml-2 text-[11px] text-ink-faint">
+                  <span className="ml-2 text-xs text-ink-faint">
                     {i === 0 && d.toISOString().slice(0, 10) === new Date(`${MPC_NEXT.date}T00:00:00`).toISOString().slice(0, 10) ? 'announced by CBK' : 'estimated'}
                   </span>
                 </span>
@@ -468,7 +468,7 @@ export default function MacroPage() {
           className="mt-1 w-full rounded-lg border border-sand-300 bg-sand-50 px-3 py-2 text-sm text-ink placeholder:text-ink-faint"
         />
         {expectedDecision && (
-          <p className="mt-2 text-[11px] leading-snug text-ink-faint">
+          <p className="mt-2 text-xs leading-snug text-ink-faint">
             Your view is saved on this device and will appear here on your next visit.
           </p>
         )}

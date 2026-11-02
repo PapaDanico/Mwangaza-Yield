@@ -289,7 +289,7 @@ export default function PricesClient() {
                     return (
                       <span
                         className={cn(
-                          'rounded-md px-1.5 py-0.5 text-[10px] font-medium',
+                          'rounded-md px-1.5 py-0.5 text-xs font-medium',
                           fairValueBadgeClass(spread.badgeColor),
                         )}
                         title={`Based on ${cp.count} community observations · last ${cp.lastUpdated}`}
@@ -342,7 +342,7 @@ export default function PricesClient() {
                         </span>
                       );
                     })()}
-                    <span className="text-[11px] text-ink-faint">
+                    <span className="text-xs text-ink-faint">
                       {cp.count} {cp.count === 1 ? 'observation' : 'observations'} · last {cp.lastUpdated}
                     </span>
                   </div>
@@ -363,20 +363,20 @@ export default function PricesClient() {
                       : 'border-l-sand-400 bg-sand-100';
                 return (
                   <div className={cn('mt-2 rounded-r-lg border-l-4 px-3 py-2', tone)}>
-                    <p className="text-[11px] font-semibold text-ink">
+                    <p className="text-xs font-semibold text-ink">
                       {mark.verdict === 'unknown'
                         ? 'No comparable auctions to price this against'
                         : mark.verdict === 'in-line'
                           ? `In line with recent auctions — ${pct(mark.impliedGrossYTM)} gross`
                           : `${pct(mark.impliedGrossYTM)} gross · ${mark.gapBps! > 0 ? '+' : ''}${mark.gapBps} bps vs recent auctions`}
                     </p>
-                    <p className="mt-0.5 text-[11px] leading-relaxed text-ink-soft">{mark.summary}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink-soft">{mark.summary}</p>
                   </div>
                 );
               })()}
 
               {daysToMaturity > 0 && daysToMaturity < SHORT_DATED_DAYS && (
-                <p className="mt-1 text-[11px] leading-snug text-ink-faint">
+                <p className="mt-1 text-xs leading-snug text-ink-faint">
                   Redeems in {daysToMaturity} days — at that range the yield is dominated by the
                   repayment rather than the coupon, so a small discount annualises to a very large
                   number. It is not an income you can hold.
@@ -425,7 +425,7 @@ export default function PricesClient() {
                   </label>
                   {error && <p className="text-[12px] font-medium text-red-700">{error}</p>}
                   {contributeEnabled && (
-                    <p className="text-[11px] text-ink-faint">
+                    <p className="text-xs text-ink-faint">
                       An anonymised copy of this price will be added to your local community book.
                       Nothing leaves your device.
                     </p>

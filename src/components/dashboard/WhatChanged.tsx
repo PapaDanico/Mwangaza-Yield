@@ -64,7 +64,7 @@ export default function WhatChanged() {
                   {c.change}
                 </span>
               )}
-              {c.id !== 'cpi' && <span className="text-[11px] text-ink-faint">· {fmt(c.asOf)}</span>}
+              {c.id !== 'cpi' && <span className="text-xs text-ink-faint">· {fmt(c.asOf)}</span>}
             </span>
           </li>
         ))}
@@ -76,7 +76,7 @@ export default function WhatChanged() {
             <span className="inline-flex items-center gap-1.5 text-ink">
               <CalendarClock size={14} className="text-gold-700" aria-hidden />
               {fmt(MPC_NEXT.date)}
-              <span className="text-[11px] text-ink-faint">· in {mpcDays} days</span>
+              <span className="text-xs text-ink-faint">· in {mpcDays} days</span>
             </span>
           </li>
         )}

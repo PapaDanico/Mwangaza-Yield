@@ -38,6 +38,7 @@ const COLUMNS = [
       { href: '/faq/', label: 'FAQs' },
       { href: '/support/', label: 'Support' },
       { href: '/licensing/', label: 'How this is funded' },
+      { href: 'https://jipangefinance.org/', label: 'JiPange: everyday money tools' },
     ],
   },
   {

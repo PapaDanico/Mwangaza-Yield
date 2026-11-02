@@ -128,7 +128,7 @@ export default function AuctionsPage() {
                     <span className="font-display font-semibold text-ink">
                       {legs.map((l) => l.issueCode).join(' · ')}
                     </span>
-                    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase', STATUS_STYLES[lead.status])}>
+                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold uppercase', STATUS_STYLES[lead.status])}>
                       {lead.status}
                     </span>
                   </div>
@@ -144,7 +144,7 @@ export default function AuctionsPage() {
                 {live && (
                   <div className="shrink-0 text-right">
                     <p className="num text-lg font-bold text-gold-700">{Math.max(days, 0)}d</p>
-                    <p className="text-[11px] text-ink-faint">to close</p>
+                    <p className="text-xs text-ink-faint">to close</p>
                   </div>
                 )}
                 <ChevronDown size={18} className={cn('shrink-0 text-ink-faint transition-transform', isOpen && 'rotate-180')} />
@@ -156,7 +156,7 @@ export default function AuctionsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
+                        <tr className="text-left text-xs uppercase tracking-wide text-ink-faint">
                           <th className="pb-1 font-medium">Bond</th>
                           <th className="pb-1 text-right font-medium">Coupon</th>
                           <th className="pb-1 text-right font-medium">Offered</th>
@@ -170,7 +170,7 @@ export default function AuctionsPage() {
                               <button onClick={() => setSelectedBond(bonds.find((b) => b.issueCode === l.issueCode) ?? null)} className="font-medium text-ink hover:text-gold-700">
                                 {l.issueCode}
                               </button>
-                              <span className="block text-[11px] text-ink-faint">{l.bondName}</span>
+                              <span className="block text-xs text-ink-faint">{l.bondName}</span>
                             </td>
                             <td className="py-1.5 text-right tabular-nums text-ink-soft">
                               {l.couponRate != null ? `${l.couponRate}%` : 'Market'}

@@ -60,7 +60,7 @@ export default function ReinvestmentEvidence() {
                 style={{ width: `${Math.max(pct(a.share), 1)}%` }}
               />
             </div>
-            <p className="mt-0.5 text-[11px] text-ink-faint">
+            <p className="mt-0.5 text-xs text-ink-faint">
               {a.monthsOffered} of {a.monthsObserved} months · {a.auctions} auction
               {a.auctions === 1 ? '' : 's'}
             </p>

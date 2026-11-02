@@ -146,7 +146,7 @@ export default function IncomeStabilityDashboard() {
             <button key={m.month} className="rounded-lg border border-sand-300 p-2 text-left hover:bg-sand-100">
               <p className="text-xs text-ink-muted">{m.month}</p>
               <p className="num text-sm font-semibold text-ink">Ksh {m.income.toFixed(0)}</p>
-              <p className="text-[11px] text-ink-faint">Target Ksh {target.toFixed(0)}</p>
+              <p className="text-xs text-ink-faint">Target Ksh {target.toFixed(0)}</p>
             </button>
           ))}
         </div>

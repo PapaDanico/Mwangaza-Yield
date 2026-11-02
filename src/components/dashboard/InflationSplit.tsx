@@ -16,11 +16,13 @@
 import { useMemo } from 'react';
 import { Scale } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
-import { inflationSplit, whoFeelsWhat } from '@/lib/inflation-split';
+import { inflationSplit, moversFor, whoFeelsWhat, type MoversFile } from '@/lib/inflation-split';
+import MOVERS from '../../../public/data/inflation-movers.json';
 
 export default function InflationSplitCard() {
   const macro = useBondStore((s) => s.macro);
   const split = useMemo(() => inflationSplit(macro), [macro]);
+  const movers = useMemo(() => (split ? moversFor(split, MOVERS as MoversFile) : null), [split]);
 
   // Null is a real answer: without both legs the comparison cannot be made,
   // and half of it would read as reassurance.
@@ -37,24 +39,44 @@ export default function InflationSplitCard() {
 
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-sand-50 p-3">
-          <p className="text-[11px] text-ink-faint">Everything else</p>
+          <p className="text-xs text-ink-faint">Core basket</p>
           <p className="num mt-0.5 text-xl font-bold text-mint-700">
             {split.core.toFixed(1)}
             <span className="ml-0.5 text-xs font-normal text-ink-muted">%</span>
           </p>
-          <p className="mt-0.5 text-[11px] text-ink-faint">rent, school fees, clothing</p>
+          <p className="mt-0.5 text-xs text-ink-faint">rent, fees, milk, fares, flour</p>
         </div>
         <div className="rounded-xl bg-sand-50 p-3">
-          <p className="text-[11px] text-ink-faint">Food, fuel &amp; energy</p>
+          <p className="text-xs text-ink-faint">Non-core basket</p>
           <p className="num mt-0.5 text-xl font-bold text-red-600">
             {split.nonCore.toFixed(1)}
             <span className="ml-0.5 text-xs font-normal text-ink-muted">%</span>
           </p>
-          <p className="mt-0.5 text-[11px] text-ink-faint">about a fifth of the basket</p>
+          <p className="mt-0.5 text-xs text-ink-faint">fresh produce, fuel, power; 19% of the CPI</p>
         </div>
       </div>
 
       <p className="mt-3 text-xs text-ink-soft">{whoFeelsWhat(split)}</p>
+
+      {/* What sits behind the two numbers. Core is not "calm": it holds fares,
+        * milk and beef that are rising in double digits, which the 4% average
+        * hides. */}
+      {movers && (
+        <div className="mt-3">
+          <p className="text-xs font-semibold text-ink">Price changes CBK printed, year on year</p>
+          <ul className="mt-1.5 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            {movers.map((m) => (
+              <li key={m.item} className="flex items-baseline justify-between gap-2 border-t border-sand-200 py-1 text-xs">
+                <span className="text-ink-soft">{m.item}</span>
+                <span className={`num font-semibold ${m.changePct < 0 ? 'text-mint-700' : 'text-ink'}`}>
+                  {m.changePct > 0 ? '+' : '\u2212'}
+                  {Math.abs(m.changePct).toFixed(1)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* The consequence for this app's own numbers, stated rather than left
         * for the reader to infer. Every real yield here uses the headline. */}
@@ -63,7 +85,7 @@ export default function InflationSplitCard() {
         headline. If your own costs run closer to the {split.nonCore.toFixed(1)}% side, your real
         return on any of this paper is worse than shown — which is the honest caveat on all of it.
       </p>
-      <p className="mt-1.5 text-[11px] text-ink-faint">
+      <p className="mt-1.5 text-xs text-ink-faint">
         {split.source} · {split.date}
       </p>
     </div>

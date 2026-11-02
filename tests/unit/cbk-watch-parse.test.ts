@@ -109,7 +109,40 @@ describe('cbk-watch weekly bulletin', () => {
       domesticDebtAsOf: '16-Oct-26',
       publicDebtKSHbn: '13,475.15',
       publicDebtAsOf: 'Aug-2026*',
+      // The 23 Oct bulletin carries no inflation sentence: absent, not guessed.
+      inflationPct: null,
+      inflationMonth: null,
+      inflationPrevPct: null,
+      corePct: null,
+      corePrevPct: null,
+      nonCorePct: null,
+      nonCorePrevPct: null,
     });
+  });
+
+  it('reads the month\'s KNBS inflation from the 30 Oct 2026 bulletin, core and non-core separately', async () => {
+    const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    const fs = await import('node:fs');
+    const text = fs.readFileSync(new URL('../fixtures/cbk-bulletin-2026-10-30.txt', import.meta.url), 'utf8');
+    const f = bulletinFigures(text);
+    expect(f).toMatchObject({
+      inflationPct: '7.3',
+      inflationMonth: 'October',
+      inflationPrevPct: '6.8',
+      corePct: '4.3',
+      corePrevPct: '4.0',
+      nonCorePct: '15.1',
+      nonCorePrevPct: '14.0',
+      reservesUSDm: '14,740',
+      usdKes: '129.96',
+    });
+  });
+
+  it('does not read the non-core sentence as the core one', async () => {
+    const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    const f = bulletinFigures('Non-core inflation increased to 15.1 percent from 14.0 percent, mainly due to produce.');
+    expect(f.corePct).toBeNull();
+    expect(f.nonCorePct).toBe('15.1');
   });
 
   it('reports a missing figure as null rather than guessing', async () => {
@@ -159,5 +192,31 @@ describe('cbk-watch T-bill archive keys', () => {
     const { unseenNotices } = await import('../../netlify/functions/cbk-watch.mts');
     expect(unseenNotices(urls, {}, 3).map((u) => u.includes('26-10') ? '26' : u.includes('19-10') ? '19' : '12')).toEqual(['26', '19', '12']);
     expect(unseenNotices(urls, { '2026-10-26': {}, '2026-10-19': {} }, 3)).toEqual([urls[4]]);
+  });
+});
+
+describe('cbk-watch Monthly Economic Indicators picker', () => {
+  const base = 'https://www.centralbank.go.ke/uploads/monthly_economic_indicators/';
+  const links = [
+    `${base}1113341247_Monthly%20Economic%20Indicators%20for%20May%202022.pdf`,
+    `${base}1527525398_Monthly%20Economic%20Indicators%20-%20Aug%202025.pdf`,
+    `${base}1672331330_Monthly%20Economic%20Indicators%20June%202025.pdf`,
+    `${base}1296032873_Monthly%20Economic%20Indicators%20December%202023.pdf`,
+    'https://example.com/Monthly%20Economic%20Indicators%20Sept%202030.pdf',
+    `${base}9_Weekly%20Bulletin%20Oct%202026.pdf`,
+  ];
+
+  it('dates an issue from the month and year in its file name', async () => {
+    const { monthlyIssue } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(monthlyIssue('Monthly Economic Indicators for May 2022.pdf')).toBe(202205);
+    expect(monthlyIssue('Monthly%20Economic%20Indicators%20-%20Aug%202025.pdf')).toBe(202508);
+    expect(monthlyIssue('Monthly Economic Indicators Sept 2026.pdf')).toBe(202609);
+    expect(monthlyIssue('no date here.pdf')).toBe(0);
+  });
+
+  it('picks the newest CBK-hosted issue and never follows a link off-site', async () => {
+    const { newestMonthly } = await import('../../netlify/functions/cbk-watch.mts');
+    expect(newestMonthly(links)).toBe(links[1]);
+    expect(newestMonthly([])).toBeNull();
   });
 });

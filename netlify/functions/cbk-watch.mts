@@ -37,6 +37,8 @@ const PAGES: [string, string][] = [
   ['cbr', 'https://www.centralbank.go.ke/rates/central-bank-rate/'],
   ['inflation', 'https://www.centralbank.go.ke/inflation-rates/'],
   ['weekly-bulletin', 'https://www.centralbank.go.ke/publication/weekly-bulletin/'],
+  // KNBS-origin series (trade, visitor arrivals) arrive here under CBK's own reproduction notice.
+  ['monthly-indicators', 'https://www.centralbank.go.ke/publication/monthly-economic-indicators/'],
 ];
 
 const UA = 'MwangazaYield/1.0 (+https://mwangazayield.org/sources/)';
@@ -155,6 +157,28 @@ export function newestBulletin(links: string[]): string | null {
   );
 }
 
+/** A Monthly Economic Indicators issue's month from its file name, as yyyymm
+ *  (0 when none is found). CBK writes "...for May 2022", "- Aug 2025",
+ *  "June 2025", so match a month name or its three-letter form. */
+export function monthlyIssue(name: string): number {
+  const n = decodeURIComponent(name).toLowerCase().replace(/[_,.-]+/g, ' ');
+  const m = n.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/);
+  const y = n.match(/\b(20\d{2})\b/);
+  return m && y ? Number(`${y[1]}${String(['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[1]) + 1).padStart(2, '0')}`) : 0;
+}
+
+/** The newest Monthly Economic Indicators PDF among a page's links, CBK-hosted only. */
+export function newestMonthly(links: string[]): string | null {
+  return (
+    links
+      .filter((u) => /\.pdf$/i.test(u) && /monthly\s*economic\s*indicators/i.test(decodeURIComponent(u)))
+      .filter((u) => new URL(u).hostname.endsWith('centralbank.go.ke'))
+      .map((u) => ({ u, d: monthlyIssue(u.split('/').pop() ?? '') }))
+      .filter((x) => x.d > 0)
+      .sort((a, b) => b.d - a.d)[0]?.u ?? null
+  );
+}
+
 const lastNumber = (run: string) => run.trim().split(/\s+/).at(-1) ?? null;
 
 /**
@@ -168,6 +192,10 @@ export function bulletinFigures(t: string) {
   const reserves = t.match(/USD ([\d,]+) million \(([\d.]+) months of import cover\) as of (\w+ \d{1,2})/);
   const fx = t.match(/exchanged at KSh ([\d.]+) per U\.S\. dollar on (\w+ \d{1,2})/);
   const gdp = t.match(/grew by ([\d.]+) percent in the (\w+) quarter of (\d{4})/);
+  // CBK prints the month's KNBS inflation on page 1 in the week after release.
+  const infl = t.match(/Inflation (?:increased|decreased|declined|eased|rose|fell|remained(?: stable)?)(?: to| at) ([\d.]+) percent in (\w+) from ([\d.]+) percent in (\w+)/i);
+  const core = t.match(/(?<![-\w])Core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
+  const nonCore = t.match(/Non-core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
   const nums = '((?:\\s+[\\d,]+\\.\\d{2})+)';
   const dom = t.match(new RegExp(`Gross Domestic Debt \\(3\\+4\\+5\\)${nums}`));
   const domHead = t.match(/Government Domestic Debt \(KSh Billion\)((?:\s+\d{1,2}-\w{3}-\d{2})+)/);
@@ -185,6 +213,13 @@ export function bulletinFigures(t: string) {
     domesticDebtAsOf: domHead ? lastNumber(domHead[1]) : null,
     publicDebtKSHbn: pub ? lastNumber(pub[1]) : null,
     publicDebtAsOf: pubHead ? lastNumber(pubHead[1]) : null,
+    inflationPct: infl?.[1] ?? null,
+    inflationMonth: infl?.[2] ?? null,
+    inflationPrevPct: infl?.[3] ?? null,
+    corePct: core?.[1] ?? null,
+    corePrevPct: core?.[2] ?? null,
+    nonCorePct: nonCore?.[1] ?? null,
+    nonCorePrevPct: nonCore?.[2] ?? null,
   };
 }
 
@@ -308,6 +343,19 @@ export default async () => {
     : null;
   (run as Record<string, unknown>).bulletin = bulletin;
 
+  // The newest Monthly Economic Indicators issue, posted as raw text first: its
+  // layout has not been parsed yet, and a parser written blind would guess. The
+  // text arrives in the form, the parser is written against it, then it is
+  // pinned by a fixture, as the bulletin was.
+  const monthlyUrl = newestMonthly(pageDocs('monthly-indicators'));
+  const monthlyBudget = BACKFILL_DEADLINE_MS - (Date.now() - started);
+  const monthlyText =
+    monthlyUrl && monthlyBudget > 3_000
+      ? await pdfText(monthlyUrl, monthlyBudget).catch((e) => `error ${String(e).slice(0, 120)}`)
+      : monthlyUrl
+        ? 'skipped: run near its time limit'
+        : 'no Monthly Economic Indicators link found on the page';
+
   // T-bill rate archive, filled a few notices per run (see tbillNoticeRates).
   const store0 = getStore('cbk-watch');
   const stored = ((await store0.get('tbill-history', { type: 'json' }).catch(() => null)) ?? {}) as Record<
@@ -363,6 +411,7 @@ export default async () => {
   fields.bulletin = bulletin
     ? Object.entries(bulletin).map(([k, v]) => `${k}: ${v ?? 'not found'}`).join('\n')
     : 'no bulletin link found on the weekly-bulletin page';
+  fields.monthly = `${monthlyUrl ? decodeURIComponent(monthlyUrl.split('/').pop() ?? '') : 'none'}\n${monthlyText.slice(0, 7000)}`;
   fields['tbill-history'] = Object.values(archive)
     .filter((r): r is NonNullable<ReturnType<typeof tbillNoticeRates>> => !!r && r !== 'unreadable')
     .sort((a, b) => a.dated.localeCompare(b.dated))

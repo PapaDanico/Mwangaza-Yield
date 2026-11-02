@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-11-01T00:00:00+00:00",
+  "generatedAt": "2026-11-02T00:00:00+00:00",
   "pipelineRanAt": "2026-08-19T15:49:06.097414+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
@@ -84,10 +84,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.95,
+      "value": 129.94,
       "unit": "KES/USD",
-      "date": "2026-10-30",
-      "lastChecked": "2026-10-30",
+      "date": "2026-11-02",
+      "lastChecked": "2026-11-02",
       "source": "CBK indicative",
       "fallback": false
     }

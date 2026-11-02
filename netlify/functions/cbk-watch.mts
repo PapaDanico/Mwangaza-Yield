@@ -201,6 +201,48 @@ export function monthlyExcerpts(text: string, window = 9000): { head: string; re
   };
 }
 
+/**
+ * Figures from a Monthly Economic Indicators issue's two windows (see
+ * monthlyExcerpts). Each table is a label followed by one value per month, so
+ * the value of interest is the LAST numeric one: the newest month, since CBK
+ * prints "…" where a month is not yet available. Null when a row or its month
+ * header is not found, never a guess. Pinned against the July 2026 issue in
+ * tests/fixtures/cbk-mei-2026-07.txt.
+ *
+ * Real-sector rows are KNBS data; the balance of payments is CBK's own. Both
+ * reach this site as CBK's publication, which grants reproduction.
+ */
+export function monthlyFigures(real: string, external: string) {
+  const months = (t: string, anchor: RegExp, n: number) => {
+    const m = t.match(anchor);
+    return m ? m[1].trim().split(/\s+/).slice(0, n) : null;
+  };
+  const row = (t: string, label: RegExp, n: number, cell: string) =>
+    t.match(new RegExp(`${label.source}((?:\\s+(?:${cell}|…)){${n}})`))?.[1].trim().split(/\s+/) ?? null;
+  const newest = (cells: string[] | null, labels: string[] | null) => {
+    if (!cells || !labels || cells.length !== labels.length) return null;
+    for (let i = cells.length - 1; i >= 0; i--) if (cells[i] !== '…') return { value: cells[i], month: labels[i] };
+    return null;
+  };
+
+  const realMonths = months(real, /Economic Activity\*\s+((?:[A-Z][a-z]{2}-\d{2}\s+){13})/, 13);
+  const visitors = newest(row(real, /Visitor arrivals \(Actual no\.\)/, 13, '[\\d,]+'), realMonths);
+
+  const extMonths = months(external, /Cumulative 12 months\s*\\?2\s+((?:[A-Z][a-z]{2}-\d{2}\s+){12})/, 12);
+  const num = '-?[\\d,]+\\.\\d';
+  const exports = newest(row(external, /Goods: exports f\.o\.b\./, 12, num), extMonths);
+  const imports = newest(row(external, /Goods: imports f\.o\.b\./, 12, num), extMonths);
+  const current = newest(row(external, /A\. Current Account, n\.i\.e\./, 12, num), extMonths);
+  return {
+    visitorArrivals: visitors?.value ?? null,
+    visitorArrivalsMonth: visitors?.month ?? null,
+    goodsExportsUSDm12m: exports?.value ?? null,
+    goodsImportsUSDm12m: imports?.value ?? null,
+    currentAccountUSDm12m: current?.value ?? null,
+    balanceOfPaymentsMonth: exports?.month ?? null,
+  };
+}
+
 const lastNumber = (run: string) => run.trim().split(/\s+/).at(-1) ?? null;
 
 /**
@@ -434,7 +476,10 @@ export default async () => {
     ? Object.entries(bulletin).map(([k, v]) => `${k}: ${v ?? 'not found'}`).join('\n')
     : 'no bulletin link found on the weekly-bulletin page';
   const monthlyParts = monthlyExcerpts(monthlyText);
-  fields.monthly = `${monthlyUrl ? decodeURIComponent(monthlyUrl.split('/').pop() ?? '') : 'none'}\n${monthlyParts.head}`;
+  const monthlyParsed = monthlyFigures(monthlyParts.real, monthlyParts.external);
+  fields.monthly = `${monthlyUrl ? decodeURIComponent(monthlyUrl.split('/').pop() ?? '') : 'none'}\n${Object.entries(monthlyParsed)
+    .map(([k, v]) => `${k}: ${v ?? 'not found'}`)
+    .join('\n')}\n${monthlyParts.head}`;
   fields['monthly-real'] = monthlyParts.real;
   fields['monthly-external'] = monthlyParts.external;
   fields['tbill-history'] = Object.values(archive)

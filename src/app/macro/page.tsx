@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo } from 'react';
 import {
   Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip,
@@ -67,7 +68,6 @@ export default function MacroPage() {
     fed,
     em,
     debt,
-    prevCbr,
     prevCpi,
     prevDebt,
     realRate,
@@ -78,11 +78,6 @@ export default function MacroPage() {
     longBenchmark,
   } = summary;
   const sustainability = sustainabilitySignal(debt.debtToGDP, debt.debtServiceRatio);
-
-  const cbrSeries = useMemo(
-    () => [...cbrHistory].sort((a, b) => a.date.localeCompare(b.date)).map((d) => ({ date: d.date.slice(0, 7), rate: d.rate, move: d.move })),
-    [cbrHistory],
-  );
 
   const debtSeries = useMemo(() => {
     const debtRows = macro.filter((m) => m.indicator === 'DEBT_TO_GDP').sort((a, b) => a.date.localeCompare(b.date));
@@ -210,36 +205,12 @@ export default function MacroPage() {
       {/* ── Monetary Policy ── */}
       <section className="card">
         <h2 className="font-semibold text-ink">Monetary Policy</h2>
-        <p className="mt-0.5 text-xs text-ink-faint">Central Bank Rate history — each dot is an MPC decision date.</p>
-        <div className="mt-3 h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={cbrSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5dfc8" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-              <YAxis domain={['dataMin - 1', 'dataMax + 1']} tick={{ fontSize: 10 }} unit="%" />
-              <Tooltip formatter={(v: number) => [`${v.toFixed(2)}%`, 'CBR']} />
-              <Line type="monotone" dataKey="rate" stroke="#0B214A" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <ul className="sr-only">
-          {cbrSeries.slice(-8).map((p) => (
-            <li key={p.date}>{p.date}: CBR {p.rate.toFixed(2)}%</li>
-          ))}
-        </ul>
-        <div className="mt-3 grid gap-3 sm:grid-cols-4">
-          <div className="rounded-xl border border-sand-300 p-3">
-            <p className="text-xs text-ink-muted">Current CBR</p>
-            <p className="num mt-1 text-xl font-bold text-ink">
-              {cbr.toFixed(2)}%
-              {trendArrow(cbr, prevCbr) && <span className="ml-1.5 text-sm font-normal text-ink-faint">{trendArrow(cbr, prevCbr)}</span>}
-            </p>
-            {/* Only when it actually moved. "Was 8.75%" beside "8.75%" is noise,
-                 and the flat arrow above already says the figure held. */}
-            {prevCbr !== null && trendArrow(cbr, prevCbr) !== '→' && (
-              <p className="mt-1 text-xs text-ink-faint">Was {prevCbr.toFixed(2)}%</p>
-            )}
-          </div>
+        <p className="mt-0.5 text-xs text-ink-faint">
+          The Central Bank Rate is {cbr.toFixed(2)}%. Its decision-by-decision history is on the{' '}
+          <Link href="/dashboard/" className="underline underline-offset-2">dashboard</Link>; what
+          it means against inflation is here.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Inflation (CPI)</p>
             <p className="num mt-1 text-xl font-bold text-ink">

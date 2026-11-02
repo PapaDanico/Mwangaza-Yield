@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-30T00:00:00+00:00",
+  "generatedAt": "2026-11-01T00:00:00+00:00",
   "pipelineRanAt": "2026-08-19T15:49:06.097414+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
@@ -60,33 +60,33 @@
       "fallback": false
     },
     "inflation": {
-      "value": 6.8,
+      "value": 7.3,
       "unit": "% y/y",
-      "date": "2026-09-30",
-      "lastChecked": "2026-09-30",
+      "date": "2026-10-31",
+      "lastChecked": "2026-11-01",
       "source": "CBK",
       "fallback": false
     },
     "inflationCore": {
-      "value": 4,
+      "value": 4.3,
       "unit": "% y/y",
-      "date": "2026-09-30",
-      "lastChecked": "2026-09-30",
+      "date": "2026-10-31",
+      "lastChecked": "2026-11-01",
       "source": "CBK",
       "fallback": false
     },
     "inflationNonCore": {
-      "value": 14,
+      "value": 15.1,
       "unit": "% y/y",
-      "date": "2026-09-30",
-      "lastChecked": "2026-09-30",
+      "date": "2026-10-31",
+      "lastChecked": "2026-11-01",
       "source": "CBK",
       "fallback": false
     },
     "usdKes": {
-      "value": 129.96,
+      "value": 129.95,
       "unit": "KES/USD",
-      "date": "2026-10-29",
+      "date": "2026-10-30",
       "lastChecked": "2026-10-30",
       "source": "CBK indicative",
       "fallback": false

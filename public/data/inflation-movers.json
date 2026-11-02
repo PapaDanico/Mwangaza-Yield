@@ -1,0 +1,21 @@
+{
+  "asOf": "2026-10-31",
+  "period": "2026-10",
+  "source": "CBK Inflation Highlights",
+  "via": "supplied-document",
+  "sourceNote": "Central Bank of Kenya, Inflation Highlights October 2026 (figures originated by KNBS), infographic supplied by the owner. The twelve items CBK chose to print, year on year to October 2026 against October 2025, NOT the twelve largest moves in the CPI: CBK shows six items under each basket and says the full list is on the KNBS website. Core basket 81.1% of the CPI per the document. Arrow direction read from the document: sugar and both electricity bands fell.",
+  "items": [
+    { "item": "Irish potatoes", "basket": "non-core", "changePct": 34.9 },
+    { "item": "Diesel", "basket": "non-core", "changePct": 32.5 },
+    { "item": "Cabbages", "basket": "non-core", "changePct": 29.1 },
+    { "item": "Petrol", "basket": "non-core", "changePct": 22.8 },
+    { "item": "Matatu and city bus fares", "basket": "core", "changePct": 18.2 },
+    { "item": "Fresh packaged milk", "basket": "core", "changePct": 14.4 },
+    { "item": "Beef with bone", "basket": "core", "changePct": 12.5 },
+    { "item": "White wheat flour", "basket": "core", "changePct": 9.1 },
+    { "item": "Cooking oil (salad)", "basket": "core", "changePct": 5.1 },
+    { "item": "Electricity, 200 kWh", "basket": "non-core", "changePct": -4.1 },
+    { "item": "Electricity, 50 kWh", "basket": "non-core", "changePct": -4.5 },
+    { "item": "Sugar", "basket": "core", "changePct": -11.1 }
+  ]
+}

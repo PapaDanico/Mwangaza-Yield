@@ -20,9 +20,8 @@ function buildCrumbs(pathname: string): Crumb[] {
 /**
  * Breadcrumb navigation.
  *
- * On mobile: shows only the current page label (the Back button in the
- * browser serves as the back affordance). On ≥md: shows the full Home >
- * Section trail.
+ * Desktop only: the Home > Section trail. On a phone the page's own heading
+ * says where you are, so a second line repeating it was removed.
  */
 export default function Breadcrumb() {
   const pathname = usePathname();
@@ -34,18 +33,11 @@ export default function Breadcrumb() {
   // Don't show a breadcrumb on the home page itself — it would just say "Home".
   if (crumbs.length <= 1) return null;
 
-  const current = crumbs[crumbs.length - 1]!;
-
   return (
     <nav aria-label="Breadcrumb" className="no-print">
-      {/* Mobile: current page name only */}
-      <p className="px-4 py-1.5 text-[12px] font-medium text-ink-muted md:hidden">
-        {current.label}
-      </p>
-
       {/* Desktop: full trail */}
       <ol
-        className="hidden items-center gap-1 px-4 py-1.5 text-[12px] text-ink-muted md:flex"
+        className="hidden items-center gap-1 px-4 py-1.5 text-xs text-ink-muted md:flex"
         aria-label="Breadcrumb"
       >
         {crumbs.map((crumb, i) => {

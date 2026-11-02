@@ -41,6 +41,16 @@ describe('decision brief on the shipped data', () => {
     expect(get('real-return', { ...base, expectedInflation1y: null })!.detail).not.toMatch(/opinion/);
   });
 
+  it('names the distance to the CBK ceiling only when inflation is close to it or past it', () => {
+    const withCpi = (v: number): BriefInput => ({
+      ...base,
+      macro: (macro as MacroIndicator[]).map((m) => (m.indicator === 'CPI' ? { ...m, value: v } : m)),
+    });
+    expect(get('real-return', withCpi(7.3))!.detail).toMatch(/0\.2 points under CBK's 7\.5% ceiling/);
+    expect(get('real-return', withCpi(7.8))!.detail).toMatch(/above CBK's 7\.5% ceiling/);
+    expect(get('real-return', withCpi(6.5))!.detail).not.toMatch(/ceiling/);
+  });
+
   it('the long-bond insight prices the one-point shock exactly (price falls, never rises)', () => {
     const item = get('long-bond')!;
     const m = item.detail.match(/fall about ([\d.]+)%/);

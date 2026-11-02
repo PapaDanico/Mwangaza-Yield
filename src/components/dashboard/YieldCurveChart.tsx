@@ -209,13 +209,13 @@ export default function YieldCurveChart() {
 
       {shape && (
         <div className="mt-4 rounded-xl border border-sand-300 bg-sand-100 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
             How to read this · {shape.label}
           </p>
           <p className="mt-1 text-xs leading-relaxed text-ink-soft">{shape.text}</p>
         </div>
       )}
-      <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">
+      <p className="mt-2 text-xs leading-relaxed text-ink-faint">
         The green line sits lower but is <Term slug="withholding-tax">tax-free</Term>, so compare it
         against the gold line <em>after</em> tax rather than side by side. The{' '}
         <a href="/calculator/" className="text-gold-700 hover:underline">calculator</a> does that for

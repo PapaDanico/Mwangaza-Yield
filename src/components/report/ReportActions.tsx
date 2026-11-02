@@ -592,7 +592,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
           <Printer size={15} /> Print
         </button>
       </div>
-      {error && <p className="text-[11px] text-red-600 sm:max-w-[22rem] sm:text-right">{error}</p>}
+      {error && <p className="text-xs text-red-600 sm:max-w-[22rem] sm:text-right">{error}</p>}
     </div>
   );
 }

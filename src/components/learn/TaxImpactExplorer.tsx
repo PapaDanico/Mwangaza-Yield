@@ -159,7 +159,7 @@ export default function TaxImpactExplorer() {
       </div>
 
       <div className="rounded-2xl border border-sand-300 bg-sand-50 p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-faint">Break-even IFB coupon</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">Break-even IFB coupon</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">
           To match a {coupon.toFixed(1)}% {LABELS[bondType].toLowerCase()}, a tax-free IFB would only need to offer{' '}
           <span className="font-semibold text-ink">{metrics.breakEvenIFBRate.toFixed(2)}%</span>.

@@ -92,7 +92,7 @@ export default function ReceiptsPage() {
                   <Clock size={11} />
                   {r.timestamp.replace('T', ' ').slice(0, 19)} UTC
                   <span>·</span>
-                  <span className="font-mono text-[11px]">{r.hash.slice(0, 16)}…</span>
+                  <span className="font-mono text-xs">{r.hash.slice(0, 16)}…</span>
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">

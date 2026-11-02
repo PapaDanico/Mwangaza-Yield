@@ -160,7 +160,7 @@ export default function GoalProgress({
             />
           ))}
         </div>
-          <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-faint">
+          <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-faint">
             <span><span className="text-gold-600">—</span> what you recorded</span>
             <span><span className="text-ink-muted">—</span> what the plan projected</span>
             <span><span className="text-ink-faint">- -</span> target {formatCompactKES(targetKES)}</span>
@@ -216,7 +216,7 @@ export default function GoalProgress({
             <Plus size={15} /> Record
           </button>
         </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-ink-faint">
+        <p className="mt-2 text-xs leading-relaxed text-ink-faint">
           One figure, whenever you think of it — the total your bonds and cash are worth that day.
           It stays on this device with everything else.
         </p>

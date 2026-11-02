@@ -97,7 +97,7 @@ export default function IssuerIntent() {
         </a>
         ) : null}
       </Explain>
-      <p className="mt-2 text-[11px] text-ink-faint">
+      <p className="mt-2 text-xs text-ink-faint">
         Hand-curated from the tabled documents, {FISCAL_CONTEXT.curatedAt}. Context for
         education, not a recommendation.
       </p>

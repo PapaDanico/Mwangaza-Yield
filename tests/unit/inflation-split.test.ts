@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { inflationSplit, whoFeelsWhat } from '../../src/lib/inflation-split';
+import { inflationSplit, moversFor, whoFeelsWhat } from '../../src/lib/inflation-split';
 import type { MacroIndicator } from '../../src/types/bond';
 
 const ROOT = new URL('../../', import.meta.url).pathname;
@@ -109,5 +109,21 @@ describe('the core / non-core split', () => {
       /filter\(|headlineRows\(/
     );
     expect(panel).not.toMatch(/'CPI_CORE'/);
+  });
+});
+
+describe('the item-level moves beside the split', () => {
+  const MOVERS = read('public/data/inflation-movers.json');
+
+  it('belong to the same reading as the split, or are not shown', () => {
+    const split = inflationSplit(MACRO)!;
+    expect(moversFor(split, MOVERS), 'shipped movers do not match the shipped split').not.toBeNull();
+    expect(moversFor({ ...split, date: '2026-09-30' }, MOVERS)).toBeNull();
+  });
+
+  it('are listed largest rise first, with the falls at the end', () => {
+    const list = moversFor(inflationSplit(MACRO)!, MOVERS)!;
+    for (let i = 1; i < list.length; i++) expect(list[i - 1].changePct).toBeGreaterThanOrEqual(list[i].changePct);
+    expect(list[list.length - 1].changePct).toBeLessThan(0);
   });
 });

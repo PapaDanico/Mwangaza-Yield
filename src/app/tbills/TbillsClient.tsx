@@ -83,17 +83,17 @@ export default function TbillsClient({
               onClick={() => setTenor(b.tenorDays)}
               className={`card p-3 text-left transition sm:p-4 ${active ? 'border-gold-500 ring-1 ring-gold-500' : 'hover:border-gold-500'}`}
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint sm:text-xs">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint sm:text-xs">
                 {b.tenorDays}-day
               </p>
               <p className="num mt-1 text-lg font-bold text-gold-700 sm:text-2xl">{formatPct(r.netEAY)}</p>
-              <p className="text-[11px] text-ink-muted sm:text-xs">
+              <p className="text-xs text-ink-muted sm:text-xs">
                 net <span className="hidden sm:inline">effective </span>yield
               </p>
               {/* Detail on a phone costs more than it gives: it is the third and
                   fourth number on a card whose job is to be compared at a
                   glance, and it is repeated in full in the breakdown below. */}
-              <div className="mt-2 hidden border-t border-sand-300 pt-2 text-[11px] text-ink-faint sm:block">
+              <div className="mt-2 hidden border-t border-sand-300 pt-2 text-xs text-ink-faint sm:block">
                 <p className="num">Quoted rate {formatPct(b.discountRate, 4)}</p>
                 <p className="num">Gross yield {formatPct(r.grossEAY)}</p>
               </div>
@@ -237,7 +237,7 @@ export default function TbillsClient({
               </span>
             </div>
           ))}
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
+          <p className="mt-3 text-xs leading-relaxed text-ink-faint">
             Discount basis: rate × days ÷ 365. Effective yield compounds the discount over a year;
             withholding tax applies to interest only. Rates are the last auction&apos;s weighted
             average ({selected.source}) — the next auction will clear differently.
@@ -292,7 +292,7 @@ export default function TbillsClient({
           </div>
         </div>
 
-        <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
+        <p className="mt-3 text-xs leading-relaxed text-ink-faint">
           Assumes the {formatPct(selected.discountRate, 4)} rate holds at every roll — the central
           risk of a rollover strategy. Rates reset weekly at auction, so a falling-rate cycle
           reduces the return shown here. Compare against locking a longer bond on the{' '}

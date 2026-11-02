@@ -2608,5 +2608,15 @@
     "source": "CBK",
     "series": "12-Month Inflation",
     "fetchedAt": "2026-09-30"
+  },
+  {
+    "id": "cpi-2026-10-01",
+    "indicator": "CPI",
+    "value": 7.3,
+    "date": "2026-10-01",
+    "unit": "% y/y",
+    "source": "CBK",
+    "series": "12-Month Inflation",
+    "fetchedAt": "2026-11-01"
   }
 ]

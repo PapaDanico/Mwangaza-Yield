@@ -224,7 +224,7 @@ export default function TrackRecord() {
                       * caption. Four columns fit; nothing was lost. */}
                     <td className="py-1.5 pr-2 align-top font-medium text-ink sm:pr-3">
                       {r.issueCode}
-                      <span className="num block text-[10px] font-normal text-ink-faint">
+                      <span className="num block text-xs font-normal text-ink-faint">
                         rec. {r.recordedOn}
                       </span>
                     </td>
@@ -237,7 +237,7 @@ export default function TrackRecord() {
                         * a caveat on the range rather than part of it, so it
                         * reads as well on its own line — and costs no width. */}
                       {r.thin && (
-                        <span className="block whitespace-normal text-[10px] text-ink-faint">
+                        <span className="block whitespace-normal text-xs text-ink-faint">
                           thin sample
                         </span>
                       )}
@@ -249,7 +249,7 @@ export default function TrackRecord() {
                         * the column to the longest string would only hold
                         * until the wording changed. Letting the caption wrap
                         * fits any label at any width. */}
-                      <span className="block whitespace-normal text-[11px] sm:hidden">
+                      <span className="block whitespace-normal text-xs sm:hidden">
                         <Outcome p={r} />
                       </span>
                     </td>

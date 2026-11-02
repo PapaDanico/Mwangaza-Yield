@@ -101,7 +101,7 @@ export default function Navbar() {
               className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-ink-muted transition-colors hover:bg-sand-200 hover:text-ink lg:px-3"
             >
               <Search size={18} />
-              <kbd className="hidden rounded border border-sand-300 px-1.5 py-0.5 font-mono text-[10px] text-ink-faint lg:block">
+              <kbd className="hidden rounded border border-sand-300 px-1.5 py-0.5 font-mono text-xs text-ink-faint lg:block">
                 ⌘K
               </kbd>
             </button>
@@ -162,7 +162,7 @@ export default function Navbar() {
                 // Seven tabs at px-3 need 469px; a 360px Android screen is common and
                 // the row pushed the whole page into a sideways scroll. Sharing the
                 // width evenly keeps every label readable without truncation.
-                'flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1 text-[11px] font-medium',
+                'flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1 text-xs font-medium',
                 isActive(href) ? 'text-gold-700' : 'text-ink-muted'
               )}
             >

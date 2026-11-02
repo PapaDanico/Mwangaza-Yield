@@ -91,7 +91,7 @@ export default function RateCycle() {
                 // min-h/min-w bring the chip to a 44px target without changing
                 // its visual weight — at 32x25 it was well under half the
                 // recommended minimum, on the segmented control readers use most.
-                'min-h-[44px] min-w-[44px] rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors',
+                'min-h-[44px] min-w-[44px] rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
                 years === r.years ? 'bg-sand-50 text-ink shadow-sm' : 'text-ink-muted hover:text-ink',
               )}
             >
@@ -105,7 +105,7 @@ export default function RateCycle() {
         <div>
           <span
             className={cn(
-              'inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sand-50',
+              'inline-block rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-sand-50',
               PHASE_STYLE[cycle.phase],
             )}
           >
@@ -132,7 +132,7 @@ export default function RateCycle() {
         <RateCyclePlot series={series} current={cycle.current} />
       </div>
 
-      <p className="mt-2 text-[11px] text-ink-faint">
+      <p className="mt-2 text-xs text-ink-faint">
         Record high {cycle.recordHigh.toFixed(2)}% ({monthYear(cycle.recordHighDate)}) · record low{' '}
         {cycle.recordLow.toFixed(2)}% ({monthYear(cycle.recordLowDate)}) — separate cycles, shown for
         scale rather than comparison.
@@ -140,14 +140,14 @@ export default function RateCycle() {
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{describeCycle(cycle)}</p>
       <div className="mt-3 rounded-xl border border-sand-300 bg-sand-100 p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
           What this means for you
         </p>
         <p className="mt-1 text-xs leading-relaxed text-ink-soft">{whatItMeans(cycle)}</p>
       </div>
 
       <div className="mt-3">
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
           Recent decisions
         </p>
         <ul className="space-y-0.5">
@@ -179,7 +179,7 @@ export default function RateCycle() {
             );
           })}
         </ul>
-        <p className="mt-2 text-[11px] text-ink-faint">
+        <p className="mt-2 text-xs text-ink-faint">
           Source: CBK Monetary Policy Committee press releases. Each row links to the original.
         </p>
       </div>

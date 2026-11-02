@@ -88,11 +88,34 @@ export function whoFeelsWhat(split: InflationSplit): string {
   if (split.spreadPp < 2) {
     return 'The two baskets are moving together this month, so the headline is a fair guide for most households.';
   }
-  return `Food, cooking fuel and transport rose ${split.nonCore.toFixed(
+  return `Fresh produce, fuel and electricity rose ${split.nonCore.toFixed(
     1
-  )}% while everything else rose ${split.core.toFixed(
+  )}% while the rest of the basket rose ${split.core.toFixed(
     1
   )}%. The more of your money goes on those, the further above the ${split.headline.toFixed(
     1
   )}% headline your own cost of living has actually moved.`;
+}
+
+/** One printed price change, year on year. */
+export interface Mover {
+  item: string;
+  basket: 'core' | 'non-core';
+  changePct: number;
+}
+
+export interface MoversFile {
+  asOf: string;
+  items: Mover[];
+}
+
+/**
+ * The item-level moves CBK printed beside the split, or null when they belong
+ * to a different reading. A list of October's price moves under September's
+ * headline would explain a number it did not produce, so the dates must match.
+ * Sorted largest rise first; falls land at the end.
+ */
+export function moversFor(split: InflationSplit, file: MoversFile): Mover[] | null {
+  if (file.asOf !== split.date || file.items.length === 0) return null;
+  return [...file.items].sort((a, b) => b.changePct - a.changePct);
 }

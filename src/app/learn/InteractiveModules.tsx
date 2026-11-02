@@ -116,7 +116,7 @@ export default function InteractiveModules() {
                   <div className="flex flex-wrap items-center gap-1.5">
                     <h3 className="font-display font-semibold text-ink">{title}</h3>
                     {badge && (
-                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${badgeClass}`}>
+                      <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${badgeClass}`}>
                         {badge}
                       </span>
                     )}

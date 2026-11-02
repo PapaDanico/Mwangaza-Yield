@@ -190,7 +190,7 @@ export default function SourcesPage() {
                     ) : (
                       <span className="font-display font-semibold text-ink">{s.name}</span>
                     )}
-                    <span className={`text-[10px] font-semibold uppercase tracking-wider ${cls}`}>{label}</span>
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${cls}`}>{label}</span>
                   </div>
                   {s.status !== 'declined' && (
                     <p className="mt-1 text-xs text-ink-muted">
@@ -284,7 +284,7 @@ export default function SourcesPage() {
             <col className="w-[58%]" />
           </colgroup>
           <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-ink-faint">
+            <tr className="text-left text-xs uppercase tracking-wide text-ink-faint">
               <th className="pb-1 pr-3 font-medium">Source</th>
               <th className="pb-1 pr-3 font-medium">May we republish?</th>
               <th className="pb-1 font-medium">On whose words</th>
@@ -318,7 +318,7 @@ export default function SourcesPage() {
                       </a>
                     </>
                   )}
-                  <span className="block text-[11px] text-ink-faint">
+                  <span className="block text-xs text-ink-faint">
                     checked {l.checkedOn}
                   </span>
                 </td>

@@ -62,7 +62,7 @@ export default function JourneyBar() {
             <li key={stage.label} className="flex shrink-0 items-center gap-1">
               <span
                 className={cn(
-                  'text-[10px] font-medium tracking-wide',
+                  'text-xs font-medium tracking-wide',
                   isActive
                     ? 'text-gold-700'
                     : isPast
@@ -74,7 +74,7 @@ export default function JourneyBar() {
                 {stage.label}
               </span>
               {i < JOURNEY_STAGES.length - 1 && (
-                <span className="text-[10px] text-ink-faint/50">›</span>
+                <span className="text-xs text-ink-faint/50">›</span>
               )}
             </li>
           );

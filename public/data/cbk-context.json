@@ -86,5 +86,16 @@
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
     "note": "Whether the economy behind the borrowing is still expanding. Real GDP grew 5.1 percent in 2026Q2 against 4.9 percent in 2025Q2, led by services (5.8 percent); agriculture slowed to 3.5 and industry to 4.4. KNBS figures as reported in the CBK Weekly Bulletin of 23 October 2026, Table 1 and page 1 text. Growth is what eventually pays debt down without new borrowing.",
     "sentiment": "good"
+  },
+  {
+    "id": "cbk-remittances",
+    "label": "Diaspora remittances, 12 months",
+    "value": 5.03,
+    "unit": "US$ bn",
+    "asOf": "2026-09-30",
+    "source": "CBK diaspora remittances release (press-reported)",
+    "sourceUrl": "https://www.centralbank.go.ke/publications/",
+    "note": "The largest regular source of dollars into Kenya, and the reason the shilling has held near 130. September 2026 brought US$ 438.5 million (+4.5 percent on a year earlier, below August's record US$ 451.8 million); the twelve months to September total about US$ 5.03 billion, 1.0 percent under a year earlier. North America is weakening (-11.2 percent January to September) while Europe set a monthly record. Not read from CBK's release: five outlets agree on the monthly figure, and give the twelve-month total between 5.01 and 5.03, so treat the second decimal as approximate. Replace with the CBK document when supplied.",
+    "sentiment": "good"
   }
 ]

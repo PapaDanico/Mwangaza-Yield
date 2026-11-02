@@ -192,7 +192,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <div className="card space-y-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
             From a real broker sheet
           </p>
           {[
@@ -207,7 +207,7 @@ export default function LandingPage() {
               </span>
             </div>
           ))}
-          <p className="text-[11px] leading-relaxed text-ink-faint">
+          <p className="text-xs leading-relaxed text-ink-faint">
             A tax-free bond sold at 12.50% needs nearly <span className="num">14%</span> from
             ordinary paper to break even. Sell into a 13% bond thinking you have gained, and you
             have quietly lost income for the next thirteen years.

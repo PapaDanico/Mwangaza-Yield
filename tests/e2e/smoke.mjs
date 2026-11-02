@@ -1175,7 +1175,7 @@ async function main() {
   };
 
   await go('/');
-  const goldCta = page.locator('a:has-text("Have a look")').first();
+  const goldCta = page.locator('section.bg-treasury-navy a:has-text("Start with a goal")').first();
   if (await goldCta.count()) {
     const ind = await indicatorOf(goldCta);
     // The sand ring is the half that must survive on the navy band.

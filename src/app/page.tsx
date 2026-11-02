@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   Calculator, Radar, Briefcase, Layers, WifiOff, LockKeyhole, ArrowRight, CalendarCheck, Receipt,
-  RefreshCw, Landmark, Users, BarChart3, Target, GraduationCap, Flame, CalendarHeart, BookOpen,
+  RefreshCw, Landmark, Users, BarChart3, Target, BookOpen,
   ArrowRightLeft,
 } from 'lucide-react';
 import LiveYieldCard from '@/components/landing/LiveYieldCard';
@@ -130,24 +130,11 @@ export default function LandingPage() {
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-center text-sm text-sand-300/70">
           A school term. A quiet retirement. Rent covered without working for it. Tell us what
-          you are saving towards, and we will shape the dates, the taxes and the payments
-          around your life instead of the other way round.
+          you are saving towards, and we shape the dates, the taxes and the payments around
+          your life: school fees, income you do not work for, freedom from a payslip, or money
+          kept safe and still earning.
         </p>
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { Icon: Flame, title: 'Freedom from a payslip', desc: 'How much you would need invested to live on the interest alone — and how close today’s savings already are.' },
-            { Icon: GraduationCap, title: 'School fees', desc: 'Bonds chosen to repay in the years the fees fall due, so the money arrives with the invoice.' },
-            { Icon: CalendarHeart, title: 'Income you don’t work for', desc: 'Bonds that pay in different months, combined so something arrives most months of the year.' },
-            { Icon: LockKeyhole, title: 'Keeping it safe', desc: 'Short Treasury bills for money you may need soon, that still earn while it waits.' },
-          ].map(({ Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl border border-sand-300/15 bg-sand-50/[0.03] p-5">
-              <Icon size={20} className="text-gold-500" />
-              <p className="mt-3 font-display font-semibold text-sand-50">{title}</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-sand-300/60">{desc}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-8 text-center">
+        <div className="mt-7 text-center">
           <Link
             href="/goals/"
             className="inline-flex items-center gap-2 rounded-xl bg-gold-500 px-6 py-3 font-display text-sm font-bold text-treasury-dark transition hover:bg-gold-300"
@@ -174,15 +161,9 @@ export default function LandingPage() {
           <p className="mt-4 max-w-lg text-sm leading-relaxed text-ink-muted">
             When that day comes, a broker sends a pricing sheet: a yield, a dirty price, a
             consideration, some charges. Every figure on it is accurate, and none of them answers
-            the question you actually have — whether to do it at all.
-          </p>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
-            So we work out the two numbers the sheet leaves out. What you are{' '}
-            <em>really</em> selling at once the commission and levies are paid. And what your next
-            investment has to earn for the swap to leave you no worse off — grossed up for tax,
-            because a tax-free infrastructure bond cannot be replaced by an ordinary one at the
-            same headline rate. That single point of difference is the most expensive thing in
-            this market, and it appears on no statement anywhere.
+            the question you actually have — whether to do it at all. We work out what you really
+            sell at, and what your next investment must earn for the swap to leave you no worse
+            off.
           </p>
           <Link
             href="/sell/"
@@ -227,25 +208,6 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="overflow-hidden rounded-3xl bg-treasury-navy px-8 py-12 text-center shadow-card md:py-16">
-        <h2 className="font-display text-2xl font-bold text-sand-50 md:text-3xl">
-          Mwangaza means light. That is the whole idea.
-        </h2>
-        <p className="mx-auto mt-3 max-w-lg text-sm text-sand-300/80">
-          Kenya&apos;s bond market has been open to ordinary savers for years. What has been in
-          short supply is not access — it is a clear view of the numbers, offered without an
-          agenda. That is all this is. It is free, it works offline, it has no account to open,
-          and it never sees a shilling of what you hold. Have a look around.
-        </p>
-        <Link
-          href="/dashboard/"
-          className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gold-500 px-7 py-3 font-display text-sm font-bold text-treasury-dark transition hover:bg-gold-300"
-        >
-          Have a look — it&apos;s free <ArrowRight size={16} />
-        </Link>
       </section>
     </div>
   );

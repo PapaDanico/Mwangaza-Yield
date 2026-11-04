@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Calculator, Briefcase, Radar, Globe, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Rates, Curve and Auctions at a Glance — Mwangaza Yield',
@@ -15,7 +15,6 @@ import RateCycle from '@/components/dashboard/RateCycle';
 import MarketPulse from '@/components/dashboard/MarketPulse';
 import YieldInHistory from '@/components/dashboard/YieldInHistory';
 import InflationSplitCard from '@/components/dashboard/InflationSplit';
-import EconomicHealthSummary from '@/components/dashboard/EconomicHealthSummary';
 import WhatChanged from '@/components/dashboard/WhatChanged';
 import DecisionBrief from '@/components/dashboard/DecisionBrief';
 import LatestForecast from '@/components/dashboard/LatestForecast';
@@ -23,10 +22,10 @@ import HeroRates from '@/components/landing/HeroRates';
 import Fold from '@/components/shared/Fold';
 
 const actions = [
-  { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns you after tax', Icon: Calculator },
-  { href: '/auctions/', title: 'What is on sale now', desc: 'Closing dates, official documents, how to bid', Icon: Radar },
-  { href: '/portfolio/', title: 'What you already hold', desc: 'Track your bonds and when they pay — offline', Icon: Briefcase },
-  { href: '/macro/', title: 'Economic context', desc: 'Rates, debt, spillovers and policy context in one view', Icon: Globe },
+  { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns after tax' },
+  { href: '/auctions/', title: 'What is on sale now', desc: 'Closing dates, documents, how to bid' },
+  { href: '/portfolio/', title: 'What you already hold', desc: 'Track your bonds and when they pay' },
+  { href: '/macro/', title: 'Economic context', desc: 'Rates, debt and policy in one view' },
 ];
 
 export default function DashboardPage() {
@@ -55,7 +54,6 @@ export default function DashboardPage() {
       <WhatChanged />
       <TopYields />
       <MacroPanel />
-      <EconomicHealthSummary />
       <InflationSplitCard />
       <RateCycle />
       <YieldCurveChart />
@@ -74,20 +72,24 @@ export default function DashboardPage() {
         <YieldInHistory />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {actions.map(({ href, title, desc, Icon }) => (
-          <Link key={href} href={href} className="card card-link group">
-            <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gold-50 ring-1 ring-gold-100">
-              <Icon size={20} className="text-gold-700" aria-hidden />
-            </span>
-            <p className="flex items-center gap-1 font-display font-semibold text-ink">
-              {title}
-              <ArrowRight size={16} className="text-gold-700 transition-transform group-hover:translate-x-0.5" aria-hidden />
-            </p>
-            <p className="mt-1 text-sm text-ink-muted">{desc}</p>
-          </Link>
-        ))}
-      </div>
+      {/* Four shortcuts as one list. They were four full cards (about 620px on a
+          phone) repeating destinations the tab bar and the header already carry. */}
+      <nav aria-label="Where to next" className="card">
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">Where next</p>
+        <ul className="mt-1 divide-y divide-sand-200">
+          {actions.map(({ href, title, desc }) => (
+            <li key={href}>
+              <Link href={href} className="group flex min-h-11 items-center justify-between gap-3 py-2">
+                <span>
+                  <span className="block text-sm font-semibold text-ink">{title}</span>
+                  <span className="block text-xs text-ink-muted">{desc}</span>
+                </span>
+                <ArrowRight size={16} className="shrink-0 text-gold-700 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       {/* SERVER-RENDERED, AND THE ONLY TEXT ON THIS PAGE THAT IS.
         *

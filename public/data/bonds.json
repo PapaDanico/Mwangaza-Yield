@@ -569,10 +569,10 @@
     "tenorYears": 15,
     "couponRate": 12.34,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.7338,
+    "ytmGross": 12.8717,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-09-30",
+    "ytmAsOf": "2026-11-04",
     "source": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/"
   },
   {
@@ -937,10 +937,10 @@
     "tenorYears": 30,
     "couponRate": 12.5,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 14.2789,
+    "ytmGross": 14.1711,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-10-14",
+    "ytmAsOf": "2026-11-04",
     "source": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/"
   }
 ]

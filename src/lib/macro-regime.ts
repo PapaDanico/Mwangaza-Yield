@@ -46,7 +46,7 @@ export function macroRegime(cbr: number, cpi: number, debtToGDP: number | null, 
   // each absent figure also pushed the headline verdict toward "Broadly
   // supportive for bond investors" — built, in part, from data that is not
   // there. Absence now contributes nothing in either direction, which is the
-  // rule EconomicHealthSummary and computeKenyaSpread already follow.
+  // rule computeKenyaSpread already follows.
   if (debtToGDP !== null) {
     if (debtToGDP > 70) tags.push({ text: 'Elevated debt burden', color: 'bg-red-500/15 text-red-700' });
     else if (debtToGDP > 55) tags.push({ text: 'Moderate debt pressure', color: 'bg-gold-500/15 text-gold-700' });

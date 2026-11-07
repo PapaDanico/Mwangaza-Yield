@@ -20,6 +20,8 @@ import ReportActions from '@/components/report/ReportActions';
 import BondPicker from '@/components/shared/BondPicker';
 import WiderView from '@/components/shared/WiderView';
 import GoalProgress from '@/components/shared/GoalProgress';
+import AnswerFigure from '@/components/shared/AnswerFigure';
+import AmountEcho from '@/components/shared/AmountEcho';
 import { yearsLabel } from '@/lib/years-label';
 import { mediumTermInflation, type WeoSeries } from '@/lib/imf-context';
 import IMF_OUTLOOK from '../../../public/data/imf-outlook.json';
@@ -387,25 +389,23 @@ export default function GoalsClient() {
             <Field label="Annual income you want (today's money)">
               <input type="number" step={50_000} value={targetIncome}
                 onChange={(e) => setTargetIncome(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
+              <AmountEcho amount={targetIncome} />
             </Field>
             <Field label="Capital you have now">
               <input type="number" step={100_000} value={capital}
                 onChange={(e) => setCapital(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
+              <AmountEcho amount={capital} />
             </Field>
             <Field label="Monthly contribution" hint="Reinvested at the cautious planning yield, not the best rate on the board.">
               <input type="number" step={10_000} value={monthly}
                 onChange={(e) => setMonthly(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
+              <AmountEcho amount={monthly} />
             </Field>
           </div>
 
           <div className="space-y-4">
             <div className="card">
-              <p className="text-sm font-semibold text-ink-faint">
-                Capital required
-              </p>
-              <p className="num mt-1 text-4xl font-bold text-gold-700">
-                {formatCompactKES(fire.requiredCapitalKES)}
-              </p>
+              <AnswerFigure label="Capital required" value={formatCompactKES(fire.requiredCapitalKES)} />
               <p className="mt-1 text-sm text-ink-muted">
                 to draw {formatKES(fire.targetAnnualIncomeKES)} a year at{' '}
                 <span className="num font-semibold text-ink">{formatPct(fire.planningNetYield)}</span> net
@@ -920,10 +920,7 @@ export default function GoalsClient() {
             {park ? (
               <>
                 <div className="card">
-                  <p className="text-sm font-semibold text-ink-faint">
-                    {park.tenorDays}-day Treasury bill
-                  </p>
-                  <p className="num mt-1 text-4xl font-bold text-gold-700">{formatPct(park.netEAY)}</p>
+                  <AnswerFigure label={`${park.tenorDays}-day Treasury bill`} value={formatPct(park.netEAY)} />
                   <p className="mt-1 text-sm text-ink-muted">
                     net effective yield · money back in {park.tenorDays} days
                   </p>

@@ -19,9 +19,9 @@ export interface Series {
   color: string;
   dashed?: boolean;
   step?: boolean;
-  /** Line width; defaults to 2.5. */
+  /** Line width; defaults to 2. */
   width?: number;
-  /** Dot radius; defaults to 3. */
+  /** Dot radius; defaults to 4 (8px marker). */
   dot?: number;
 }
 
@@ -128,7 +128,7 @@ export default function MiniLineChart<T>({
       >
         {yTicks.map((t) => (
           <g key={t}>
-            <line x1={PAD.l} x2={W - PAD.r} y1={sy(t)} y2={sy(t)} stroke={GRID} strokeDasharray="3 3" />
+            <line x1={PAD.l} x2={W - PAD.r} y1={sy(t)} y2={sy(t)} stroke={GRID} />
             <text x={PAD.l - 6} y={sy(t)} dy="0.32em" textAnchor="end" fontSize={12} fill={AXIS}>{t.toFixed(1)}%</text>
           </g>
         ))}
@@ -140,10 +140,10 @@ export default function MiniLineChart<T>({
         )}
         {series.map((s) => (
           <g key={s.key}>
-            <path d={path(s)} fill="none" stroke={s.color} strokeWidth={s.width ?? 2.5} strokeDasharray={s.dashed ? '6 4' : undefined} strokeLinejoin="round" />
+            <path d={path(s)} fill="none" stroke={s.color} strokeWidth={s.width ?? 2} strokeDasharray={s.dashed ? '6 4' : undefined} strokeLinejoin="round" />
             {data.map((row, i) => {
               const v = value(row, s.key);
-              return v == null ? null : <circle key={i} cx={sx(xs[i])} cy={sy(v)} r={hover === i ? (s.dot ?? 3) + 2 : (s.dot ?? 3)} fill={s.color} />;
+              return v == null ? null : <circle key={i} cx={sx(xs[i])} cy={sy(v)} r={hover === i ? (s.dot ?? 4) + 1.5 : (s.dot ?? 4)} fill={s.color} stroke="#FDFBF5" strokeWidth={2} />;
             })}
           </g>
         ))}

@@ -51,6 +51,23 @@ const COLUMNS = [
   },
 ];
 
+function LinkList({ links }: { links: { href: string; label: string }[] }) {
+  return (
+    <ul className="mt-1 space-y-1">
+      {links.map((l) => (
+        <li key={l.href}>
+          <Link
+            href={l.href}
+            className="block py-3 text-sm text-sand-300/70 transition hover:text-gold-500"
+          >
+            {l.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function Footer() {
   return (
     <footer className="no-print mt-16 bg-treasury-navy pb-24 pt-12 md:pb-12">
@@ -67,7 +84,7 @@ export default function Footer() {
             <p className="mt-3 text-xs uppercase tracking-[0.2em] text-gold-500/80">
               Government bonds, made plain
             </p>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-sand-300/70">
+            <p className="mt-4 hidden max-w-xs text-sm leading-relaxed text-sand-300/70 sm:block">
               A free, private tool that shows what Kenyan government bonds really pay once tax is
               taken off — so an ordinary saver can decide with the same clarity a bank does.
             </p>
@@ -108,7 +125,21 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          {/* Phones: four folded groups (about 200px) instead of two columns of
+              44px links (about 800px); the same links, native <details>. */}
+          <div className="sm:hidden">
+            {COLUMNS.map((col) => (
+              <details key={col.heading} className="group border-b border-sand-300/15">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-display text-xs font-bold uppercase tracking-wider text-sand-50 marker:content-none">
+                  {col.heading}
+                  <span aria-hidden className="text-lg text-gold-500 transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <LinkList links={col.links} />
+              </details>
+            ))}
+          </div>
+
+          <div className="hidden grid-cols-4 gap-8 sm:grid">
             {COLUMNS.map((col) => (
               <div key={col.heading}>
                 <p className="font-display text-xs font-bold uppercase tracking-wider text-sand-50">
@@ -120,18 +151,7 @@ export default function Footer() {
                     lifts each hit area to 44px without moving the text; the
                     4px `space-y-1` keeps a boundary between them so a near-miss
                     stays a miss rather than navigating somewhere unasked-for. */}
-                <ul className="mt-1 space-y-1">
-                  {col.links.map((l) => (
-                    <li key={l.href}>
-                      <Link
-                        href={l.href}
-                        className="block py-3 text-sm text-sand-300/70 transition hover:text-gold-500"
-                      >
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                <LinkList links={col.links} />
               </div>
             ))}
           </div>

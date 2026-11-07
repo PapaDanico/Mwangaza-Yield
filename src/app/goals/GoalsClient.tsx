@@ -400,7 +400,7 @@ export default function GoalsClient() {
 
           <div className="space-y-4">
             <div className="card">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+              <p className="text-sm font-semibold text-ink-faint">
                 Capital required
               </p>
               <p className="num mt-1 text-4xl font-bold text-gold-700">
@@ -456,7 +456,7 @@ export default function GoalsClient() {
             </div>
 
             <div className="rounded-xl border border-sand-300 bg-sand-200/60 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
+              <p className="text-sm font-semibold text-ink-soft">
                 What this assumes
               </p>
               <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">
@@ -920,7 +920,7 @@ export default function GoalsClient() {
             {park ? (
               <>
                 <div className="card">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                  <p className="text-sm font-semibold text-ink-faint">
                     {park.tenorDays}-day Treasury bill
                   </p>
                   <p className="num mt-1 text-4xl font-bold text-gold-700">{formatPct(park.netEAY)}</p>

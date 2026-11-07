@@ -52,7 +52,7 @@ export default function AuctionBanner() {
         <Radar size={26} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gold-700">
+        <p className="text-sm font-semibold text-gold-700">
           {next.status === 'open' ? 'Auction open now' : 'Next auction'}
         </p>
         {/* Wraps rather than truncates. "TBA — August 202…" cut the year off

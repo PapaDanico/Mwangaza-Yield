@@ -43,7 +43,7 @@ export default function WhatChanged() {
 
   return (
     <section className="card" aria-labelledby="what-changed">
-      <h2 id="what-changed" className="text-xs font-semibold uppercase tracking-wider text-gold-700">
+      <h2 id="what-changed" className="text-sm font-semibold text-gold-700">
         What changed
       </h2>
       <ul className="mt-2 divide-y divide-sand-200">

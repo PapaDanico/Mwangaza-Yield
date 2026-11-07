@@ -303,7 +303,7 @@ export default function LearnPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">Learn</p>
+        <p className="text-sm font-semibold tracking-[0.2em] text-gold-700">Learn</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
           Bonds, made plain
         </h1>

@@ -12,7 +12,6 @@ import { readerNotice } from '@/lib/data-freshness';
 import AppInit from '@/components/shared/AppInit';
 import Analytics from '@/components/shared/Analytics';
 import JourneyBar from '@/components/shared/JourneyBar';
-import Breadcrumb from '@/components/shared/Breadcrumb';
 import UpdateBanner from '@/components/shared/UpdateBanner';
 import DataProvenanceFooter from '@/components/shared/DataProvenanceFooter';
 import DataOfflineBanner from '@/components/shared/DataOfflineBanner';
@@ -81,7 +80,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CommandPaletteProvider>
           <Navbar />
           <JourneyBar />
-          <Breadcrumb />
           {/* min-h keeps the footer where it lands.
               Every short page — T-Bills, Calculator, Goals, Prices — measured
               0.5201 CLS at 390px, and the shifting element was the FOOTER on all

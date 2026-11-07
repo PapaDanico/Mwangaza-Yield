@@ -102,7 +102,7 @@ export default function EvidenceStrip() {
             <p className="num text-2xl font-bold leading-tight text-gold-700 md:text-3xl">
               {f.figure}
             </p>
-            <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+            <p className="mt-0.5 text-sm font-semibold text-ink-faint">
               {f.unit}
             </p>
             <p className="mt-2 text-sm font-medium text-ink">{f.claim}</p>

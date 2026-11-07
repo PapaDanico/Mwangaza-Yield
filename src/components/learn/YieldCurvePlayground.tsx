@@ -119,7 +119,7 @@ export default function YieldCurvePlayground() {
       </div>
 
       <div className="rounded-2xl border border-sand-300 bg-sand-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">
+        <p className="text-sm font-semibold tracking-[0.2em] text-ink-faint">
           What the curve implies
         </p>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">

@@ -146,7 +146,7 @@ export default function TopYields() {
             key={bond.isin}
             className="card group relative overflow-hidden p-3 transition hover:border-gold-500 sm:p-4"
           >
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint sm:gap-2 sm:text-xs">
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-ink-faint sm:gap-2 sm:text-xs">
               <Icon size={13} className={`shrink-0 ${accent}`} /> {label}
             </div>
             <p className={`num mt-1.5 text-3xl font-bold sm:mt-2 sm:text-4xl ${accent}`}>

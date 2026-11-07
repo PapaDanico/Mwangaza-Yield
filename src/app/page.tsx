@@ -43,7 +43,7 @@ export default function LandingPage() {
             <br />
             <span className="text-gold-700">know what you earn.</span>
           </h1>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-ink-faint">
+          <p className="mt-3 text-sm font-semibold tracking-[0.22em] text-ink-faint">
             Government bonds, made plain
           </p>
           <p className="mt-5 max-w-lg text-lg text-ink-muted">
@@ -126,7 +126,7 @@ export default function LandingPage() {
 
       {/* Objectives — dark navy band, per the brand boards */}
       <section className="-mx-4 bg-treasury-navy px-4 py-14 md:mx-0 md:rounded-3xl md:px-10 md:py-16">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-gold-500">
+        <p className="text-center text-sm font-semibold tracking-[0.2em] text-gold-500">
           Start with the why
         </p>
         <h2 className="mt-3 text-center font-display text-2xl font-bold text-sand-50 md:text-3xl">
@@ -155,7 +155,7 @@ export default function LandingPage() {
           other tool in this market stops at the purchase. */}
       <section className="grid items-center gap-8 md:grid-cols-[1fr,1fr]">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-700">
+          <p className="text-sm font-semibold tracking-[0.2em] text-gold-700">
             The part nobody prepares you for
           </p>
           <h2 className="mt-3 text-2xl font-bold leading-tight text-ink md:text-3xl">
@@ -177,7 +177,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <div className="card space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-sm font-semibold text-ink-faint">
             From a real broker sheet
           </p>
           {[

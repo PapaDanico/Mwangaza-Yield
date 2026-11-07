@@ -10,6 +10,8 @@ import { formatCompactKES, nonNegativeNumber } from '@/lib/utils';
 import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import LiveResult from '@/components/shared/LiveResult';
+import AnswerFigure from '@/components/shared/AnswerFigure';
+import AmountEcho from '@/components/shared/AmountEcho';
 import { inputCls } from '@/lib/field-styles';
 import { nextAuctionLabel } from '@/lib/auction-schedule';
 import type { MacroIndicator, TBill } from '@/types/bond';
@@ -83,7 +85,7 @@ export default function TbillsClient({
               onClick={() => setTenor(b.tenorDays)}
               className={`card p-3 text-left transition sm:p-4 ${active ? 'border-gold-500 ring-1 ring-gold-500' : 'hover:border-gold-500'}`}
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint sm:text-xs">
+              <p className="text-sm font-semibold text-ink-faint sm:text-xs">
                 {b.tenorDays}-day
               </p>
               <p className="num mt-1 text-lg font-bold text-gold-700 sm:text-2xl">{formatPct(r.netEAY)}</p>
@@ -165,6 +167,7 @@ export default function TbillsClient({
               onChange={(e) => setAmount(nonNegativeNumber(e.target.value))}
               className={`num ${inputCls}`}
             />
+            <AmountEcho amount={amount} />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[100_000, 500_000, 1_000_000, 5_000_000].map((v) => (
                 <button
@@ -217,8 +220,8 @@ export default function TbillsClient({
               + `${formatKES(result.netProceedsKES)} back in ${selected.tenorDays} days.`}
           </LiveResult>
           <h2 className="mb-3 font-semibold text-ink">{selected.tenorDays}-day bill breakdown</h2>
+          <AnswerFigure label="What you actually earn" value={formatPct(result.netEAY)} />
           {[
-            ['What you actually earn', formatPct(result.netEAY), true],
             ['Before tax', formatPct(result.grossEAY), false],
             ['The advertised rate', formatPct(result.discountRate, 2), false],
             ['What you pay per Ksh 100', result.pricePer100.toFixed(2), false],

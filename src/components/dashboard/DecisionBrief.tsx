@@ -37,7 +37,7 @@ export default function DecisionBrief() {
 
   return (
     <section className="card" aria-labelledby="decision-brief">
-      <h2 id="decision-brief" className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gold-700">
+      <h2 id="decision-brief" className="flex items-center gap-2 text-sm font-semibold text-gold-700">
         <Compass size={14} aria-hidden /> What the figures say this week
       </h2>
       <ul className="mt-3 space-y-4">

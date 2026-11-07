@@ -117,11 +117,31 @@ export default function MiniLineChart<T>({
     setHover(best);
   };
 
+  const onKey = (e: React.KeyboardEvent) => {
+    const last = data.length - 1;
+    const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      setHover(e.key === 'Home' ? 0 : last);
+    } else if (step) {
+      e.preventDefault();
+      setHover((cur) => Math.min(last, Math.max(0, (cur ?? (step > 0 ? -1 : last + 1)) + step)));
+    } else if (e.key === 'Escape') setHover(null);
+  };
+
   const h = hover != null ? data[hover] : null;
   const hx = hover != null ? sx(xs[hover]) : 0;
 
   return (
-    <div ref={box} className="relative h-full w-full">
+    <div
+      ref={box}
+      className="relative h-full w-full rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0A192F]"
+      tabIndex={0}
+      role="group"
+      aria-label="Chart. Use the left and right arrow keys to read each point; the same figures are printed as text nearby."
+      onKeyDown={onKey}
+      onBlur={() => setHover(null)}
+    >
       <svg
         width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="block overflow-visible"
         onPointerMove={onMove} onPointerLeave={() => setHover(null)} aria-hidden="true"
@@ -149,6 +169,9 @@ export default function MiniLineChart<T>({
         ))}
         {h && <line x1={hx} x2={hx} y1={PAD.t} y2={H - PAD.b} stroke={GRID} />}
       </svg>
+      <div className="sr-only" aria-live="polite">
+        {h ? `${tooltipLabel(h)}: ${series.map((s) => { const v = value(h, s.key); return v == null ? '' : `${s.name} ${v.toFixed(2)}%`; }).filter(Boolean).join(', ')}` : ''}
+      </div>
       {h && (
         <div
           className="pointer-events-none absolute top-2 z-10 rounded-xl border border-[#E3D8BE] bg-[#FDFBF5] px-3 py-2 text-xs text-[#0A192F] shadow-sm"

@@ -34,7 +34,7 @@ export default function Breadcrumb() {
   if (crumbs.length <= 1) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="no-print">
+    <nav aria-label="Breadcrumb" className="no-print mx-auto max-w-7xl">
       {/* Desktop: full trail */}
       <ol
         className="hidden items-center gap-1 px-4 py-1.5 text-xs text-ink-muted md:flex"

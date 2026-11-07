@@ -46,7 +46,7 @@ export default function Navbar() {
   return (
     <>
       <header className="no-print sticky top-0 z-40 border-b border-sand-300 bg-sand-100/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 lg:gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 lg:gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="" className="h-9 w-9 rounded-xl" />

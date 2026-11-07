@@ -59,9 +59,21 @@ module.exports = {
         sans: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
+      // Elevation is a three-step ramp, every layer tinted with the navy ink
+      // rather than neutral grey, so a raised surface reads as paper lit from
+      // above instead of a grey smudge under a white box:
+      //   card        resting surface. A 1px light edge on top (the inset),
+      //               a contact shadow, and a long soft one that is pulled
+      //               in by a negative spread so it never spills sideways.
+      //   card-hover  the same surface lifted — a link card on hover.
+      //   ticket      the one dark surface per page (the yield certificate).
       boxShadow: {
-        card: '0 1px 2px rgba(10, 25, 47, 0.05), 0 4px 16px rgba(10, 25, 47, 0.06)',
-        'card-hover': '0 2px 4px rgba(10, 25, 47, 0.06), 0 12px 28px rgba(10, 25, 47, 0.1)',
+        card:
+          'inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(10, 25, 47, 0.05), 0 10px 24px -14px rgba(10, 25, 47, 0.16)',
+        'card-hover':
+          'inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 4px rgba(10, 25, 47, 0.06), 0 20px 36px -18px rgba(10, 25, 47, 0.26)',
+        ticket:
+          'inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 2px 4px rgba(2, 12, 27, 0.24), 0 34px 64px -24px rgba(2, 12, 27, 0.6)',
       },
     },
   },

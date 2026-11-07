@@ -15,6 +15,7 @@ import { usePersistedState } from '@/lib/persisted';
 import { track } from '@/lib/analytics';
 import WiderView from '@/components/shared/WiderView';
 import LadderReport from '@/components/report/LadderReport';
+import Fold from '@/components/shared/Fold';
 import IssuerIntent from '@/components/ladder/IssuerIntent';
 import ReinvestmentEvidence from '@/components/ladder/ReinvestmentEvidence';
 import ReportActions from '@/components/report/ReportActions';
@@ -205,9 +206,6 @@ export default function LadderPage() {
             your price book where you have recorded one and par where nobody has.
             Educational planning — actual auction allocations vary.
           </p>
-
-          <IssuerIntent />
-        <ReinvestmentEvidence />
         </div>
 
         <div className="space-y-4">
@@ -395,6 +393,17 @@ export default function LadderPage() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Evidence about the rolls sits BELOW the result and folded: on a phone it
+          used to live inside the input card and pushed the reader's own ladder
+          ~2,400px down the page (measured 7 Nov 2026). Kept in the markup, so
+          crawlers and no-JS readers still get it. */}
+      <div className="no-print">
+        <Fold title="Will the rungs roll? What the issuer plans and what was on offer">
+          <IssuerIntent />
+          <ReinvestmentEvidence />
+        </Fold>
       </div>
 
       {/* The traffic was flowing one way.

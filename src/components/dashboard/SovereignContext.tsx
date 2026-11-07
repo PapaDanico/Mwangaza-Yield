@@ -18,6 +18,18 @@ const SENTIMENT: Record<string, { dot: string; label: string }> = {
   watch: { dot: 'bg-slate-500', label: 'Neutral' },
 };
 
+/* Eighteen indicator cards stacked to 1,364px on a phone, with the ones a
+ * lender checks first (debt to GDP, interest to revenue) buried at the bottom.
+ * The ability-to-pay set leads and the rest sit behind one button. Matched on
+ * the label because the cards arrive from four sources with unrelated ids; a
+ * card matching none keeps its place after the eight, so nothing is dropped. */
+const LEAD = [/debt \/ gdp/i, /interest/i, /reserves/i, /fiscal balance/i, /current account/i, /debt service/i, /external debt \/ gni/i, /^gdp growth$/i];
+const COLLAPSED_CARDS = LEAD.length;
+const rank = (label: string) => {
+  const i = LEAD.findIndex((re) => re.test(label));
+  return i === -1 ? LEAD.length : i;
+};
+
 /**
  * Answers the question behind every bond purchase: is the borrower good for
  * the money? Each indicator carries a plain-language note on what it means
@@ -29,6 +41,7 @@ export default function SovereignContext() {
   const debtHeld = macro.some((m) => m.indicator === 'DEBT_TO_GDP' && Number.isFinite(m.value));
   const gaps = sovereignGaps(context, debtHeld);
   const [open, setOpen] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   /* Measured on the built page at 390px and 1280px, not estimated.
   *
   * Reserve's contract is "roughly what the real card occupies, so the swap
@@ -40,7 +53,7 @@ export default function SovereignContext() {
   * Two numbers because one cannot be right at both ends: the height prop
   * carries the desktop figure and the min-h carries the phone's, so neither
   * breakpoint swaps into a different height. */
-  if (!context.length) return <Reserve height={739} className="min-h-[1350px] sm:min-h-[739px]" />;
+  if (!context.length) return <Reserve height={642} className="min-h-[1240px] sm:min-h-[642px]" />;
 
   return (
     <div className="card">
@@ -93,7 +106,7 @@ export default function SovereignContext() {
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
-        {context.map((c) => {
+        {[...context].sort((a, b) => rank(a.label) - rank(b.label)).slice(0, showAll ? undefined : COLLAPSED_CARDS).map((c) => {
           const s = SENTIMENT[c.sentiment] ?? SENTIMENT.watch;
           const isOpen = open === c.id;
           return (
@@ -143,6 +156,17 @@ export default function SovereignContext() {
           );
         })}
       </div>
+
+      {context.length > COLLAPSED_CARDS && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          aria-expanded={showAll}
+          className="mt-3 flex min-h-11 w-full items-center justify-center rounded-xl border border-sand-300 text-sm font-semibold text-ink hover:bg-sand-50"
+        >
+          {showAll ? 'Show fewer indicators' : `Show all ${context.length} indicators`}
+        </button>
+      )}
 
       {/* WHAT WE ASK FOR AND CANNOT GET.
           The panel above renders whatever arrived, which makes a permanently

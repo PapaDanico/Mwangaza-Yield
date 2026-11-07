@@ -35,7 +35,10 @@ export default function LandingPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-mint-600" />
             Built on public CBK, Treasury &amp; KNBS data · Always free
           </p>
-          <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-ink md:text-6xl">
+          {/* Sized so "When you lend to Kenya," holds one line in the hero's
+              column from lg up. At md:text-6xl it did not, and "Kenya," was left
+              alone on its own line above the tagline. */}
+          <h1 className="text-4xl font-bold leading-[1.08] text-ink md:text-[2.75rem] lg:text-[3.35rem]">
             When you lend to Kenya,
             <br />
             <span className="text-gold-700">know what you earn.</span>
@@ -84,12 +87,13 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        <div className="relative mx-auto hidden md:block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="Mwangaza Yield" className="h-72 w-72 rounded-[3rem] shadow-card" />
-          <div className="absolute -bottom-8 -left-16">
-            <LiveYieldCard />
-          </div>
+        {/* The slot is reserved at the card's tallest (the par disclosure
+            showing) because the card fills in from IndexedDB after hydration.
+            Without it the hero's right column changed height when the figure
+            arrived. Phones skip it: the figure sits one tap away on the
+            dashboard, and above the fold the headline and buttons matter more. */}
+        <div className="hidden min-h-[22rem] items-center justify-center md:flex">
+          <LiveYieldCard />
         </div>
       </section>
 

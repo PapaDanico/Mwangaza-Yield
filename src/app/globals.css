@@ -2,9 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  /* The sticky header plus the journey strip cover ~5rem; without this an
+     in-page anchor (#main, a glossary term) lands underneath them. */
+  scroll-padding-top: 5.5rem;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   @apply bg-sand-100 text-ink-soft font-sans antialiased;
-  background-image: radial-gradient(ellipse 90% 55% at 50% -12%, rgba(245, 158, 11, 0.1), transparent);
+  /* A single low sun-glow at the crown of the page. It was 0.10 across 90% of
+     the width, which on sand-100 read as peach rather than as light, and it
+     sat behind every dashboard card. Narrower and quieter, it still says
+     "Mwangaza" (light) without tinting the figures laid over it. */
+  background-image: radial-gradient(ellipse 70% 38% at 50% -10%, rgba(245, 158, 11, 0.075), transparent);
+}
+
+::selection {
+  background: theme('colors.gold.300');
+  color: theme('colors.treasury.navy');
 }
 
 .macro-newspaper {
@@ -15,14 +31,30 @@ body {
 
 h1, h2, h3, h4 {
   @apply font-display;
+  /* Balanced wrapping stops a headline ending on a lone word ("Kenya,") and
+     costs nothing where it is already one line. Tracking tightens with size:
+     display sizes need it, card titles do not. */
+  text-wrap: balance;
+}
+
+h1, h2 {
+  letter-spacing: -0.022em;
+}
+
+h3, h4 {
+  letter-spacing: -0.008em;
 }
 
 .card {
   @apply bg-sand-50 rounded-2xl border border-sand-300 p-5 shadow-card;
 }
 
+/* Figures are set in the mono face with slashed zeros, so 0 and O can never be
+   misread in a yield, a price or a date — the one place in a money app where a
+   misread glyph is a wrong decision. */
 .num {
   @apply font-mono tabular-nums;
+  font-feature-settings: 'zero' 1;
 }
 
 /* ── Keyboard focus ──

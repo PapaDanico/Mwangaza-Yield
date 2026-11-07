@@ -71,7 +71,7 @@ function LinkList({ links }: { links: { href: string; label: string }[] }) {
 export default function Footer() {
   return (
     <footer className="no-print mt-16 bg-treasury-navy pb-24 pt-12 md:pb-12">
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-7xl px-4">
         <div className="grid gap-10 md:grid-cols-[1.4fr,2.6fr]">
           <div>
             <div className="flex items-center gap-2.5">

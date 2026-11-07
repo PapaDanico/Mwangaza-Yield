@@ -50,25 +50,55 @@ export default function LiveYieldCard() {
 
   const atPar = best.resolved.source === 'par';
 
+  /* THE ONE DARK SURFACE ON THE PAGE.
+   *
+   * A navy certificate on sand: the headline figure is the first thing a reader
+   * of this site wants, so it gets the page's only dark, raised surface and the
+   * largest type in the mono face. It replaced a card tilted 2deg over a logo
+   * tile — a gimmick that put the logo (already in the header) at the centre of
+   * the hero and a placeholder yield at its edge.
+   *
+   * The watermark is the brand mark's own idea, a sail over a curve rising to a
+   * marked point, drawn large and faint. It is decoration (aria-hidden) and
+   * carries no information. Everything the card SAYS — the provenance caption,
+   * the par disclosure — is unchanged and still pinned by
+   * tests/unit/par-placeholder-disclosed.test.ts. */
   return (
-    <div className="card w-64 rotate-2 border-gold-500/60 shadow-card transition hover:rotate-0">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">
-        {best.bond.taxExempt ? <ShieldCheck size={13} className="text-mint-700" /> : <TrendingUp size={13} className="text-gold-700" />}
-        {atPar ? 'Best net yield at par' : 'Best net yield today'}
-      </div>
-      <p className="num mt-1.5 text-3xl font-bold text-gold-700">{formatPct(best.netYTM, 2)}</p>
-      <p className="mt-0.5 text-xs text-ink-muted">
-        {best.bond.issueCode}{best.bond.taxExempt ? ' · tax-free' : ' · after tax'}
-      </p>
-      {atPar && (
-        <p className="mt-1.5 text-xs leading-snug text-ink-faint">
-          Priced at par 100 — a placeholder, not the market. Enter the price you are quoted in the{' '}
-          <a href="/calculator/" className="underline">
-            calculator
-          </a>
-          .
+    <div className="relative w-full max-w-sm overflow-hidden rounded-[1.75rem] bg-treasury-navy p-7 text-sand-100 shadow-ticket ring-1 ring-inset ring-white/10 md:p-8">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 512 512"
+        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 text-gold-500 opacity-[0.08]"
+      >
+        <g fill="currentColor">
+          <path d="M 317 111 C 329 164, 327 236, 299 319 C 266 303, 218 295, 182 313 C 248 288, 296 196, 317 111 Z" />
+          <path d="M 112 333 L 192 310 L 194 322 Z" />
+          <circle cx="362" cy="332" r="23" />
+        </g>
+        <path d="M 152 340 Q 258 414, 358 336" fill="none" stroke="currentColor" strokeWidth="21" strokeLinecap="round" />
+      </svg>
+      <div className="relative">
+        <div className="flex items-center gap-2 text-sm font-medium text-gold-300">
+          {best.bond.taxExempt ? <ShieldCheck size={15} className="text-mint-300" /> : <TrendingUp size={15} />}
+          {atPar ? 'Best net yield at par' : 'Best net yield today'}
+        </div>
+        <p className="num mt-5 text-6xl font-semibold leading-none tracking-tight text-gold-400 md:text-7xl">
+          {formatPct(best.netYTM, 2)}
         </p>
-      )}
+        <p className="mt-3 text-sm text-sand-300">
+          <span className="num">{best.bond.issueCode}</span>
+          {best.bond.taxExempt ? ' · tax-free' : ' · after tax'}
+        </p>
+        {atPar && (
+          <p className="mt-6 border-t border-white/10 pt-4 text-xs leading-relaxed text-sand-300/85">
+            Priced at par 100 — a placeholder, not the market. Enter the price you are quoted in the{' '}
+            <a href="/calculator/" className="font-medium text-gold-300 underline underline-offset-2 hover:text-gold-100">
+              calculator
+            </a>
+            .
+          </p>
+        )}
+      </div>
     </div>
   );
 }

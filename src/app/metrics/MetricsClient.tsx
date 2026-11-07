@@ -94,7 +94,7 @@ export default function MetricsClient() {
       <header className="mb-6">
         <div className="flex items-center gap-2 text-slate-500">
           <BarChart3 className="h-4 w-4" aria-hidden />
-          <span className="text-xs font-semibold uppercase tracking-wide">Owner view</span>
+          <span className="text-sm font-semibold">Owner view</span>
         </div>
         <h1 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">Tool usage</h1>
         <p className="mt-2 text-sm text-slate-600">

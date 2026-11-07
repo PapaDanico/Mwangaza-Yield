@@ -140,14 +140,14 @@ export default function RateCycle() {
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{describeCycle(cycle)}</p>
       <div className="mt-3 rounded-xl border border-sand-300 bg-sand-100 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="text-sm font-semibold text-ink-faint">
           What this means for you
         </p>
         <p className="mt-1 text-xs leading-relaxed text-ink-soft">{whatItMeans(cycle)}</p>
       </div>
 
       <div className="mt-3">
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="mb-1.5 text-sm font-semibold text-ink-faint">
           Recent decisions
         </p>
         <ul className="space-y-0.5">

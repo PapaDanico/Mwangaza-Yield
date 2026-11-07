@@ -22,7 +22,7 @@ function downloadText(content: string, filename: string, mime: string) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-gold-700">
+      <h3 className="mb-2 text-sm font-semibold tracking-[0.15em] text-gold-700">
         {title}
       </h3>
       {children}

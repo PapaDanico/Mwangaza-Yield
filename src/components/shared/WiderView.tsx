@@ -33,7 +33,7 @@ export interface WiderLink {
 export default function WiderView({ wider }: { wider: WiderLink }) {
   return (
     <div className="no-print rounded-2xl border border-gold-300/60 bg-gold-50/40 p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-gold-700">
+      <p className="text-sm font-semibold text-gold-700">
         The wider picture
       </p>
       <p className="mt-2 text-sm font-medium text-ink">{wider.question}</p>

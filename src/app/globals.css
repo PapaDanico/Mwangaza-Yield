@@ -103,6 +103,50 @@ summary {
   box-shadow: 0 0 0 2px theme('colors.sand.50');
 }
 
+
+/* ── Range sliders ──
+ * The browser default drew an amber fill beside a near-black track, which
+ * belongs to neither the sand surface nor the navy ink. One quiet track and a
+ * thumb big enough to grab on a phone (22px, inside a 28px hit area — above
+ * the 24px WCAG 2.5.8 floor). The thumb carries the gold; the track stays out
+ * of the way. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 1.75rem;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: theme('colors.sand.300');
+}
+input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: theme('colors.sand.300');
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -8px;
+  height: 22px;
+  width: 22px;
+  border-radius: 9999px;
+  background: theme('colors.sand.50');
+  border: 2px solid theme('colors.gold.600');
+  box-shadow: 0 1px 3px rgba(10, 25, 47, 0.25);
+}
+input[type='range']::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: theme('colors.sand.50');
+  border: 2px solid theme('colors.gold.600');
+  box-shadow: 0 1px 3px rgba(10, 25, 47, 0.25);
+}
+
 /* Hide scrollbar on the journey bar while keeping it scrollable */
 .scrollbar-none {
   scrollbar-width: none;   /* Firefox */

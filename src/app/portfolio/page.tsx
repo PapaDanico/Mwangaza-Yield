@@ -379,7 +379,7 @@ export default function PortfolioPage() {
               the empty state used to teach only the hand-typed template while
               the importer for the file people actually have shipped unmentioned. */}
           <div className="mx-auto mt-4 max-w-md rounded-xl border border-mint-600/40 bg-mint-500/10 p-4 text-left">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-mint-700">
+            <p className="mb-1 text-sm font-semibold text-mint-700">
               Fastest: your DhowCSD export
             </p>
             <p className="text-sm leading-relaxed text-ink-soft">
@@ -394,7 +394,7 @@ export default function PortfolioPage() {
             yield-on-cost:
           </p>
           <div className="mx-auto mt-2 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left">
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+            <p className="mb-1.5 text-sm font-semibold text-ink-faint">
               Example file
             </p>
             <pre className="num whitespace-pre text-xs leading-relaxed text-ink-soft">

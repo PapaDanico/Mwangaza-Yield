@@ -194,7 +194,7 @@ export default function AlertsPage() {
             .filter((g) => g.rows.length)
             .map((g) => (
               <div key={g.label}>
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                <p className="text-sm font-semibold text-ink-muted">
                   {g.label}
                 </p>
                 <ul className="mt-2 space-y-2">

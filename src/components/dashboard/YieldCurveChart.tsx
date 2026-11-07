@@ -209,7 +209,7 @@ export default function YieldCurveChart() {
 
       {shape && (
         <div className="mt-4 rounded-xl border border-sand-300 bg-sand-100 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-sm font-semibold text-ink-faint">
             How to read this · {shape.label}
           </p>
           <p className="mt-1 text-xs leading-relaxed text-ink-soft">{shape.text}</p>

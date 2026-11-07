@@ -49,7 +49,7 @@ export default function AuctionHistory({ issueCode }: { issueCode: string }) {
 
       <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-sm font-semibold text-ink-faint">
             Most recent auction
           </p>
           <p className="num mt-0.5 text-3xl font-bold leading-none text-ink">
@@ -82,14 +82,14 @@ export default function AuctionHistory({ issueCode }: { issueCode: string }) {
 
       <p className="mt-4 text-sm leading-relaxed text-ink-soft">{describeHistory(history)}</p>
       <div className="mt-3 rounded-xl border border-sand-300 bg-sand-100 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="text-sm font-semibold text-ink-faint">
           How that compares
         </p>
         <p className="mt-1 text-xs leading-relaxed text-ink-soft">{readAgainstOwnRange(history)}</p>
       </div>
 
       <div className="mt-3">
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+        <p className="mb-1.5 text-sm font-semibold text-ink-faint">
           Every auction we have read
         </p>
         <ul className="space-y-0.5">

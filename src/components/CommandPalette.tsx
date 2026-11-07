@@ -181,7 +181,7 @@ export default function CommandPalette({ onClose }: { onClose: () => void }) {
         >
           {Object.entries(grouped).map(([category, items]) => (
             <li key={category} role="presentation">
-              <p className="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.15em] text-ink-faint">
+              <p className="px-4 pb-1 pt-2 text-sm font-semibold tracking-[0.15em] text-ink-faint">
                 {category}
               </p>
               <ul role="group" aria-label={category}>

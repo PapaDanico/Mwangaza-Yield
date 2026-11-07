@@ -122,7 +122,7 @@ export default function GlossaryBrowser() {
               )}
               {t.precise && (
                 <p className="mt-2 text-xs leading-relaxed text-ink-faint">
-                  <span className="font-semibold uppercase tracking-wider">Precisely: </span>
+                  <span className="font-semibold">Precisely: </span>
                   {t.precise}
                 </p>
               )}

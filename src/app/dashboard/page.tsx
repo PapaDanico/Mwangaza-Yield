@@ -75,7 +75,7 @@ export default function DashboardPage() {
       {/* Four shortcuts as one list. They were four full cards (about 620px on a
           phone) repeating destinations the tab bar and the header already carry. */}
       <nav aria-label="Where to next" className="card">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">Where next</p>
+        <p className="text-sm font-semibold text-ink-faint">Where next</p>
         <ul className="mt-1 divide-y divide-sand-200">
           {actions.map(({ href, title, desc }) => (
             <li key={href}>

@@ -130,7 +130,7 @@ export default function Footer() {
           <div className="sm:hidden">
             {COLUMNS.map((col) => (
               <details key={col.heading} className="group border-b border-sand-300/15">
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-display text-xs font-bold uppercase tracking-wider text-sand-50 marker:content-none">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-display text-sm font-bold text-sand-50 marker:content-none">
                   {col.heading}
                   <span aria-hidden className="text-lg text-gold-500 transition-transform group-open:rotate-45">+</span>
                 </summary>
@@ -142,7 +142,7 @@ export default function Footer() {
           <div className="hidden grid-cols-4 gap-8 sm:grid">
             {COLUMNS.map((col) => (
               <div key={col.heading}>
-                <p className="font-display text-xs font-bold uppercase tracking-wider text-sand-50">
+                <p className="font-display text-sm font-bold text-sand-50">
                   {col.heading}
                 </p>
                 {/* Measured at 390px: these links were 16px tall on a 32px

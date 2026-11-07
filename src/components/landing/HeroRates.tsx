@@ -25,7 +25,7 @@ export default function HeroRates({ className = 'mt-6' }: { className?: string }
       className={`card-link ${className} block rounded-2xl border border-sand-300 bg-sand-50/80 p-4 shadow-card`}
       aria-label="Treasury bill rates after tax from the latest CBK auction; open the T-bill page"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-faint">
+      <p className="text-sm font-semibold tracking-[0.14em] text-ink-faint">
         T-bills, after tax · CBK auction {fmt(date)}
       </p>
       <div className="mt-2 grid grid-cols-3 gap-2">

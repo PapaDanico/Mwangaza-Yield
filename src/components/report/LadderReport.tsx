@@ -88,7 +88,7 @@ export default function LadderReport({
         ))}
       </div>
 
-      <h2 className="mt-6 font-display text-sm font-bold uppercase tracking-wider text-ink-soft">
+      <h2 className="mt-6 font-display text-sm font-bold text-ink-soft">
         Ladder rungs
       </h2>
       <table className="mt-2 w-full text-xs">
@@ -117,7 +117,7 @@ export default function LadderReport({
         </tbody>
       </table>
 
-      <h2 className="mt-6 font-display text-sm font-bold uppercase tracking-wider text-ink-soft">
+      <h2 className="mt-6 font-display text-sm font-bold text-ink-soft">
         Net cash by year
       </h2>
       <div className="mt-2 flex items-end gap-1.5">

@@ -332,7 +332,7 @@ export default function SellClient() {
             </div>
 
             <div className="card space-y-2">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-ink-soft">
+              <h2 className="font-display text-sm font-bold text-ink-soft">
                 What the sheet does not say
               </h2>
               <table className="w-full text-sm">
@@ -361,7 +361,7 @@ export default function SellClient() {
             </div>
 
             <div className="card space-y-2">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-ink-soft">
+              <h2 className="font-display text-sm font-bold text-ink-soft">
                 What could replace it
               </h2>
               <p className="text-[12px] leading-relaxed text-ink-faint">
@@ -408,7 +408,7 @@ export default function SellClient() {
             </div>
 
             <div className="card space-y-1">
-              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-ink-soft">
+              <h2 className="font-display text-sm font-bold text-ink-soft">
                 What you are giving up
               </h2>
               <p className="text-[12px] leading-relaxed text-ink-muted">

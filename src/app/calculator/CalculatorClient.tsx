@@ -14,6 +14,8 @@ import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import AuctionHistory from '@/components/shared/AuctionHistory';
 import LiveResult from '@/components/shared/LiveResult';
+import AnswerFigure from '@/components/shared/AnswerFigure';
+import AmountEcho from '@/components/shared/AmountEcho';
 import RealYieldCard from '@/components/shared/RealYieldCard';
 import ReceiptModal from '@/components/shared/ReceiptModal';
 import { inputCls } from '@/lib/field-styles';
@@ -185,6 +187,7 @@ export default function CalculatorClient() {
               aria-describedby="calc-amount-min"
               className={`num ${inputCls} ${belowMinimum ? 'border-gold-500' : ''}`}
             />
+            <AmountEcho amount={amount} />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[100_000, 500_000, 1_000_000, 5_000_000].map((v) => (
                 <button
@@ -318,7 +321,7 @@ export default function CalculatorClient() {
                 Tax {formatPct(result.whtRate * 100, 0)}
               </span>
             </div>
-            <Row label="What you actually earn" value={pct(result.netYTM)} accent
+            <AnswerFigure label="What you actually earn" value={pct(result.netYTM)}
               hint="Your yearly return after tax, if you hold this bond to the end. This is the number to compare against anything else." />
             <Row label="Before tax" value={pct(result.grossYTM)}
               hint="The figure most places quote. It is not what you keep." />

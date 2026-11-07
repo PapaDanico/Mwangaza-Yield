@@ -310,7 +310,7 @@ export default function GoalReport({
                   <td className="py-1.5 font-medium">
                     {h.bond.issueCode}
                     {h.bond.taxExempt && (
-                      <span className="ml-1 text-xs font-semibold uppercase text-mint-700">tax-free</span>
+                      <span className="ml-1 text-sm font-semibold text-mint-700">tax-free</span>
                     )}
                   </td>
                   <td className="num py-1.5 text-right">{formatKES(h.faceValueKES)}</td>
@@ -463,7 +463,7 @@ function Metric({
 
 function Section({ title }: { title: string }) {
   return (
-    <h3 className="mt-5 text-xs font-semibold uppercase tracking-widest text-ink-faint">
+    <h3 className="mt-5 text-sm font-semibold text-ink-faint">
       {title}
     </h3>
   );
@@ -497,7 +497,7 @@ function BondTable({ rungs }: { rungs: SchoolFeesPlan['ladder']['rungs'] }) {
             <td className="py-1.5 font-medium">
               {r.bond.issueCode}
               {r.bond.taxExempt && (
-                <span className="ml-1 text-xs font-semibold uppercase text-mint-700">tax-free</span>
+                <span className="ml-1 text-sm font-semibold text-mint-700">tax-free</span>
               )}
             </td>
             <td className="num py-1.5 text-right">{formatKES(r.faceValueKES)}</td>

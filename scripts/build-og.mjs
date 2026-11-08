@@ -59,26 +59,36 @@ const mark = (() => {
 const html = `<style>
 @font-face{font-family:Jakarta;src:url(data:font/woff2;base64,${jakartaBase64()}) format('woff2');font-weight:200 800}
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1200px;height:630px;background:#05172C;font-family:Jakarta,sans-serif;
- display:flex;flex-direction:column;justify-content:center;padding:0 96px;color:#F4EFE6}
-.row{display:flex;align-items:center;gap:22px}
+/* A low sun-glow in the top corner (the site's own page glow, at card scale),
+   a large faint mark bleeding off the bottom-right, and the site's headline
+   as the card's subject. NO figure appears here on purpose: this is a static
+   file served for months, and a yield printed on it would be a claim with an
+   expiry date that nothing re-checks. */
+body{width:1200px;height:630px;position:relative;overflow:hidden;font-family:Jakarta,sans-serif;color:#F4EFE6;
+ background:radial-gradient(ellipse 38% 55% at 100% 0%,rgba(248,170,28,.07),transparent),#05172C;
+ display:flex;flex-direction:column;justify-content:space-between;padding:60px 88px}
 /* The inline SVG carries width="512" of its own, which wins over the parent
    unless the element itself is sized. Left unset, the mark rendered at full
    512 and pushed the wordmark off the card — the same intrinsic-size trap
    logo.svg's own header warns about for html2canvas. */
-.mark{width:168px;height:168px;flex:none;margin-left:-14px}
-.mark svg{width:100%;height:100%;display:block}
-.word{font-weight:800;font-size:78px;letter-spacing:-2.5px;line-height:1}
+.mark{width:76px;height:76px;flex:none}
+.mark svg,.wm svg{width:100%;height:100%;display:block}
+.wm{position:absolute;z-index:-1;right:-70px;bottom:-110px;width:520px;height:520px;opacity:.07}
+.row{display:flex;align-items:center;gap:20px}
+.word{font-weight:800;font-size:38px;letter-spacing:-1px;line-height:1}
 .word .y{color:#F8AA1C}
-.rule{width:104px;height:5px;background:#F8AA1C;border-radius:3px;margin:38px 0 26px}
-.sub{font-weight:500;font-size:31px;opacity:.82;line-height:1.35;max-width:940px}
-.foot{margin-top:40px;font-weight:600;font-size:22px;color:#F8AA1C;opacity:.9}
+h1{font-weight:700;font-size:78px;line-height:1.05;letter-spacing:-2px}
+h1 .g{color:#F8AA1C}
+.sub{margin-top:26px;font-weight:500;font-size:29px;opacity:.8;line-height:1.35;max-width:820px}
+.foot{display:flex;align-items:center;gap:26px;font-weight:600;font-size:26px;color:#F8AA1C}
+.rule{width:104px;height:6px;background:#F8AA1C;border-radius:3px}
 </style>
+<div class="wm">${mark}</div>
 <div class="row"><div class="mark">${mark}</div>
 <div class="word">Mwangaza <span class="y">Yield</span></div></div>
-<div class="rule"></div>
-<div class="sub">What Kenyan government bonds really pay, after tax.</div>
-<div class="foot">mwangazayield.org</div>`;
+<div><h1>When you lend to Kenya<span style="margin-left:-11px">,</span><br><span class="g">know what you earn.</span></h1>
+<div class="sub">What a government bond really pays after tax, in plain language, before you commit a shilling.</div></div>
+<div class="foot"><div class="rule"></div>mwangazayield.org</div>`;
 
 const tmp = `${ROOT}.next/og-source.html`;
 writeFileSync(tmp, html);

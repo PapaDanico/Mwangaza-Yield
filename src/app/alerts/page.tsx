@@ -244,6 +244,7 @@ export default function AlertsPage() {
               <div className="mt-3 flex flex-wrap items-center gap-2 pl-7">
                 <span className="text-sm text-ink-muted">Tell me</span>
                 <select
+                  aria-label={`How many days ahead to be told: ${RULE_LABELS[rule.kind].title}`}
                   value={rule.leadDays}
                   onChange={(ev) => setRule(rule.id, { leadDays: Number(ev.target.value) })}
                   className="min-h-11 rounded-lg border border-sand-300 bg-sand-50 px-3 py-1.5 text-sm"
@@ -260,6 +261,7 @@ export default function AlertsPage() {
             {rule.enabled && rule.kind === 'tbill-threshold' && tbillRule && (
               <div className="mt-3 flex flex-wrap items-center gap-2 pl-7">
                 <select
+                  aria-label="Treasury bill tenor"
                   value={rule.tenorDays}
                   onChange={(ev) =>
                     setRule(rule.id, { tenorDays: Number(ev.target.value) as 91 | 182 | 364 })

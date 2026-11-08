@@ -53,7 +53,7 @@ export default function FeedPage() {
       </div>
 
       <div className="mt-8">
-        <Prose title="What is in it">
+        <Prose title="What is in it" level={2}>
           <ul>
             <li>
               <strong>tbills</strong> — the 91, 182 and 364-day papers: CBK&apos;s quoted rate, the

@@ -77,8 +77,29 @@ export function formatCompactKES(v: number | null | undefined): string {
  */
 export function nonNegativeNumber(raw: string, fallback = 0): number {
   const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : fallback;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, MAX_INPUT_AMOUNT) : fallback;
 }
+
+/**
+ * The largest figure any amount field accepts: KSh 1 quadrillion, about sixty
+ * times Kenya's annual GDP — past any holding a reader could have, and far
+ * below where arithmetic overflows.
+ *
+ * Without a ceiling, typing 1e308 (or pasting it) multiplied through a price
+ * and a tax rate to Infinity, and the page printed "NaN%" for the yield on
+ * /calculator/, /goals/ and /ladder/. A browser sweep of every field found it;
+ * the unit sweep drives the functions, not what a field can deliver.
+ *
+ * Declared here, beside the clamp that uses it, for the reason the clamp is
+ * here: a bound defended in every component is wrong in at least one of them.
+ */
+export const MAX_INPUT_AMOUNT = 1e15;
+
+/** A quoted price per 100 of face value above this is not a real quote. */
+export const MAX_QUOTED_PRICE = 1e4;
+
+/** A quoted yield above this many percent is not a real quote. */
+export const MAX_QUOTED_YTM_PCT = 1000;
 
 /**
  * "1 payment", not "1 payments".

@@ -33,7 +33,7 @@ export default function YieldCurvePage() {
       </div>
 
       <div className="mt-8">
-        <Prose title="How to read it">
+        <Prose title="How to read it" level={2}>
           <p>
             A curve that rises from left to right is the ordinary shape: lending for longer is
             riskier, so it pays more. When the short end climbs above the long end, the market is

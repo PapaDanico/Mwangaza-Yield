@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { readQuoteParams, shareableQuoteUrl } from '@/lib/quote-link';
 import { APP_URL, shareText } from '@/lib/share';
-import { plural, CURRENCY_LABEL } from '@/lib/utils';
+import { plural, CURRENCY_LABEL, nonNegativeNumber, MAX_QUOTED_PRICE, MAX_QUOTED_YTM_PCT } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
@@ -96,12 +96,16 @@ export default function SellClient() {
   const quote: SaleQuote | null = useMemo(() => {
     if (!bond || !settlement || !dirty) return null;
     const d = Number(dirty);
-    if (!Number.isFinite(d) || d <= 0) return null;
+    if (!Number.isFinite(d) || d <= 0 || d > MAX_QUOTED_PRICE) return null;
+    // A quoted yield outside any real range is treated as not given, so it
+    // cannot reach the "our price does not match your sheet" arithmetic.
+    const q = quotedYTM ? Number(quotedYTM) : undefined;
+    const quoted = q !== undefined && Number.isFinite(q) && q > 0 && q <= MAX_QUOTED_YTM_PCT ? q : undefined;
     return {
       faceValueKES: face,
       settlementDate: settlement,
       dirtyPrice: d,
-      quotedYTM: quotedYTM ? Number(quotedYTM) : undefined,
+      quotedYTM: quoted,
       commissionKES: commission,
       leviesKES: levies,
       amortisation: amortDate && amortPct > 0
@@ -160,7 +164,7 @@ export default function SellClient() {
             <div>
               <label htmlFor="sell-face" className={labelCls}>Face value ({CURRENCY_LABEL})</label>
               <input id="sell-face" type="number" inputMode="numeric" value={face}
-                onChange={(e) => setFace(Math.max(0, Number(e.target.value)))} className={inputCls} />
+                onChange={(e) => setFace(nonNegativeNumber(e.target.value))} className={inputCls} />
             </div>
             <div>
               <label htmlFor="sell-date" className={labelCls}>Value date</label>
@@ -182,12 +186,12 @@ export default function SellClient() {
             <div>
               <label htmlFor="sell-comm" className={labelCls}>Commission ({CURRENCY_LABEL})</label>
               <input id="sell-comm" type="number" inputMode="numeric" value={commission}
-                onChange={(e) => setCommission(Math.max(0, Number(e.target.value)))} className={inputCls} />
+                onChange={(e) => setCommission(nonNegativeNumber(e.target.value))} className={inputCls} />
             </div>
             <div>
               <label htmlFor="sell-levy" className={labelCls}>CMA / NSE / CDSC levies ({CURRENCY_LABEL})</label>
               <input id="sell-levy" type="number" step="0.01" inputMode="decimal" value={levies}
-                onChange={(e) => setLevies(Math.max(0, Number(e.target.value)))} className={inputCls} />
+                onChange={(e) => setLevies(nonNegativeNumber(e.target.value))} className={inputCls} />
             </div>
           </div>
 

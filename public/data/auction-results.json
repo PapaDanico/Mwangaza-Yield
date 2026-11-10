@@ -54,12 +54,21 @@
     "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_2_2010_2.pdf' by the cbk-gaps function on Netlify. 15-year FXD1/2010/15, results value dated 29/03/2010, shared with FXD2/2010/2. Competitive 9,276.97 + non-competitive 1,142.91 = 10,419.88 accepted; bids 15,547.24 at 432 bids; both bonds' accepted 6,179.36 + 10,419.88 = 16,599.24 = the 'Kshs.16.6 Billion' the notice states; price 102.078, coupon 10.250, average yield 9.980. The earlier parse read the bid COUNT (432) as the amount and 15.0 as the yield."
   },
   {
-    "id": "res-fxd1-2011-002-None",
+    "id": "res-fxd1-2011-002-2011-02-28",
     "issueCode": "FXD1/2011/002",
-    "auctionDate": null,
+    "auctionDate": "2011-02-28",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2030%20%202%20yr%20-%20February%202011.pdf",
     "parserVersion": 14,
-    "amountOfferedKESM": 18000.0
+    "amountOfferedKESM": 18000.0,
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 5.284,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 14269.92,
+    "bidsReceivedKESM": 15295.66,
+    "weightedAverageRate": 5.284,
+    "marketWeightedAverageRate": 5.438,
+    "offeredScope": "auction",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 30  2 yr - February 2011.pdf' by the cbk-gaps function on Netlify. 2-year FXD1/2011/2, value dated 28/02/2011, issued with the first Savings Development Bond SDB1/2011/30. Competitive 14,116.77 + non-competitive 153.15 = 14,269.92 accepted; bids 15,295.66; both bonds' accepted 14,269.92 + 8,125.69 = 22,395.61 as printed; price 100.000 and coupon 5.284 (market-determined, equal to the average yield); market weighted average 5.438."
   },
   {
     "id": "res-fxd1-2023-005-None",
@@ -361,7 +370,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%20%2015%20year%20-%20December%202010.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 15000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 9.0,
+    "pricePer100": 85.966,
+    "amountAcceptedKESM": 6316.19,
+    "bidsReceivedKESM": 10698.94,
+    "weightedAverageRate": 10.923,
+    "marketWeightedAverageRate": 11.978,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 2  15 year - December 2010.pdf' by the cbk-gaps function on Netlify. 15-year FXD2/2010/15, value dated 27/12/2010, with the 2-year FXD4/2010/2. Competitive 5,567.94 + non-competitive 748.25 = 6,316.19 accepted; bids 10,698.94; the two bonds' accepted 8,947.01 + 6,316.19 = 15,263.20 and bids 13,577.02 + 10,698.94 = 24,275.96 as printed; price 85.966, coupon 9.000, average yield 10.923, market weighted average 11.978."
   },
   {
     "id": "res-fxd1-2011-005-2011-01-31",
@@ -370,7 +387,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2010%20yr%20-%20January%202011.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 16000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 7.636,
+    "pricePer100": 100.0,
+    "amountAcceptedKESM": 10810.8,
+    "bidsReceivedKESM": 12808.26,
+    "weightedAverageRate": 7.636,
+    "marketWeightedAverageRate": 7.746,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  10 yr - January 2011.pdf' by the cbk-gaps function on Netlify. 5-year FXD1/2011/5, value dated 31/01/2011, with the re-opening of FXD2/2010/10. Competitive 10,668.10 + non-competitive 142.70 = 10,810.80 accepted; bids 12,808.26 (the two bonds' 12,808.26 + 17,694.00 = 30,502.26 as printed); price 100.000 and coupon 7.636 (market-determined, equal to the average yield 7.636); market weighted average 7.746."
   },
   {
     "id": "res-fxd1-2011-005-2011-03-28",
@@ -379,7 +404,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20yr%20-%20March%202011.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 7.636,
+    "pricePer100": 96.605,
+    "amountAcceptedKESM": 10902.84,
+    "bidsReceivedKESM": 12198.19,
+    "weightedAverageRate": 8.501,
+    "marketWeightedAverageRate": 8.591,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  30 yr - March 2011.pdf' by the cbk-gaps function on Netlify. 5-year re-opening FXD1/2011/5, value dated 28/03/2011, with SDB1/2011/30. Competitive 10,143.14 + non-competitive 759.70 = 10,902.84 accepted; bids 12,198.19 (the two bonds' 12,198.19 + 13,740.30 = 25,938.49 as printed); price 96.605, coupon 7.636, average yield 8.501, market weighted average 8.591."
   },
   {
     "id": "res-sdb1-2011-030-2011-03-28",
@@ -387,12 +420,16 @@
     "auctionDate": "2011-03-28",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20yr%20-%20March%202011.pdf",
     "parserVersion": 14,
-    "couponRate": 7.0,
-    "amountAcceptedKESM": 10902.84,
-    "bidsReceivedKESM": 12198.19,
+    "couponRate": 12.0,
+    "amountAcceptedKESM": 8955.83,
+    "bidsReceivedKESM": 13740.3,
     "bidsLabel": "total bids received (kshs. m)",
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "pricePer100": 88.956,
+    "weightedAverageRate": 13.52,
+    "marketWeightedAverageRate": 13.832,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  30 yr - March 2011.pdf' by the cbk-gaps function on Netlify. 30-year SDB1/2011/30 re-opening, value dated 28/03/2011. Competitive 7,394.56 + non-competitive 1,561.27 = 8,955.83 accepted; bids 13,740.30; price 88.956, coupon 12.000, average yield 13.520, market weighted average 13.832. The earlier parse had read the 5-year bond's accepted 10,902.84 and bids 12,198.19 and a coupon of 7.0 into this row."
   },
   {
     "id": "res-fxd2-2010-015-2011-04-25",
@@ -403,7 +440,13 @@
     "couponRate": 9.0,
     "pricePer100": 77.308,
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 4787.1,
+    "bidsReceivedKESM": 7907.91,
+    "weightedAverageRate": 12.388,
+    "marketWeightedAverageRate": 12.848,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 2  15 yr - April 2011.pdf' by the cbk-gaps function on Netlify. 15-year re-opening FXD2/2010/15, value dated 25/04/2011, with the new 2-year FXD2/2011/2. Competitive 4,544.59 + non-competitive 242.52 = 4,787.11 (printed 4,787.10); bids 7,907.91; the two bonds' accepted 1,439.02 + 4,787.10 = 6,226.12 (printed 6,226.13) and bids 2,487.45 + 7,907.91 = 10,395.36 as printed; average yield 12.388, market weighted average 12.848."
   },
   {
     "id": "res-fxd2-2011-002-2011-04-25",
@@ -425,10 +468,16 @@
     "auctionDate": "2011-05-30",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%202%2010%20%2020%20yr%20-%20May%202011.pdf",
     "parserVersion": 14,
-    "couponRate": 10.0,
-    "pricePer100": 73.47,
+    "couponRate": 7.439,
+    "pricePer100": 95.009,
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 6695.71,
+    "bidsReceivedKESM": 6788.22,
+    "weightedAverageRate": 10.387,
+    "marketWeightedAverageRate": 10.411,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 2 10  20 yr - May 2011.pdf' by the cbk-gaps function on Netlify. 2-year re-opening FXD2/2011/2, value dated 30/05/2011, with FXD1/2010/10 and the new 20-year FXD1/2011/20. Competitive 6,467.98 + non-competitive 227.74 = 6,695.72 (printed 6,695.71); bids 6,788.22; the three bonds' accepted 6,695.71 + 5,895.64 + 6,010.63 = 18,601.98 (printed 18,601.99) and bids 19,059.57 as printed. The earlier parse had read the 20-year's coupon (10.000) and price (73.470) into this row; this bond's are coupon 7.439 and price 95.009 at an average yield of 10.387 (market 10.411)."
   },
   {
     "id": "res-fxd1-2011-020-2011-06-27",
@@ -480,9 +529,16 @@
     "auctionDate": "2011-08-29",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20years%20-%20August%202011.pdf",
     "parserVersion": 14,
-    "amountAcceptedKESM": 9.0,
+    "amountAcceptedKESM": 997.14,
     "amountOfferedKESM": 10000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 6.671,
+    "pricePer100": 77.378,
+    "bidsReceivedKESM": 4147.94,
+    "weightedAverageRate": 13.887,
+    "marketWeightedAverageRate": 16.473,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  30 years - August 2011.pdf' by the cbk-gaps function on Netlify. 5-year re-opening FXD2/2010/5, value dated 29/08/2011, with SDB1/2011/30. Competitive 770.46 + non-competitive 226.68 = 997.14 accepted; bids 4,147.94 (the two bonds' 4,147.94 + 4,548.27 = 8,696.21 as printed); price 77.378, coupon 6.671, average yield 13.887, market weighted average 16.473. The earlier parse had stored 9.0 as the amount accepted."
   },
   {
     "id": "res-sdb1-2011-030-2011-08-29",
@@ -491,7 +547,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%205%20%2030%20years%20-%20August%202011.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 10000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 12.0,
+    "pricePer100": 73.441,
+    "amountAcceptedKESM": 2484.99,
+    "bidsReceivedKESM": 4548.27,
+    "weightedAverageRate": 16.397,
+    "marketWeightedAverageRate": 18.815,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  30 years - August 2011.pdf' by the cbk-gaps function on Netlify. 30-year SDB1/2011/30 re-opening, value dated 29/08/2011. Competitive 2,308.92 + non-competitive 176.07 = 2,484.99 accepted; bids 4,548.27 at 454 bids; price 73.441, coupon 12.000, average yield 16.397, market weighted average 18.815."
   },
   {
     "id": "res-fxd3-2011-002-2011-10-31",
@@ -680,7 +744,13 @@
     "couponRate": 12.705,
     "pricePer100": 95.02,
     "amountOfferedKESM": 10000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 5043.74,
+    "bidsReceivedKESM": 6231.7,
+    "weightedAverageRate": 13.63,
+    "marketWeightedAverageRate": 13.982,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5  10 year July 2012.pdf' by the cbk-gaps function on Netlify. 10-year re-opening FXD1/2012/10, value dated 30/07/2012, with FXD1/2012/5. Competitive 4,589.92 + non-competitive 453.81 = 5,043.73 (printed 5,043.74); bids 6,231.70 at 333 bids ('Kshs 6.23 Billion for the 10 year bond'); the two bonds' accepted 7,460.91 + 5,043.74 = 12,504.65 as printed; coupon 12.705, price 95.020, average yield 13.630, market weighted average 13.982."
   },
   {
     "id": "res-fxd2-2012-002-2012-08-27",
@@ -6142,5 +6212,22 @@
     "transactionType": "switch",
     "sourceNote": "Central Bank of Kenya — Results of Ten-Year Treasury Switch Bond Issue No. FXD4/2019/010 dated 11/11/2026, source securities T-bills 2696/091, 2657/182, 2585/364 and bond FXD1/2023/005, signed David Luusa, Director, Financial Markets, 09 November 2026 (document supplied directly to Mwangaza Yield). Reconciles: competitive 843.26 + non-competitive 2,942.53 = 3,785.79M accepted; performance 3,785.79 / 10,000.00 = 37.86%; bid-to-cover 1.00; 3,891.05M switched = 3,072.25 + 0.25 + 33.30 + 785.25. ISIN KE6000005659, coupon 12.28 and maturity 12-Nov-29 match bonds.json; source ISIN KE8000005986 matches FXD1/2023/005. The printed price of 108.5646 is entered as printed; it does not reproduce from 11.24% by a plain semi-annual formula (about 102.6), and the 7 Sept switch print (106.7968 at 11.1398) shows the same gap, so it is not used as a derived figure.",
     "sourceUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-results/#2026-11-09-switch"
+  },
+  {
+    "id": "res-sdb1-2011-030-2011-02-28",
+    "issueCode": "SDB1/2011/030",
+    "auctionDate": "2011-02-28",
+    "couponRate": 12.0,
+    "pricePer100": 92.771,
+    "weightedAverageRate": 12.959,
+    "marketWeightedAverageRate": 14.145,
+    "amountOfferedKESM": 18000.0,
+    "offeredScope": "auction",
+    "amountAcceptedKESM": 8125.69,
+    "bidsReceivedKESM": 18359.51,
+    "bidsLabel": "total bids received (kshs. m)",
+    "parserVersion": 14,
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2030%20%202%20yr%20-%20February%202011.pdf",
+    "sourceNote": "Gap fix 10 Nov 2026: this auction, the first Savings Development Bond SDB1/2011/30 (value dated 28/02/2011, issued with the 2-year FXD1/2011/2), was missing from the archive; the same notice already backed the 2-year row. Read from CBK's own document 'Results 30  2 yr - February 2011.pdf' by the cbk-gaps function on Netlify. Competitive 6,545.15 + non-competitive 1,580.54 = 8,125.69 accepted; bids 18,359.51 at 1,371 bids; both bonds' accepted 14,269.92 + 8,125.69 = 22,395.61 and bids 15,295.66 + 18,359.51 = 33,655.17 (printed 33,655.18) against 18,000.00 offered (186.97%); price 92.771, coupon 12.000, average yield 12.959, market weighted average 14.145."
   }
 ]

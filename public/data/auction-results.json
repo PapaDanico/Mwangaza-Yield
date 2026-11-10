@@ -508,13 +508,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%20of%202%205%20%2020%20years%20-%20June%202011.pdf",
     "parserVersion": 14,
     "couponRate": 10.0,
-    "weightedAverageRate": 10.387,
+    "weightedAverageRate": 14.822,
     "pricePer100": 69.328,
     "amountAcceptedKESM": 861.07,
     "bidsReceivedKESM": 4726.59,
     "bidsLabel": "total bids received (kshs. m)",
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "marketWeightedAverageRate": 16.965,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results of 2 5  20 years - June 2011.pdf' by the cbk-gaps function on Netlify. 20-year FXD1/2011/20, June 2011 notice: average yield 14.822, market weighted average 16.965. The archive held 10.387, which is not a yield in this notice."
   },
   {
     "id": "res-fxd2-2010-005-2011-06-27",
@@ -523,13 +525,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%20of%202%205%20%2020%20years%20-%20June%202011.pdf",
     "parserVersion": 14,
     "couponRate": 6.671,
-    "weightedAverageRate": 12.442,
+    "weightedAverageRate": 12.529,
     "pricePer100": 80.546,
     "amountAcceptedKESM": 1388.41,
     "bidsReceivedKESM": 6012.83,
     "bidsLabel": "total bids received (kshs. m)",
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "marketWeightedAverageRate": 13.884,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results of 2 5  20 years - June 2011.pdf' by the cbk-gaps function on Netlify. 5-year FXD2/2010/5, June 2011 notice: average yield 12.529, market weighted average 13.884. The archive held 12.442, which is the 2-year's yield from the neighbouring column."
   },
   {
     "id": "res-fxd2-2011-002-2011-06-27",
@@ -543,7 +547,10 @@
     "bidsReceivedKESM": 8250.56,
     "bidsLabel": "total bids received (kshs. m)",
     "amountOfferedKESM": 18000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "weightedAverageRate": 12.442,
+    "marketWeightedAverageRate": 12.59,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results of 2 5  20 years - June 2011.pdf' by the cbk-gaps function on Netlify. 2-year FXD2/2011/2, June 2011 notice: average yield 12.442, market weighted average 12.59."
   },
   {
     "id": "res-fxd2-2010-005-2011-08-29",
@@ -1339,7 +1346,12 @@
     "couponRate": 13.75,
     "pricePer100": 103.225,
     "amountOfferedKESM": 30000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "weightedAverageRate": 14.257,
+    "marketWeightedAverageRate": 14.352,
+    "amountAcceptedKESM": 7876.56,
+    "bidsReceivedKESM": 8397.98,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '739138275_FXD3-2007-15 & FXD1-2008-20 Dated 28.11.2016.pdf' by the cbk-gaps function on Netlify. 20-year FXD1/2008/20, value dated 28/11/2016, shared with FXD3/2007/15. Competitive 7,025.97 + non-competitive 850.59 = 7,876.56 accepted; bids 8,397.98; average yield 14.257, market weighted average 14.352."
   },
   {
     "id": "res-fxd3-2007-015-2016-11-28",

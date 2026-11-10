@@ -98,3 +98,20 @@ describe('verifyDocs', () => {
     ).toEqual([]);
   });
 });
+
+describe('verifyDocs: rows that contradict themselves', () => {
+  it('reads a post-2020 notice when its row accepts more than it received, and not otherwise', () => {
+    const url = 'https://www.centralbank.go.ke/uploads/x.pdf';
+    const bad = row('bad', url, { auctionDate: '2023-12-11', amountAcceptedKESM: 47866.93, bidsReceivedKESM: 47238.75 });
+    const fine = row('fine', 'https://www.centralbank.go.ke/uploads/y.pdf', { auctionDate: '2023-12-11' });
+    const docs = verifyDocs([bad, fine]);
+    expect(docs.map((d) => d.file)).toEqual(['x.pdf']);
+    expect(docs[0].rows[0]).toMatchObject({ id: 'bad', contradicts: true });
+  });
+
+  it('never flags a tap sale, which is accepted at cost against bids at face', () => {
+    const tap = row('tap', 'https://www.centralbank.go.ke/uploads/t.pdf', { auctionDate: '2023-12-11', transactionType: 'tap', amountAcceptedKESM: 9, bidsReceivedKESM: 5 });
+    expect(verifyDocs([tap])).toEqual([]);
+  });
+});
+

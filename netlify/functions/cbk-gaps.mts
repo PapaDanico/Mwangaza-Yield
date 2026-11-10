@@ -47,7 +47,7 @@ export interface GapDoc {
   file: string;
   /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. */
   tier: 'gap' | 'verify';
-  rows: { id: string; missing: string[] }[];
+  rows: { id: string; missing: string[]; contradicts?: boolean }[];
 }
 
 const absent = (v: unknown) => v === null || v === undefined || v === '' || v === 0;
@@ -102,16 +102,21 @@ export function verifyDocs(rows: Row[], gap: GapDoc[] = gapDocs(rows)): GapDoc[]
       const href = u.href;
       count.set(href, (count.get(href) ?? 0) + 1);
       const date = typeof r.auctionDate === 'string' ? r.auctionDate : '';
-      if (date && date >= '2020-01-01') continue;
+      // From 2020 the current parser reads these, so they are skipped unless the
+      // row's own figures contradict each other (accepted above bids on a tender).
+      const accepted = typeof r.amountAcceptedKESM === 'number' ? r.amountAcceptedKESM : 0;
+      const bids = typeof r.bidsReceivedKESM === 'number' ? r.bidsReceivedKESM : 0;
+      const contradicts = r.transactionType !== 'tap' && accepted > 0 && bids > 0 && accepted > bids + 0.01;
+      if (date && date >= '2020-01-01' && !contradicts) continue;
       if (inGap.has(href)) continue;
       const doc = byUrl.get(href) ?? { url: href, file: decodeURIComponent(href.split('/').pop() ?? href), tier: 'verify' as const, rows: [] };
-      doc.rows.push({ id: r.id, missing: [] });
+      doc.rows.push({ id: r.id, missing: [], ...(contradicts ? { contradicts: true } : {}) });
       byUrl.set(href, doc);
     } catch {
       continue;
     }
   }
-  return [...byUrl.values()].filter((d) => (count.get(d.url) ?? 0) >= 2).sort((a, b) => a.url.localeCompare(b.url));
+  return [...byUrl.values()].filter((d) => (count.get(d.url) ?? 0) >= 2 || d.rows.some((r) => r.contradicts)).sort((a, b) => a.url.localeCompare(b.url));
 }
 
 /** Everything still to read: gap documents first, then verification ones. */

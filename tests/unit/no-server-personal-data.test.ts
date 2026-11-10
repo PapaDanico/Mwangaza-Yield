@@ -93,11 +93,14 @@ describe('no personal data reaches any server we control', () => {
   it('registers no scheduled sender', () => {
     /* send-alerts ran on a cron. A schedule is the tell that something delivers
      * TO people rather than serving requests FROM them. */
-    /* ONE named exception, approved by the owner on 3 Oct 2026: cbk-watch
-     * READS CBK's public pages on a schedule and sends nothing to anyone. It
-     * is listed by name so any new scheduled function still fails here, and
-     * the test below pins what it may contact. */
-    const READ_ONLY_SCHEDULED = new Set(['cbk-watch.mts']);
+    /* NAMED exceptions, each a reader that sends nothing to anyone.
+     * cbk-watch: approved by the owner on 3 Oct 2026; READS CBK's public pages
+     * on a schedule. cbk-gaps: added 10 Nov 2026 on the owner's instruction to
+     * fix the auction archive's data gaps conclusively; READS the CBK PDFs the
+     * archive already cites, a few per run, and stops when all are read. Both
+     * are listed by name so any new scheduled function still fails here, and
+     * the test below pins what each may contact. */
+    const READ_ONLY_SCHEDULED = new Set(['cbk-watch.mts', 'cbk-gaps.mts']);
     for (const f of functions.filter((x) => !READ_ONLY_SCHEDULED.has(x))) {
       expect(read(`netlify/functions/${f}`), `${f} declares a cron schedule`).not.toMatch(
         /schedule:\s*['"]/
@@ -105,10 +108,13 @@ describe('no personal data reaches any server we control', () => {
     }
   });
 
-  it('keeps the scheduled CBK reader read-only', () => {
-    const src = read('netlify/functions/cbk-watch.mts');
+  it.each(['cbk-watch.mts', 'cbk-gaps.mts'])('keeps the scheduled CBK reader %s read-only', (file) => {
+    const src = read(`netlify/functions/${file}`);
     const hosts = [...src.matchAll(/https:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1]);
     expect(hosts.length, 'no hosts found; the check below would be vacuous').toBeGreaterThan(0);
+    // The site's own host comes from process.env.URL at run time; a literal
+    // fallback to it, or a CBK host, is all a reader may name. The package
+    // scope and the Netlify config import are not hosts it contacts.
     expect(hosts.filter((h) => !/(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$/.test(h))).toEqual([]);
     expect(src).not.toMatch(/pushManager|webpush|vapid|sendMail|smtp/i);
   });

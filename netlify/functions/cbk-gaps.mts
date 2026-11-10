@@ -34,7 +34,7 @@ const CORE = ['auctionDate', 'couponRate', 'pricePer100', 'amountOfferedKESM', '
 export const GAP_DOCS_PER_RUN = 8;
 export const GAP_DEADLINE_MS = 22_000;
 /** Characters of each document posted. Results notices are one or two pages. */
-const TEXT_CHARS = 3_200;
+const TEXT_CHARS = 4_000;
 
 interface Row {
   id: string;
@@ -45,6 +45,8 @@ interface Row {
 export interface GapDoc {
   url: string;
   file: string;
+  /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. */
+  tier: 'gap' | 'verify';
   rows: { id: string; missing: string[] }[];
 }
 
@@ -69,11 +71,53 @@ export function gapDocs(rows: Row[]): GapDoc[] {
     } catch {
       continue;
     }
-    const doc = byUrl.get(href) ?? { url: href, file: decodeURIComponent(href.split('/').pop() ?? href), rows: [] };
+    const doc = byUrl.get(href) ?? { url: href, file: decodeURIComponent(href.split('/').pop() ?? href), tier: 'gap' as const, rows: [] };
     doc.rows.push({ id: r.id, missing: [...missing] });
     byUrl.set(href, doc);
   }
   return [...byUrl.values()].sort((a, b) => a.url.localeCompare(b.url));
+}
+
+/**
+ * Multi-bond notices from before 2020 behind rows that look complete.
+ *
+ * WHY. Reading the gap documents showed the old parse put values from the wrong
+ * column of a two- or three-bond notice into rows the completeness panel counted
+ * as present: the 20-year's coupon and price on the 2-year bond, the 5-year's
+ * amounts on the 30-year. "Present" is not "right". A notice that backs two or
+ * more rows is the one where a column can be read into the wrong bond, so those
+ * are read too, and checked against the archive by a person before anything
+ * changes. Notices from 2020 on are excluded: the current parser reads them and
+ * 2026's were entered from the documents. CBK-hosted https PDFs only.
+ */
+export function verifyDocs(rows: Row[], gap: GapDoc[] = gapDocs(rows)): GapDoc[] {
+  const inGap = new Set(gap.map((g) => g.url));
+  const byUrl = new Map<string, GapDoc>();
+  const count = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.sourceUrl) continue;
+    try {
+      const u = new URL(r.sourceUrl);
+      if (u.protocol !== 'https:' || !u.hostname.endsWith('centralbank.go.ke') || !/\.pdf$/i.test(u.pathname)) continue;
+      const href = u.href;
+      count.set(href, (count.get(href) ?? 0) + 1);
+      const date = typeof r.auctionDate === 'string' ? r.auctionDate : '';
+      if (date && date >= '2020-01-01') continue;
+      if (inGap.has(href)) continue;
+      const doc = byUrl.get(href) ?? { url: href, file: decodeURIComponent(href.split('/').pop() ?? href), tier: 'verify' as const, rows: [] };
+      doc.rows.push({ id: r.id, missing: [] });
+      byUrl.set(href, doc);
+    } catch {
+      continue;
+    }
+  }
+  return [...byUrl.values()].filter((d) => (count.get(d.url) ?? 0) >= 2).sort((a, b) => a.url.localeCompare(b.url));
+}
+
+/** Everything still to read: gap documents first, then verification ones. */
+export function pendingDocs(rows: Row[]): GapDoc[] {
+  const gap = gapDocs(rows);
+  return [...gap, ...verifyDocs(rows, gap)];
 }
 
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
@@ -88,7 +132,7 @@ export default async () => {
   const started = Date.now();
   const store = getStore('cbk-watch');
   const done = ((await store.get('gap-docs-read', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
-  const todo = gapDocs(archive as unknown as Row[]).filter((d) => !done[d.url]).slice(0, GAP_DOCS_PER_RUN);
+  const todo = pendingDocs(archive as unknown as Row[]).filter((d) => !done[d.url]).slice(0, GAP_DOCS_PER_RUN);
   if (todo.length === 0) return;
 
   const read: { doc: GapDoc; text: string }[] = [];
@@ -104,9 +148,9 @@ export default async () => {
 
   const site = process.env.URL ?? 'https://mwangazayield.org';
   const body = read
-    .map(({ doc, text }) => `=== ${doc.file}\nwanted: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${text.slice(0, TEXT_CHARS)}`)
+    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${text.slice(0, TEXT_CHARS)}`)
     .join('\n')
-    .slice(0, 30_000);
+    .slice(0, 38_000);
   const res = await fetch(`${site}/cbk-watch-form.html`, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -118,6 +162,6 @@ export default async () => {
   await store.setJSON('gap-docs-read', done);
 };
 
-// Every ten minutes until the archive's source documents have all been read;
+// Every five minutes until the archive's source documents have all been read;
 // each run after that returns at once. Remove this schedule when it is done.
-export const config: Config = { schedule: '*/10 * * * *' };
+export const config: Config = { schedule: '*/5 * * * *' };

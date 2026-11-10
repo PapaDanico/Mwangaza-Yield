@@ -1,7 +1,7 @@
 // @ts-nocheck -- imports a .mts Netlify function, outside the app's tsconfig module resolution
 import { describe, expect, it } from 'vitest';
 import archive from '../../public/data/auction-results.json';
-import { gapDocs, GAP_DOCS_PER_RUN } from '../../netlify/functions/cbk-gaps.mts';
+import { gapDocs, verifyDocs, pendingDocs, GAP_DOCS_PER_RUN } from '../../netlify/functions/cbk-gaps.mts';
 
 const row = (id: string, sourceUrl: string | undefined, over: Record<string, unknown> = {}) => ({
   id,
@@ -61,5 +61,40 @@ describe('gapDocs', () => {
 
   it('reads a bounded handful per run', () => {
     expect(GAP_DOCS_PER_RUN).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('verifyDocs', () => {
+  const ok = (id: string, url: string, date: string) => row(id, url, { auctionDate: date });
+  it('lists multi-bond notices from before 2020 that back complete-looking rows', () => {
+    const docs = verifyDocs([
+      ok('a1', 'https://www.centralbank.go.ke/u/two-bonds.pdf', '2011-05-30'),
+      ok('a2', 'https://www.centralbank.go.ke/u/two-bonds.pdf', '2011-05-30'),
+      ok('b1', 'https://www.centralbank.go.ke/u/one-bond.pdf', '2011-06-27'),
+      ok('c1', 'https://www.centralbank.go.ke/u/recent.pdf', '2024-06-24'),
+      ok('c2', 'https://www.centralbank.go.ke/u/recent.pdf', '2024-06-24'),
+    ]);
+    expect(docs.map((d) => d.file)).toEqual(['two-bonds.pdf']);
+    expect(docs[0].tier).toBe('verify');
+  });
+
+  it('leaves a gap document to the gap tier, and reads gap documents first', () => {
+    const rows = [
+      row('g1', 'https://www.centralbank.go.ke/u/gap.pdf', { couponRate: null, auctionDate: '2011-01-31' }),
+      row('g2', 'https://www.centralbank.go.ke/u/gap.pdf', { auctionDate: '2011-01-31' }),
+      ok('v1', 'https://www.centralbank.go.ke/u/verify.pdf', '2012-07-30'),
+      ok('v2', 'https://www.centralbank.go.ke/u/verify.pdf', '2012-07-30'),
+    ];
+    expect(verifyDocs(rows).map((d) => d.file)).toEqual(['verify.pdf']);
+    expect(pendingDocs(rows).map((d) => `${d.tier}:${d.file}`)).toEqual(['gap:gap.pdf', 'verify:verify.pdf']);
+  });
+
+  it('never follows a link off CBK', () => {
+    expect(
+      verifyDocs([
+        ok('x1', 'https://evil.example/a.pdf', '2011-05-30'),
+        ok('x2', 'https://evil.example/a.pdf', '2011-05-30'),
+      ]),
+    ).toEqual([]);
   });
 });

@@ -427,7 +427,7 @@
     "tenorYears": 10,
     "maturityDate": "2029-11-12",
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
-    "status": "upcoming",
+    "status": "closed",
     "transactionType": "switch",
     "switchSources": [
       {

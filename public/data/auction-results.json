@@ -719,7 +719,10 @@
     "amountAcceptedKESM": 4979.59,
     "bidsReceivedKESM": 6224.9,
     "bidsLabel": "total bids received (kshs. m)",
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "couponRate": 11.855,
+    "weightedAverageRate": 11.855,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 5 year May 2012.pdf' by the cbk-gaps function on Netlify. 5-year FXD1/2012/5, value dated 28/05/2012: 'the Weighted Average rate of accepted bids was 11.855% and the Market determined Coupon rate was 11.855% per annum'; accepted 4,979.59 (competitive 3,708.99 + non-competitive 1,270.60 = 4,979.59), bids 6,224.90 at 329 bids, against 3,000.00 offered, as already held."
   },
   {
     "id": "res-fxd1-2012-005-2012-07-30",
@@ -791,7 +794,13 @@
     "couponRate": 12.0,
     "pricePer100": 88.48,
     "amountOfferedKESM": 15000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 4389.35,
+    "bidsReceivedKESM": 6278.22,
+    "weightedAverageRate": 13.694,
+    "marketWeightedAverageRate": 13.883,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Twenty-Year-Bonds-1-FXD-20.pdf' by the cbk-gaps function on Netlify. 20-year re-opening FXD1/2012/20, value dated 28/01/2013, with FXD1/2012/5. Competitive 3,762.96 + non-competitive 626.39 = 4,389.35 accepted; bids 6,278.22 at 496 bids; the two bonds' accepted 17,687.98 + 4,389.35 = 22,077.33 and bids 26,069.19 + 6,278.22 = 32,347.41 as printed against 15,000.00 offered; price 88.480, coupon 12.000, average yield 13.694, market weighted average 13.883."
   },
   {
     "id": "res-ifb1-2013-012-2013-10-28",
@@ -814,7 +823,12 @@
     "pricePer100": 100.0,
     "amountAcceptedKESM": 14946.55,
     "bidsReceivedKESM": 21447.54,
-    "bidsLabel": "total bids received (kshs. m)"
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountOfferedKESM": 10000.0,
+    "offeredScope": "auction",
+    "weightedAverageRate": 11.952,
+    "marketWeightedAverageRate": 12.124,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'results 5 year dated november 25th 2013.pdf' by the cbk-gaps function on Netlify. 5-year FXD3/2013/5, value dated 25/11/2013: 'offered 5 year Treasury Bonds for a total amount of up to Kshs 10 Billion'. Competitive 13,857.75 + non-competitive 1,088.80 = 14,946.55 accepted and 21,447.54 bids at 506 bids as already held; price 100.000, coupon and average yield 11.952, market weighted average 12.124."
   },
   {
     "id": "res-fxd4-2013-002-2013-12-23",
@@ -907,10 +921,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//images/results%205-%20year%20%2020year%20re-open%20dated%2023.06.2014.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 30000.0,
-    "amountAcceptedKESM": 22789.66,
-    "bidsReceivedKESM": 23904.9,
+    "amountAcceptedKESM": 8502.75,
+    "bidsReceivedKESM": 8639.32,
     "bidsLabel": "total bids received (kshs. m)",
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "couponRate": 12.0,
+    "pricePer100": 90.754,
+    "weightedAverageRate": 13.357,
+    "marketWeightedAverageRate": 13.375,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'results 5- year  20year re-open dated 23.06.2014.pdf' by the cbk-gaps function on Netlify. 20-year re-opening FXD1/2012/20, value dated 23/06/2014, with the new 5-year FXD2/2014/5. Competitive 8,299.96 + non-competitive 202.79 = 8,502.75 accepted; bids 8,639.32 at 322 bids; price 90.754, coupon 12.000, average yield 13.357, market weighted average 13.375. The earlier parse had stored the two bonds' COMBINED totals (22,789.66 accepted, 23,904.90 bids) on this row, because the 5-year bond's own row was missing (added alongside)."
   },
   {
     "id": "res-fxd1-2012-020-2014-06-30",
@@ -1146,7 +1165,13 @@
     "couponRate": 12.5,
     "pricePer100": 96.112,
     "amountOfferedKESM": 30000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 34902.28,
+    "bidsReceivedKESM": 39429.43,
+    "weightedAverageRate": 13.339,
+    "marketWeightedAverageRate": 13.483,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD2-2016-2IIFB1-2016-9.pdf' by the cbk-gaps function on Netlify. 9-year infrastructure bond IFB1/2016/9, value dated 23/05/2016, with the 2-year FXD2/2016/2. Competitive 32,766.97 + non-competitive 2,135.31 = 34,902.28 accepted; bids 39,429.43 at 922 bids; the two bonds' accepted 4,728.53 + 34,902.28 = 39,630.81 and bids 41,510.36 + 39,429.43 = 80,939.79 as printed against 30,000.00 offered; price 96.112, coupon 12.500, average yield 13.339, market weighted average 13.483."
   },
   {
     "id": "res-fxd1-2012-015-2016-06-20",
@@ -1157,7 +1182,13 @@
     "couponRate": 11.0,
     "pricePer100": 84.339,
     "amountOfferedKESM": 30000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 4898.8,
+    "bidsReceivedKESM": 16105.26,
+    "weightedAverageRate": 14.335,
+    "marketWeightedAverageRate": 14.897,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD2-2016-2FXD1-2012-15-2016.pdf' by the cbk-gaps function on Netlify. 15-year FXD1/2012/15, value dated 20/06/2016, with the 2-year FXD2/2016/2. Competitive 3,514.85 + non-competitive 1,383.95 = 4,898.80 accepted; bids 16,105.26 at 632 bids; the two bonds' accepted 25,722.13 + 4,898.80 = 30,620.93 and bids 34,703.41 + 16,105.26 = 50,808.67 as printed against 30,000.00 offered; price 84.339, coupon 11.000, average yield 14.335, market weighted average 14.897."
   },
   {
     "id": "res-fxd2-2016-002-2016-06-20",
@@ -6229,5 +6260,22 @@
     "parserVersion": 14,
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/Results%2030%20%202%20yr%20-%20February%202011.pdf",
     "sourceNote": "Gap fix 10 Nov 2026: this auction, the first Savings Development Bond SDB1/2011/30 (value dated 28/02/2011, issued with the 2-year FXD1/2011/2), was missing from the archive; the same notice already backed the 2-year row. Read from CBK's own document 'Results 30  2 yr - February 2011.pdf' by the cbk-gaps function on Netlify. Competitive 6,545.15 + non-competitive 1,580.54 = 8,125.69 accepted; bids 18,359.51 at 1,371 bids; both bonds' accepted 14,269.92 + 8,125.69 = 22,395.61 and bids 15,295.66 + 18,359.51 = 33,655.17 (printed 33,655.18) against 18,000.00 offered (186.97%); price 92.771, coupon 12.000, average yield 12.959, market weighted average 14.145."
+  },
+  {
+    "id": "res-fxd2-2014-005-2014-06-23",
+    "issueCode": "FXD2/2014/005",
+    "auctionDate": "2014-06-23",
+    "couponRate": 11.934,
+    "pricePer100": 100.0,
+    "weightedAverageRate": 11.934,
+    "marketWeightedAverageRate": 12.016,
+    "amountOfferedKESM": 30000.0,
+    "offeredScope": "auction",
+    "amountAcceptedKESM": 14286.91,
+    "bidsReceivedKESM": 15265.58,
+    "bidsLabel": "total bids received (kshs. m)",
+    "parserVersion": 14,
+    "sourceUrl": "https://www.centralbank.go.ke//images/results%205-%20year%20%2020year%20re-open%20dated%2023.06.2014.pdf",
+    "sourceNote": "Gap fix 10 Nov 2026: the new 5-year FXD2/2014/5 auction of 23/06/2014 was missing from the archive; the same notice backed the 20-year row, which had been given the two bonds' combined totals in its place. Read from CBK's own document 'results 5- year  20year re-open dated 23.06.2014.pdf' by the cbk-gaps function on Netlify. Competitive 13,052.86 + non-competitive 1,234.05 = 14,286.91 accepted; bids 15,265.58 at 417 bids; with the 20-year's 8,502.75 and 8,639.32 the totals are 22,789.66 and 23,904.90 as printed, against 30,000.00 offered (79.68%); price 100.000, coupon and average yield 11.934, market weighted average 12.016."
   }
 ]

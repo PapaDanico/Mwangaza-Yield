@@ -1,14 +1,16 @@
 [
   {
-    "id": "res-fxd1-2009-010-None",
+    "id": "res-fxd1-2009-010-2017-05-01",
     "issueCode": "FXD1/2009/010",
-    "auctionDate": null,
+    "auctionDate": "2017-05-01",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1761396165_Tap sale advert.pdf",
     "parserVersion": 14,
     "couponRate": 10.75,
     "weightedAverageRate": 11.974,
     "pricePer100": 98.317,
-    "amountAcceptedKESM": 4009.6
+    "amountAcceptedKESM": 3925.56,
+    "transactionType": "tap",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1761396165_Tap sale advert.pdf' by the cbk-gaps function on Netlify. Tap sales of the re-opened FXD1/2009/10, results 'DATED 01/05/2017' (settlement Tuesday 2 May 2017; tap closed 25 April on attainment of the quantum). Accepted at cost 3,925.56 (at face value 4,009.60), 6 bids, allocated average rate 11.974%, adjusted average price 98.317, coupon 10.750; the two bonds together 7,173.09 at cost and 7,281.70 at face as printed. The earlier row held the face value; this archive's tap rows carry the amount accepted at cost, as IFB1/2011/12's do."
   },
   {
     "id": "res-fxd1-2009-015-None",
@@ -71,9 +73,9 @@
     "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results 30  2 yr - February 2011.pdf' by the cbk-gaps function on Netlify. 2-year FXD1/2011/2, value dated 28/02/2011, issued with the first Savings Development Bond SDB1/2011/30. Competitive 14,116.77 + non-competitive 153.15 = 14,269.92 accepted; bids 15,295.66; both bonds' accepted 14,269.92 + 8,125.69 = 22,395.61 as printed; price 100.000 and coupon 5.284 (market-determined, equal to the average yield); market weighted average 5.438."
   },
   {
-    "id": "res-fxd1-2023-005-None",
+    "id": "res-fxd1-2023-005-2024-01-15",
     "issueCode": "FXD1/2023/005",
-    "auctionDate": null,
+    "auctionDate": "2024-01-15",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf",
     "parserVersion": 14,
     "couponRate": 16.844,
@@ -84,12 +86,13 @@
     "bidsReceivedKESM": 8062.56,
     "bidsLabel": "total bids received at cost (kshs. m)",
     "amountOfferedKESM": 35000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf' by the cbk-gaps function on Netlify. Re-opened 5-year FXD1/2023/5, results value dated 15/01/2024, with the new 3-year FXD1/2024/3: every figure already held matches the notice (accepted 2,946.73 = 2,251.90 + 694.83; bids 8,062.56; price 94.3168, coupon 16.844, average yield 18.7697); only the date was missing."
   },
   {
-    "id": "res-fxd1-2024-003-None",
+    "id": "res-fxd1-2024-003-2024-01-15",
     "issueCode": "FXD1/2024/003",
-    "auctionDate": null,
+    "auctionDate": "2024-01-15",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf",
     "parserVersion": 14,
     "couponRate": 18.3854,
@@ -100,7 +103,8 @@
     "bidsReceivedKESM": 29089.43,
     "bidsLabel": "total bids received at cost (kshs. m)",
     "amountOfferedKESM": 35000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1265428676_FXD1-2024-003 AND FXD1-2023-005.pdf' by the cbk-gaps function on Netlify. 3-year FXD1/2024/3, results value dated 15/01/2024 (the notice is headed 'DATED 15/01/2024'), with the re-opened 5-year FXD1/2023/5: every figure already held matches the notice (accepted 22,069.44 = 19,617.09 + 2,452.35; bids 29,089.43; the two bonds' accepted 22,069.44 + 2,946.73 = 25,016.17 and bids 29,089.43 + 8,062.56 = 37,151.99 against 35,000.00 offered, 106.15%, as printed); only the date was missing."
   },
   {
     "id": "res-fxd2-2010-002-2010-03-29",
@@ -130,15 +134,17 @@
     "amountAcceptedKESM": 5200.1
   },
   {
-    "id": "res-fxd3-2008-010-None",
+    "id": "res-fxd3-2008-010-2017-05-01",
     "issueCode": "FXD3/2008/010",
-    "auctionDate": null,
+    "auctionDate": "2017-05-01",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1761396165_Tap sale advert.pdf",
     "parserVersion": 14,
     "couponRate": 10.75,
     "weightedAverageRate": 11.33,
     "pricePer100": 100.49,
-    "amountAcceptedKESM": 3272.1
+    "amountAcceptedKESM": 3247.53,
+    "transactionType": "tap",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1761396165_Tap sale advert.pdf' by the cbk-gaps function on Netlify. Tap sales of the re-opened FXD3/2008/10, results 'DATED 01/05/2017' (settlement Tuesday 2 May 2017). Accepted at cost 3,247.53 (at face value 3,272.10), 8 bids, allocated average rate 11.330%, adjusted average price 100.490, coupon 10.750; the two bonds together 7,173.09 at cost and 7,281.70 at face as printed. The earlier row held the face value; the archive's tap rows carry the amount at cost."
   },
   {
     "id": "res-fxd4-2011-002-None",
@@ -186,7 +192,12 @@
     "couponRate": 9.5,
     "amountOfferedKESM": 11000.0,
     "amountAcceptedKESM": 10007.55,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "pricePer100": 95.687,
+    "bidsReceivedKESM": 10544.81,
+    "weightedAverageRate": 10.858,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1822507497_Treasury Bond Results BONDRESULTSLATEST.pdf' by the cbk-gaps function on Netlify. 5-year re-opening FXD3/2008/5, value dated 24/08/2009: bids 10,544.81 (95.86% of the 11,000.00 offered, which reconciles), competitive 8,227.97 + non-competitive 1,779.58 = 10,007.55 accepted as held; price 95.687, coupon 9.500, average yield 10.858."
   },
   {
     "id": "res-fxd1-2009-005-2009-09-21",
@@ -937,12 +948,14 @@
     "auctionDate": "2014-06-30",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1063682726_Result for 20& 5 Year Tap Sale Dated 30.06.2014.pdf",
     "parserVersion": 14,
-    "couponRate": 11.934,
-    "weightedAverageRate": 11.934,
-    "pricePer100": 100.223,
-    "amountAcceptedKESM": 27.0,
-    "bidsReceivedKESM": 2132.52,
-    "bidsLabel": "total bids received at cost (kshs. m)"
+    "couponRate": 12.0,
+    "weightedAverageRate": 13.357,
+    "pricePer100": 91.905,
+    "amountAcceptedKESM": 1869.97,
+    "bidsReceivedKESM": 1869.97,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "transactionType": "tap",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Result for 20& 5 Year Tap Sale Dated 30.06.2014.pdf' by the cbk-gaps function on Netlify. Tap sale of the 20-year re-opening FXD1/2012/20, results dated 30/06/2014 (settlement Monday 30 June 2014). 37 bids, all accepted: bids and amount accepted at cost 1,869.97 (2,060.55 at face value); allocated average rate 13.357%; adjusted average price 91.905; coupon 12.000%. The earlier row held the 5-year bond's coupon (11.934), price (100.223) and rate (11.934), and the bid count as the amount accepted, so the two bonds' rows were crossed."
   },
   {
     "id": "res-fxd2-2014-005-2014-06-30",
@@ -950,12 +963,14 @@
     "auctionDate": "2014-06-30",
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1063682726_Result for 20& 5 Year Tap Sale Dated 30.06.2014.pdf",
     "parserVersion": 14,
-    "couponRate": 12.0,
-    "weightedAverageRate": 13.357,
-    "pricePer100": 91.905,
-    "amountAcceptedKESM": 37.0,
-    "bidsReceivedKESM": 1869.97,
-    "bidsLabel": "total bids received at cost (kshs. m)"
+    "couponRate": 11.934,
+    "weightedAverageRate": 11.934,
+    "pricePer100": 100.223,
+    "amountAcceptedKESM": 2132.52,
+    "bidsReceivedKESM": 2132.52,
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "transactionType": "tap",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Result for 20& 5 Year Tap Sale Dated 30.06.2014.pdf' by the cbk-gaps function on Netlify. Tap sale of the 5-year FXD2/2014/5, results dated 30/06/2014 (settlement Monday 30 June 2014). 27 bids, all accepted: bids and amount accepted at cost 2,132.52 (2,132.65 at face value); allocated average rate 11.934%; adjusted average price 100.223; coupon 11.934%. The earlier row held the 20-year bond's coupon (12.0) and price (91.905), and the bid count as the amount accepted, so the two bonds' rows were crossed."
   },
   {
     "id": "res-fxd1-2014-010-2014-09-29",
@@ -1124,7 +1139,13 @@
     "couponRate": 12.0,
     "pricePer100": 88.39,
     "amountOfferedKESM": 25000.0,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsLabel": "total bids received (kshs. m)",
+    "amountAcceptedKESM": 8034.88,
+    "bidsReceivedKESM": 12474.65,
+    "weightedAverageRate": 14.979,
+    "marketWeightedAverageRate": 15.32,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'RE-OPEN_FXD1-2013-10__FXD2-2013-15_DATED_21_03_2016.pdf' by the cbk-gaps function on Netlify. 15-year re-opening FXD2/2013/15, value dated 21/03/2016, with FXD1/2013/10. Competitive 7,023.12 + non-competitive 1,011.76 = 8,034.88 accepted; bids 12,474.65 at 424 bids; the two bonds' accepted 9,072.65 + 8,034.88 = 17,107.53 and bids 13,705.11 + 12,474.65 = 26,179.76 as printed against 25,000.00 offered; price 88.390, coupon 12.000, average yield 14.979, market weighted average 15.320."
   },
   {
     "id": "res-fxd1-2016-005-2016-04-25",
@@ -2219,10 +2240,15 @@
     "sourceUrl": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1849133954_RESULTS FOR FXD1-2018-15 FXD2-2019-15 DATED 07-10-2019.pdf",
     "parserVersion": 14,
     "amountOfferedKESM": 30000.0,
-    "amountAcceptedKESM": 9359.96,
-    "bidsReceivedKESM": 9359.96,
-    "bidsLabel": "total bids received at cost (kes million)",
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "transactionType": "tap",
+    "couponRate": 12.734,
+    "pricePer100": 105.513,
+    "weightedAverageRate": 12.673,
+    "notPublished": [
+      "amountAcceptedKESM"
+    ],
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1849133954_RESULTS FOR FXD1-2018-15 FXD2-2019-15 DATED 07-10-2019.pdf' by the cbk-gaps function on Netlify. Tap sales of the re-opened FXD1/2018/15 and FXD2/2019/15, results dated 07/10/2019. This is a TAP sale (the notice's title says so; its file name does not). The notice prints ONE total, 9,359.96 bids accepted at cost, for the two bonds together and no split, which the archive had attributed to this bond alone; it is removed from this row and the amount is declared not published per bond. This bond: coupon 12.734%, adjusted average price 105.513, allocated average rate 12.673%; against the 30,000.00 advertised for both."
   },
   {
     "id": "res-ifb1-2019-016-2019-10-28",
@@ -6277,5 +6303,22 @@
     "parserVersion": 14,
     "sourceUrl": "https://www.centralbank.go.ke//images/results%205-%20year%20%2020year%20re-open%20dated%2023.06.2014.pdf",
     "sourceNote": "Gap fix 10 Nov 2026: the new 5-year FXD2/2014/5 auction of 23/06/2014 was missing from the archive; the same notice backed the 20-year row, which had been given the two bonds' combined totals in its place. Read from CBK's own document 'results 5- year  20year re-open dated 23.06.2014.pdf' by the cbk-gaps function on Netlify. Competitive 13,052.86 + non-competitive 1,234.05 = 14,286.91 accepted; bids 15,265.58 at 417 bids; with the 20-year's 8,502.75 and 8,639.32 the totals are 22,789.66 and 23,904.90 as printed, against 30,000.00 offered (79.68%); price 100.000, coupon and average yield 11.934, market weighted average 12.016."
+  },
+  {
+    "id": "res-fxd1-2018-015-2019-10-07",
+    "issueCode": "FXD1/2018/015",
+    "auctionDate": "2019-10-07",
+    "couponRate": 12.65,
+    "pricePer100": 105.139,
+    "weightedAverageRate": 12.564,
+    "amountOfferedKESM": 30000.0,
+    "offeredScope": "auction",
+    "transactionType": "tap",
+    "notPublished": [
+      "amountAcceptedKESM"
+    ],
+    "parserVersion": 14,
+    "sourceUrl": "https://www.centralbank.go.ke/uploads/historical_treasury_bond_results/1849133954_RESULTS FOR FXD1-2018-15 FXD2-2019-15 DATED 07-10-2019.pdf",
+    "sourceNote": "Gap fix 10 Nov 2026: tap sales of the re-opened FXD1/2018/15 and FXD2/2019/15, results dated 07/10/2019; the archive held a row for FXD2/2019/15 only. Read from CBK's own document by the cbk-gaps function on Netlify. This bond: coupon 12.650%, adjusted average price 105.139, allocated average rate 12.564%. The notice prints ONE total, 9,359.96 bids accepted at cost, for the two bonds together and no split, so the amount accepted is declared not published for this bond; 30,000.00 was advertised for both."
   }
 ]

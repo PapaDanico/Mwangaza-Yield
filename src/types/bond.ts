@@ -176,6 +176,18 @@ export interface AuctionPrint {
   transactionType?: AuctionTransactionType;
   /** Provenance shown when the original document was supplied directly rather than linked. */
   sourceNote?: string;
+  /**
+   * Core fields the source document never states FOR THIS RECORD, so the row is
+   * not scored against them. Used only where the document itself prints a
+   * figure for several bonds together and none for this one (a tap sale whose
+   * accepted total covers two bonds), or none at all. The field must be absent
+   * from the row and `sourceNote` must say why; both are enforced by test. It is
+   * the per-row form of the rule that already exempts tap sales from "amount
+   * offered": a gap the document cannot close is stated, not counted as unread.
+   */
+  notPublished?: Array<
+    'auctionDate' | 'couponRate' | 'pricePer100' | 'amountOfferedKESM' | 'amountAcceptedKESM' | 'bidsReceivedKESM'
+  >;
 }
 
 export interface SecondaryTrade {

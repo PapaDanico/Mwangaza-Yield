@@ -256,3 +256,33 @@ describe('the real archive, measured rather than described', () => {
     });
   });
 });
+
+
+describe('fields a document never states for a record', () => {
+  it('does not score a row against a field it declares as not published', () => {
+    const r = rec({ amountAcceptedKESM: undefined, transactionType: 'tap', notPublished: ['amountAcceptedKESM'] } as never);
+    expect(isComplete(r)).toBe(true);
+    const same = rec({ amountAcceptedKESM: undefined, transactionType: 'tap' } as never);
+    expect(isComplete(same)).toBe(false);
+  });
+
+  it('takes the exempt field out of that field\'s denominator too', () => {
+    const rows = [
+      rec({}),
+      rec({ id: 'b', amountAcceptedKESM: undefined, transactionType: 'tap', notPublished: ['amountAcceptedKESM'] } as never),
+    ];
+    const f = assessArchive(rows).fields.find((x) => x.field === 'amountAcceptedKESM')!;
+    expect(f.total).toBe(1);
+  });
+
+  it('is honest in the shipped archive: the field is absent and the row says why', () => {
+    const declared = (archive as unknown as AuctionPrint[]).filter((r) => r.notPublished?.length);
+    for (const r of declared) {
+      for (const f of r.notPublished!) {
+        expect(CORE_FIELDS as readonly string[], `${r.id}: ${f} is not a core field`).toContain(f);
+        expect((r as unknown as Record<string, unknown>)[f] ?? null, `${r.id}: declares ${f} unpublished but carries a value`).toBeNull();
+      }
+      expect(r.sourceNote?.length ?? 0, `${r.id}: needs a source note saying why`).toBeGreaterThan(40);
+    }
+  });
+});

@@ -165,7 +165,11 @@ export const TAP_SALE_FIELDS: readonly CoreField[] = [
 
 /** The fields this record's document type is capable of carrying. */
 export function applicableFields(record: AuctionPrint): readonly CoreField[] {
-  return auctionKind(record) === 'tap' ? TAP_SALE_FIELDS : CORE_FIELDS;
+  const base = auctionKind(record) === 'tap' ? TAP_SALE_FIELDS : CORE_FIELDS;
+  // A field the document never states for this record is not scored. See
+  // AuctionPrint.notPublished: the field is absent and the row says why.
+  const skip = record.notPublished;
+  return skip && skip.length ? base.filter((f) => !skip.includes(f)) : base;
 }
 
 export function isComplete(record: AuctionPrint): boolean {

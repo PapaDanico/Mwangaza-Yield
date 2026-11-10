@@ -141,6 +141,9 @@ describe('tap sales are scored against their own document type', () => {
     const offered = q.fields.find((f) => f.field === 'amountOfferedKESM')!;
     expect(offered.total).toBe(ARCHIVE.length - taps.length);
     const dated = q.fields.find((f) => f.field === 'auctionDate')!;
-    expect(dated.total).toBe(ARCHIVE.length);
+    // Every record is scored on its date except those whose notice states none
+    // and which declare so (AuctionPrint.notPublished), each with a source note.
+    const dateUnpublished = ARCHIVE.filter((r) => (r as { notPublished?: string[] }).notPublished?.includes('auctionDate')).length;
+    expect(dated.total).toBe(ARCHIVE.length - dateUnpublished);
   });
 });

@@ -164,3 +164,35 @@ thirteen stay undated unless someone adds a separate field with its own name
 and meaning; the reasoning sits in `auction_date_from_lines`, where the next
 person will come to add it, and the three measurements are locked in a test so
 nobody re-derives them before declining it again.
+
+---
+
+## Resolved 10 Nov 2026: the gaps were read from CBK's own documents
+
+`netlify/functions/cbk-gaps.mts` (scheduled every five minutes, read-only, same
+posting route as `cbk-watch`) fetched the CBK PDFs behind every incomplete row
+from Netlify, where egress is open, and posted their text to the `cbk-watch`
+form. A person compared each notice with the archive; nothing was written by a
+machine. 64 documents were read in all: the gap tier, then every pre-2020
+notice that backs two or more rows.
+
+- **Counting rule.** The 51 earlier quoted required six fields of every row. The
+  site's rule needs four for a tap sale (no offered or bids figure is published
+  for one), which gives 40. The archive now has **0 incomplete rows**.
+- **"Present" was not "right".** Reading the notices showed the old parser had
+  put values from the wrong column of multi-bond notices into rows the
+  completeness panel counted as present: combined totals stored on one bond, a
+  neighbouring bond's yield (June 2011), a missing second-bond row (28 Feb
+  2011, 23 Jun 2014, 27 Mar 2017). Those were corrected or added, with a
+  `sourceNote` on each touched row.
+- **Removed:** one row that was a prospectus, not a result.
+- **`notPublished`.** Where a notice never states a core field for a row (for
+  example the October 2019 tap's amounts), the row says so in `notPublished`,
+  with a source note, and is excluded from completeness and its denominators.
+  A test enforces that the field is absent and the note is real.
+- **Verification result.** After the corrections, every parseable verify-tier
+  notice matched the archive on coupon, price, yield, amount accepted and bids.
+  About a dozen older tap or single-bond layouts were reviewed by eye in the
+  gap batches rather than by script.
+- The schedule stays harmless: once nothing is pending, each run returns at once.
+  It can be deleted from `cbk-gaps.mts` whenever convenient.

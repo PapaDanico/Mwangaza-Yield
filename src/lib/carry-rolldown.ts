@@ -161,6 +161,12 @@ export interface CarryRoll {
    * over the horizon. Capped at 1,000.
    */
   cushionBp: number;
+  /**
+   * Net return over the horizon if yields have moved in parallel by the
+   * scenario shift on top of the unchanged curve. Equals `netReturnPct` when
+   * the shift is zero.
+   */
+  shockedNetReturnPct: number;
 }
 
 function addMonths(d: Date, months: number): Date {
@@ -174,7 +180,7 @@ function addMonths(d: Date, months: number): Date {
  * out of scope (tax-exempt, wrong category) or the curve does not reach both
  * its current and its rolled-forward remaining life.
  */
-export function carryRoll(bond: Bond, fit: CurveFit, today: Date, months = 12): CarryRoll | null {
+export function carryRoll(bond: Bond, fit: CurveFit, today: Date, months = 12, shiftBp = 0): CarryRoll | null {
   if (bond.taxExempt || (bond.category !== 'FXD' && bond.category !== 'SDB')) return null;
   const horizon = addMonths(today, months);
   const maturity = new Date(bond.maturityDate);
@@ -226,6 +232,7 @@ export function carryRoll(bond: Bond, fit: CurveFit, today: Date, months = 12): 
     grossReturnPct: pct(dirtyRolled + coupons - dirty0),
     netReturnPct: pct(dirtyRolled + netCoupons - dirty0),
     carryNetPct: pct(dirtyStill + netCoupons - dirty0),
+    shockedNetReturnPct: pct(netAt(shiftBp / 100)),
     rollDownPct: pct(dirtyRolled - dirtyStill),
     cushionBp,
   };
@@ -237,12 +244,12 @@ export interface CarryRollTable {
 }
 
 /** Every in-scope bond against one fitted curve, shortest remaining life first. */
-export function carryRollTable(bonds: Bond[], today: Date, months = 12): CarryRollTable | null {
+export function carryRollTable(bonds: Bond[], today: Date, months = 12, shiftBp = 0): CarryRollTable | null {
   const fit = fitCurve(bonds, today);
   if (!fit) return null;
   const rows: CarryRoll[] = [];
   for (const b of bonds) {
-    const r = carryRoll(b, fit, today, months);
+    const r = carryRoll(b, fit, today, months, shiftBp);
     if (r) rows.push(r);
   }
   if (rows.length === 0) return null;

@@ -139,3 +139,35 @@ describe('shipped data', () => {
     }
   });
 });
+
+describe('rate-shock scenarios', () => {
+  const fit = fitCurve(synthetic(), TODAY)!;
+  const bond = mk('SHOCK', '2036-01-13', 12, 0);
+
+  it('a zero shift equals the unchanged-curve return', () => {
+    const r = carryRoll(bond, fit, TODAY, 12, 0)!;
+    expect(r.shockedNetReturnPct).toBeCloseTo(r.netReturnPct, 9);
+  });
+
+  it('rises hurt, falls help, and by more than duration alone says for rises', () => {
+    const base = carryRoll(bond, fit, TODAY, 12, 0)!.shockedNetReturnPct;
+    const up = carryRoll(bond, fit, TODAY, 12, 100)!.shockedNetReturnPct;
+    const down = carryRoll(bond, fit, TODAY, 12, -100)!.shockedNetReturnPct;
+    expect(up).toBeLessThan(base);
+    expect(down).toBeGreaterThan(base);
+    // Convexity: the gain from a fall is larger than the loss from an equal rise.
+    expect(down - base).toBeGreaterThan(base - up);
+  });
+
+  it('a shift equal to the cushion returns zero', () => {
+    const r = carryRoll(bond, fit, TODAY, 12, 0)!;
+    const at = carryRoll(bond, fit, TODAY, 12, r.cushionBp)!;
+    expect(Math.abs(at.shockedNetReturnPct)).toBeLessThan(0.01);
+  });
+
+  it('longer bonds are hit harder by the same rise', () => {
+    const near = carryRoll(mk('N', '2033-07-13', 12, 0), fit, TODAY, 12, 200)!;
+    const far = carryRoll(mk('F', '2046-01-13', 12, 0), fit, TODAY, 12, 200)!;
+    expect(far.shockedNetReturnPct).toBeLessThan(near.shockedNetReturnPct);
+  });
+});

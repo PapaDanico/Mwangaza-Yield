@@ -840,7 +840,8 @@
     "couponRate": 11.0,
     "weightedAverageRate": 12.363,
     "pricePer100": 94.155,
-    "amountAcceptedKESM": 16993.2
+    "amountAcceptedKESM": 15999.95,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'Results for tap sales IFB1-2013-012.pdf' by the cbk-gaps function on Netlify. IFB1/2013/12 tap, dated 28/10/2013: accepted at cost 15,999.95 (the 16,993.20 held is that cost divided by the 94.155 price, i.e. face value), average rate 12.363, 11.000 coupon. The archive carries tap amounts at cost."
   },
   {
     "id": "res-fxd3-2013-005-2013-11-25",
@@ -1425,7 +1426,8 @@
     "couponRate": 11.934,
     "weightedAverageRate": 12.404,
     "pricePer100": 102.513,
-    "amountAcceptedKESM": 7653.8
+    "amountAcceptedKESM": 7582.7,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1853904332_MARCH 2017 TAP SALE FXD2-2014-005 AND FXD3-2013-005 DATED 03.04.2017.pdf' by the cbk-gaps function on Netlify. FXD2/2014/5 tap, value dated 03/04/2017: accepted at face 7,653.80, at cost 7,582.70. The row held the face figure; the archive carries tap amounts at cost."
   },
   {
     "id": "res-fxd3-2013-005-2017-04-03",
@@ -1436,7 +1438,8 @@
     "couponRate": 11.952,
     "weightedAverageRate": 11.817,
     "pricePer100": 104.529,
-    "amountAcceptedKESM": 7830.15
+    "amountAcceptedKESM": 7842.83,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1853904332_MARCH 2017 TAP SALE FXD2-2014-005 AND FXD3-2013-005 DATED 03.04.2017.pdf' by the cbk-gaps function on Netlify. FXD3/2013/5 tap, value dated 03/04/2017: accepted at face 7,830.15, at cost 7,842.83. The row held the face figure; the archive carries tap amounts at cost."
   },
   {
     "id": "res-fxd1-2009-010-2017-04-24",
@@ -1567,7 +1570,8 @@
     "couponRate": 12.465,
     "weightedAverageRate": 12.465,
     "pricePer100": 100.233,
-    "amountAcceptedKESM": 13000.0
+    "amountAcceptedKESM": 13000.0,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '356148279_AUGUST 2017 TAP SALE FXD1-2017-5 DATED 04.09.2017.pdf' by the cbk-gaps function on Netlify. FXD1/2017/5 tap, dated 04/09/2017: the notice prints 13,000.00 at face value and 17,490.00 at cost. A cost of 17,490.00 cannot be reconciled with the printed price of 100.233 (13,000.00 at that price is about 13,030), so the face figure is kept and the disagreement is recorded here rather than resolved by guess."
   },
   {
     "id": "res-fxd1-2017-002-2017-09-25",
@@ -1610,7 +1614,8 @@
     "couponRate": 11.619,
     "weightedAverageRate": 11.619,
     "pricePer100": 100.217,
-    "amountAcceptedKESM": 11137.6
+    "amountAcceptedKESM": 11136.93,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '230066781_SEPTEMBER 2017 FXD1-2017-2 and FXD1-2017-10 TAP SALE DATED 02.10.2017.pdf' by the cbk-gaps function on Netlify. FXD1/2017/2 tap, dated 02/10/2017: accepted at face 11,137.60, at cost 11,136.93. The row held the face figure; its sibling FXD1/2017/10 already carried cost."
   },
   {
     "id": "res-fxd1-2017-010-2017-10-02",
@@ -1714,7 +1719,8 @@
     "couponRate": 12.5,
     "weightedAverageRate": 12.505,
     "pricePer100": 100.202,
-    "amountAcceptedKESM": 36231.15
+    "amountAcceptedKESM": 36217.38,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '74415471_TREASURY BOND TAP SALE RESULTS IFB1-2018-18 DATED 05-02-2018.pdf' by the cbk-gaps function on Netlify. IFB1/2018/15 tap, dated 05/02/2018: accepted at face 36,231.15, at cost 36,217.38. The row held the face figure; the archive carries tap amounts at cost."
   },
   {
     "id": "res-fxd1-2010-015-2018-02-26",
@@ -1966,8 +1972,9 @@
     "weightedAverageRate": 12.156,
     "pricePer100": 99.127,
     "amountOfferedKESM": 22410.0,
-    "amountAcceptedKESM": 8844.4,
-    "offeredScope": "auction"
+    "amountAcceptedKESM": 8726.5,
+    "offeredScope": "auction",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document '1042591131_IFB1-2018-20 TAP  DATED 03.12.2018.pdf' by the cbk-gaps function on Netlify. IFB1/2018/20 tap, dated 03/12/2018: accepted at face 8,844.40, at cost 8,726.50. The row held the face figure; the archive carries tap amounts at cost."
   },
   {
     "id": "res-fxd2-2018-010-2018-12-17",

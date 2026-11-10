@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Prose from '@/components/shared/Prose';
 import CurveHistory from '@/components/curve/CurveHistory';
+import CarryRolldown from '@/components/curve/CarryRolldown';
 
 export const metadata: Metadata = {
   title: 'Kenya’s yield curve, year by year — Mwangaza Yield',
@@ -31,6 +32,8 @@ export default function YieldCurvePage() {
       <div className="card mx-auto mt-6 max-w-2xl">
         <CurveHistory />
       </div>
+
+      <CarryRolldown />
 
       <div className="mt-8">
         <Prose title="How to read it" level={2}>

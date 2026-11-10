@@ -107,6 +107,28 @@ export const GLOSSARY: Term[] = [
       'When the line slopes up, longer loans pay more and you are rewarded for waiting. When it is flat, a 20-year bond pays little more than a 5-year one — so why lock your money away? The shape is the market telling you where the value is.',
   },
   {
+    slug: 'carry-and-roll-down',
+    term: 'Carry and roll-down',
+    also: 'carry, roll',
+    plain:
+      'What a bond earns over the next year if nothing in the market changes. Carry is the coupons you collect. Roll-down is the extra price gain from the bond getting a year closer to maturity and so being priced at the cheaper, lower yield of a shorter bond.',
+    precise:
+      'Carry: coupon income plus the pull of the price toward par at an unchanged yield. Roll-down: the price change from re-pricing the bond, with the yield curve held fixed, at the yield of its shorter remaining life.',
+    why:
+      'On a rising curve a 5-year bond rolls down faster than a 20-year one. That is why the longest bond is not automatically the best place to wait a year.',
+  },
+  {
+    slug: 'yield-cushion',
+    term: 'Yield cushion',
+    also: 'breakeven yield rise',
+    plain:
+      'How far market yields could rise over the next year before a bond has lost you money in that year. A bigger cushion means the coupons you collect can absorb a bigger fall in the bond price.',
+    precise:
+      'The parallel rise in yield, in basis points, at which the one-year total return after tax falls to zero.',
+    why:
+      'Two bonds can promise the same return and have very different cushions. The one with the bigger cushion is wrong less expensively if rates move against you.',
+  },
+  {
     slug: 'central-bank-rate',
     term: 'Central Bank Rate',
     also: 'CBR, policy rate, base rate',

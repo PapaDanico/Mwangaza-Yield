@@ -22,31 +22,36 @@
     "amountAcceptedKESM": 10728.65
   },
   {
-    "id": "res-fxd1-2010-002-None",
+    "id": "res-fxd1-2010-002-2010-02-01",
     "issueCode": "FXD1/2010/002",
-    "auctionDate": null,
+    "auctionDate": "2010-02-01",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD1_2010_2.pdf",
-    "parserVersion": 5,
-    "bidsReceivedKESM": 12.0,
-    "bidsLabel": "bids received"
-  },
-  {
-    "id": "res-fxd1-2010-015-None",
-    "issueCode": "FXD1/2010/015",
-    "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD_2_2010_2.pdf",
-    "parserVersion": 7,
-    "weightedAverageRate": 15.0,
-    "bidsReceivedKESM": 432.0,
-    "bidsLabel": "bids received"
-  },
-  {
-    "id": "res-fxd1-2010-025-None",
-    "issueCode": "FXD1/2010/025",
-    "auctionDate": null,
-    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD1_2010_25.pdf",
     "parserVersion": 14,
-    "couponRate": 11.25
+    "bidsReceivedKESM": 11475.57,
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 8.0,
+    "pricePer100": 99.77,
+    "weightedAverageRate": 8.127,
+    "amountOfferedKESM": 12000.0,
+    "offeredScope": "auction",
+    "amountAcceptedKESM": 7154.55,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD1_2010_2.pdf' by the cbk-gaps function on Netlify. 2-year FXD1/2010/2, results value dated 01/02/2010, shared with the re-opening of FXD1/2009/5. Competitive 6,800.26 + non-competitive 354.28 = 7,154.54 (printed 7,154.55); bids 11,475.57 at 219 bids; 29,069.46 total bids / 12,000 offered = the 242.25% the notice states; both bonds' accepted 7,154.55 + 9,751.41 = 16,905.96 = 'Kshs.16.9 Billion'; price 99.770, coupon 8.000, average yield 8.127. The earlier parse read 12.0 (the offer in billions) as the bids."
+  },
+  {
+    "id": "res-fxd1-2010-015-2010-03-29",
+    "issueCode": "FXD1/2010/015",
+    "auctionDate": "2010-03-29",
+    "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD_2_2010_2.pdf",
+    "parserVersion": 14,
+    "weightedAverageRate": 9.98,
+    "bidsReceivedKESM": 15547.24,
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 10.25,
+    "pricePer100": 102.078,
+    "amountOfferedKESM": 16500.0,
+    "offeredScope": "auction",
+    "amountAcceptedKESM": 10419.88,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_2_2010_2.pdf' by the cbk-gaps function on Netlify. 15-year FXD1/2010/15, results value dated 29/03/2010, shared with FXD2/2010/2. Competitive 9,276.97 + non-competitive 1,142.91 = 10,419.88 accepted; bids 15,547.24 at 432 bids; both bonds' accepted 6,179.36 + 10,419.88 = 16,599.24 = the 'Kshs.16.6 Billion' the notice states; price 102.078, coupon 10.250, average yield 9.980. The earlier parse read the bid COUNT (432) as the amount and 15.0 as the yield."
   },
   {
     "id": "res-fxd1-2011-002-None",
@@ -89,13 +94,20 @@
     "offeredScope": "auction"
   },
   {
-    "id": "res-fxd2-2010-002-None",
+    "id": "res-fxd2-2010-002-2010-03-29",
     "issueCode": "FXD2/2010/002",
-    "auctionDate": null,
+    "auctionDate": "2010-03-29",
     "sourceUrl": "https://www.centralbank.go.ke//images/docs/Treasury%20Bond%20Results/FXD_2_2010_2.pdf",
-    "parserVersion": 7,
-    "bidsReceivedKESM": 30.3,
-    "bidsLabel": "bids received"
+    "parserVersion": 14,
+    "bidsReceivedKESM": 14777.41,
+    "bidsLabel": "total bids received (kshs. m)",
+    "couponRate": 7.108,
+    "pricePer100": 100.316,
+    "weightedAverageRate": 6.936,
+    "amountOfferedKESM": 16500.0,
+    "offeredScope": "auction",
+    "amountAcceptedKESM": 6179.36,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_2_2010_2.pdf' by the cbk-gaps function on Netlify. 2-year FXD2/2010/2, results value dated 29/03/2010, shared with FXD1/2010/15. Competitive 5,545.86 + non-competitive 633.50 = 6,179.36 accepted; bids 14,777.41 at 245 bids; offer 'up to Kshs 16.5 Billion' covers both bonds; price 100.316, coupon 7.108, average yield 6.936. The earlier parse read 30.3 (the two bonds' combined bids in billions) as this bond's bids."
   },
   {
     "id": "res-fxd2-2010-010-None",
@@ -219,7 +231,10 @@
     "pricePer100": 99.668,
     "amountOfferedKESM": 10000.0,
     "amountAcceptedKESM": 10879.86,
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "bidsReceivedKESM": 20248.09,
+    "bidsLabel": "total bids received (kshs. m)",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_1_2008_20.pdf' by the cbk-gaps function on Netlify. Re-opening of FXD1/2008/20, value dated 28/12/2009: total bids received 20,248.09 (781 bids; 202.48% of the Kshs 10,000M offered, which reconciles)."
   },
   {
     "id": "res-ifb1-2010-008-2010-03-01",
@@ -246,7 +261,9 @@
     "amountAcceptedKESM": 12182.89,
     "bidsReceivedKESM": 16748.08,
     "bidsLabel": "total bids received (kshs. m)",
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "couponRate": 8.79,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_1_2010_10.pdf' by the cbk-gaps function on Netlify. FXD1/2010/10 value dated 26/04/2010: 'Based on the market outcome the coupon was 8.790%'."
   },
   {
     "id": "res-fxd1-2010-005-2010-05-24",
@@ -317,7 +334,9 @@
     "amountAcceptedKESM": 12758.21,
     "bidsReceivedKESM": 13381.89,
     "bidsLabel": "total bids received (kshs. m)",
-    "offeredScope": "auction"
+    "offeredScope": "auction",
+    "couponRate": 3.814,
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'FXD_3_2010_2.pdf' by the cbk-gaps function on Netlify. FXD3/2010/2 value dated 27/09/2010: 'The market determined coupon rate was 3.814%'."
   },
   {
     "id": "res-fxd2-2010-010-2010-11-01",
@@ -544,7 +563,9 @@
     "pricePer100": 85.428,
     "amountAcceptedKESM": 1341.02,
     "bidsReceivedKESM": 1341.02,
-    "bidsLabel": "total bids received at cost (kshs. m)"
+    "bidsLabel": "total bids received at cost (kshs. m)",
+    "transactionType": "tap",
+    "sourceNote": "Gap fix 10 Nov 2026: read from CBK's own document 'IFB1_2011_12.pdf' by the cbk-gaps function on Netlify. The document is titled 'RESULTS OF TAP SALES FOR INFRASTRUCTURE BOND ISSUE NO. IFB 1/2011/12 DATED 02/01/2012', so this is a tap sale, which has no amount offered (the notice states there is no maximum amount). Its file name does not say so, which is why it was scored as an auction."
   },
   {
     "id": "res-fxd1-2012-001-2012-01-30",

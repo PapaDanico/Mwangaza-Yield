@@ -255,7 +255,7 @@ export function buildCashflows(
     const bal = balanceOn(new Date(d.getTime() - DAY_MS), amortisation);
     const gross = fullPeriodCoupon * bal;
     const principal = amortisation
-      .filter((s) => iso(new Date(s.date)) === iso(d) && new Date(s.date) > settlement)
+      .filter((s) => iso(new Date(s.date)) === iso(d) && d < maturity && new Date(s.date) > settlement)
       .reduce((sum, s) => sum + s.fraction * faceValueKES, 0);
     return {
       date: iso(d),
@@ -279,8 +279,10 @@ export function buildCashflows(
     });
   }
 
-  // Whatever principal has not amortised comes back at maturity.
-  const finalBalance = balanceOn(maturity, amortisation);
+  // Redemption at maturity includes any fraction contractually marked for
+  // that date. balanceOn(maturity) would subtract it before calculating the
+  // final payment, causing principal to disappear from the cash-flow schedule.
+  const finalBalance = balanceOn(new Date(maturity.getTime() - DAY_MS), amortisation);
   const last = rows[rows.length - 1];
   if (last && last.date === iso(maturity)) last.principalKES += finalBalance * faceValueKES;
   else if (finalBalance > 0) {

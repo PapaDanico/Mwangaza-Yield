@@ -373,3 +373,21 @@ describe('an impossible amortisation entry is rejected, not a crash', () => {
     expect(() => analyseSale(IFB, QUOTE)).not.toThrow();
   });
 });
+
+describe('maturity boundary and cash-flow row integrity', () => {
+  it('returns no future cash flows on maturity or after maturity', () => {
+    expect(buildCashflows(IFB, 400_000, new Date(IFB.maturityDate))).toEqual([]);
+    expect(buildCashflows(IFB, 400_000, new Date('2041-01-01'))).toEqual([]);
+  });
+
+  it('combines coupon and redemption on maturity even with earlier off-cycle amortisation', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: '2031-06-02', fraction: 0.5 },
+    ]);
+    const maturityRows = rows.filter((row) => row.date === IFB.maturityDate);
+    expect(maturityRows).toHaveLength(1);
+    expect(maturityRows[0].principalKES).toBeCloseTo(200_000, 2);
+    expect(maturityRows[0].couponKES).toBeGreaterThan(0);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+  });
+});

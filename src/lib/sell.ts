@@ -227,7 +227,7 @@ export function buildCashflows(
     const bal = balanceOn(new Date(d.getTime() - DAY_MS), amortisation);
     const gross = fullPeriodCoupon * bal;
     const principal = amortisation
-      .filter((s) => iso(new Date(s.date)) === iso(d) || (new Date(s.date) > settlement && sameCouponSlot(new Date(s.date), d)))
+      .filter((s) => iso(new Date(s.date)) === iso(d) && new Date(s.date) > settlement)
       .reduce((sum, s) => sum + s.fraction * faceValueKES, 0);
     return {
       date: iso(d),
@@ -237,6 +237,20 @@ export function buildCashflows(
     };
   });
 
+  // Principal is payable on its contractual amortisation date, not the
+  // following coupon date. Deferring it changes the present value and can
+  // distort the broker-quote cross-check for off-cycle repayments.
+  for (const step of amortisation) {
+    const when = new Date(step.date);
+    if (when <= settlement || when >= maturity || dates.some((d) => iso(d) === iso(when))) continue;
+    rows.push({
+      date: iso(when),
+      couponKES: 0,
+      netCouponKES: 0,
+      principalKES: step.fraction * faceValueKES,
+    });
+  }
+
   // Whatever principal has not amortised comes back at maturity.
   const finalBalance = balanceOn(maturity, amortisation);
   const last = rows[rows.length - 1];
@@ -244,13 +258,7 @@ export function buildCashflows(
   else if (finalBalance > 0) {
     rows.push({ date: iso(maturity), couponKES: 0, principalKES: finalBalance * faceValueKES, netCouponKES: 0 });
   }
-  return rows;
-}
-
-/** An amortisation date is settled on the coupon date it falls in or on. */
-function sameCouponSlot(amortDate: Date, couponDate: Date): boolean {
-  const diff = daysBetween(amortDate, couponDate);
-  return diff >= 0 && diff < PERIOD_DAYS;
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /* ----------------------------------------------------------------- prices */

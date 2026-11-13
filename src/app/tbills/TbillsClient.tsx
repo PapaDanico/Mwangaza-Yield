@@ -277,6 +277,12 @@ export default function TbillsClient({
           </div>
         </div>
 
+        {rollover.cycles === 0 ? (
+          <p role="status" className="rounded-xl border border-gold-300/60 bg-gold-500/[0.06] p-3 text-sm leading-relaxed text-ink">
+            A {selected.tenorDays}-day bill matures after a {rolloverMonths}-month horizon, so there is no
+            completed roll to measure. Choose a longer horizon, or a shorter bill.
+          </p>
+        ) : (
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl border border-sand-300 p-3">
             <p className="text-xs text-ink-muted">Cycles</p>
@@ -295,6 +301,7 @@ export default function TbillsClient({
             </p>
           </div>
         </div>
+        )}
 
         <p className="mt-3 text-xs leading-relaxed text-ink-faint">
           Assumes the {formatPct(selected.discountRate, 4)} rate holds at every roll — the central

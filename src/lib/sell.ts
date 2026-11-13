@@ -216,7 +216,7 @@ function validateAmortisation(bond: Bond, steps: AmortisationStep[]): void {
   let total = 0;
   for (const step of steps) {
     const when = new Date(step.date);
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(step.date)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(step.date)
       || Number.isNaN(when.getTime())
       || iso(when) !== step.date
       || when <= issue

@@ -207,9 +207,12 @@ describe('verdict', () => {
  */
 describe('annualised yields on a nearly-matured bond', () => {
   const SHORT: Bond = { ...IFB, maturityDate: '2026-09-20' }; // 62 days from settlement
+  // The 2031 amortisation step in QUOTE lies beyond this bond's life, which is
+  // not a real schedule and is rejected; these tests are about annualisation.
+  const SHORT_QUOTE: SaleQuote = { ...QUOTE, amortisation: [] };
 
   it('flags a residual under a year as extrapolated', () => {
-    const a = analyseSale(SHORT, QUOTE);
+    const a = analyseSale(SHORT, SHORT_QUOTE);
     expect(a.annualisationIsExtrapolated).toBe(true);
     expect(a.daysToMaturity).toBe(62);
   });
@@ -227,7 +230,7 @@ describe('annualised yields on a nearly-matured bond', () => {
    * figures it is captioning — and this test would otherwise drift into
    * failure as the clock moves past the fixture. */
   it('measures the residual from the settlement date, not from now', () => {
-    const later = analyseSale(SHORT, { ...QUOTE, settlementDate: '2026-09-01' });
+    const later = analyseSale(SHORT, { ...SHORT_QUOTE, settlementDate: '2026-09-01' });
     expect(later.daysToMaturity).toBe(19);
   });
 
@@ -247,7 +250,7 @@ describe('annualised yields on a nearly-matured bond', () => {
    * the annualised figures barely moved, the caption would be guarding nothing.
    */
   it('distorts the annualised yield purely through the shortened horizon', () => {
-    const short = analyseSale(SHORT, QUOTE);
+    const short = analyseSale(SHORT, SHORT_QUOTE);
     const long = analyseSale(IFB, QUOTE);
     const ratio = long.effectiveSaleYield / Math.max(short.effectiveSaleYield, 1e-9);
     expect(
@@ -358,5 +361,15 @@ describe('redemption steps on the contractual maturity date', () => {
       { date: IFB.maturityDate, fraction: 1 },
     ]);
     expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+  });
+});
+
+describe('an impossible amortisation entry is rejected, not a crash', () => {
+  it('throws a RangeError the page can catch for a date outside the bond life or a fraction over 100%', () => {
+    expect(() => analyseSale(IFB, { ...QUOTE, amortisation: [{ date: '2099-01-01', fraction: 0.5 }] })).toThrow(RangeError);
+    expect(() => analyseSale(IFB, { ...QUOTE, amortisation: [{ date: '2031-06-02', fraction: 1.5 }] })).toThrow(RangeError);
+  });
+  it('still accepts the real schedule behind the broker sheet', () => {
+    expect(() => analyseSale(IFB, QUOTE)).not.toThrow();
   });
 });

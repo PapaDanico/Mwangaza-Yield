@@ -16,7 +16,7 @@ import {
   computePortfolioWeightedDuration,
   computePriceSensitivity,
 } from '@/lib/riskMetrics';
-import { buildPortfolioPaymentSchedule, buildWaterfallSeries } from '@/lib/portfolioCashFlows';
+import { buildPortfolioPaymentSchedule, buildWaterfallSeries, nextTwelveMonthsNetCoupons } from '@/lib/portfolioCashFlows';
 import type { Bond, Holding } from '@/types/bond';
 import { normaliseCode } from '@/lib/auction-history';
 import { looksLikeDhowCsd, parseDhowCsd, toHoldings } from '@/lib/dhowcsd';
@@ -185,6 +185,15 @@ export default function PortfolioPage() {
     () => buildPortfolioPaymentSchedule(enriched, new Date()),
     [enriched],
   );
+  // Coupons actually paid in the next year. `totals.income` is a run-rate, so it
+  // overstates the year when a holding matures inside it (see the function).
+  const nextTwelve = useMemo(
+    () => nextTwelveMonthsNetCoupons(
+      enriched.flatMap((e) => (e.bond && e.result ? [{ bond: e.bond, netCouponPerPeriodKES: e.result.netCouponPerPeriodKES }] : [])),
+      new Date(),
+    ),
+    [enriched],
+  );
   const maxReinvestmentRate = useMemo(
     () => Math.max(
       ...enriched
@@ -331,6 +340,11 @@ export default function PortfolioPage() {
         <div className="card p-4">
           <p className="text-xs text-ink-muted">Net annual income</p>
           <p className="num mt-1 text-lg font-bold text-mint-700">{formatKES(totals.income)}</p>
+          {nextTwelve < totals.income * 0.995 && (
+            <p className="mt-1 text-xs text-ink-faint">
+              Next 12 months: <span className="num">{formatKES(nextTwelve)}</span>, as a holding matures within the year
+            </p>
+          )}
         </div>
         <div className="card p-4">
           <p className="text-xs text-ink-muted">Weighted net yield</p>

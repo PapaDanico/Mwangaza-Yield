@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Bond } from '../../src/types/bond';
-import { nextTwelveMonthsNetCoupons } from '../../src/lib/portfolioCashFlows';
+import { buildPortfolioPaymentSchedule, nextTwelveMonthsNetCoupons } from '../../src/lib/portfolioCashFlows';
 
 const TODAY = new Date('2026-11-13T09:00:00Z');
 
@@ -65,5 +65,45 @@ describe('nextTwelveMonthsNetCoupons', () => {
     // pinned by the SOON case above equalling exactly one coupon.
     const got = nextTwelveMonthsNetCoupons([{ bond: mk('SOON', '2027-03-15'), netCouponPerPeriodKES: NET_PER_PERIOD }], TODAY);
     expect(got).toBe(54_000);
+  });
+});
+
+describe('delayed coupon payments', () => {
+  it('counts a Sunday maturity coupon paid on Monday after the scheduled date', () => {
+    const bond = mk('WEEKEND', '2027-03-14'); // Sunday
+    const asOf = new Date('2027-03-14T09:00:00Z');
+    expect(nextTwelveMonthsNetCoupons([{ bond, netCouponPerPeriodKES: NET_PER_PERIOD }], asOf))
+      .toBe(NET_PER_PERIOD);
+  });
+
+  it('keeps a Sunday maturity in the cashflow schedule until its Monday payment', () => {
+    const bond = mk('WEEKEND', '2027-03-14');
+    const events = buildPortfolioPaymentSchedule([{
+      holding: {
+        id: 'weekend-holding', isin: bond.isin, issueCode: bond.issueCode,
+        faceValueKES: 1_000_000, purchaseDate: '2026-01-01', purchaseCleanPrice: 100,
+      },
+      bond,
+      result: { netCouponPerPeriodKES: NET_PER_PERIOD },
+    }], new Date('2027-03-14T09:00:00Z'));
+    const maturity = events.find((event) => event.scheduledDate === '2027-03-14');
+    expect(maturity?.paymentDate).toBe('2027-03-15');
+    expect(maturity?.principalAmountKES).toBe(1_000_000);
+    expect(maturity?.couponAmountKES).toBe(NET_PER_PERIOD);
+  });
+
+  it('excludes the delayed payment once the payment date has passed', () => {
+    const bond = mk('WEEKEND', '2027-03-14');
+    const asOf = new Date('2027-03-16T09:00:00Z');
+    expect(nextTwelveMonthsNetCoupons([{ bond, netCouponPerPeriodKES: NET_PER_PERIOD }], asOf))
+      .toBe(0);
+    expect(buildPortfolioPaymentSchedule([{
+      holding: {
+        id: 'weekend-holding', isin: bond.isin, issueCode: bond.issueCode,
+        faceValueKES: 1_000_000, purchaseDate: '2026-01-01', purchaseCleanPrice: 100,
+      },
+      bond,
+      result: { netCouponPerPeriodKES: NET_PER_PERIOD },
+    }], asOf)).toEqual([]);
   });
 });

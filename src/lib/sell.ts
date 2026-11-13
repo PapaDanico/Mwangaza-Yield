@@ -430,9 +430,15 @@ export function findReplacements(
   return bonds
     .filter((b) => b.isin !== excludeIsin && new Date(b.maturityDate) > asOf)
     .map((b) => {
-      const netYTM = computeNetYTM(b, priceOf(b));
+      const price = priceOf(b);
+      // A missing or invalid quote is not a purchasable replacement.
+      // Do not let NaN yields enter the ranking or a user-facing verdict.
+      if (!Number.isFinite(price) || price <= 0) return null;
+      const netYTM = computeNetYTM(b, price);
+      if (!Number.isFinite(netYTM)) return null;
       return { bond: b, netYTM, gapPp: netYTM - breakEvenNetYield, beatsBreakEven: netYTM > breakEvenNetYield };
     })
+    .filter((candidate): candidate is Replacement => candidate !== null)
     .sort((a, b) => b.netYTM - a.netYTM);
 }
 

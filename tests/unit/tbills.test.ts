@@ -122,8 +122,20 @@ describe('projectRollover', () => {
     expect(p.netAnnualisedYield).toBeCloseTo(computeTBill(100_000, 8.7986, 91).netEAY, 1);
   });
 
-  it('never returns zero cycles for a short horizon', () => {
-    expect(projectRollover(500_000, 9.0415, 364, 3).cycles).toBe(1);
+  it('does not book a 364-day maturity inside a three-month horizon', () => {
+    const p = projectRollover(500_000, 9.0415, 364, 3);
+    expect(p.cycles).toBe(0);
+    expect(p.schedule).toEqual([]);
+    expect(p.finalValueKES).toBe(500_000);
+    expect(p.totalNetInterestKES).toBe(0);
+    expect(p.netAnnualisedYield).toBe(0);
+  });
+
+  it('does not fabricate returns for a zero-month horizon', () => {
+    const p = projectRollover(500_000, 9.0415, 91, 0);
+    expect(p.cycles).toBe(0);
+    expect(p.finalValueKES).toBe(500_000);
+    expect(Number.isFinite(p.netAnnualisedYield)).toBe(true);
   });
 });
 

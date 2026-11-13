@@ -9,13 +9,14 @@ export default function DisclaimerPage() {
     <Prose
       title="Risk disclaimer"
       lead="Government bonds are among the safest shilling assets available. They are not risk-free."
-      updated="25 July 2026"
+      updated="13 November 2026"
     >
       <h2>Not advice</h2>
       <p>
         Mwangaza Yield is an educational analytics tool. It is not investment advice and not a
-        recommendation to buy or sell. We are not licensed investment advisers. Consider licensed
-        professional advice for your own circumstances.
+        recommendation to buy or sell. We are not licensed by the Capital Markets Authority as
+        investment advisers. Consider licensed professional advice for your own circumstances, and
+        check any adviser&apos;s licence with the Authority before you act on what they say.
       </p>
 
       <h2>The risks you are actually taking</h2>
@@ -47,11 +48,13 @@ export default function DisclaimerPage() {
 
       <h2>Limits of our calculations</h2>
       <ul>
-        <li>Coupon dates run in exact 182-day steps from the issue date, which places every one on a Monday. They are not further adjusted for public holidays, so a payment CBK moves to the next working day will show here on the holiday itself.</li>
+        <li>Coupon dates run in exact 182-day steps from the issue date, which places every scheduled date on a Monday, and that is the date every yield is computed from. Where a page shows when the cash arrives (the ladder and its calendar and spreadsheet exports), it moves a date that falls on a weekend or public holiday to the next business day and shows both. Easter and fixed-date holidays are built in; Eid and one-off holidays are declared by gazette notice, so a year not yet recorded can be a day out. Check the date with your broker or CBK.</li>
         <li>Accrued interest uses an Actual/364 convention, matching the 182-day coupon period. Verify against the prospectus for any bond whose schedule looks irregular.</li>
         <li>Yields without a published auction print are estimates from the prevailing curve.</li>
-        <li>Projections assume rates hold and coupons are reinvested. Neither is guaranteed.</li>
-        <li>Fees, levies and bank charges applicable to your own account are not modelled.</li>
+        <li>Projections assume rates hold and coupons are reinvested. Neither is guaranteed. The bill-or-bond comparison and the &ldquo;if yields move&rdquo; table are scenarios you can change, not forecasts: nobody knows where rates will go.</li>
+        <li>A price shown as <em>par</em> is a placeholder where we hold no price, not the market. Results built on it say so.</li>
+        <li>The early-sale tool includes the commission and levies you enter. Everywhere else, brokerage, CDS fees and bank charges on your own account are not modelled.</li>
+        <li>Tax figures reflect the rules as we understand them at the date shown above; they change by Finance Act and are not tax advice.</li>
       </ul>
 
       <h2>Before you invest</h2>

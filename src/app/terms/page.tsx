@@ -9,12 +9,15 @@ export default function TermsPage() {
     <Prose
       title="Terms of use"
       lead="Plain terms for a free analytics tool."
-      updated="27 September 2026"
+      updated="13 November 2026"
     >
       <h2>1. What you are using</h2>
       <p>
-        Mwangaza Yield is a free, informational analytics tool for Kenyan government securities. By
-        using it you agree to these terms. If you do not agree, please do not use the app.
+        Mwangaza Yield is a free, informational analytics tool for Kenyan government securities,
+        operated by <strong>Danico Ventures Ltd</strong>, a company registered in Kenya (see the{' '}
+        <a href="/privacy/">privacy notice</a> for its details). By using it you agree to these
+        terms. If you do not agree, please do not use the app. You must be 18 or older, or have a
+        parent or guardian who agrees on your behalf.
       </p>
 
       <h2>2. Not investment advice</h2>
@@ -22,8 +25,19 @@ export default function TermsPage() {
         Nothing in this app is investment, tax or legal advice, a recommendation, or an offer or
         solicitation to buy or sell any security. We are not licensed by the Capital Markets
         Authority as an investment adviser or dealer. Outputs are illustrative calculations based
-        on the inputs you provide and on published market data. Decisions you make are your own.
-        Consider taking licensed professional advice before investing.
+        on the inputs you provide and on published market data. We do not assess whether any
+        security is suitable for you, and nothing here is tailored to your circumstances beyond the
+        numbers you enter. Bid guidance is a statistical estimate of where past auctions cleared, not
+        a recommendation to bid.
+        Decisions you make are your own. Consider taking licensed professional advice before
+        investing, and check that anyone advising you holds a current licence on the Capital Markets
+        Authority&apos;s{' '}
+        <a href="https://www.cma.or.ke" target="_blank" rel="noopener noreferrer">website</a>.
+      </p>
+      <p>
+        Tax figures are calculations under the rules as we understand them on the date shown on each
+        page. Tax law changes by Finance Act, and these are not tax advice: confirm your own position
+        with the Kenya Revenue Authority or a tax adviser.
       </p>
 
       <h2>3. No affiliation</h2>
@@ -49,12 +63,15 @@ export default function TermsPage() {
         To the fullest extent permitted by Kenyan law, we accept no liability for any loss —
         including investment losses, lost profits or lost data — arising from your use of, or
         reliance on, this app. Because the app is free and holds none of your money, your sole
-        remedy is to stop using it.
+        remedy is to stop using it. Nothing in these terms excludes or limits liability that cannot
+        lawfully be excluded, including for fraud or dishonesty, or any right you have under
+        Kenya&apos;s consumer-protection law.
       </p>
 
       <h2>6. Your responsibilities</h2>
       <ul>
-        <li>Use the app lawfully and not to mislead others.</li>
+        <li>Use the app lawfully and not to mislead others, including by presenting its illustrative figures as an offer or as a promise of what anyone will earn.</li>
+        <li>Do not attack, overload or try to break into the service, or use it to harm others.</li>
         <li>Verify figures independently before investing.</li>
         <li>Keep your own device secure — your portfolio data is stored on it, and its safety is in your hands.</li>
       </ul>
@@ -68,7 +85,14 @@ export default function TermsPage() {
         <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 
-      <h2>8. Your data</h2>
+      <h2>8. Links and third parties</h2>
+      <p>
+        The app links to sites we do not run, including the Central Bank of Kenya, the National
+        Treasury and WhatsApp. They have their own terms and privacy policies, and we are not
+        responsible for them.
+      </p>
+
+      <h2>9. Your data</h2>
       <p>
         Everything you enter stays on your device, and nothing of yours is stored on a server.
         Price alerts once stored a push endpoint; since July 2026 they are worked out on your
@@ -88,13 +112,17 @@ export default function TermsPage() {
         .
       </p>
 
-      <h2>9. Governing law</h2>
-      <p>These terms are governed by the laws of Kenya.</p>
-
-      <h2>10. Changes</h2>
+      <h2>10. Governing law and disputes</h2>
       <p>
-        We may update these terms; the date above shows the current version. Continuing to use the
-        app after a change means you accept it.
+        These terms are governed by the laws of Kenya, and the courts of Kenya have jurisdiction. If a
+        part of these terms is found unenforceable, the rest still applies. Write to us first at{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>: most problems are quicker to settle that way.
+      </p>
+
+      <h2>11. Changes</h2>
+      <p>
+        We may update these terms; the date above shows the current version. We will change that date
+        whenever the terms change, and continuing to use the app after a change means you accept it.
       </p>
     </Prose>
   );

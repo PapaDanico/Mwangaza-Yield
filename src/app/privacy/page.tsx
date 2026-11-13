@@ -9,7 +9,7 @@ export default function PrivacyPage() {
     <Prose
       title="Privacy policy"
       lead="Everything you enter stays on your device, and nothing of yours is stored on a server — not even price alerts, which since July 2026 are worked out on your device."
-      updated="27 September 2026"
+      updated="13 November 2026"
     >
       {/* Named, because this page ends by pointing readers at the ODPC.
           Sending somebody to complain about an entity the notice will not
@@ -78,6 +78,18 @@ export default function PrivacyPage() {
         loading a page does not notify anyone else that you did.
       </p>
       <p>
+        <strong>Where that happens.</strong> Netlify is a company based outside Kenya and its servers
+        and delivery network may be outside Kenya, so the request data described above can be
+        processed abroad. Kenya&apos;s Office of the Data Protection Commissioner has issued
+        guidance treating cloud hosting outside Kenya as a cross-border transfer. We do not
+        put any personal data of yours on that host ourselves; what Netlify itself keeps about a
+        visit is governed by{' '}
+        <a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener noreferrer">
+          Netlify&apos;s own privacy policy
+        </a>
+        .
+      </p>
+      <p>
         We run our own <strong>tool counter</strong> — a first-party tally of which tools get used,
         hosted alongside the site with no third party involved. It sets no cookies, records no IP
         address, and carries no identifier of any kind: the stored record is a name like
@@ -133,7 +145,7 @@ export default function PrivacyPage() {
             a stored subscription, which is precisely the claim the removal was
             made to be able to deny. */}
         <li><strong>Deletion</strong> — &ldquo;Clear all holdings&rdquo; on the portfolio page, or clearing site data in your browser. There is nothing to delete on our side, for alerts or anything else, because nothing of yours is stored there.</li>
-        <li><strong>Objection</strong> — do not turn on alerts. Nothing else about the app sends anything anywhere, so there is nothing else to object to.</li>
+        <li><strong>Objection and withdrawal</strong> — alerts are the only optional feature, and they run on your device. Turn them off at any time; nothing of yours has been sent anywhere, so there is nothing to withdraw from our side.</li>
       </ul>
       <p>
         If you believe your rights have been infringed you may complain to the{' '}
@@ -142,6 +154,22 @@ export default function PrivacyPage() {
         </a>
         , the supervisory authority for data protection in Kenya. You do not have to come to us
         first.
+      </p>
+
+      <h2>Keeping your device data safe</h2>
+      <p>
+        Your portfolio is stored in your browser on your own device, so its security is largely the
+        security of that device. On a shared phone or computer, anyone who can open your browser
+        profile can open your saved holdings: use your device&apos;s lock screen, and use &ldquo;Clear
+        all holdings&rdquo; before handing a device on. Pages are served over HTTPS and carry a
+        content-security policy that stops the app loading scripts from other sites.
+      </p>
+
+      <h2>If something goes wrong</h2>
+      <p>
+        Because we hold no personal data of yours, there is nothing on our side to be breached. If
+        that ever changes, the Data Protection Act requires us to tell the Data Commissioner and the
+        people affected without delay, and this page would change first.
       </p>
 
       <h2>Links away from the app</h2>
@@ -166,17 +194,16 @@ export default function PrivacyPage() {
         information from anyone — a promise that is easy to keep given we collect none at all.
       </p>
 
-      <h2>Your rights</h2>
+      <h2>Changes to this notice</h2>
       <p>
-        Kenya&apos;s Data Protection Act, 2019 gives you rights over personal data held about you.
-        Because we hold none, there is nothing for us to disclose, correct or erase on request —
-        your data is already exclusively in your own hands. If that ever changes, this page will
-        change first, and the date above will say so.
+        When our practices or the law change we update this page and its date. We will not start
+        collecting personal data without changing this page first.
       </p>
 
       <h2>Contact</h2>
       <p>
-        Questions about this policy can be raised through <a href="/support/">Support</a>.
+        Questions about this policy can be raised through <a href="/support/">Support</a> or by
+        writing to <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
     </Prose>
   );

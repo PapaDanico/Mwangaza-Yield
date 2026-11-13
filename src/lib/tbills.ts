@@ -142,7 +142,7 @@ export function projectRollover(
   months: number
 ): RolloverProjection {
   const horizonDays = (months / 12) * YEAR_DAYS;
-  const cycles = Math.max(1, Math.floor(horizonDays / tenorDays));
+  // A horizon shorter than one bill tenor cannot complete a rollover.\n  // Do not credit interest from a maturity occurring after the requested horizon.\n  const cycles = Math.max(0, Math.floor(horizonDays / tenorDays));
 
   const schedule: RolloverProjection['schedule'] = [];
   let balance = startKES;
@@ -159,7 +159,7 @@ export function projectRollover(
   }
 
   const elapsedDays = cycles * tenorDays;
-  const netAnnualisedYield = (Math.pow(balance / startKES, YEAR_DAYS / elapsedDays) - 1) * 100;
+  const netAnnualisedYield = elapsedDays > 0 && startKES > 0\n    ? (Math.pow(balance / startKES, YEAR_DAYS / elapsedDays) - 1) * 100\n    : 0;
 
   return { cycles, finalValueKES: balance, totalNetInterestKES, netAnnualisedYield, schedule };
 }

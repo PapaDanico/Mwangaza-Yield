@@ -13,6 +13,7 @@ import LiveResult from '@/components/shared/LiveResult';
 import AnswerFigure from '@/components/shared/AnswerFigure';
 import AmountEcho from '@/components/shared/AmountEcho';
 import { inputCls } from '@/lib/field-styles';
+import BillOrBond from '@/components/tbills/BillOrBond';
 import { nextAuctionLabel } from '@/lib/auction-schedule';
 import type { MacroIndicator, TBill } from '@/types/bond';
 
@@ -302,6 +303,8 @@ export default function TbillsClient({
           <a href="/ladder/" className="text-gold-700 underline-offset-2 hover:underline">Ladder Builder</a>.
         </p>
       </div>
+
+      <BillOrBond tbills={tbills} />
 
       {/* Placed HERE, past the `if (!selected || !result || !rollover)` guard
         * on line 38, so it can only render once a reader has actually been

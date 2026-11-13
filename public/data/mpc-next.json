@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-07",
-  "announced": "2026-10-07",
-  "source": "CBK MPC press release of 7 October 2026: \"The Committee will meet again in December 2026.\"",
-  "sourceUrl": "https://www.centralbank.go.ke/monetary-policy/",
-  "note": "The 7 October 2026 press release says only \"The Committee will meet again in December 2026\" — no day yet. The date here is left at the meeting just held, so the dashboard hides the countdown and /macro/ estimates the next one (labelled as an estimate). Set the December day when CBK posts its Next MPC Meeting notice."
+  "date": "2026-12-09",
+  "announced": "2026-11-09",
+  "source": "CBK 'Next MPC Meeting' notice of 9 November 2026: the Monetary Policy Committee will meet on Wednesday 9 December 2026.",
+  "sourceUrl": "https://www.centralbank.go.ke/2026/11/09/next-mpc-meeting-6/",
+  "note": "Set from CBK's own notice page (dated 9 November 2026), found by search because centralbank.go.ke cannot be fetched from a session, and corroborated by a second independently phrased search and a press report of the same notice. The 7 October 2026 press release had said only 'December 2026'. The Central Bank Rate is 8.75 percent, held on 7 October."
 }

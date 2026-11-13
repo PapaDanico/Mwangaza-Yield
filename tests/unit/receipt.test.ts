@@ -157,3 +157,19 @@ describe('receiptToJSON', () => {
     expect(parsed.inputs).toHaveLength(r.inputs.length);
   });
 });
+
+describe('receipt verification algorithm labelling', () => {
+  it('does not describe a djb2 fallback as SHA-256', async () => {
+    const r = await generateReceipt(bondCtx);
+    const fallback = { ...r, hash: 'djb2:1234abcd' };
+    const markdown = receiptToMarkdown(fallback);
+    expect(markdown).toContain('Non-cryptographic checksum (djb2):');
+    expect(markdown).not.toContain('SHA-256:');
+  });
+
+  it('labels a cryptographic digest as SHA-256', async () => {
+    const r = await generateReceipt(bondCtx);
+    const digest = { ...r, hash: 'a'.repeat(64) };
+    expect(receiptToMarkdown(digest)).toContain('SHA-256:');
+  });
+});

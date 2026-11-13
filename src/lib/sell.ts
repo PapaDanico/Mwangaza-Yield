@@ -244,6 +244,9 @@ export function buildCashflows(
   amortisation: AmortisationStep[] = []
 ): CashflowRow[] {
   validateAmortisation(bond, amortisation);
+  // No future cash flow exists on or after contractual redemption.
+  // Otherwise the maturity fallback manufactures a payment for a redeemed bond.
+  if (settlement >= new Date(bond.maturityDate)) return [];
   const wht = determineWHTRate(bond);
   const dates = remainingCouponDates(bond, settlement);
   const maturity = new Date(bond.maturityDate);

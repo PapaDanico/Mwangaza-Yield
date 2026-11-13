@@ -14,7 +14,7 @@ const mockResult: InvestmentResult = {
   cleanPrice: 96.5,
   accruedInterestPer100: 4.0,
   dirtyPrice: 100.5,
-  settlementCostKES: 1_005_000,
+  settlementCostKES: 1_005_000, purchaseChargesKES: 0,
   whtRate: 0.1,
   grossCouponPerPeriodKES: 60_000,
   netCouponPerPeriodKES: 54_000,

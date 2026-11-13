@@ -53,7 +53,7 @@ export default function DisclaimerPage() {
         <li>Yields without a published auction print are estimates from the prevailing curve.</li>
         <li>Projections assume rates hold and coupons are reinvested. Neither is guaranteed. The bill-or-bond comparison and the &ldquo;if yields move&rdquo; table are scenarios you can change, not forecasts: nobody knows where rates will go.</li>
         <li>A price shown as <em>par</em> is a placeholder where we hold no price, not the market. Results built on it say so.</li>
-        <li>The early-sale tool includes the commission and levies you enter. Everywhere else, brokerage, CDS fees and bank charges on your own account are not modelled.</li>
+        <li>The early-sale tool includes the commission and levies you enter. The net-yield calculator takes a purchase charge if you enter one. Everywhere else, brokerage, CDS fees and bank charges on your own account are not modelled.</li>
         <li>Tax figures reflect the rules as we understand them at the date shown above; they change by Finance Act and are not tax advice.</li>
       </ul>
 

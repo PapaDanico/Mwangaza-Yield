@@ -195,3 +195,25 @@ describe('tenor is the issued tenor, not a date calculation', () => {
     expect(determineWHTRate(derived)).toBe(0.15);
   });
 });
+
+describe('purchase charges', () => {
+  const bond = { isin: 'KE-C', issueCode: 'C', name: 'C', category: 'FXD', issueDate: '2021-03-01', maturityDate: '2031-03-03', tenorYears: 10, couponRate: 12, couponFrequencyPerYear: 2, ytmGross: 12, minInvestmentKES: 50000, taxExempt: false, source: 'https://www.centralbank.go.ke/' } as never;
+  const at = new Date('2026-11-16T00:00:00Z');
+  it('defaults to none, and zero leaves every figure unchanged', async () => {
+    const { computeBondInvestment } = await import('../../src/lib/financial-engine');
+    const a = computeBondInvestment(bond, 1_000_000, 100, at);
+    const b = computeBondInvestment(bond, 1_000_000, 100, at, 0);
+    expect(b).toEqual(a);
+    expect(a.purchaseChargesKES).toBe(0);
+  });
+  it('a charge adds to the cost and lowers both yields; negative or NaN is ignored', async () => {
+    const { computeBondInvestment } = await import('../../src/lib/financial-engine');
+    const a = computeBondInvestment(bond, 1_000_000, 100, at);
+    const c = computeBondInvestment(bond, 1_000_000, 100, at, 2_500);
+    expect(c.settlementCostKES).toBeCloseTo(a.settlementCostKES + 2_500, 6);
+    expect(c.grossYTM).toBeLessThan(a.grossYTM);
+    expect(c.netYTM).toBeLessThan(a.netYTM);
+    expect(computeBondInvestment(bond, 1_000_000, 100, at, -5)).toEqual(a);
+    expect(computeBondInvestment(bond, 1_000_000, 100, at, NaN)).toEqual(a);
+  });
+});

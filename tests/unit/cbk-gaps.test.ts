@@ -121,10 +121,30 @@ describe('EXTRA_DOCS', () => {
     for (const d of EXTRA_DOCS) {
       const u = new URL(d.url);
       expect(u.protocol).toBe('https:');
-      expect(['www.treasury.go.ke', 'www.imf.org']).toContain(u.hostname);
+      expect(['www.treasury.go.ke', 'www.imf.org', 'www.centralbank.go.ke', 'new.kenyalaw.org', 'www.kra.go.ke', 'www.odpc.go.ke']).toContain(u.hostname);
       expect(u.hostname === 'www.imf.org' ? u.pathname : u.pathname).toMatch(/\.pdf$|\/api\/v1\/[A-Z_]+\/KEN$/i);
       expect(d.tier).toBe('extra');
     }
   });
 });
 
+
+describe('focusText', () => {
+  it('posts the surroundings of the LAST occurrences, not the contents list', async () => {
+    const { focusText } = await import('../../netlify/functions/cbk-gaps.mts');
+    const toc = 'CONTENTS Fifth Schedule ..... 40. ';
+    const mention = 'as set out in the fifth schedule ';
+    const filler = 'x '.repeat(6000);
+    const body = 'FIFTH SCHEDULE Brokerage commission government bond 0.024 per cent transaction fee';
+    const out = focusText(`${toc}${filler}${mention}${filler}${body} ${filler}`, ['fifth schedule']);
+    expect(out).toContain('0.024 per cent');
+    expect(out).not.toContain('CONTENTS');
+  });
+  it('is case-insensitive, merges overlapping windows and falls back visibly', async () => {
+    const { focusText } = await import('../../netlify/functions/cbk-gaps.mts');
+    expect(focusText('abc Infrastructure Bond def', ['infrastructure bond'])).toContain('Infrastructure Bond');
+    expect(focusText('nothing here', ['absent phrase'])).toMatch(/^\(no match for: absent phrase\)/);
+    const near = focusText('a fee b charge c', ['fee', 'charge']);
+    expect(near.match(/\[\.\.\.\]/g) ?? []).toHaveLength(0);
+  });
+});

@@ -96,3 +96,42 @@ export function buildWaterfallSeries(
     };
   });
 }
+
+/**
+ * Net coupon cash actually paid in the next twelve months.
+ *
+ * WHY THIS EXISTS. "Net annual income" on /portfolio/ and /ladder/ is a
+ * run-rate: face value times the coupon rate, after tax, for each holding as
+ * though it were held for a year. That is the right figure for "what does this
+ * pay per year", and the wrong one for "what will I receive next year" whenever
+ * a holding matures inside the year: a bond with four months left was counted
+ * as twelve months of coupons, when it pays one coupon and is then repaid. The
+ * repayment is principal, not income, so it is excluded here too.
+ *
+ * Each coupon is counted on the day it is actually paid (a coupon falling on a
+ * weekend or holiday moves, as in `buildPortfolioPaymentSchedule`), and only if
+ * that day falls after `asOf` and no later than twelve months on.
+ */
+export function nextTwelveMonthsNetCoupons(
+  items: Array<{ bond: Bond; netCouponPerPeriodKES: number }>,
+  asOf: Date = new Date(),
+): number {
+  const startISO = asOf.toISOString().slice(0, 10);
+  const end = new Date(asOf.getTime());
+  end.setMonth(end.getMonth() + 12);
+  const endISO = end.toISOString().slice(0, 10);
+  let total = 0;
+  for (const { bond, netCouponPerPeriodKES } of items) {
+    const dates = getCouponDates(
+      new Date(bond.issueDate),
+      new Date(bond.maturityDate),
+      bond.couponFrequencyPerYear || 2,
+    ).filter((date) => date.getTime() > asOf.getTime());
+    for (const date of dates) {
+      const paid = paymentDay(date.toISOString().slice(0, 10)).paid;
+      if (paid > startISO && paid <= endISO) total += netCouponPerPeriodKES;
+    }
+  }
+  return total;
+}
+

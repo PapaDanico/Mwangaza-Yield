@@ -9,6 +9,7 @@ import {
   getCouponDates,
   type InvestmentResult,
 } from './financial-engine';
+import { nextTwelveMonthsNetCoupons } from './portfolioCashFlows';
 import {
   makePriceResolver,
   summarisePriceCoverage,
@@ -31,6 +32,8 @@ export interface LadderPlan {
   totalCostKES: number;
   blendedNetYTM: number;
   netAnnualIncomeKES: number;
+  /** Net coupons actually paid in the next twelve months; below the run-rate when a rung matures within the year. */
+  nextTwelveMonthsNetIncomeKES: number;
   /** Net cash received per calendar year (coupons + principal redemptions). */
   yearlyPayouts: { year: number; couponsKES: number; principalKES: number }[];
   unallocatedKES: number;
@@ -258,7 +261,7 @@ function assemble(
 ): LadderPlan {
   if (!picked.length) {
     return {
-      rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0,
+      rungs: [], totalCostKES: 0, blendedNetYTM: 0, netAnnualIncomeKES: 0, nextTwelveMonthsNetIncomeKES: 0,
       yearlyPayouts: [], unallocatedKES: totalKES,
       priceCoverage: summarisePriceCoverage([]),
     };
@@ -288,6 +291,10 @@ function assemble(
 
   const totalCostKES = rungs.reduce((s, r) => s + r.result.settlementCostKES, 0);
   const netAnnualIncomeKES = rungs.reduce((s, r) => s + r.result.netAnnualIncomeKES, 0);
+  const nextTwelveMonthsNetIncomeKES = nextTwelveMonthsNetCoupons(
+    rungs.map((r) => ({ bond: r.bond, netCouponPerPeriodKES: r.result.netCouponPerPeriodKES })),
+    asOf,
+  );
   const blendedNetYTM = totalCostKES > 0
     ? rungs.reduce((s, r) => s + r.result.netYTM * r.result.settlementCostKES, 0) / totalCostKES
     : 0;
@@ -318,6 +325,7 @@ function assemble(
     totalCostKES,
     blendedNetYTM,
     netAnnualIncomeKES,
+    nextTwelveMonthsNetIncomeKES,
     yearlyPayouts,
     unallocatedKES: Math.max(0, totalKES - rungs.length * per),
     priceCoverage: summarisePriceCoverage(rungs.map((r) => r.priceInfo)),

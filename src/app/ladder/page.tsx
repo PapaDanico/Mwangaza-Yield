@@ -252,6 +252,11 @@ export default function LadderPage() {
                 <div className="card p-4">
                   <p className="text-xs text-ink-muted">Net annual income</p>
                   <p className="num mt-1 text-lg font-bold text-mint-700">{formatKES(plan.netAnnualIncomeKES)}</p>
+                  {plan.nextTwelveMonthsNetIncomeKES < plan.netAnnualIncomeKES * 0.995 && (
+                    <p className="mt-1 text-xs text-ink-faint">
+                      Next 12 months: <span className="num">{formatKES(plan.nextTwelveMonthsNetIncomeKES)}</span>, as a rung matures within the year
+                    </p>
+                  )}
                 </div>
                 <div className="card p-4">
                   <p className="text-xs text-ink-muted">Total cost</p>

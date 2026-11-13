@@ -207,6 +207,33 @@ function balanceOn(date: Date, amortisation: AmortisationStep[]): number {
 /* -------------------------------------------------------------- cashflows */
 
 /**
+ * Reject impossible redemption schedules instead of silently clipping the
+ * outstanding balance while still paying out every requested fraction.
+ */
+function validateAmortisation(bond: Bond, steps: AmortisationStep[]): void {
+  const issue = new Date(bond.issueDate);
+  const maturity = new Date(bond.maturityDate);
+  let total = 0;
+  for (const step of steps) {
+    const when = new Date(step.date);
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(step.date)
+      || Number.isNaN(when.getTime())
+      || iso(when) !== step.date
+      || when <= issue
+      || when > maturity
+      || !Number.isFinite(step.fraction)
+      || step.fraction <= 0
+      || step.fraction > 1) {
+      throw new RangeError('Invalid bond amortisation date or principal fraction');
+    }
+    total += step.fraction;
+    if (total > 1 + 1e-9) {
+      throw new RangeError('Bond amortisation exceeds 100% of original principal');
+    }
+  }
+}
+
+/**
  * Every payment still owed on the bond after settlement, with principal
  * repayments placed on their amortisation dates and the balance at maturity.
  */
@@ -216,6 +243,7 @@ export function buildCashflows(
   settlement: Date,
   amortisation: AmortisationStep[] = []
 ): CashflowRow[] {
+  validateAmortisation(bond, amortisation);
   const wht = determineWHTRate(bond);
   const dates = remainingCouponDates(bond, settlement);
   const maturity = new Date(bond.maturityDate);

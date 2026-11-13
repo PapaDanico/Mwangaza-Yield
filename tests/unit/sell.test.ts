@@ -405,3 +405,22 @@ describe('sale quote input validation', () => {
     }
   });
 });
+
+describe('broker quote integrity', () => {
+  it('requires a usable quoted price', () => {
+    expect(() => analyseSale(IFB, { ...QUOTE, dirtyPrice: undefined })).toThrow(RangeError);
+    for (const dirtyPrice of [0, -1, NaN, Infinity]) {
+      expect(() => analyseSale(IFB, { ...QUOTE, dirtyPrice })).toThrow(RangeError);
+    }
+  });
+
+  it('rejects invalid transaction charges and quoted yields', () => {
+    for (const commissionKES of [-1, NaN, Infinity]) {
+      expect(() => analyseSale(IFB, { ...QUOTE, commissionKES })).toThrow(RangeError);
+    }
+    for (const leviesKES of [-1, NaN, Infinity]) {
+      expect(() => analyseSale(IFB, { ...QUOTE, leviesKES })).toThrow(RangeError);
+    }
+    expect(() => analyseSale(IFB, { ...QUOTE, quotedYTM: NaN })).toThrow(RangeError);
+  });
+});

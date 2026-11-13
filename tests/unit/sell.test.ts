@@ -284,3 +284,29 @@ describe('replacement quotes must be usable', () => {
     )).toEqual([]);
   });
 });
+
+describe('off-cycle amortisation cash-flow timing', () => {
+  it('repays principal on the stated date rather than postponing it to the next coupon', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: '2027-01-15', fraction: 0.25 },
+    ]);
+    const redemption = rows.find((row) => row.date === '2027-01-15');
+    expect(redemption).toBeDefined();
+    expect(redemption!.principalKES).toBeCloseTo(100_000, 2);
+    expect(redemption!.couponKES).toBe(0);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.map((row) => row.date)).toEqual(
+      [...rows.map((row) => row.date)].sort()
+    );
+    const laterCoupon = rows.find((row) => row.date > '2027-01-15' && row.couponKES > 0);
+    expect(laterCoupon!.couponKES).toBeCloseTo(27_484 * 0.75, 2);
+  });
+
+  it('does not repay principal already amortised before settlement a second time', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2027-02-01'), [
+      { date: '2027-01-15', fraction: 0.25 },
+    ]);
+    expect(rows.some((row) => row.date === '2027-01-15')).toBe(false);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(300_000, 2);
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { analyseSale, buildCashflows, remainingCouponDates, verdict, type SaleQuote } from '../../src/lib/sell';
+import { analyseSale, buildCashflows, remainingCouponDates, findReplacements, verdict, type SaleQuote } from '../../src/lib/sell';
 import type { Bond } from '../../src/types/bond';
 
 /**
@@ -255,5 +255,32 @@ describe('annualised yields on a nearly-matured bond', () => {
       'the same sheet on a shorter bond must produce a materially different ' +
         'annualised yield, or there is nothing for the caption to warn about'
     ).toBeGreaterThan(50);
+  });
+});
+
+describe('replacement quotes must be usable', () => {
+  const bonds: Bond[] = [
+    { ...IFB, isin: 'VALID', issueCode: 'VALID' },
+    { ...IFB, isin: 'MISSING', issueCode: 'MISSING' },
+    { ...IFB, isin: 'INVALID', issueCode: 'INVALID' },
+    { ...IFB, isin: 'BADYIELD', issueCode: 'BADYIELD' },
+  ];
+
+  it('excludes zero, nonfinite prices and nonfinite yields from recommendations', () => {
+    const results = findReplacements(
+      bonds, 10,
+      (b) => b.isin === 'VALID' ? 98 : b.isin === 'MISSING' ? 0 : b.isin === 'INVALID' ? NaN : 99,
+      (b) => b.isin === 'BADYIELD' ? NaN : 12,
+      undefined,
+      new Date('2026-07-20')
+    );
+    expect(results.map((r) => r.bond.isin)).toEqual(['VALID']);
+    expect(results[0].beatsBreakEven).toBe(true);
+  });
+
+  it('returns no replacement when all available quotes are missing', () => {
+    expect(findReplacements(
+      bonds, 10, () => 0, () => 12, undefined, new Date('2026-07-20')
+    )).toEqual([]);
   });
 });

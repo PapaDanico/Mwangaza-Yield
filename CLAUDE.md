@@ -1,20 +1,16 @@
 # Working on this repository
 
-## Current execution state — 13 November 2026
+## Execution notes, 13 November 2026
 
-This section is a point-in-time checkpoint; verify the latest repository state before relying on it.
+A checkpoint, not a standing fact: verify against `git log origin/main` and the Netlify deploy record before relying on any line.
 
-- PR #433 (PWA screenshot correction) was **closed without merging**. Do not infer that all its commits are absent: several changes are already on `main`. Reconcile actual file blobs rather than reopening or cherry-picking the whole PR.
-- Current open PR count was **zero** at the last inspection. No active PR should be described as awaiting merge without checking again.
-- On `main`, `src/lib/sell.ts` now validates amortisation fractions and dates, returns no future cash flows for settlements on/after maturity, and combines the final coupon with maturity principal into one row even after an off-cycle repayment.
-- `tests/unit/sell.test.ts` includes regressions for maturity-date amortisation, mature holdings, off-cycle principal, and principal reconciliation.
-- `src/lib/tbills.ts` no longer fabricates a completed rollover when the selected horizon is shorter than the tenor; malformed literal backslash-newlines were corrected.
-- `src/lib/ics.ts` includes content-sensitive deterministic event UIDs.
-- GitHub Actions `test-and-build` on the latest inspected commits **failed before recording any job steps**. That is **not** a passing test run, nor proof of a code failure. Do not repeatedly trigger paid/blocked workflows.
-- Do **not** claim a successful production deploy, verified broker-sheet pricing, or fully validated amortisation conventions until independent evidence exists.
-- Primary remaining financial work: prospectus-level amortisation and holder eligibility, coupon calculation for off-cycle repayments, reconciliation against the pinned real broker quote, issue-specific tax treatment and source provenance. See `docs/FINANCIAL-ENGINE-AUDIT-2026-11-13.md`.
-- Existing handover reviews (`docs/HANDOVER-REVIEW.md` and `docs/HANDOVER-FAMILY-REVIEW.md`) identify duplicated proposals and incorrect assumptions. Treat outside-in handovers as leads, not implementation authority.
-- **Release rule:** consolidate changes and perform one production deployment only after an independent typecheck, unit test, build, and financial fixture reconciliation.
+- **Other agents push straight to `main` on this account.** Eight commits (sell validation and tests, this section) landed without a PR and were deployed before anyone ran the gates. Run `git fetch && git log origin/main` before branching, and run `npm run ci` on the head you are about to build on. One of those pushes changed the precached `/sell/` page without bumping the service worker, so returning visitors would have kept the old code; `verify:sw` caught it (fixed in v128).
+- **PR #433 was closed as superseded by #435.** Its commits are on `main`; do not reopen it or cherry-pick from it.
+- **Sell validation (on `main`):** `analyseSale` throws `RangeError` for a settlement on or after maturity, a non-positive or non-finite face, price or charge, or a non-finite quoted yield; `buildCashflows` rejects impossible amortisation (date outside the bond's life, fraction over 100%) and returns no flows at or after maturity; the final coupon and maturity principal share one row. `/sell/` catches the `RangeError` and shows its message; it must never throw inside a render.
+- **T-bill rollover:** a horizon shorter than the bill gives zero cycles and the card says so; it never shows a completed roll. Calendar UIDs include the description, so a calendar imported before 13 Nov may show each event twice once.
+- **GitHub Actions `test-and-build` fails before recording any step** (billing; see the table). That is neither a pass nor a code failure. The local gates replace it: `npm run ci` 10/10 and `npm run verify:sw` before any merge.
+- **Deploys are verified from Netlify's record** (state, commit, functions, edge function, secret scan), as the Deploying section describes. That is good evidence of what was published, though it is not the page itself.
+- **Remaining financial work** (see `docs/FINANCIAL-ENGINE-AUDIT-2026-11-13.md`): prospectus-level amortisation and holder eligibility in the purchase-yield engine (it assumes a bullet), coupon accrual across off-cycle repayments, reconciliation with the pinned broker quote, issue-specific tax treatment and per-issue source provenance. Treat outside-in handovers (`docs/HANDOVER-REVIEW.md`, `docs/HANDOVER-FAMILY-REVIEW.md`) as leads, not authority.
 
 ---
 

@@ -115,14 +115,15 @@ export default function SellClient() {
     };
   }, [bond, face, settlement, dirty, quotedYTM, commission, levies, amortDate, amortPct]);
 
-  // An impossible amortisation schedule (a date outside the bond's life, a
-  // percentage over 100) is rejected by the library; show that, do not crash.
-  const { analysis, scheduleProblem } = useMemo(() => {
-    if (!bond || !quote) return { analysis: null, scheduleProblem: false };
+  // The library rejects input it cannot value (a date outside the bond's life,
+  // a percentage over 100, a settlement on or after maturity, a bad price or
+  // charge). Say which, instead of crashing the page or blaming the wrong field.
+  const { analysis, inputProblem } = useMemo(() => {
+    if (!bond || !quote) return { analysis: null, inputProblem: null as string | null };
     try {
-      return { analysis: analyseSale(bond, quote), scheduleProblem: false };
+      return { analysis: analyseSale(bond, quote), inputProblem: null as string | null };
     } catch (e) {
-      if (e instanceof RangeError) return { analysis: null, scheduleProblem: true };
+      if (e instanceof RangeError) return { analysis: null, inputProblem: e.message };
       throw e;
     }
   }, [bond, quote]);
@@ -487,12 +488,11 @@ export default function SellClient() {
           </div>
         ) : (
           <div className="card">
-            {scheduleProblem ? (
+            {inputProblem ? (
               <p role="alert" className="text-sm text-gold-700">
-                The principal repayment you entered cannot be right for this bond: its date must fall
-                after the bond was issued and no later than its maturity, and the percentage must be
-                above 0 and no more than 100. Correct it, or clear it if your bond has no part
-                repayment.
+                {/amortisation/i.test(inputProblem)
+                  ? 'The principal repayment you entered cannot be right for this bond: its date must fall after the bond was issued and no later than its maturity, and the percentage must be above 0 and no more than 100. Correct it, or clear it if your bond has no part repayment.'
+                  : `These figures cannot be analysed: ${inputProblem.replace(/\.$/, '')}. Check the value date, price and charges you entered.`}
               </p>
             ) : (
               <p className="text-sm text-ink-muted">

@@ -341,3 +341,22 @@ describe('amortisation input integrity', () => {
     expect(rows.filter((row) => row.principalKES > 0)).toHaveLength(2);
   });
 });
+
+describe('redemption steps on the contractual maturity date', () => {
+  it('returns the remaining half when the amortisation schedule explicitly includes maturity', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: '2031-06-02', fraction: 0.5 },
+      { date: IFB.maturityDate, fraction: 0.5 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.filter((row) => row.date === IFB.maturityDate)).toHaveLength(1);
+    expect(rows.find((row) => row.date === IFB.maturityDate)!.principalKES).toBeCloseTo(200_000, 2);
+  });
+
+  it('does not double count a full redemption specified at maturity', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: IFB.maturityDate, fraction: 1 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+  });
+});

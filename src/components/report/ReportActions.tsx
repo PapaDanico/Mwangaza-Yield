@@ -290,6 +290,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
       padding: el.style.padding,
       boxSizing: el.style.boxSizing,
     };
+    try {
     el.style.display = 'block';
     el.style.position = 'fixed';
     el.style.left = '-10000px';
@@ -368,7 +369,6 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * added OUTSIDE the forced 1123px and the sheet stops being A4-shaped. */
 
 
-    try {
       const { default: html2canvas } = await import('html2canvas-pro');
       // Text geometry is collected only after the final font/layout settle below.
       /* Capture the SCROLL width, not the box width.

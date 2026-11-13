@@ -310,3 +310,34 @@ describe('off-cycle amortisation cash-flow timing', () => {
     expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(300_000, 2);
   });
 });
+
+describe('amortisation input integrity', () => {
+  const settlement = new Date('2026-07-20');
+  it('rejects schedules repaying more than original face', () => {
+    expect(() => buildCashflows(IFB, 400_000, settlement, [
+      { date: '2030-01-01', fraction: 0.7 },
+      { date: '2031-01-01', fraction: 0.5 },
+    ])).toThrow(/exceeds 100%/);
+  });
+
+  it('rejects negative, nonfinite and out-of-life principal repayments', () => {
+    for (const step of [
+      { date: '2030-01-01', fraction: -0.1 },
+      { date: '2030-01-01', fraction: NaN },
+      { date: '2041-01-01', fraction: 0.1 },
+      { date: '2022-01-01', fraction: 0.1 },
+      { date: '2030-02-30', fraction: 0.1 },
+    ]) {
+      expect(() => buildCashflows(IFB, 400_000, settlement, [step])).toThrow(RangeError);
+    }
+  });
+
+  it('allows full redemption by maturity without returning principal twice', () => {
+    const rows = buildCashflows(IFB, 400_000, settlement, [
+      { date: '2030-01-01', fraction: 0.5 },
+      { date: '2035-01-01', fraction: 0.5 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.filter((row) => row.principalKES > 0)).toHaveLength(2);
+  });
+});

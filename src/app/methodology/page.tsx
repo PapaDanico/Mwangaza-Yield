@@ -74,7 +74,7 @@ export default function MethodologyPage() {
 
       <h2>What these tools do not do</h2>
       <ul>
-        <li>They do not include brokerage or CDS fees on a purchase.</li>
+        <li>They assume no purchase charge unless you enter one: the net-yield calculator has a field for a bank or broker fee, and adds it to the cost. We found no CBK fee for bidding yourself on DhowCSD, but check its current terms; banks and brokers set their own tariffs, which we do not publish because we could not verify current ones.</li>
         <li>They do not forecast rates, prices or auction outcomes with certainty. Bid guidance is a measured estimate with a published track record.</li>
         <li>They are not investment advice. Check terms against the CBK prospectus before you invest.</li>
       </ul>

@@ -169,6 +169,8 @@ export interface InvestmentResult {
   accruedInterestPer100: number;
   dirtyPrice: number;
   settlementCostKES: number;
+  /** Broker or bank charge the reader entered, included in the cost above and in both yields. 0 when none. */
+  purchaseChargesKES: number;
   whtRate: number;
   grossCouponPerPeriodKES: number;
   netCouponPerPeriodKES: number;
@@ -193,12 +195,23 @@ export function computeBondInvestment(
   bond: Bond,
   faceValueKES: number,
   cleanPrice: number,
-  settlementDate: Date = new Date()
+  settlementDate: Date = new Date(),
+  /**
+   * What an intermediary charges on this purchase, in shillings, as the reader
+   * was told it. Defaults to 0 and is never assumed: CBK's own DhowCSD terms
+   * show no bidding fee that we could find, so a direct bid costs the price
+   * alone, and a bank's or broker's tariff is the reader's to enter. The charge
+   * is part of what leaves the account, so it lowers both yields.
+   */
+  purchaseChargesKES: number = 0
 ): InvestmentResult {
   const whtRate = determineWHTRate(bond);
   const accrued = calculateAccruedInterest(bond, settlementDate);
   const dirtyPrice = cleanPrice + accrued;
-  const settlementCostKES = (faceValueKES * dirtyPrice) / 100;
+  const charges = Number.isFinite(purchaseChargesKES) && purchaseChargesKES > 0 ? purchaseChargesKES : 0;
+  const settlementCostKES = (faceValueKES * dirtyPrice) / 100 + charges;
+  // The yield is solved from what you actually pay per 100 of face, charges included.
+  const effectiveDirty = faceValueKES > 0 ? (settlementCostKES / faceValueKES) * 100 : dirtyPrice;
 
   const freq = bond.couponFrequencyPerYear || 2;
   const grossCouponPerPeriodKES = (faceValueKES * bond.couponRate) / 100 / freq;
@@ -209,8 +222,8 @@ export function computeBondInvestment(
   // Both yields are solved from the price the user actually pays. Net YTM
   // discounts WHT-taxed coupons with untaxed principal — exact, not a
   // coupon-share approximation.
-  const grossYTM = solveYTMFromPrice(bond, dirtyPrice, settlementDate, 1);
-  const netYTM = solveYTMFromPrice(bond, dirtyPrice, settlementDate, 1 - whtRate);
+  const grossYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1);
+  const netYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1 - whtRate);
 
   const next = getNextCouponDate(bond, settlementDate);
 
@@ -220,6 +233,7 @@ export function computeBondInvestment(
     accruedInterestPer100: accrued,
     dirtyPrice,
     settlementCostKES,
+    purchaseChargesKES: charges,
     whtRate,
     grossCouponPerPeriodKES,
     netCouponPerPeriodKES,

@@ -48,6 +48,41 @@ export interface GapDoc {
   /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. 'extra': a named Treasury document wanted for its own series. */
   tier: 'gap' | 'verify' | 'extra';
   rows: { id: string; missing: string[]; contradicts?: boolean }[];
+  /**
+   * For a long statute or guidance note: phrases whose surroundings are posted
+   * instead of the start of the document, which is usually a contents list.
+   */
+  finds?: string[];
+}
+
+/** Characters kept around each phrase, and how many of its latest occurrences. */
+const FIND_WINDOW = 2_800;
+const FIND_OCCURRENCES = 2;
+
+/**
+ * The parts of `text` that matter: for each phrase, the surroundings of its last
+ * few occurrences (the first is usually the contents list), in document order,
+ * overlaps merged. Falls back to the opening text when nothing matches, so a
+ * changed document is visible rather than silently empty.
+ */
+export function focusText(text: string, finds: string[]): string {
+  const lower = text.toLowerCase();
+  const spans: [number, number][] = [];
+  for (const f of finds) {
+    const needle = f.toLowerCase();
+    const hits: number[] = [];
+    for (let i = lower.indexOf(needle); i !== -1; i = lower.indexOf(needle, i + needle.length)) hits.push(i);
+    for (const h of hits.slice(-FIND_OCCURRENCES)) spans.push([Math.max(0, h - 300), Math.min(text.length, h + FIND_WINDOW)]);
+  }
+  if (spans.length === 0) return `(no match for: ${finds.join(' | ')}) ${text.slice(0, 2_000)}`;
+  spans.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const sp of spans) {
+    const last = merged[merged.length - 1];
+    if (last && sp[0] <= last[1]) last[1] = Math.max(last[1], sp[1]);
+    else merged.push([sp[0], sp[1]]);
+  }
+  return merged.map(([a, b]) => text.slice(a, b)).join(' [...] ');
 }
 
 const absent = (v: unknown) => v === null || v === undefined || v === '' || v === 0;
@@ -148,6 +183,66 @@ export const EXTRA_DOCS: GapDoc[] = [
       rows: [],
     })
   ),
+  // Primary documents behind the 13 Nov 2026 evidence report
+  // (reports/Kenya securities fees and regulation.md): the statute and guidance
+  // that settle what a session could only read about second-hand. Read-only,
+  // exact URLs, windows around the phrases each question turns on.
+  {
+    url: 'https://new.kenyalaw.org/akn/ke/act/ln/2025/197/eng@2025-12-11/source.pdf',
+    file: 'LN 197 of 2025 Capital Markets Licensing Requirements Regulations (fees, adviser).pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['Brokerage commission', 'government bond', 'investment adviser', 'investment advisory'],
+  },
+  {
+    url: 'https://www.centralbank.go.ke/wp-content/uploads/2025/12/DhowCSD-Frequently-Asked-Questions.pdf',
+    file: 'CBK DhowCSD Frequently Asked Questions (fees).pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['fee', 'charge', 'free of'],
+  },
+  {
+    url: 'https://www.centralbank.go.ke/wp-content/uploads/2024/08/Investor-Portal-and-Mobile-APP-Terms-and-Conditions.pdf',
+    file: 'CBK Investor Portal and Mobile APP Terms and Conditions (fees).pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['fee', 'charge', 'M-Pesa'],
+  },
+  {
+    url: 'https://www.odpc.go.ke/wp-content/uploads/2026/04/Guidance-Note-on-Cross-border-Data-Transfers.pdf',
+    file: 'ODPC Guidance Note on Cross-border Data Transfers.pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['notif', 'cloud', 'hosting', 'draft', 'effective'],
+  },
+  {
+    url: 'https://www.odpc.go.ke/wp-content/uploads/2024/02/ODPC-Guidance-Note-on-Registration-of-Data-Controllers-and-Data-Processors.pdf',
+    file: 'ODPC Guidance Note on Registration of Data Controllers and Processors.pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['exempt', 'turnover', 'employees'],
+  },
+  {
+    url: 'https://www.odpc.go.ke/wp-content/uploads/2025/11/ODPC-%E2%80%93-Guidance-Note-on-Processing-by-MSMEs.pdf',
+    file: 'ODPC Guidance Note on Processing by MSMEs.pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['register', 'privacy notice', 'IP address', 'cookie'],
+  },
+  {
+    url: 'https://www.kra.go.ke/images/publications/Finance-Act-2026.pdf',
+    file: 'Finance Act 2026 (withholding tax, bonds).pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'Third Schedule'],
+  },
+  {
+    url: 'https://www.kra.go.ke/images/publications/IncomeTaxAct2of1975.pdf',
+    file: 'Income Tax Act Cap 470 (withholding tax, bonds).pdf',
+    tier: 'extra',
+    rows: [],
+    finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'bearer'],
+  },
 ];
 /** Characters posted for an extra document: a multi-column annual table runs long. */
 const EXTRA_TEXT_CHARS = 16_000;
@@ -208,7 +303,7 @@ export default async () => {
 
   const site = process.env.URL ?? 'https://mwangazayield.org';
   const body = read
-    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : doc.tier === 'extra' ? 'extra' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${text.slice(0, doc.tier === 'extra' ? EXTRA_TEXT_CHARS : TEXT_CHARS)}`)
+    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : doc.tier === 'extra' ? 'extra' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${doc.tier === 'extra' && doc.finds ? focusText(text, doc.finds).slice(0, EXTRA_TEXT_CHARS) : text.slice(0, doc.tier === 'extra' ? EXTRA_TEXT_CHARS : TEXT_CHARS)}`)
     .join('\n')
     .slice(0, 38_000);
   const res = await fetch(`${site}/cbk-watch-form.html`, {

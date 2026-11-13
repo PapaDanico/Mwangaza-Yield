@@ -118,7 +118,7 @@ describe('no personal data reaches any server we control', () => {
     // cbk-gaps alone may also name www.treasury.go.ke: one exact Debt Sustainability
     // Indicators PDF and www.imf.org's DataMapper API for Kenya, wanted for the Fiscal
     // Health chart's ten-year history.
-    const allowed = file === 'cbk-gaps.mts' ? /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$|^www\.treasury\.go\.ke$|^www\.imf\.org$/ : /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$/;
+    const allowed = file === 'cbk-gaps.mts' ? /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$|^www\.treasury\.go\.ke$|^www\.imf\.org$|^new\.kenyalaw\.org$|^www\.kra\.go\.ke$|^www\.odpc\.go\.ke$/ : /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$/;
     expect(hosts.filter((h) => !allowed.test(h))).toEqual([]);
     expect(src).not.toMatch(/pushManager|webpush|vapid|sendMail|smtp/i);
   });

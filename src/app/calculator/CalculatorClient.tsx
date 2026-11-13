@@ -60,6 +60,7 @@ export default function CalculatorClient() {
   const [isin, setIsin] = useState('');
   const [amount, setAmount] = useState(1_000_000);
   const [price, setPrice] = useState(100);
+  const [charges, setCharges] = useState(0);
   // Cleared whenever the price moves, so the confirmation always refers to the
   // number currently on screen rather than the last one saved.
   const [saved, setSaved] = useState(false);
@@ -111,8 +112,8 @@ export default function CalculatorClient() {
   }, [priceInfo]);
 
   const result = useMemo(
-    () => (bond ? computeBondInvestment(bond, amount, price) : null),
-    [bond, amount, price]
+    () => (bond ? computeBondInvestment(bond, amount, price, new Date(), charges) : null),
+    [bond, amount, price, charges]
   );
 
   useEffect(() => {
@@ -235,6 +236,30 @@ export default function CalculatorClient() {
               )}
             </p>
           </div>
+
+          <details className="rounded-xl border border-sand-300 px-3">
+            <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-ink-soft">
+              Charged a fee to place the bid? Add it
+            </summary>
+            <div className="pb-3">
+              <label htmlFor="calc-charges" className="mb-1 block text-xs text-ink-muted">
+                Broker or bank charge on this purchase (Ksh)
+              </label>
+              <input
+                id="calc-charges"
+                type="number" min={0} step={100} value={charges || ''}
+                placeholder="0"
+                onChange={(e) => setCharges(nonNegativeNumber(e.target.value))}
+                className={`num ${inputCls}`}
+              />
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-faint">
+                Left at zero, which is right for a bid you place yourself on DhowCSD if CBK is not
+                charging you; check DhowCSD&apos;s current terms. Banks and brokers set their own
+                tariffs, so enter the amount you were told. It is added to the cost and lowers the
+                yields below.
+              </p>
+            </div>
+          </details>
 
           <div>
             <label htmlFor="calc-price" className="mb-1 flex justify-between text-sm font-medium text-ink-soft">

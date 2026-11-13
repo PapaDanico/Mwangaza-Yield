@@ -143,7 +143,7 @@ export const EXTRA_DOCS: GapDoc[] = [
   ...(['GGXWDG_NGDP', 'GGXCNL_NGDP', 'GGXONLB_NGDP', 'GGR_NGDP', 'GGX_NGDP'] as const).map(
     (code): GapDoc => ({
       url: `https://www.imf.org/external/datamapper/api/v1/${code}/KEN`,
-      file: `IMF DataMapper ${code} Kenya.json`,
+      file: `IMF DataMapper ${code} Kenya (values).json`,
       tier: 'extra',
       rows: [],
     })
@@ -158,10 +158,25 @@ export function pendingDocs(rows: Row[]): GapDoc[] {
   return [...gap, ...verifyDocs(rows, gap), ...EXTRA_DOCS];
 }
 
+/** The key a document is recorded under once read. Extras include the file name, so changing what is posted for one re-reads it. */
+const readKey = (d: GapDoc) => (d.tier === 'extra' ? `${d.url}#${d.file}` : d.url);
+
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
   const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) return `status ${res.status}`;
-  if (!/\.pdf(\?|$)/i.test(url)) return (await res.text()).replace(/\s+/g, ' ').trim() || '(empty)';
+  if (!/\.pdf(\?|$)/i.test(url)) {
+    const raw = (await res.text()).replace(/\s+/g, ' ').trim();
+    // The IMF DataMapper document opens with a label for every country, which
+    // would fill the post before any value. Keep only Kenya's series.
+    try {
+      const j = JSON.parse(raw) as { values?: Record<string, Record<string, Record<string, number>>> };
+      const code = Object.keys(j.values ?? {})[0];
+      if (j.values && code && j.values[code]?.KEN) return JSON.stringify({ indicator: code, KEN: j.values[code].KEN });
+    } catch {
+      /* not that document: fall through to the text */
+    }
+    return raw || '(empty)';
+  }
   const pdf = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
   const { text } = await extractText(pdf, { mergePages: true });
   return (text as string).replace(/\s+/g, ' ').trim() || '(no text layer)';
@@ -171,7 +186,7 @@ export default async () => {
   const started = Date.now();
   const store = getStore('cbk-watch');
   const done = ((await store.get('gap-docs-read', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
-  const todo = pendingDocs(archive as unknown as Row[]).filter((d) => !done[d.url]).slice(0, GAP_DOCS_PER_RUN);
+  const todo = pendingDocs(archive as unknown as Row[]).filter((d) => !done[readKey(d)]).slice(0, GAP_DOCS_PER_RUN);
   if (todo.length === 0) return;
 
   const read: { doc: GapDoc; text: string }[] = [];
@@ -203,7 +218,7 @@ export default async () => {
   }).catch(() => null);
   // Marked read only once the text has been delivered.
   if (!res || res.status >= 400) return;
-  for (const { doc, text } of read) done[doc.url] = text === '(no text layer)' ? 'no text layer' : 'read';
+  for (const { doc, text } of read) done[readKey(doc)] = text === '(no text layer)' ? 'no text layer' : 'read';
   await store.setJSON('gap-docs-read', done);
 };
 

@@ -21,7 +21,16 @@ export function buildICS(events: CalendarEvent[], calendarName = 'Mwangaza Yield
   for (const e of events) {
     const d = e.date.replace(/-/g, '');
     // Stable UID so re-imports update rather than duplicate.
-    const uid = `${d}-${e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}@mwangazayield`;
+    // Identical titles on the same date can refer to different holdings.
+    // Include the description in the stable identity to prevent calendar
+    // clients silently merging distinct coupon payments.
+    const identity = `${e.date}\\u0000${e.title}\\u0000${e.description ?? ''}`;
+    let hash = 2166136261;
+    for (let i = 0; i < identity.length; i++) {
+      hash ^= identity.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    const uid = `${d}-${(hash >>> 0).toString(16).padStart(8, '0')}@mwangazayield`;
     lines.push(
       'BEGIN:VEVENT',
       `UID:${uid}`,

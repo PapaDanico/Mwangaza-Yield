@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { analyseSale, buildCashflows, remainingCouponDates, verdict, type SaleQuote } from '../../src/lib/sell';
+import { analyseSale, buildCashflows, remainingCouponDates, findReplacements, verdict, type SaleQuote } from '../../src/lib/sell';
 import type { Bond } from '../../src/types/bond';
 
 /**
@@ -207,9 +207,12 @@ describe('verdict', () => {
  */
 describe('annualised yields on a nearly-matured bond', () => {
   const SHORT: Bond = { ...IFB, maturityDate: '2026-09-20' }; // 62 days from settlement
+  // The 2031 amortisation step in QUOTE lies beyond this bond's life, which is
+  // not a real schedule and is rejected; these tests are about annualisation.
+  const SHORT_QUOTE: SaleQuote = { ...QUOTE, amortisation: [] };
 
   it('flags a residual under a year as extrapolated', () => {
-    const a = analyseSale(SHORT, QUOTE);
+    const a = analyseSale(SHORT, SHORT_QUOTE);
     expect(a.annualisationIsExtrapolated).toBe(true);
     expect(a.daysToMaturity).toBe(62);
   });
@@ -227,7 +230,7 @@ describe('annualised yields on a nearly-matured bond', () => {
    * figures it is captioning — and this test would otherwise drift into
    * failure as the clock moves past the fixture. */
   it('measures the residual from the settlement date, not from now', () => {
-    const later = analyseSale(SHORT, { ...QUOTE, settlementDate: '2026-09-01' });
+    const later = analyseSale(SHORT, { ...SHORT_QUOTE, settlementDate: '2026-09-01' });
     expect(later.daysToMaturity).toBe(19);
   });
 
@@ -247,7 +250,7 @@ describe('annualised yields on a nearly-matured bond', () => {
    * the annualised figures barely moved, the caption would be guarding nothing.
    */
   it('distorts the annualised yield purely through the shortened horizon', () => {
-    const short = analyseSale(SHORT, QUOTE);
+    const short = analyseSale(SHORT, SHORT_QUOTE);
     const long = analyseSale(IFB, QUOTE);
     const ratio = long.effectiveSaleYield / Math.max(short.effectiveSaleYield, 1e-9);
     expect(
@@ -255,5 +258,118 @@ describe('annualised yields on a nearly-matured bond', () => {
       'the same sheet on a shorter bond must produce a materially different ' +
         'annualised yield, or there is nothing for the caption to warn about'
     ).toBeGreaterThan(50);
+  });
+});
+
+describe('replacement quotes must be usable', () => {
+  const bonds: Bond[] = [
+    { ...IFB, isin: 'VALID', issueCode: 'VALID' },
+    { ...IFB, isin: 'MISSING', issueCode: 'MISSING' },
+    { ...IFB, isin: 'INVALID', issueCode: 'INVALID' },
+    { ...IFB, isin: 'BADYIELD', issueCode: 'BADYIELD' },
+  ];
+
+  it('excludes zero, nonfinite prices and nonfinite yields from recommendations', () => {
+    const results = findReplacements(
+      bonds, 10,
+      (b) => b.isin === 'VALID' ? 98 : b.isin === 'MISSING' ? 0 : b.isin === 'INVALID' ? NaN : 99,
+      (b) => b.isin === 'BADYIELD' ? NaN : 12,
+      undefined,
+      new Date('2026-07-20')
+    );
+    expect(results.map((r) => r.bond.isin)).toEqual(['VALID']);
+    expect(results[0].beatsBreakEven).toBe(true);
+  });
+
+  it('returns no replacement when all available quotes are missing', () => {
+    expect(findReplacements(
+      bonds, 10, () => 0, () => 12, undefined, new Date('2026-07-20')
+    )).toEqual([]);
+  });
+});
+
+describe('off-cycle amortisation cash-flow timing', () => {
+  it('repays principal on the stated date rather than postponing it to the next coupon', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: '2027-01-15', fraction: 0.25 },
+    ]);
+    const redemption = rows.find((row) => row.date === '2027-01-15');
+    expect(redemption).toBeDefined();
+    expect(redemption!.principalKES).toBeCloseTo(100_000, 2);
+    expect(redemption!.couponKES).toBe(0);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.map((row) => row.date)).toEqual(
+      [...rows.map((row) => row.date)].sort()
+    );
+    const laterCoupon = rows.find((row) => row.date > '2027-01-15' && row.couponKES > 0);
+    expect(laterCoupon!.couponKES).toBeCloseTo(27_484 * 0.75, 2);
+  });
+
+  it('does not repay principal already amortised before settlement a second time', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2027-02-01'), [
+      { date: '2027-01-15', fraction: 0.25 },
+    ]);
+    expect(rows.some((row) => row.date === '2027-01-15')).toBe(false);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(300_000, 2);
+  });
+});
+
+describe('amortisation input integrity', () => {
+  const settlement = new Date('2026-07-20');
+  it('rejects schedules repaying more than original face', () => {
+    expect(() => buildCashflows(IFB, 400_000, settlement, [
+      { date: '2030-01-01', fraction: 0.7 },
+      { date: '2031-01-01', fraction: 0.5 },
+    ])).toThrow(/exceeds 100%/);
+  });
+
+  it('rejects negative, nonfinite and out-of-life principal repayments', () => {
+    for (const step of [
+      { date: '2030-01-01', fraction: -0.1 },
+      { date: '2030-01-01', fraction: NaN },
+      { date: '2041-01-01', fraction: 0.1 },
+      { date: '2022-01-01', fraction: 0.1 },
+      { date: '2030-02-30', fraction: 0.1 },
+    ]) {
+      expect(() => buildCashflows(IFB, 400_000, settlement, [step])).toThrow(RangeError);
+    }
+  });
+
+  it('allows full redemption by maturity without returning principal twice', () => {
+    const rows = buildCashflows(IFB, 400_000, settlement, [
+      { date: '2030-01-01', fraction: 0.5 },
+      { date: '2035-01-01', fraction: 0.5 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.filter((row) => row.principalKES > 0)).toHaveLength(2);
+  });
+});
+
+describe('redemption steps on the contractual maturity date', () => {
+  it('returns the remaining half when the amortisation schedule explicitly includes maturity', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: '2031-06-02', fraction: 0.5 },
+      { date: IFB.maturityDate, fraction: 0.5 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+    expect(rows.filter((row) => row.date === IFB.maturityDate)).toHaveLength(1);
+    expect(rows.find((row) => row.date === IFB.maturityDate)!.principalKES).toBeCloseTo(200_000, 2);
+  });
+
+  it('does not double count a full redemption specified at maturity', () => {
+    const rows = buildCashflows(IFB, 400_000, new Date('2026-07-20'), [
+      { date: IFB.maturityDate, fraction: 1 },
+    ]);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
+  });
+});
+
+describe('an impossible amortisation entry is rejected, not a crash', () => {
+  it('throws a RangeError the page can catch for a date outside the bond life or a fraction over 100%', () => {
+    expect(() => analyseSale(IFB, { ...QUOTE, amortisation: [{ date: '2099-01-01', fraction: 0.5 }] })).toThrow(RangeError);
+    expect(() => analyseSale(IFB, { ...QUOTE, amortisation: [{ date: '2031-06-02', fraction: 1.5 }] })).toThrow(RangeError);
+  });
+  it('still accepts the real schedule behind the broker sheet', () => {
+    expect(() => analyseSale(IFB, QUOTE)).not.toThrow();
   });
 });

@@ -207,6 +207,33 @@ function balanceOn(date: Date, amortisation: AmortisationStep[]): number {
 /* -------------------------------------------------------------- cashflows */
 
 /**
+ * Reject impossible redemption schedules instead of silently clipping the
+ * outstanding balance while still paying out every requested fraction.
+ */
+function validateAmortisation(bond: Bond, steps: AmortisationStep[]): void {
+  const issue = new Date(bond.issueDate);
+  const maturity = new Date(bond.maturityDate);
+  let total = 0;
+  for (const step of steps) {
+    const when = new Date(step.date);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(step.date)
+      || Number.isNaN(when.getTime())
+      || iso(when) !== step.date
+      || when <= issue
+      || when > maturity
+      || !Number.isFinite(step.fraction)
+      || step.fraction <= 0
+      || step.fraction > 1) {
+      throw new RangeError('Invalid bond amortisation date or principal fraction');
+    }
+    total += step.fraction;
+    if (total > 1 + 1e-9) {
+      throw new RangeError('Bond amortisation exceeds 100% of original principal');
+    }
+  }
+}
+
+/**
  * Every payment still owed on the bond after settlement, with principal
  * repayments placed on their amortisation dates and the balance at maturity.
  */
@@ -216,6 +243,7 @@ export function buildCashflows(
   settlement: Date,
   amortisation: AmortisationStep[] = []
 ): CashflowRow[] {
+  validateAmortisation(bond, amortisation);
   const wht = determineWHTRate(bond);
   const dates = remainingCouponDates(bond, settlement);
   const maturity = new Date(bond.maturityDate);
@@ -227,7 +255,7 @@ export function buildCashflows(
     const bal = balanceOn(new Date(d.getTime() - DAY_MS), amortisation);
     const gross = fullPeriodCoupon * bal;
     const principal = amortisation
-      .filter((s) => iso(new Date(s.date)) === iso(d) || (new Date(s.date) > settlement && sameCouponSlot(new Date(s.date), d)))
+      .filter((s) => iso(new Date(s.date)) === iso(d) && d < maturity && new Date(s.date) > settlement)
       .reduce((sum, s) => sum + s.fraction * faceValueKES, 0);
     return {
       date: iso(d),
@@ -237,20 +265,30 @@ export function buildCashflows(
     };
   });
 
-  // Whatever principal has not amortised comes back at maturity.
-  const finalBalance = balanceOn(maturity, amortisation);
+  // Principal is payable on its contractual amortisation date, not the
+  // following coupon date. Deferring it changes the present value and can
+  // distort the broker-quote cross-check for off-cycle repayments.
+  for (const step of amortisation) {
+    const when = new Date(step.date);
+    if (when <= settlement || when >= maturity || dates.some((d) => iso(d) === iso(when))) continue;
+    rows.push({
+      date: iso(when),
+      couponKES: 0,
+      netCouponKES: 0,
+      principalKES: step.fraction * faceValueKES,
+    });
+  }
+
+  // Redemption at maturity includes any fraction contractually marked for
+  // that date. balanceOn(maturity) would subtract it before calculating the
+  // final payment, causing principal to disappear from the cash-flow schedule.
+  const finalBalance = balanceOn(new Date(maturity.getTime() - DAY_MS), amortisation);
   const last = rows[rows.length - 1];
   if (last && last.date === iso(maturity)) last.principalKES += finalBalance * faceValueKES;
   else if (finalBalance > 0) {
     rows.push({ date: iso(maturity), couponKES: 0, principalKES: finalBalance * faceValueKES, netCouponKES: 0 });
   }
-  return rows;
-}
-
-/** An amortisation date is settled on the coupon date it falls in or on. */
-function sameCouponSlot(amortDate: Date, couponDate: Date): boolean {
-  const diff = daysBetween(amortDate, couponDate);
-  return diff >= 0 && diff < PERIOD_DAYS;
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 /* ----------------------------------------------------------------- prices */
@@ -430,9 +468,15 @@ export function findReplacements(
   return bonds
     .filter((b) => b.isin !== excludeIsin && new Date(b.maturityDate) > asOf)
     .map((b) => {
-      const netYTM = computeNetYTM(b, priceOf(b));
+      const price = priceOf(b);
+      // A missing or invalid quote is not a purchasable replacement.
+      // Do not let NaN yields enter the ranking or a user-facing verdict.
+      if (!Number.isFinite(price) || price <= 0) return null;
+      const netYTM = computeNetYTM(b, price);
+      if (!Number.isFinite(netYTM)) return null;
       return { bond: b, netYTM, gapPp: netYTM - breakEvenNetYield, beatsBreakEven: netYTM > breakEvenNetYield };
     })
+    .filter((candidate): candidate is Replacement => candidate !== null)
     .sort((a, b) => b.netYTM - a.netYTM);
 }
 

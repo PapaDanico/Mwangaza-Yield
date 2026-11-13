@@ -115,10 +115,17 @@ export default function SellClient() {
     };
   }, [bond, face, settlement, dirty, quotedYTM, commission, levies, amortDate, amortPct]);
 
-  const analysis = useMemo(
-    () => (bond && quote ? analyseSale(bond, quote) : null),
-    [bond, quote]
-  );
+  // An impossible amortisation schedule (a date outside the bond's life, a
+  // percentage over 100) is rejected by the library; show that, do not crash.
+  const { analysis, scheduleProblem } = useMemo(() => {
+    if (!bond || !quote) return { analysis: null, scheduleProblem: false };
+    try {
+      return { analysis: analyseSale(bond, quote), scheduleProblem: false };
+    } catch (e) {
+      if (e instanceof RangeError) return { analysis: null, scheduleProblem: true };
+      throw e;
+    }
+  }, [bond, quote]);
 
   // Repricing needs the plain coupon schedule; an amortising holding has a
   // different one, so it gets no table rather than a wrong one.
@@ -480,10 +487,19 @@ export default function SellClient() {
           </div>
         ) : (
           <div className="card">
-            <p className="text-sm text-ink-muted">
-              Enter the value date and dirty price from your quote to see the analysis. Everything
-              stays on this device.
-            </p>
+            {scheduleProblem ? (
+              <p role="alert" className="text-sm text-gold-700">
+                The principal repayment you entered cannot be right for this bond: its date must fall
+                after the bond was issued and no later than its maturity, and the percentage must be
+                above 0 and no more than 100. Correct it, or clear it if your bond has no part
+                repayment.
+              </p>
+            ) : (
+              <p className="text-sm text-ink-muted">
+                Enter the value date and dirty price from your quote to see the analysis. Everything
+                stays on this device.
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -1,21 +1,21 @@
 # Rates via Mwangaza Yield (mwangazayield.org)
-# Generated 2026-11-09T00:00:00+00:00 | schema 1
+# Generated 2026-11-12T00:00:00+00:00 | schema 1
 "# Derived from published Central Bank of Kenya and National Treasury releases. No exchange-sourced or secondary-market prices are included, published or implied."
 # T-BILLS: quotedDiscountRate is CBK's published quote and is NOT a return. Project income from netEAY; compare against other net-of-tax yields only.
 "# BANDS: Bond bands are bucketed by REMAINING term at the auction date, not the tenor in the issue code — most recent auctions are re-openings whose label understates nothing and overstates plenty. A null median means too few auctions to quote."
 "# Public information provided as-is for education, not investment advice and not a warranty of accuracy. Verify against the official prospectus before committing funds."
 
 series,label,tenorDays,fromYears,toYears,quotedDiscountRate,grossRate,netRate,whtRate,sampleSize,lowRate,highRate,asOf,source
-tbill,91-day Treasury bill,91,,,8.75,9.0416,7.6477,0.15,,,,2026-11-05,"CBK auction, 5 Nov 2026, entered by hand"
-tbill,182-day Treasury bill,182,,,8.845,9.0411,7.66,0.15,,,,2026-11-05,"CBK auction, 5 Nov 2026, entered by hand"
-tbill,364-day Treasury bill,364,,,9.0282,9.0293,7.6748,0.15,,,,2026-11-05,"CBK auction, 5 Nov 2026, entered by hand"
+tbill,91-day Treasury bill,91,,,8.7448,9.036,7.643,0.15,,,,2026-11-12,"CBK auction, 12 Nov 2026, entered by hand"
+tbill,182-day Treasury bill,182,,,8.8372,9.033,7.6531,0.15,,,,2026-11-12,"CBK auction, 12 Nov 2026, entered by hand"
+tbill,364-day Treasury bill,364,,,9.0098,9.0109,7.6591,0.15,,,,2026-11-12,"CBK auction, 12 Nov 2026, entered by hand"
 bondAuctionBand,Under 3y,,0,3,,,,,0,,,,CBK auction results
 bondAuctionBand,3–7y,,3,7,,,,,2,,,2026-07-13,CBK auction results
-bondAuctionBand,7–12y,,7,12,,12.734,,,11,12.184,13.339,2026-11-04,CBK auction results
+bondAuctionBand,7–12y,,7,12,,12.734,,,9,12.184,13.312,2026-11-04,CBK auction results
 bondAuctionBand,12–20y,,12,20,,13.482,,,18,12.688,14.34,2026-10-14,CBK auction results
 bondAuctionBand,20y+,,20,40,,13.941,,,10,12.949,14.617,2026-11-04,CBK auction results
 macro,centralBankRate,,,,,8.75,,,,,,2026-10-07,CBK
 macro,inflation,,,,,7.3,,,,,,2026-10-31,CBK
 macro,inflationCore,,,,,4.3,,,,,,2026-10-31,CBK
 macro,inflationNonCore,,,,,15.1,,,,,,2026-10-31,CBK
-macro,usdKes,,,,,129.91,,,,,,2026-11-06,CBK indicative
+macro,usdKes,,,,,129.96,,,,,,2026-11-12,CBK indicative

@@ -73,6 +73,31 @@ export default function LandingPage() {
             </Link>
           </div>
 
+          {/* Goal chooser: each answer is a question a saver actually has,
+              routed to the tool that answers it. Static links, no client
+              state, so it adds no layout shift. */}
+          <nav aria-label="What do you want to do?" className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Or start from your question</p>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {[
+                { href: '/calculator/', label: 'What will this bond really pay me?' },
+                { href: '/tbills/', label: 'Bill or bond?' },
+                { href: '/ladder/', label: 'Build monthly income' },
+                { href: '/sell/', label: 'Selling before maturity' },
+                { href: '/auctions/', label: 'What to bid at auction' },
+              ].map((q) => (
+                <li key={q.href}>
+                  <Link
+                    href={q.href}
+                    className="inline-flex min-h-11 items-center rounded-full border border-sand-300 bg-sand-50 px-3.5 text-sm text-ink transition hover:border-gold-500"
+                  >
+                    {q.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
           {/* Trust markers, per the brand board's poster footer */}
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-sand-300 pt-5">
             {[

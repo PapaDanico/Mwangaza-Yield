@@ -1,0 +1,433 @@
+{
+  "schema": 1,
+  "curatedAt": "2026-11-13",
+  "note": "Annual fiscal history behind the Fiscal Health chart on /macro/. Read, not copied: figures come from the publishers' own documents, fetched by the cbk-gaps Netlify function (egress is open there, not from a session) and posted to the hidden cbk-watch form, then entered by hand with the checks recorded in each sourceNote.",
+  "series": [
+    {
+      "id": "gg-gross-debt-gdp",
+      "label": "General government gross debt",
+      "unit": "% of GDP",
+      "source": "IMF World Economic Outlook, October 2026",
+      "sourceUrl": "https://www.imf.org/external/datamapper/api/v1/GGXWDG_NGDP/KEN",
+      "sourceNote": "IMF DataMapper series GGXWDG_NGDP for Kenya, read by the cbk-gaps function on 13 Nov 2026 (calendar years). Checked: the 12 years 2020-2031 equal imf-outlook.json (October 2026 vintage) exactly, with no mismatch, and 2016-2018 (50.4, 53.9, 56.4) agree with the 2016-2018 figures found independently by search (50.4, 53.87, 56.45). Status follows imf-outlook.json where it has a year and is outturn before 2020.",
+      "observations": [
+        {
+          "year": 2000,
+          "value": 43.1,
+          "status": "outturn"
+        },
+        {
+          "year": 2001,
+          "value": 41.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2002,
+          "value": 42,
+          "status": "outturn"
+        },
+        {
+          "year": 2003,
+          "value": 43.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2004,
+          "value": 40.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2005,
+          "value": 37.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2006,
+          "value": 37.1,
+          "status": "outturn"
+        },
+        {
+          "year": 2007,
+          "value": 34.2,
+          "status": "outturn"
+        },
+        {
+          "year": 2008,
+          "value": 34.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2009,
+          "value": 36,
+          "status": "outturn"
+        },
+        {
+          "year": 2010,
+          "value": 36.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2011,
+          "value": 35.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2012,
+          "value": 37.6,
+          "status": "outturn"
+        },
+        {
+          "year": 2013,
+          "value": 39.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2014,
+          "value": 41.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2015,
+          "value": 45.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2016,
+          "value": 50.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2017,
+          "value": 53.9,
+          "status": "outturn"
+        },
+        {
+          "year": 2018,
+          "value": 56.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2019,
+          "value": 59.1,
+          "status": "outturn"
+        },
+        {
+          "year": 2020,
+          "value": 68,
+          "status": "outturn"
+        },
+        {
+          "year": 2021,
+          "value": 68.2,
+          "status": "outturn"
+        },
+        {
+          "year": 2022,
+          "value": 67.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2023,
+          "value": 73.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2024,
+          "value": 67.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2025,
+          "value": 71.3,
+          "status": "estimate"
+        },
+        {
+          "year": 2026,
+          "value": 72.9,
+          "status": "projection"
+        },
+        {
+          "year": 2027,
+          "value": 73.8,
+          "status": "projection"
+        },
+        {
+          "year": 2028,
+          "value": 74.4,
+          "status": "projection"
+        },
+        {
+          "year": 2029,
+          "value": 74.4,
+          "status": "projection"
+        },
+        {
+          "year": 2030,
+          "value": 74.3,
+          "status": "projection"
+        },
+        {
+          "year": 2031,
+          "value": 74,
+          "status": "projection"
+        }
+      ]
+    },
+    {
+      "id": "gg-overall-balance-gdp",
+      "label": "General government overall balance",
+      "unit": "% of GDP",
+      "source": "IMF World Economic Outlook, October 2026",
+      "sourceUrl": "https://www.imf.org/external/datamapper/api/v1/GGXCNL_NGDP/KEN",
+      "sourceNote": "IMF DataMapper series GGXCNL_NGDP (net lending/borrowing) for Kenya, read by the cbk-gaps function on 13 Nov 2026 (calendar years; negative is a deficit). Checked: 2020-2031 equal imf-outlook.json exactly. Status as for debt.",
+      "observations": [
+        {
+          "year": 2000,
+          "value": 0.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2001,
+          "value": -0.5,
+          "status": "outturn"
+        },
+        {
+          "year": 2002,
+          "value": -1.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2003,
+          "value": -0.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2004,
+          "value": 0.5,
+          "status": "outturn"
+        },
+        {
+          "year": 2005,
+          "value": -0.2,
+          "status": "outturn"
+        },
+        {
+          "year": 2006,
+          "value": -0.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2007,
+          "value": -1,
+          "status": "outturn"
+        },
+        {
+          "year": 2008,
+          "value": -2,
+          "status": "outturn"
+        },
+        {
+          "year": 2009,
+          "value": -3.1,
+          "status": "outturn"
+        },
+        {
+          "year": 2010,
+          "value": -3.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2011,
+          "value": -3.6,
+          "status": "outturn"
+        },
+        {
+          "year": 2012,
+          "value": -5.3,
+          "status": "outturn"
+        },
+        {
+          "year": 2013,
+          "value": -5.2,
+          "status": "outturn"
+        },
+        {
+          "year": 2014,
+          "value": -5.8,
+          "status": "outturn"
+        },
+        {
+          "year": 2015,
+          "value": -6.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2016,
+          "value": -7.5,
+          "status": "outturn"
+        },
+        {
+          "year": 2017,
+          "value": -7.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2018,
+          "value": -6.9,
+          "status": "outturn"
+        },
+        {
+          "year": 2019,
+          "value": -7.4,
+          "status": "outturn"
+        },
+        {
+          "year": 2020,
+          "value": -8.1,
+          "status": "outturn"
+        },
+        {
+          "year": 2021,
+          "value": -7.2,
+          "status": "outturn"
+        },
+        {
+          "year": 2022,
+          "value": -6,
+          "status": "outturn"
+        },
+        {
+          "year": 2023,
+          "value": -5.6,
+          "status": "outturn"
+        },
+        {
+          "year": 2024,
+          "value": -5.7,
+          "status": "outturn"
+        },
+        {
+          "year": 2025,
+          "value": -6.5,
+          "status": "estimate"
+        },
+        {
+          "year": 2026,
+          "value": -6.6,
+          "status": "projection"
+        },
+        {
+          "year": 2027,
+          "value": -6.1,
+          "status": "projection"
+        },
+        {
+          "year": 2028,
+          "value": -5.9,
+          "status": "projection"
+        },
+        {
+          "year": 2029,
+          "value": -5.8,
+          "status": "projection"
+        },
+        {
+          "year": 2030,
+          "value": -5.8,
+          "status": "projection"
+        },
+        {
+          "year": 2031,
+          "value": -5.8,
+          "status": "projection"
+        }
+      ]
+    }
+  ],
+  "treasury": {
+    "source": "National Treasury, Macro, Debt and Debt Sustainability Indicators (10 April 2026)",
+    "sourceUrl": "https://www.treasury.go.ke/sites/default/files/debt/Debt%20Sustainability%20Indicators/MARCH%202026.pdf",
+    "sourceNote": "Read in full by the cbk-gaps function on 13 Nov 2026. Columns are fiscal-year ends in June: 2002, 2007, 2012, 2017, 2022, then every year to 2025, then March 2026. Public and publicly guaranteed debt is the Treasury's nominal stock against GDP, a different measure from the IMF's general government gross debt above, so the two are shown side by side and never joined. The table's printed 'Total Interest Payment to Ordinary Revenue' row is NOT used: it equals each year's interest over the PREVIOUS column's revenue (for example 12.20 is the June 2007 interest, 41.30, over the June 2002 revenue, 338.51), so interest is divided here by the same column's ordinary revenue, from the table's own two rows. June 2025 revenue (2,784.41) is marked provisional by the Treasury.",
+    "ppgDebtToGDP": [
+      {
+        "label": "Jun 2002",
+        "value": 59.8
+      },
+      {
+        "label": "Jun 2007",
+        "value": 43.6
+      },
+      {
+        "label": "Jun 2012",
+        "value": 40.7
+      },
+      {
+        "label": "Jun 2017",
+        "value": 57.4
+      },
+      {
+        "label": "Jun 2022",
+        "value": 67.7
+      },
+      {
+        "label": "Jun 2023",
+        "value": 70.8
+      },
+      {
+        "label": "Jun 2024",
+        "value": 65.47
+      },
+      {
+        "label": "Jun 2025",
+        "value": 67.76
+      },
+      {
+        "label": "Mar 2026",
+        "value": 70.18
+      }
+    ],
+    "interest": [
+      {
+        "label": "Jun 2002",
+        "interestKESBn": 29.61,
+        "ordinaryRevenueKESBn": 338.51
+      },
+      {
+        "label": "Jun 2007",
+        "interestKESBn": 41.3,
+        "ordinaryRevenueKESBn": 690.73
+      },
+      {
+        "label": "Jun 2012",
+        "interestKESBn": 89.69,
+        "ordinaryRevenueKESBn": 1306.57
+      },
+      {
+        "label": "Jun 2017",
+        "interestKESBn": 271.23,
+        "ordinaryRevenueKESBn": 1917.91
+      },
+      {
+        "label": "Jun 2022",
+        "interestKESBn": 577.98,
+        "ordinaryRevenueKESBn": 2041.12
+      },
+      {
+        "label": "Jun 2023",
+        "interestKESBn": 689.01,
+        "ordinaryRevenueKESBn": 2288.92
+      },
+      {
+        "label": "Jun 2024",
+        "interestKESBn": 843.85,
+        "ordinaryRevenueKESBn": 2420.17
+      },
+      {
+        "label": "Jun 2025",
+        "interestKESBn": 995.36,
+        "ordinaryRevenueKESBn": 2784.41,
+        "provisional": true
+      }
+    ]
+  }
+}

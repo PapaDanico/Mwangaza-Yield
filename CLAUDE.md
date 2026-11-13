@@ -1,5 +1,24 @@
 # Working on this repository
 
+## Current execution state — 13 November 2026
+
+This section is a point-in-time checkpoint; verify the latest repository state before relying on it.
+
+- PR #433 (PWA screenshot correction) was **closed without merging**. Do not infer that all its commits are absent: several changes are already on `main`. Reconcile actual file blobs rather than reopening or cherry-picking the whole PR.
+- Current open PR count was **zero** at the last inspection. No active PR should be described as awaiting merge without checking again.
+- On `main`, `src/lib/sell.ts` now validates amortisation fractions and dates, returns no future cash flows for settlements on/after maturity, and combines the final coupon with maturity principal into one row even after an off-cycle repayment.
+- `tests/unit/sell.test.ts` includes regressions for maturity-date amortisation, mature holdings, off-cycle principal, and principal reconciliation.
+- `src/lib/tbills.ts` no longer fabricates a completed rollover when the selected horizon is shorter than the tenor; malformed literal backslash-newlines were corrected.
+- `src/lib/ics.ts` includes content-sensitive deterministic event UIDs.
+- GitHub Actions `test-and-build` on the latest inspected commits **failed before recording any job steps**. That is **not** a passing test run, nor proof of a code failure. Do not repeatedly trigger paid/blocked workflows.
+- Do **not** claim a successful production deploy, verified broker-sheet pricing, or fully validated amortisation conventions until independent evidence exists.
+- Primary remaining financial work: prospectus-level amortisation and holder eligibility, coupon calculation for off-cycle repayments, reconciliation against the pinned real broker quote, issue-specific tax treatment and source provenance. See `docs/FINANCIAL-ENGINE-AUDIT-2026-11-13.md`.
+- Existing handover reviews (`docs/HANDOVER-REVIEW.md` and `docs/HANDOVER-FAMILY-REVIEW.md`) identify duplicated proposals and incorrect assumptions. Treat outside-in handovers as leads, not implementation authority.
+- **Release rule:** consolidate changes and perform one production deployment only after an independent typecheck, unit test, build, and financial fixture reconciliation.
+
+---
+
+
 Notes for Claude Code sessions. Everything here was learned the expensive way —
 by a session spending tokens to discover it. Read it before reaching for a tool.
 

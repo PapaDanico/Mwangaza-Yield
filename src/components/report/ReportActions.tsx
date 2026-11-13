@@ -287,6 +287,8 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
       top: el.style.top,
       width: el.style.width,
       background: el.style.background,
+      padding: el.style.padding,
+      boxSizing: el.style.boxSizing,
     };
     el.style.display = 'block';
     el.style.position = 'fixed';
@@ -342,6 +344,13 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
     el.style.boxSizing = 'border-box';
     el.style.padding = CAPTURE_PADDING;
 
+    // Fonts must settle before measuring the width and height used for PDF fitting.
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Older WebViews may not expose the Font Loading API.
+    }
+
     const bestWidth = chooseCaptureWidth((w) => {
       el.style.width = `${w}px`;
       return el.scrollHeight;
@@ -361,8 +370,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
 
     try {
       const { default: html2canvas } = await import('html2canvas-pro');
-      const bounds = el.getBoundingClientRect();
-      lastTextRuns = collectTextRuns(el, bounds);
+      // Text geometry is collected only after the final font/layout settle below.
       /* Capture the SCROLL width, not the box width.
        *
        * The sheet is forced to 1123px, but forcing a width does not stop the
@@ -379,8 +387,9 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
        * scrollWidth is the width the content actually needs; the placement
        * below already fits whichever edge binds, so a wider capture is scaled
        * rather than cropped. */
-      const captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
-      const captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
+      let bounds = el.getBoundingClientRect();
+      let captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
+      let captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
       /* WAIT FOR THE FONTS. The sheet is display:none until now, so the
        * faces it uses are only requested at this moment; capturing at once
        * laid text out in the fallback font and drew it in the real one —
@@ -393,6 +402,11 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
       } catch {
         /* fonts API unavailable: capture with what is there */
       }
+      // A late font swap can change wrapping; capture and text must share the same geometry.
+      bounds = el.getBoundingClientRect();
+      captureW = Math.ceil(Math.max(bounds.width, el.scrollWidth));
+      captureH = Math.ceil(Math.max(bounds.height, el.scrollHeight)) + 8;
+      lastTextRuns = collectTextRuns(el, bounds);
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
@@ -423,6 +437,8 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
       el.style.top = prev.top;
       el.style.width = prev.width;
       el.style.background = prev.background;
+      el.style.padding = prev.padding;
+      el.style.boxSizing = prev.boxSizing;
     }
   }
 
@@ -456,14 +472,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
        * Chosen from the measurement, not hardcoded the other way: a future
        * report that is genuinely tall should get portrait, and this keeps
        * working when the sheet's design changes. */
-      /* Padding first, and box-sizing with it. The loop below measures real
-     * heights, and a measurement taken before the gutters exist is a
-     * measurement of a different document — 80px narrower in content and 68px
-     * shorter — which would pick the wrong width with total confidence. */
-    el.style.boxSizing = 'border-box';
-    el.style.padding = CAPTURE_PADDING;
-
-    const A4_ASPECT = 297 / 210;
+      const A4_ASPECT = 297 / 210;
       const contentAspect = canvas.width / canvas.height;
       const landscape = contentAspect > 1;
       const pdf = new jsPDF({

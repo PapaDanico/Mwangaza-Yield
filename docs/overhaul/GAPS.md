@@ -30,8 +30,8 @@ not a baseline: `CLAUDE.md` and `docs/` already are one.
 2. Homepage goal chooser routing to existing tools (needs 1 as a target; must not add scroll).
 3. Rate shocks (-200 to +200bp) on `/sell/` and `/prices/` from the existing duration and convexity.
 4. Ladder cash-flow calendar table and CSV with an assumptions header (check what `/portfolio/` already exports first).
-5. One data-status vocabulary (official, estimated, user-supplied, hypothetical) rolled out card by card.
-6. Methodology page (the conventions above, written down) and a correction link.
+5. ~~One data-status vocabulary~~ **Not built, deliberately (13 Nov):** it already exists as `ProvenanceBadge` (official / search-corroborated figures), `PriceBadge` (your price / last traded / par), `StaleDataNotice` and `DataStatus`. A fourth component would duplicate them; scenario outputs are labelled in prose.
+6. ~~Methodology page and correction link~~ **Done (13 Nov):** `/methodology/`; the correction route already existed on `/support/`.
 7. Buy-side fees in the calculator (decision needed on defaults).
 
 Not recommended: rewriting the engine (test-pinned, and CBK-conformant already), a decimal money library, feature flags

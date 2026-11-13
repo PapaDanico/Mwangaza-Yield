@@ -4,21 +4,21 @@
     "label": "Reserves (import cover)",
     "value": 5.9,
     "unit": "months",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-12",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,699 million on this date, about KSh 1.91 trillion at 129.96, down from USD 14,740 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin of 6 November 2026, read by the cbk-watch function from CBK's own PDF.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,605 million on this date, about KSh 1.90 trillion at 129.96, down from USD 14,699 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin for the week ending 13 November 2026, read by the cbk-watch function from CBK's own PDF.",
     "sentiment": "good"
   },
   {
     "id": "cbk-domestic-debt",
     "label": "Gross domestic debt",
-    "value": 7.89,
+    "value": 7.91,
     "unit": "KSh tn",
-    "asOf": "2026-10-30",
+    "asOf": "2026-11-06",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,894.42 billion at 30 October 2026 (Weekly Bulletin of 6 November, gross domestic debt), up from 7,884.79 billion a week earlier. Read by the cbk-watch function from CBK's own PDF.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,906.50 billion at 6 November 2026 (Weekly Bulletin for the week ending 13 November, gross domestic debt), up from 7,894.42 billion a week earlier. Read by the cbk-watch function from CBK's own PDF.",
     "sentiment": "watch"
   },
   {

@@ -285,7 +285,7 @@ export function staleDatasetNotice(stale: DatasetFreshness[] = staleDatasets()):
     .join('; ');
   return (
     `Some figures here have not refreshed on schedule: ${named}. ` +
-    `Other figures may also have changed; check the original publisher's latest ` +
+    `Other figures may also have changed; check the Central Bank or original publisher's latest ` +
     `figures and notices before making an investment decision.`
   );
 }
@@ -388,7 +388,7 @@ export function readerNotice(now: Date = new Date()): string | null {
   if (overdue.length === 0) return null;
   return (
     `Some figures here have not refreshed on schedule: ${overdue.join('; ')}. ` +
-    `Other figures may also have changed; check the original publisher's latest ` +
+    `Other figures may also have changed; check the Central Bank or original publisher's latest ` +
     `figures and notices before making an investment decision.`
   );
 }

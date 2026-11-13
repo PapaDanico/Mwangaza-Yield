@@ -355,6 +355,18 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   if (!Number.isFinite(face) || face <= 0) {
     throw new RangeError('Bond face value must be a positive finite amount');
   }
+  if (![quote.commissionKES, quote.leviesKES].every((value) => Number.isFinite(value) && value >= 0)) {
+    throw new RangeError('Sale charges must be finite nonnegative amounts');
+  }
+  if (quote.cleanPrice === undefined && quote.dirtyPrice === undefined) {
+    throw new RangeError('A clean or dirty bond price is required');
+  }
+  if ([quote.cleanPrice, quote.dirtyPrice].some((value) => value !== undefined && (!Number.isFinite(value) || value <= 0))) {
+    throw new RangeError('Bond prices must be positive finite amounts');
+  }
+  if (quote.quotedYTM !== undefined && !Number.isFinite(quote.quotedYTM)) {
+    throw new RangeError('Quoted yield must be finite');
+  }
   const freq = bond.couponFrequencyPerYear || 2;
   const amortisation = quote.amortisation ?? [];
 

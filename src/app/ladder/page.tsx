@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarPlus, Layers, Share2, X, RotateCcw } from 'lucide-react';
+import { CalendarPlus, Download, Layers, Share2, X, RotateCcw } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice, PriceBadge } from '@/components/shared/PriceProvenance';
@@ -9,6 +9,7 @@ import { buildLadder , ladderEmptyReason } from '@/lib/ladder';
 import { formatKES, formatPct, getCouponDates } from '@/lib/financial-engine';
 import { downloadICS, type CalendarEvent } from '@/lib/ics';
 import { paymentDay } from '@/lib/holidays';
+import { ladderCsv } from '@/lib/ladder-cashflows';
 import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
 import { nonNegativeNumber, CURRENCY_LABEL } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
@@ -121,6 +122,16 @@ export default function LadderPage() {
       }
     }
     downloadICS(events, 'mwangaza-ladder.ics', 'Mwangaza Yield — Ladder');
+  }
+
+  function exportCsv() {
+    const csv = ladderCsv(plan, new Date().toISOString().slice(0, 10));
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mwangaza-ladder-cashflows.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -365,17 +376,25 @@ export default function LadderPage() {
               </div>
 
               <div className="card">
-                <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-ink">Net cash by year</h2>
                     <p className="text-xs text-ink-faint">Coupons (gold) and principal returned (emerald)</p>
                   </div>
-                  <button
-                    onClick={exportCalendar}
-                    className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
-                  >
-                    <CalendarPlus size={15} /> Add to calendar
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={exportCsv}
+                      className="flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-sand-400 px-3 py-2 text-sm text-ink-soft hover:border-ink-muted"
+                    >
+                      <Download size={15} /> Spreadsheet (CSV)
+                    </button>
+                    <button
+                      onClick={exportCalendar}
+                      className="flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+                    >
+                      <CalendarPlus size={15} /> Add to calendar
+                    </button>
+                  </div>
                 </div>
                 <div className="flex items-end gap-2 overflow-x-auto pb-1">
                   {plan.yearlyPayouts.map((p) => {

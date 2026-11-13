@@ -381,16 +381,16 @@ export default function LadderPage() {
                     <h2 className="font-semibold text-ink">Net cash by year</h2>
                     <p className="text-xs text-ink-faint">Coupons (gold) and principal returned (emerald)</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                     <button
                       onClick={exportCsv}
-                      className="flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-sand-400 px-3 py-2 text-sm text-ink-soft hover:border-ink-muted"
+                      className="flex min-h-11 w-full items-center sm:w-auto justify-center gap-1.5 whitespace-nowrap rounded-xl border border-sand-400 px-3 py-2 text-sm text-ink-soft hover:border-ink-muted"
                     >
                       <Download size={15} /> Spreadsheet (CSV)
                     </button>
                     <button
                       onClick={exportCalendar}
-                      className="flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
+                      className="flex min-h-11 w-full items-center sm:w-auto justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 hover:bg-ink-soft"
                     >
                       <CalendarPlus size={15} /> Add to calendar
                     </button>

@@ -35,10 +35,20 @@ export default function AboutPage() {
         for the institution, sun gold for the light, emerald for growth.
       </p>
 
+      <h2>Who is behind it</h2>
+      <p>
+        Mwangaza Yield is built and operated by Danico Ventures Ltd, a Kenyan company that also runs
+        JiPange, a separate set of personal-finance tools whose own pages disclose any commercial
+        relationship with a listed provider. Mwangaza Yield sells no securities and takes no
+        commission on anything you do with one. How each figure is worked out is written down on{' '}
+        <a href="/methodology/">How we calculate</a>, and where it comes from on{' '}
+        <a href="/sources/">Sources</a>.
+      </p>
+
       <h2>What we are not</h2>
       <ul>
         <li>We are not a broker. You cannot buy anything here — you bid on DhowCSD, directly with CBK, with no intermediary taking a cut.</li>
-        <li>We are not licensed to give investment advice, and nothing here is a recommendation to buy or sell.</li>
+        <li>We are not licensed by the Capital Markets Authority to give investment advice, and nothing here is a recommendation to buy or sell.</li>
         <li>We are not affiliated with the Central Bank of Kenya, the NSE, or the Capital Markets Authority.</li>
         <li>We do not want your money, your ID, or your account. There is no sign-up because there is nothing to sign up to.</li>
       </ul>

@@ -244,3 +244,20 @@ describe('the printed sheet stays bounded', () => {
     );
   });
 });
+
+describe('PDF capture state integrity', () => {
+  const exporter = read('src/components/report/ReportActions.tsx');
+  it('restores temporary layout styles after both successful and failed captures', () => {
+    expect(exporter).toMatch(/padding: el\.style\.padding/);
+    expect(exporter).toMatch(/boxSizing: el\.style\.boxSizing/);
+    expect(exporter).toMatch(/el\.style\.padding = prev\.padding/);
+    expect(exporter).toMatch(/el\.style\.boxSizing = prev\.boxSizing/);
+  });
+
+  it('positions the searchable layer after the final font/layout wait', () => {
+    const wait = exporter.indexOf('await document.fonts.ready');
+    const textGeometry = exporter.indexOf('lastTextRuns = collectTextRuns(el, bounds)');
+    expect(wait).toBeGreaterThan(0);
+    expect(textGeometry).toBeGreaterThan(wait);
+  });
+});

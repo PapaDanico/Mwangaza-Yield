@@ -32,7 +32,7 @@ const DATA_DRIVEN = [
 
 /** Pages that change only when somebody edits them. */
 const STATIC = [
-  '/about', '/learn', '/glossary', '/faq', '/sources', '/licensing',
+  '/about', '/learn', '/glossary', '/faq', '/sources', '/methodology', '/licensing',
   '/support', '/alerts', '/prices', '/privacy', '/terms', '/disclaimer',
 ];
 

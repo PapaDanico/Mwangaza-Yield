@@ -43,11 +43,15 @@ export function buildPortfolioPaymentSchedule(
       new Date(bond.issueDate),
       new Date(bond.maturityDate),
       bond.couponFrequencyPerYear || 2,
-    ).filter((date) => date.getTime() > asOf.getTime());
+    );
+    const asOfISO = asOf.toISOString().slice(0, 10);
 
     for (const date of dates) {
       const scheduledDate = date.toISOString().slice(0, 10);
       const moved = paymentDay(scheduledDate);
+      // A weekend/holiday coupon remains receivable until its actual payment
+      // date. Filtering on the contractual date silently loses that cashflow.
+      if (moved.paid <= asOfISO) continue;
       const isMaturity = scheduledDate === maturityISO;
       const principalAmountKES = isMaturity ? holding.faceValueKES : 0;
       events.push({
@@ -126,7 +130,7 @@ export function nextTwelveMonthsNetCoupons(
       new Date(bond.issueDate),
       new Date(bond.maturityDate),
       bond.couponFrequencyPerYear || 2,
-    ).filter((date) => date.getTime() > asOf.getTime());
+    );
     for (const date of dates) {
       const paid = paymentDay(date.toISOString().slice(0, 10)).paid;
       if (paid > startISO && paid <= endISO) total += netCouponPerPeriodKES;

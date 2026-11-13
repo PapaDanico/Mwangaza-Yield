@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import {
-  Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip,
+  ResponsiveContainer, Tooltip,
   XAxis, YAxis, BarChart, Bar, CartesianGrid,
 } from 'recharts';
 import { useBondStore } from '@/stores/bondStore';
@@ -14,6 +14,7 @@ import {
 } from '@/lib/macro-context';
 import { yearsToMaturityAt } from '@/lib/bid';
 import SovereignContext from '@/components/dashboard/SovereignContext';
+import FiscalHistoryChart from '@/components/macro/FiscalHistoryChart';
 import MarketExpectations from '@/components/dashboard/MarketExpectations';
 import { usePersistedState } from '@/lib/persisted';
 import { buildMacroSummary } from '@/lib/macro-summary';
@@ -78,14 +79,6 @@ export default function MacroPage() {
     longBenchmark,
   } = summary;
   const sustainability = sustainabilitySignal(debt.debtToGDP, debt.debtServiceRatio);
-
-  const debtSeries = useMemo(() => {
-    const debtRows = macro.filter((m) => m.indicator === 'DEBT_TO_GDP').sort((a, b) => a.date.localeCompare(b.date));
-    if (debtRows.length) return debtRows.map((m) => ({ date: m.period ?? m.date.slice(0, 4), value: m.value }));
-    // A single synthetic "Now" point drew a one-dot trend line out of the
-    // current value. With no value there is no line and no point pretending.
-    return debt.debtToGDP === null ? [] : [{ date: 'Now', value: debt.debtToGDP }];
-  }, [macro, debt.debtToGDP]);
 
   const latestDecision = [...cbrHistory].sort((a, b) => b.date.localeCompare(a.date))[0];
   const sentiment = mpcSentiment(latestDecision?.title);
@@ -275,25 +268,10 @@ export default function MacroPage() {
       {debt.debtToGDP !== null && debt.debtServiceRatio !== null && debt.fiscalSpace !== null ? (
       <section className="card">
         <h2 className="font-semibold text-ink">Fiscal Health</h2>
-        <p className="mt-0.5 text-xs text-ink-faint">Debt-to-GDP trajectory. The IMF&apos;s indicative ceiling for EMs is 55%; the yellow band marks the amber zone (55–70%).</p>
-        <div className="mt-3 h-52">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={debtSeries}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5dfc8" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} unit="%" domain={[0, Math.max(100, debt.debtToGDP + 10)]} />
-              <Tooltip formatter={(v: number) => [`${v.toFixed(1)}%`, 'Debt / GDP']} />
-              <ReferenceLine y={55} stroke="#B7791F" strokeDasharray="4 3" label={{ value: 'IMF 55%', fontSize: 10, fill: '#B7791F', position: 'insideTopRight' }} />
-              <ReferenceLine y={70} stroke="#dc2626" strokeDasharray="4 3" label={{ value: 'Amber 70%', fontSize: 10, fill: '#dc2626', position: 'insideTopRight' }} />
-              <Line type="monotone" dataKey="value" stroke="#B7791F" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <ul className="sr-only">
-          {debtSeries.map((pt) => (
-            <li key={pt.date}>{pt.date}: Debt to GDP {pt.value.toFixed(1)}%</li>
-          ))}
-        </ul>
+        <p className="mt-0.5 text-xs text-ink-faint">
+          Debt and deficit, a decade and more of annual figures, with the IMF&apos;s projection dashed. The IMF&apos;s indicative ceiling for emerging markets is 55% of GDP.
+        </p>
+        <FiscalHistoryChart />
         <div className="mt-3 grid gap-3 sm:grid-cols-4">
           <div className={`rounded-xl border p-3 ${debt.debtToGDP > 70 ? 'border-red-300 bg-red-500/[0.06]' : debt.debtToGDP > 55 ? 'border-gold-400 bg-gold-500/[0.06]' : 'border-sand-300'}`}>
             <p className="text-xs text-ink-muted">Debt / GDP</p>
@@ -395,6 +373,14 @@ export default function MacroPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {/* The bars are positioned SVG, which a screen reader cannot read.
+                This list was once the Fiscal Health chart's text twin and
+                quietly covered this chart too; it is now this chart's own. */}
+            <ul className="sr-only">
+              {yieldCurveData.map((pt) => (
+                <li key={pt.label}>{pt.label}: yield to maturity {pt.y.toFixed(2)}%</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

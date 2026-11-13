@@ -239,7 +239,7 @@ export function receiptToMarkdown(r: Receipt): string {
     r.result,
     '',
     `## Verification`,
-    `SHA-256: \`${r.hash}\``,
+    `${r.hash.startsWith("djb2:") ? "Non-cryptographic checksum (djb2)" : "SHA-256"}: \`${r.hash}\``,
     `Receipt ID: ${r.id}`,
     '',
     `---`,

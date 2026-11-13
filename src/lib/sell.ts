@@ -344,7 +344,17 @@ function solveYield(
  */
 export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   const settlement = new Date(quote.settlementDate);
+  const maturity = new Date(bond.maturityDate);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(quote.settlementDate)
+    || Number.isNaN(settlement.getTime())
+    || iso(settlement) !== quote.settlementDate
+    || settlement >= maturity) {
+    throw new RangeError('Settlement must be a valid date before bond maturity');
+  }
   const face = quote.faceValueKES;
+  if (!Number.isFinite(face) || face <= 0) {
+    throw new RangeError('Bond face value must be a positive finite amount');
+  }
   const freq = bond.couponFrequencyPerYear || 2;
   const amortisation = quote.amortisation ?? [];
 

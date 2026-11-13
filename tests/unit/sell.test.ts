@@ -391,3 +391,17 @@ describe('maturity boundary and cash-flow row integrity', () => {
     expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
   });
 });
+
+describe('sale quote input validation', () => {
+  it('rejects settlement on or after maturity instead of returning a fabricated solver bound', () => {
+    expect(() => analyseSale(IFB, { ...QUOTE, settlementDate: IFB.maturityDate })).toThrow(RangeError);
+    expect(() => analyseSale(IFB, { ...QUOTE, settlementDate: '2041-01-01' })).toThrow(RangeError);
+  });
+
+  it('rejects malformed settlement dates and invalid face values', () => {
+    expect(() => analyseSale(IFB, { ...QUOTE, settlementDate: '2026-02-30' })).toThrow(RangeError);
+    for (const faceValueKES of [0, -100, NaN, Infinity]) {
+      expect(() => analyseSale(IFB, { ...QUOTE, faceValueKES })).toThrow(RangeError);
+    }
+  });
+});

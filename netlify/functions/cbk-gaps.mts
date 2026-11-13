@@ -137,6 +137,17 @@ export const EXTRA_DOCS: GapDoc[] = [
     tier: 'extra',
     rows: [],
   },
+  // The IMF's own annual series for Kenya, 1980 to the current projection: the
+  // primary source for the ten-year debt, deficit, revenue and spending history
+  // (IMF Data terms are `permitted` in licences.ts). A small JSON document each.
+  ...(['GGXWDG_NGDP', 'GGXCNL_NGDP', 'GGXONLB_NGDP', 'GGR_NGDP', 'GGX_NGDP'] as const).map(
+    (code): GapDoc => ({
+      url: `https://www.imf.org/external/datamapper/api/v1/${code}/KEN`,
+      file: `IMF DataMapper ${code} Kenya.json`,
+      tier: 'extra',
+      rows: [],
+    })
+  ),
 ];
 /** Characters posted for an extra document: a multi-column annual table runs long. */
 const EXTRA_TEXT_CHARS = 16_000;
@@ -150,6 +161,7 @@ export function pendingDocs(rows: Row[]): GapDoc[] {
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
   const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) return `status ${res.status}`;
+  if (!/\.pdf(\?|$)/i.test(url)) return (await res.text()).replace(/\s+/g, ' ').trim() || '(empty)';
   const pdf = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
   const { text } = await extractText(pdf, { mergePages: true });
   return (text as string).replace(/\s+/g, ' ').trim() || '(no text layer)';
@@ -167,6 +179,12 @@ export default async () => {
     todo.map(async (doc) => {
       const text = await pdfText(doc.url, GAP_DEADLINE_MS - (Date.now() - started)).catch((e) => `error ${String(e).slice(0, 100)}`);
       // A timeout or a server error is not a reading: leave it for a later run.
+      // A named extra that is REFUSED is reported once instead, so a blocked host
+      // is visible rather than a silent empty run, and is not retried forever.
+      if (doc.tier === 'extra' && /^status (401|403|404|410)$/.test(text)) {
+        read.push({ doc, text: `FETCH REFUSED: ${text}` });
+        return;
+      }
       if (/^status [45]\d\d$/.test(text) || /^error /.test(text)) return;
       read.push({ doc, text });
     })

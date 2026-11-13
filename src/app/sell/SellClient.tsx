@@ -13,6 +13,7 @@ import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { analyseSale, findReplacements, verdict, type SaleQuote } from '@/lib/sell';
 import { track } from '@/lib/analytics';
+import { rateShocks } from '@/lib/rate-shocks';
 import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import LiveResult from '@/components/shared/LiveResult';
@@ -117,6 +118,13 @@ export default function SellClient() {
   const analysis = useMemo(
     () => (bond && quote ? analyseSale(bond, quote) : null),
     [bond, quote]
+  );
+
+  // Repricing needs the plain coupon schedule; an amortising holding has a
+  // different one, so it gets no table rather than a wrong one.
+  const shocks = useMemo(
+    () => (bond && quote && analysis && !(quote.amortisation?.length) ? rateShocks(bond, new Date(settlement), analysis.dirtyPrice) : null),
+    [bond, quote, analysis, settlement]
   );
 
   useEffect(() => {
@@ -363,6 +371,47 @@ export default function SellClient() {
                 </p>
               )}
             </div>
+
+            {shocks && (
+              <details className="card group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-display text-sm font-bold text-ink-soft marker:content-none">
+                  If market yields move before you sell
+                  <span aria-hidden className="text-lg text-gold-700 transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-2 text-[12px] leading-relaxed text-ink-faint">
+                  Repriced exactly from this bond&apos;s own coupons and dates, starting from the {formatPct(shocks.anchorYieldPct)} implied by your
+                  price. Rates up means a lower price; rates down, a higher one. A scenario to size the risk of waiting, not a forecast.
+                  Charges are not included.
+                </p>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <caption className="sr-only">Sale price if the market yield moved</caption>
+                    <thead>
+                      <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">
+                        <th scope="col" className="py-2">Yield moves</th>
+                        <th scope="col" className="py-2 text-right">Yield</th>
+                        <th scope="col" className="py-2 text-right">Price per 100</th>
+                        <th scope="col" className="py-2 text-right">On your holding</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shocks.rows.map((r) => (
+                        <tr key={r.shockBp} className="border-b border-sand-200 last:border-0">
+                          <th scope="row" className="num py-1.5 text-left font-medium text-ink">
+                            {r.shockBp === 0 ? 'Today' : `${r.shockBp > 0 ? '+' : '−'}${Math.abs(r.shockBp)} bp`}
+                          </th>
+                          <td className="num py-1.5 text-right text-ink">{formatPct(r.yieldPct)}</td>
+                          <td className="num py-1.5 text-right text-ink">{r.dirtyPrice.toFixed(2)}</td>
+                          <td className="num py-1.5 text-right text-ink-soft">
+                            {r.shockBp === 0 ? '—' : `${r.changePer100 > 0 ? '+' : '−'}${formatKES(Math.abs((r.changePer100 / 100) * face))}`}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            )}
 
             <div className="card space-y-2">
               <h2 className="font-display text-sm font-bold text-ink-soft">

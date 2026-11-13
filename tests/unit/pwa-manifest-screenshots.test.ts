@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, extname } from 'node:path';
 import sharp from 'sharp';
 
 /**
@@ -19,7 +19,8 @@ describe('PWA manifest screenshots', () => {
       const path = join(process.cwd(), 'public', shot.src.replace(/^\//, ''));
       const meta = await sharp(path).metadata();
       expect(shot.sizes, `wrong declared dimensions: ${shot.src}`).toBe(`${meta.width}x${meta.height}`);
-      expect(shot.type, `wrong declared MIME type: ${shot.src}`).toBe('image/png');
+      const expectedMime: Record<string, string> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
+      expect(shot.type, `wrong declared MIME type: ${shot.src}`).toBe(expectedMime[extname(shot.src).toLowerCase()]);
       if (shot.form_factor === 'narrow') {
         expect(meta.height, 'narrow install screenshot must be portrait').toBeGreaterThan(meta.width!);
       }

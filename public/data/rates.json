@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-11-09T00:00:00+00:00",
+  "generatedAt": "2026-11-12T00:00:00+00:00",
   "pipelineRanAt": "2026-08-19T15:49:06.097414+00:00",
   "publisher": "Mwangaza Yield",
   "homepage": "https://mwangazayield.org",
@@ -15,39 +15,39 @@
   "tbills": [
     {
       "tenorDays": 91,
-      "quotedDiscountRate": 8.75,
-      "grossEAY": 9.0416,
-      "netEAY": 7.6477,
+      "quotedDiscountRate": 8.7448,
+      "grossEAY": 9.036,
+      "netEAY": 7.643,
       "whtRate": 0.15,
-      "pricePer100": 97.8651,
-      "auctionDate": "2026-11-05",
-      "nextAuctionDate": "2026-11-12",
+      "pricePer100": 97.8663,
+      "auctionDate": "2026-11-12",
+      "nextAuctionDate": "2026-11-19",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 5 Nov 2026, entered by hand"
+      "source": "CBK auction, 12 Nov 2026, entered by hand"
     },
     {
       "tenorDays": 182,
-      "quotedDiscountRate": 8.845,
-      "grossEAY": 9.0411,
-      "netEAY": 7.66,
+      "quotedDiscountRate": 8.8372,
+      "grossEAY": 9.033,
+      "netEAY": 7.6531,
       "whtRate": 0.15,
-      "pricePer100": 95.7759,
-      "auctionDate": "2026-11-05",
-      "nextAuctionDate": "2026-11-12",
+      "pricePer100": 95.7795,
+      "auctionDate": "2026-11-12",
+      "nextAuctionDate": "2026-11-19",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 5 Nov 2026, entered by hand"
+      "source": "CBK auction, 12 Nov 2026, entered by hand"
     },
     {
       "tenorDays": 364,
-      "quotedDiscountRate": 9.0282,
-      "grossEAY": 9.0293,
-      "netEAY": 7.6748,
+      "quotedDiscountRate": 9.0098,
+      "grossEAY": 9.0109,
+      "netEAY": 7.6591,
       "whtRate": 0.15,
-      "pricePer100": 91.7402,
-      "auctionDate": "2026-11-05",
-      "nextAuctionDate": "2026-11-12",
+      "pricePer100": 91.7556,
+      "auctionDate": "2026-11-12",
+      "nextAuctionDate": "2026-11-19",
       "minInvestmentKES": 100000,
-      "source": "CBK auction, 5 Nov 2026, entered by hand"
+      "source": "CBK auction, 12 Nov 2026, entered by hand"
     }
   ],
   "macro": {
@@ -84,10 +84,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 129.91,
+      "value": 129.96,
       "unit": "KES/USD",
-      "date": "2026-11-06",
-      "lastChecked": "2026-11-06",
+      "date": "2026-11-12",
+      "lastChecked": "2026-11-12",
       "source": "CBK indicative",
       "fallback": false
     }
@@ -120,10 +120,10 @@
         "label": "7–12y",
         "fromYears": 7,
         "toYears": 12,
-        "auctions": 11,
+        "auctions": 9,
         "medianClearingRate": 12.734,
         "lowClearingRate": 12.184,
-        "highClearingRate": 13.339,
+        "highClearingRate": 13.312,
         "latestAuctionDate": "2026-11-04"
       },
       {
@@ -148,9 +148,9 @@
       }
     ],
     "demand": {
-      "auctions": 19,
-      "medianCoverRatio": 1.872,
-      "medianAcceptanceRate": 0.7
+      "auctions": 18,
+      "medianCoverRatio": 1.774,
+      "medianAcceptanceRate": 0.706
     }
   }
 }

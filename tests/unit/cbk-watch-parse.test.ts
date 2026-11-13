@@ -138,9 +138,23 @@ describe('cbk-watch weekly bulletin', () => {
     });
   });
 
+  it('does not read another economy\'s core inflation as Kenya\'s (13 Nov 2026: 2.1 from 2.4 beside a real 4.3)', async () => {
+    const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
+    // A global-economy sentence with the same wording, and no Kenyan headline sentence.
+    const global = 'In the United States, core inflation eased to 2.1 percent from 2.4 percent in October.';
+    expect(bulletinFigures(global).corePct).toBeNull();
+    expect(bulletinFigures(`Core inflation eased to 2.1 percent from 2.4 percent. Non-core inflation fell to 9.0 percent from 9.5 percent.`)).toMatchObject({ corePct: null, nonCorePct: null });
+    // With Kenya's headline present, a global sentence BEFORE it is ignored and Kenya's own follows it.
+    const both = `${global} Inflation increased to 7.3 percent in October from 6.8 percent in September 2026. Core inflation increased to 4.3 percent from 4.0 percent, driven by food. Non-core inflation increased to 15.1 percent from 14.0 percent.`;
+    expect(bulletinFigures(both)).toMatchObject({ inflationPct: '7.3', corePct: '4.3', corePrevPct: '4.0', nonCorePct: '15.1' });
+    // A core sentence far from the headline (another section) is not Kenya's.
+    const far = `Inflation increased to 7.3 percent in October from 6.8 percent in September 2026. ${'Other text. '.repeat(120)} Core inflation eased to 2.1 percent from 2.4 percent.`;
+    expect(bulletinFigures(far).corePct).toBeNull();
+  });
+
   it('does not read the non-core sentence as the core one', async () => {
     const { bulletinFigures } = await import('../../netlify/functions/cbk-watch.mts');
-    const f = bulletinFigures('Non-core inflation increased to 15.1 percent from 14.0 percent, mainly due to produce.');
+    const f = bulletinFigures('Inflation increased to 7.3 percent in October from 6.8 percent in September 2026. Non-core inflation increased to 15.1 percent from 14.0 percent, mainly due to produce.');
     expect(f.corePct).toBeNull();
     expect(f.nonCorePct).toBe('15.1');
   });

@@ -258,8 +258,16 @@ export function bulletinFigures(t: string) {
   const gdp = t.match(/grew by ([\d.]+) percent in the (\w+) quarter of (\d{4})/);
   // CBK prints the month's KNBS inflation on page 1 in the week after release.
   const infl = t.match(/Inflation (?:increased|decreased|declined|eased|rose|fell|remained(?: stable)?)(?: to| at) ([\d.]+) percent in (\w+) from ([\d.]+) percent in (\w+)/i);
-  const core = t.match(/(?<![-\w])Core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
-  const nonCore = t.match(/Non-core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
+  // Core and non-core are Kenya's only when they follow Kenya's headline
+  // sentence. The bulletin's global-economy paragraph words other countries'
+  // core inflation the same way ("Core inflation eased to 2.1 percent from 2.4
+  // percent"), and on 13 Nov 2026 that sentence was read as Kenya's core while
+  // the headline sentence was absent, publishing 2.1 beside the real 4.3. So both
+  // are searched only in the paragraph after a found headline, and are null
+  // without one.
+  const afterHeadline = infl ? t.slice(infl.index! + infl[0].length, infl.index! + infl[0].length + 800) : '';
+  const core = afterHeadline.match(/(?<![-\w])Core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
+  const nonCore = afterHeadline.match(/Non-core inflation (?:\w+ ){0,2}(?:to|at) ([\d.]+) percent from ([\d.]+) percent/i);
   const nums = '((?:\\s+[\\d,]+\\.\\d{2})+)';
   const dom = t.match(new RegExp(`Gross Domestic Debt \\(3\\+4\\+5\\)${nums}`));
   const domHead = t.match(/Government Domestic Debt \(KSh Billion\)((?:\s+\d{1,2}-\w{3}-\d{2})+)/);

@@ -286,8 +286,8 @@ export function buildCashflows(
   // that date. balanceOn(maturity) would subtract it before calculating the
   // final payment, causing principal to disappear from the cash-flow schedule.
   const finalBalance = balanceOn(new Date(maturity.getTime() - DAY_MS), amortisation);
-  const last = rows[rows.length - 1];
-  if (last && last.date === iso(maturity)) last.principalKES += finalBalance * faceValueKES;
+  const maturityRow = rows.find((row) => row.date === iso(maturity));
+  if (maturityRow) maturityRow.principalKES += finalBalance * faceValueKES;
   else if (finalBalance > 0) {
     rows.push({ date: iso(maturity), couponKES: 0, principalKES: finalBalance * faceValueKES, netCouponKES: 0 });
   }

@@ -45,8 +45,8 @@ interface Row {
 export interface GapDoc {
   url: string;
   file: string;
-  /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. */
-  tier: 'gap' | 'verify';
+  /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. 'extra': a named Treasury document wanted for its own series. */
+  tier: 'gap' | 'verify' | 'extra';
   rows: { id: string; missing: string[]; contradicts?: boolean }[];
 }
 
@@ -119,10 +119,32 @@ export function verifyDocs(rows: Row[], gap: GapDoc[] = gapDocs(rows)): GapDoc[]
   return [...byUrl.values()].filter((d) => (count.get(d.url) ?? 0) >= 2 || d.rows.some((r) => r.contradicts)).sort((a, b) => a.url.localeCompare(b.url));
 }
 
-/** Everything still to read: gap documents first, then verification ones. */
+/**
+ * Named documents wanted for their own annual series, not for any archive row.
+ *
+ * The Fiscal Health chart on /macro/ needs ten years of debt and interest
+ * history, and the National Treasury's Debt Sustainability Indicators table is
+ * the primary source for it: total interest as a share of ordinary revenue and
+ * public debt against GDP, one column per fiscal year. A session cannot reach
+ * treasury.go.ke, so this reads the one PDF from here, as the CBK notices are
+ * read. National Treasury is `permitted` in licences.ts. Exact URL only: this
+ * never follows a link, and the host is pinned by no-server-personal-data.test.
+ */
+export const EXTRA_DOCS: GapDoc[] = [
+  {
+    url: 'https://www.treasury.go.ke/sites/default/files/debt/Debt%20Sustainability%20Indicators/MARCH%202026.pdf',
+    file: 'Treasury Debt Sustainability Indicators MARCH 2026.pdf',
+    tier: 'extra',
+    rows: [],
+  },
+];
+/** Characters posted for an extra document: a multi-column annual table runs long. */
+const EXTRA_TEXT_CHARS = 16_000;
+
+/** Everything still to read: gap documents first, then verification ones, then named extras. */
 export function pendingDocs(rows: Row[]): GapDoc[] {
   const gap = gapDocs(rows);
-  return [...gap, ...verifyDocs(rows, gap)];
+  return [...gap, ...verifyDocs(rows, gap), ...EXTRA_DOCS];
 }
 
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
@@ -153,7 +175,7 @@ export default async () => {
 
   const site = process.env.URL ?? 'https://mwangazayield.org';
   const body = read
-    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${text.slice(0, TEXT_CHARS)}`)
+    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : doc.tier === 'extra' ? 'extra' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${text.slice(0, doc.tier === 'extra' ? EXTRA_TEXT_CHARS : TEXT_CHARS)}`)
     .join('\n')
     .slice(0, 38_000);
   const res = await fetch(`${site}/cbk-watch-form.html`, {

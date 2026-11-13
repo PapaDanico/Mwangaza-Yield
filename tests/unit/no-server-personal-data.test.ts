@@ -115,7 +115,10 @@ describe('no personal data reaches any server we control', () => {
     // The site's own host comes from process.env.URL at run time; a literal
     // fallback to it, or a CBK host, is all a reader may name. The package
     // scope and the Netlify config import are not hosts it contacts.
-    expect(hosts.filter((h) => !/(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$/.test(h))).toEqual([]);
+    // cbk-gaps alone may also name www.treasury.go.ke: one exact Debt Sustainability
+    // Indicators PDF, wanted for the Fiscal Health chart's ten-year history.
+    const allowed = file === 'cbk-gaps.mts' ? /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$|^www\.treasury\.go\.ke$/ : /(^|\.)centralbank\.go\.ke$|^mwangazayield\.org$/;
+    expect(hosts.filter((h) => !allowed.test(h))).toEqual([]);
     expect(src).not.toMatch(/pushManager|webpush|vapid|sendMail|smtp/i);
   });
 

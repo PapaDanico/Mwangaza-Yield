@@ -1,7 +1,7 @@
 // @ts-nocheck -- imports a .mts Netlify function, outside the app's tsconfig module resolution
 import { describe, expect, it } from 'vitest';
 import archive from '../../public/data/auction-results.json';
-import { gapDocs, verifyDocs, pendingDocs, GAP_DOCS_PER_RUN } from '../../netlify/functions/cbk-gaps.mts';
+import { gapDocs, verifyDocs, pendingDocs, EXTRA_DOCS, GAP_DOCS_PER_RUN } from '../../netlify/functions/cbk-gaps.mts';
 
 const row = (id: string, sourceUrl: string | undefined, over: Record<string, unknown> = {}) => ({
   id,
@@ -86,7 +86,7 @@ describe('verifyDocs', () => {
       ok('v2', 'https://www.centralbank.go.ke/u/verify.pdf', '2012-07-30'),
     ];
     expect(verifyDocs(rows).map((d) => d.file)).toEqual(['verify.pdf']);
-    expect(pendingDocs(rows).map((d) => `${d.tier}:${d.file}`)).toEqual(['gap:gap.pdf', 'verify:verify.pdf']);
+    expect(pendingDocs(rows).map((d) => `${d.tier}:${d.file}`)).toEqual(['gap:gap.pdf', 'verify:verify.pdf', ...EXTRA_DOCS.map((d) => `extra:${d.file}`)]);
   });
 
   it('never follows a link off CBK', () => {
@@ -112,6 +112,19 @@ describe('verifyDocs: rows that contradict themselves', () => {
   it('never flags a tap sale, which is accepted at cost against bids at face', () => {
     const tap = row('tap', 'https://www.centralbank.go.ke/uploads/t.pdf', { auctionDate: '2023-12-11', transactionType: 'tap', amountAcceptedKESM: 9, bidsReceivedKESM: 5 });
     expect(verifyDocs([tap])).toEqual([]);
+  });
+});
+
+describe('EXTRA_DOCS', () => {
+  it('names exactly the documents wanted for their own series, on a registered publisher, https only', () => {
+    expect(EXTRA_DOCS.length).toBeGreaterThan(0);
+    for (const d of EXTRA_DOCS) {
+      const u = new URL(d.url);
+      expect(u.protocol).toBe('https:');
+      expect(u.hostname).toBe('www.treasury.go.ke');
+      expect(u.pathname).toMatch(/\.pdf$/i);
+      expect(d.tier).toBe('extra');
+    }
   });
 });
 

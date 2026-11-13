@@ -13,8 +13,8 @@
  * read on a 30-second limit. Fetching a few dozen extra PDFs inside it would put
  * that read at risk of being killed before it posts. This one has its own
  * budget, reads a handful of documents per run, remembers which it has read, and
- * returns immediately once nothing is left, so the schedule is harmless to leave
- * in place and can be removed once the archive is complete.
+ * returns immediately once nothing is left. It runs once a day now that the
+ * archive and the fiscal-history series are fully read.
  *
  * READ-ONLY. It fetches CBK-hosted PDFs the archive already cites, extracts
  * their text and posts it to the hidden `cbk-watch` form, as cbk-watch does. It
@@ -222,6 +222,10 @@ export default async () => {
   await store.setJSON('gap-docs-read', done);
 };
 
-// Every five minutes until the archive's source documents have all been read;
-// each run after that returns at once. Remove this schedule when it is done.
-export const config: Config = { schedule: '*/5 * * * *' };
+// Once a day, at 06:45 UTC. It ran every five minutes while the archive's source
+// documents and the fiscal-history series were being read (eight documents per
+// run); all are read now, and a run with nothing pending returns at once, so the
+// 288 daily invocations bought nothing. Daily still lets a document added to
+// EXTRA_DOCS, or a row newly flagged by `verifyDocs`, be read within a day: one
+// run reads eight, so a larger batch takes one run per eight documents.
+export const config: Config = { schedule: '45 6 * * *' };

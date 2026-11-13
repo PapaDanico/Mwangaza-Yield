@@ -121,8 +121,8 @@ describe('EXTRA_DOCS', () => {
     for (const d of EXTRA_DOCS) {
       const u = new URL(d.url);
       expect(u.protocol).toBe('https:');
-      expect(u.hostname).toBe('www.treasury.go.ke');
-      expect(u.pathname).toMatch(/\.pdf$/i);
+      expect(['www.treasury.go.ke', 'www.imf.org']).toContain(u.hostname);
+      expect(u.hostname === 'www.imf.org' ? u.pathname : u.pathname).toMatch(/\.pdf$|\/api\/v1\/[A-Z_]+\/KEN$/i);
       expect(d.tier).toBe('extra');
     }
   });

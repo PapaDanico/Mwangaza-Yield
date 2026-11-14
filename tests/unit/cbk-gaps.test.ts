@@ -147,4 +147,27 @@ describe('focusText', () => {
     const near = focusText('a fee b charge c', ['fee', 'charge']);
     expect(near.match(/\[\.\.\.\]/g) ?? []).toHaveLength(0);
   });
+  it('keeps more occurrences when a document asks for them', async () => {
+    const { focusText } = await import('../../netlify/functions/cbk-gaps.mts');
+    const filler = 'x '.repeat(4000);
+    const text = ['one', 'two', 'three', 'four'].map((n) => `exempt ${n} ${filler}`).join('');
+    expect(focusText(text, ['exempt'])).not.toContain('exempt one');
+    expect(focusText(text, ['exempt'], 4)).toContain('exempt one');
+  });
 });
+
+describe('extra documents', () => {
+  it('each one that names phrases still has them, and the wide-window ones say how wide', () => {
+    for (const d of EXTRA_DOCS.filter((x) => x.finds)) {
+      expect(d.finds!.length).toBeGreaterThan(0);
+      if (d.occurrences !== undefined) expect(d.occurrences).toBeGreaterThan(2);
+    }
+  });
+  it('posts one submission per document, so none is cut off and marked read', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
+    expect(src).toMatch(/for \(const \{ doc, text \} of read\) \{[\s\S]*?gapdocs: body[\s\S]*?done\[readKey\(doc\)\]/);
+    expect(src).not.toMatch(/\.join\('\\n'\)\s*\.slice\(0, 38_000\)/);
+  });
+});
+

@@ -53,6 +53,8 @@ export interface GapDoc {
    * instead of the start of the document, which is usually a contents list.
    */
   finds?: string[];
+  /** How many of each phrase's latest occurrences to keep (default FIND_OCCURRENCES). */
+  occurrences?: number;
 }
 
 /** Characters kept around each phrase, and how many of its latest occurrences. */
@@ -65,14 +67,14 @@ const FIND_OCCURRENCES = 2;
  * overlaps merged. Falls back to the opening text when nothing matches, so a
  * changed document is visible rather than silently empty.
  */
-export function focusText(text: string, finds: string[]): string {
+export function focusText(text: string, finds: string[], occurrences = FIND_OCCURRENCES): string {
   const lower = text.toLowerCase();
   const spans: [number, number][] = [];
   for (const f of finds) {
     const needle = f.toLowerCase();
     const hits: number[] = [];
     for (let i = lower.indexOf(needle); i !== -1; i = lower.indexOf(needle, i + needle.length)) hits.push(i);
-    for (const h of hits.slice(-FIND_OCCURRENCES)) spans.push([Math.max(0, h - 300), Math.min(text.length, h + FIND_WINDOW)]);
+    for (const h of hits.slice(-occurrences)) spans.push([Math.max(0, h - 300), Math.min(text.length, h + FIND_WINDOW)]);
   }
   if (spans.length === 0) return `(no match for: ${finds.join(' | ')}) ${text.slice(0, 2_000)}`;
   spans.sort((a, b) => a[0] - b[0]);
@@ -192,35 +194,37 @@ export const EXTRA_DOCS: GapDoc[] = [
     file: 'LN 197 of 2025 Capital Markets Licensing Requirements Regulations (fees, adviser).pdf',
     tier: 'extra',
     rows: [],
-    finds: ['Brokerage commission', 'government bond', 'investment adviser', 'investment advisory'],
+    finds: ['Brokerage commission', 'government bond', 'government securities', 'investment adviser', 'investment advisory'],
   },
   {
     url: 'https://www.centralbank.go.ke/wp-content/uploads/2025/12/DhowCSD-Frequently-Asked-Questions.pdf',
     file: 'CBK DhowCSD Frequently Asked Questions (fees).pdf',
     tier: 'extra',
     rows: [],
-    finds: ['fee', 'charge', 'free of'],
+    finds: ['how much', 'transaction cost', 'fees', 'free of charge'],
   },
   {
     url: 'https://www.centralbank.go.ke/wp-content/uploads/2024/08/Investor-Portal-and-Mobile-APP-Terms-and-Conditions.pdf',
     file: 'CBK Investor Portal and Mobile APP Terms and Conditions (fees).pdf',
     tier: 'extra',
     rows: [],
-    finds: ['fee', 'charge', 'M-Pesa'],
+    finds: ['Transaction Fees', 'Schedule of', 'Kshs', 'tariff'],
   },
   {
     url: 'https://www.odpc.go.ke/wp-content/uploads/2026/04/Guidance-Note-on-Cross-border-Data-Transfers.pdf',
     file: 'ODPC Guidance Note on Cross-border Data Transfers.pdf',
     tier: 'extra',
     rows: [],
-    finds: ['notif', 'cloud', 'hosting', 'draft', 'effective'],
+    finds: ['static', 'website', 'publicly available', 'hosting', 'content delivery', 'log files', 'IP address'],
+    occurrences: 3,
   },
   {
     url: 'https://www.odpc.go.ke/wp-content/uploads/2024/02/ODPC-Guidance-Note-on-Registration-of-Data-Controllers-and-Data-Processors.pdf',
     file: 'ODPC Guidance Note on Registration of Data Controllers and Processors.pdf',
     tier: 'extra',
     rows: [],
-    finds: ['exempt', 'turnover', 'employees'],
+    finds: ['non-exempt', 'exempt', 'turnover', 'employees'],
+    occurrences: 6,
   },
   {
     url: 'https://www.odpc.go.ke/wp-content/uploads/2025/11/ODPC-%E2%80%93-Guidance-Note-on-Processing-by-MSMEs.pdf',
@@ -234,18 +238,20 @@ export const EXTRA_DOCS: GapDoc[] = [
     file: 'Finance Act 2026 (withholding tax, bonds).pdf',
     tier: 'extra',
     rows: [],
-    finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'Third Schedule'],
+    finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'withholding tax', 'Third Schedule'],
+    occurrences: 3,
   },
   {
     url: 'https://www.kra.go.ke/images/publications/IncomeTaxAct2of1975.pdf',
     file: 'Income Tax Act Cap 470 (withholding tax, bonds).pdf',
     tier: 'extra',
     rows: [],
-    finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'bearer'],
+    finds: ['qualifying interest', 'infrastructure bond', 'withholding tax', 'Third Schedule'],
+    occurrences: 3,
   },
 ];
 /** Characters posted for an extra document: a multi-column annual table runs long. */
-const EXTRA_TEXT_CHARS = 16_000;
+const EXTRA_TEXT_CHARS = 24_000;
 
 /** Everything still to read: gap documents first, then verification ones, then named extras. */
 export function pendingDocs(rows: Row[]): GapDoc[] {
@@ -254,7 +260,8 @@ export function pendingDocs(rows: Row[]): GapDoc[] {
 }
 
 /** The key a document is recorded under once read. Extras include the file name, so changing what is posted for one re-reads it. */
-const readKey = (d: GapDoc) => (d.tier === 'extra' ? `${d.url}#${d.file}` : d.url);
+/** A named extra is keyed by its phrases too, so a revised window is read again instead of skipped. */
+const readKey = (d: GapDoc) => (d.tier === 'extra' ? `${d.url}#${d.file}${d.finds?.length ? `#f:${d.finds.join('|')}:${d.occurrences ?? ''}` : ''}` : d.url);
 
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
   const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
@@ -302,18 +309,20 @@ export default async () => {
   if (read.length === 0) return;
 
   const site = process.env.URL ?? 'https://mwangazayield.org';
-  const body = read
-    .map(({ doc, text }) => `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : doc.tier === 'extra' ? 'extra' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${doc.tier === 'extra' && doc.finds ? focusText(text, doc.finds).slice(0, EXTRA_TEXT_CHARS) : text.slice(0, doc.tier === 'extra' ? EXTRA_TEXT_CHARS : TEXT_CHARS)}`)
-    .join('\n')
-    .slice(0, 38_000);
-  const res = await fetch(`${site}/cbk-watch-form.html`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ 'form-name': 'cbk-watch', at: new Date().toISOString(), gapdocs: body }),
-  }).catch(() => null);
-  // Marked read only once the text has been delivered.
-  if (!res || res.status >= 400) return;
-  for (const { doc, text } of read) done[readKey(doc)] = text === '(no text layer)' ? 'no text layer' : 'read';
+  // One submission per document: a combined body was cut at 38,000 characters and
+  // every document of the run was then marked read, so the ones cut off were lost
+  // for good (LN 197, the DhowCSD FAQ and Finance Act 2026, 14 Nov 2026).
+  for (const { doc, text } of read) {
+    const body = `=== ${doc.file}\n${doc.tier === 'gap' ? 'wanted' : doc.tier === 'extra' ? 'extra' : 'verify'}: ${doc.rows.map((r) => `${r.id} [${r.missing.join(',')}]`).join('; ')}\n${doc.tier === 'extra' && doc.finds ? focusText(text, doc.finds, doc.occurrences).slice(0, EXTRA_TEXT_CHARS) : text.slice(0, doc.tier === 'extra' ? EXTRA_TEXT_CHARS : TEXT_CHARS)}`.slice(0, 38_000);
+    const res = await fetch(`${site}/cbk-watch-form.html`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ 'form-name': 'cbk-watch', at: new Date().toISOString(), gapdocs: body }),
+    }).catch(() => null);
+    // Marked read only once this document's text has been delivered.
+    if (!res || res.status >= 400) continue;
+    done[readKey(doc)] = text === '(no text layer)' ? 'no text layer' : 'read';
+  }
   await store.setJSON('gap-docs-read', done);
 };
 

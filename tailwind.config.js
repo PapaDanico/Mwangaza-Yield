@@ -56,7 +56,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-roboto)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },
       // Elevation is a three-step ramp, every layer tinted with the navy ink

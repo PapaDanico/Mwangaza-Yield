@@ -88,7 +88,7 @@ export default function ReceiptsPage() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-semibold text-ink">{r.title}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-ink-faint">
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-faint">
                   <Clock size={11} />
                   {r.timestamp.replace('T', ' ').slice(0, 19)} UTC
                   <span>·</span>
@@ -117,7 +117,7 @@ export default function ReceiptsPage() {
                 </button>
               </div>
             </div>
-            <p className="mt-1.5 text-[12px] text-ink-soft">{r.result}</p>
+            <p className="mt-1.5 text-xs text-ink-soft">{r.result}</p>
           </div>
         ))}
       </div>

@@ -109,7 +109,7 @@ export default function GoalReport({
       {/* h2 for the same reason as the ladder report: this sheet lives inside a
           page that already owns the h1, and two h1s is a document outline lie. */}
       <h2 className="mt-5 font-display text-2xl font-bold [word-spacing:0.12em]">{goal.tagline}</h2>
-      <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-ink-muted">
+      <p className="mt-1 max-w-3xl text-xs leading-relaxed text-ink-muted">
         {goal.description}
       </p>
 
@@ -129,7 +129,7 @@ export default function GoalReport({
             />
           </div>
           <Section title="How this was worked out" />
-          <table className="w-full text-[12px]">
+          <table className="w-full text-xs">
             <tbody>
               <Row label="Target annual income (net)" value={formatKES(fire.targetAnnualIncomeKES)} />
               <Row
@@ -173,7 +173,7 @@ export default function GoalReport({
             />
           </div>
           <Section title="Year by year" />
-          <table className="w-full text-[12px]">
+          <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Year</th>
@@ -248,7 +248,7 @@ export default function GoalReport({
             <Metric label="Months paid" value={`${income.monthsPaid} of 12`} />
           </div>
           <Section title="When the money lands" />
-          <table className="w-full text-[12px]">
+          <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-ink-faint">
                 {MONTHS.map((m, i) => (
@@ -286,7 +286,7 @@ export default function GoalReport({
           <div className={incomeOptions && incomeOptions.length > 0 ? 'grid grid-cols-2 gap-8' : ''}>
           <div>
           <Section title="The bonds behind it" />
-          <table className="w-full text-[12px]">
+          <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-faint">
                 <th className="py-1.5">Bond</th>
@@ -359,7 +359,7 @@ export default function GoalReport({
                 best bond that pays IN it rather than the best bond available — so a wider
                 spread earns less. Every option below was priced on the same capital.
               </p>
-              <table className="w-full text-[12px]">
+              <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-faint">
                     <th className="py-1.5">Spread</th>
@@ -411,7 +411,7 @@ export default function GoalReport({
             />
           </div>
           <Section title="The arithmetic" />
-          <table className="w-full text-[12px]">
+          <table className="w-full text-xs">
             <tbody>
               <Row
                 label={`Quoted discount rate (${preservation.tenorDays}-day bill)`}
@@ -481,7 +481,7 @@ function Row({ label, value }: { label: string; value: string }) {
 /** Shared by the fee plan; kept here so the report has one bond-table style. */
 function BondTable({ rungs }: { rungs: SchoolFeesPlan['ladder']['rungs'] }) {
   return (
-    <table className="w-full text-[12px]">
+    <table className="w-full text-xs">
       <thead>
         <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-faint">
           <th className="py-1.5">Bond</th>

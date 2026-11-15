@@ -94,7 +94,7 @@ export default function AuctionBanner() {
         <p className="font-display font-semibold leading-snug text-ink [overflow-wrap:anywhere]">
           {next.issueCode}
         </p>
-        <p className="hidden font-display text-sm font-medium leading-snug text-ink-muted sm:[display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:1] overflow-hidden">
+        <p className="hidden font-display text-sm font-medium leading-snug text-ink-muted sm:[display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
           {next.bondName}
         </p>
         <p className="text-sm text-ink-muted">

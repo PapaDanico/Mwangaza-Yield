@@ -106,7 +106,7 @@ export default function EvidenceStrip() {
               {f.unit}
             </p>
             <p className="mt-2 text-sm font-medium text-ink">{f.claim}</p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">{f.detail}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">{f.detail}</p>
           </div>
         ))}
       </div>

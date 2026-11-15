@@ -84,10 +84,10 @@ export default function RealYieldCard({
             <span className="num text-ink">{real.breakEvenInflationPct.toFixed(2)}%</span>
           </div>
 
-          <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">{real.summary}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-soft">{real.summary}</p>
 
           {multiple !== null && multiple > 1.05 && (
-            <p className="mt-2 text-[12px] leading-relaxed text-ink-faint">
+            <p className="mt-2 text-xs leading-relaxed text-ink-faint">
               Worth knowing when comparing this to an infrastructure bond: a tax exemption is
               worth about {multiple.toFixed(1)}× more as a share of your <em>real</em> return
               than it looks as a share of the headline, because it is measured against a much
@@ -100,7 +100,7 @@ export default function RealYieldCard({
       <div className="mt-3 border-t border-sand-200 pt-3">
         <label
           htmlFor="cpi-assumption"
-          className="block text-[12px] font-medium text-ink-soft"
+          className="block text-xs font-medium text-ink-soft"
         >
           Assume inflation averages
         </label>
@@ -123,7 +123,7 @@ export default function RealYieldCard({
           <button
             type="button"
             onClick={() => setOverride(null)}
-            className="mt-1 min-h-11 text-[12px] font-medium text-mint-700 underline"
+            className="mt-1 min-h-11 text-xs font-medium text-mint-700 underline"
           >
             Back to the published {reading.rate.toFixed(2)}%
           </button>

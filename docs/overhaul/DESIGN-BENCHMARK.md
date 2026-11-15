@@ -23,7 +23,7 @@ Goal set by the owner: a platform that looks and reads like a serious, internati
 Observed on the dashboard and in the code:
 1. **Length without hierarchy.** Panels are full-width cards of equal weight stacked in one column. Nothing says which one matters most this week.
 2. **Dead space inside cards.** The forecast card spends about 235 px on three lines.
-3. **Three font families** (Plus Jakarta Sans, Roboto, JetBrains Mono) plus **39 arbitrary tiny font sizes** (`text-[Npx]`). That reads as accretion, not a system.
+3. **Three font families** (Plus Jakarta Sans, Roboto, JetBrains Mono), loading 8 font files and 225,648 bytes on every page. *Correction, 15 Nov:* the first draft also called 39 arbitrary font sizes "accretion"; 37 of them were `text-[12px]`, which is exactly `text-xs`, and the named scale was already in wide use (442 `text-xs`, 386 `text-sm`). That was a duplicate spelling, not a missing system, and is now guarded by `tests/unit/type-scale.test.ts`.
 4. **Headings are topic labels** ("Our forecast against the result"), not takeaways. Some panels already state the point ("Locking a year pays almost nothing extra"); most do not.
 5. **Strengths to keep:** provenance and freshness per figure, one honest tone, high contrast (the Tailwind comments record contrast work), tabular numerals class, a three-step elevation ramp, a calm palette.
 
@@ -62,3 +62,6 @@ Observed on the dashboard and in the code:
 
 ## Sources consulted
 Vanguard's published behavioural-design material and 2026 website redesign news release; the Corporate Insight calculator review as reported by PLANADVISER; WCAG 2.2 summaries (vendor and university pages); fintech trust-pattern articles (agency blogs); third-party write-ups of McKinsey slide and chart conventions. None is a primary specification.
+
+## Phase 2 result (15 Nov)
+Body text moved from Roboto to Plus Jakarta Sans (already shipped as one variable font). Font files per page 8 to 4, bytes 225,648 to 117,224 (-48%). Page heights moved by 0.5 to 3% (mobile dashboard 4,277 to 4,399 px). The browser guards caught three real regressions from the wider letterforms, all fixed: an 8 px sideways scroll at 768 px from the navbar, a wrapped "View details" link, and a truncated auction title.

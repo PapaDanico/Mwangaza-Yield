@@ -480,6 +480,20 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
         format: 'a4',
         orientation: landscape ? 'landscape' : 'portrait',
       });
+      /* Document properties. The file carried none: a reader's PDF viewer, a
+       * search index and a screen reader all showed the filename or nothing.
+       * The title comes from the filename the page chose (mwangaza-school-fees-
+       * plan), so it needs no DOM lookup and cannot disagree with the download. */
+      const heading = filename.replace(/^mwangaza-/, '').replace(/-/g, ' ');
+      const docTitle = `${heading.charAt(0).toUpperCase()}${heading.slice(1)}`;
+      pdf.setProperties({
+        title: `${docTitle} — Mwangaza Yield`,
+        subject: 'Kenyan government bond calculation: assumptions, sources and method are stated in the document. Not investment advice.',
+        author: 'Mwangaza Yield',
+        creator: 'Mwangaza Yield (mwangazayield.org)',
+        keywords: 'Kenya, government bonds, Treasury bills, calculation',
+      });
+      pdf.setLanguage('en-GB');
 
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();

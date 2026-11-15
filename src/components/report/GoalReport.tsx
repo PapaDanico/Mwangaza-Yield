@@ -240,7 +240,7 @@ export default function GoalReport({
           <div className="mt-5 grid grid-cols-3 gap-3">
             <Metric label="Net income / year" value={formatKES(income.totalNetAnnualKES)} tone="mint" />
             <Metric
-              label={income.monthsPaid === 12 ? 'Every month' : 'In the months it pays'}
+              label={income.monthsPaid === 12 ? 'Average per month' : 'In the months it pays'}
               value={formatKES(
                 income.monthsPaid > 0 ? income.totalNetAnnualKES / income.monthsPaid : 0
               )}
@@ -414,7 +414,7 @@ export default function GoalReport({
           <table className="w-full text-xs">
             <tbody>
               <Row
-                label={`Quoted discount rate (${preservation.tenorDays}-day bill)`}
+                label={`Quoted average rate (${preservation.tenorDays}-day bill)`}
                 value={formatPct(preservation.discountRate)}
               />
               <Row label="Net effective annual yield" value={formatPct(preservation.netEAY)} />
@@ -423,21 +423,34 @@ export default function GoalReport({
           </table>
           <p className="mt-3 text-xs leading-relaxed text-ink-muted">
             The shortest tenor on offer, chosen because liquidity is the objective here rather than
-            yield. The quoted rate is a discount, not a return: it is earned on a smaller outlay, so
-            the true yield is higher — and 15% withholding tax then pulls the net below the quote.
-            The figure above is the net.
+            yield. CBK quotes a bill&apos;s rate as a simple annual yield on the price paid, so the
+            price is 100 ÷ (1 + rate × days ÷ 365). Compounding that rate over a year gives a higher
+            effective annual yield, and 15% withholding tax on the interest then pulls the net below
+            the quote. The figure above is the net.
           </p>
         </>
       )}
 
-      <footer className="mt-6 border-t border-sand-300 pt-3 text-xs leading-relaxed text-ink-faint">
-        Yields are solved from each bond&apos;s remaining cash-flow schedule; withholding tax applies
-        to coupons only (infrastructure bonds are exempt) and principal redemption is untaxed.
-        Accrued interest uses Actual/364 and coupon dates run in exact 182-day steps from issue — the
-        basis Kenyan government bonds are built on. {NOT_ADVICE}
-        {' '}
-        {CASHFLOW_SOURCES} Bond data as of {dataAsOf()}.
-      </footer>
+      {/* A Treasury bill has no coupons and no accrued interest, and it is not on
+        * the bond day-count. The bond footer on a bill report said "Actual/364"
+        * and "coupon dates", which describes a different instrument. */}
+      {preservation ? (
+        <footer className="mt-6 border-t border-sand-300 pt-3 text-xs leading-relaxed text-ink-faint">
+          Treasury bill price per 100 is 100 ÷ (1 + rate × days ÷ 365), the basis CBK prints in its
+          auction results; withholding tax of 15% applies to the interest and is never exempt for
+          bills. The rate is CBK&apos;s weighted average of accepted bids at the Treasury bill auction
+          of {preservation.auctionDate}. {NOT_ADVICE} Data as of {dataAsOf()}.
+        </footer>
+      ) : (
+        <footer className="mt-6 border-t border-sand-300 pt-3 text-xs leading-relaxed text-ink-faint">
+          Yields are solved from each bond&apos;s remaining cash-flow schedule; withholding tax applies
+          to coupons only (infrastructure bonds are exempt) and principal redemption is untaxed.
+          Accrued interest uses Actual/364 and coupon dates run in exact 182-day steps from issue — the
+          basis Kenyan government bonds are built on. {NOT_ADVICE}
+          {' '}
+          {CASHFLOW_SOURCES} Bond data as of {dataAsOf()}.
+        </footer>
+      )}
     </div>
   );
 }

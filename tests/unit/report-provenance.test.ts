@@ -261,3 +261,32 @@ describe('PDF capture state integrity', () => {
     expect(textGeometry).toBeGreaterThan(wait);
   });
 });
+
+describe('the capital-preservation sheet describes a Treasury bill, not a bond', () => {
+  const src = read('src/components/report/GoalReport.tsx');
+
+  it('calls the quoted figure an average rate on price, not a discount on face', () => {
+    expect(src).not.toMatch(/Quoted discount rate/);
+    expect(src).not.toMatch(/earned on a smaller outlay/);
+    expect(src).toMatch(/100 ÷ \(1 \+ rate × days ÷ 365\)/);
+  });
+
+  it('has its own footer: the auction date, no coupons, no Actual/364', () => {
+    expect(src).toMatch(/preservation \? \(/);
+    expect(src).toMatch(/Treasury bill auction\s+of \{preservation\.auctionDate\}/);
+  });
+
+  it('labels a twelve-month average as an average', () => {
+    expect(src).toMatch(/'Average per month'/);
+    expect(src).not.toMatch(/'Every month'/);
+  });
+});
+
+describe('the exported PDF identifies itself', () => {
+  const src = read('src/components/report/ReportActions.tsx');
+  it('sets title, author, subject and language on every export', () => {
+    expect(src).toMatch(/pdf\.setProperties\(\{[\s\S]*title:[\s\S]*author: 'Mwangaza Yield'/);
+    expect(src).toMatch(/pdf\.setLanguage\('en-GB'\)/);
+  });
+});
+

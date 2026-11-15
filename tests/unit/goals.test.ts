@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, couponMonths,
+  GOALS, MAX_FEE_YEARS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, couponMonths,
 } from '../../src/lib/goals';
 import type { Bond, TBill } from '../../src/types/bond';
 
@@ -115,6 +115,29 @@ describe('planPreservation', () => {
   });
 
   it('returns null with no bills', () => expect(planPreservation([], 100_000)).toBeNull());
+
+  /* Independent benchmark, written from CBK's published convention and not from
+   * the module under test: the quoted rate is a simple yield on price, so
+   * price per 100 = 100 / (1 + r x d / 365). 500,000 at 8.7986% for 91 days is
+   * face 500,000 / (1 + 0.087986 x 91 / 365); interest is face minus that cost;
+   * tax is 15% of it; the effective annual yield compounds the gross return. */
+  it('reproduces the CBK price convention independently', () => {
+    const r = 0.087986, d = 91, face = 500_000;
+    const cost = face / (1 + (r * d) / 365);
+    const gross = face - cost;
+    const plan = planPreservation(bills, face)!;
+    // The planner is given the amount PAID; the benchmark is the same bill at that outlay.
+    const paid = plan.costKES;
+    const faceFromPaid = paid * (1 + (r * d) / 365);
+    expect(faceFromPaid).toBeCloseTo(face, 0);
+    expect(plan.netInterestKES).toBeCloseTo(gross * 0.85, 0);
+    expect(plan.netProceedsKES).toBeCloseTo(paid + gross * 0.85, 0);
+    expect(plan.netEAY).toBeLessThan(plan.discountRate * 1.01);
+  });
+
+  it('carries the auction its rate came from, so a printed plan can cite it', () => {
+    expect(planPreservation(bills, 500_000)!.auctionDate).toBe('2026-07-16');
+  });
 });
 
 describe('planSchoolFees cannot be hung by its own arguments', () => {
@@ -122,8 +145,17 @@ describe('planSchoolFees cannot be hung by its own arguments', () => {
     // A stray paste of 1000000 allocated a FeeYear and rendered a table row per
     // iteration, wedging the tab so hard that reloading the page timed out.
     const p = planSchoolFees(universe, [], 3_000_000, 2032, 1_000_000, 400_000, asOf);
-    expect(p.years.length).toBe(8);
+    expect(p.years.length).toBe(MAX_FEE_YEARS);
     expect(Number.isFinite(p.totalFeesKES)).toBe(true);
+  });
+
+  it('allows ten years of fees and clamps an eleventh', () => {
+    expect(MAX_FEE_YEARS).toBe(10);
+    const ten = planSchoolFees(universe, [], 6_000_000, 2032, 10, 400_000, asOf);
+    expect(ten.years.map((y) => y.year)).toEqual([2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2041]);
+    expect(planSchoolFees(universe, [], 6_000_000, 2032, 11, 400_000, asOf).years).toHaveLength(10);
+    // Total fees is the sum of the years it shows, whatever the horizon.
+    expect(ten.totalFeesKES).toBeCloseTo(ten.years.reduce((a, y) => a + y.feeKES, 0), 0);
   });
 
   it('refuses a fee year in the far future', () => {

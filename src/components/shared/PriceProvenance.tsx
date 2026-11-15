@@ -48,7 +48,7 @@ export function CoverageNotice({ coverage }: { coverage: PriceCoverage }) {
 
   if (coverage.parFallback === 0) {
     return (
-      <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[12px] leading-relaxed text-emerald-900">
+      <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs leading-relaxed text-emerald-900">
         Every bond below is priced from{' '}
         {coverage.staleCount > 0 ? 'prices you recorded — some are over a month old' : 'a real price'}.
         {coverage.staleCount > 0 && (
@@ -65,7 +65,7 @@ export function CoverageNotice({ coverage }: { coverage: PriceCoverage }) {
   }
 
   return (
-    <p className="rounded-xl bg-sand-200/70 px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
+    <p className="rounded-xl bg-sand-200/70 px-3 py-2 text-xs leading-relaxed text-ink-soft">
       <span className="font-semibold">{coverage.parFallback}</span> of {coverage.total}{' '}
       {plural(coverage.total, 'bond')} below are
       priced at <span className="num">100</span> because we hold no price for them — that is a

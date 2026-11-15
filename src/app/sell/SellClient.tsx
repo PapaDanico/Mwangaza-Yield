@@ -216,7 +216,7 @@ export default function SellClient() {
               Ksh 400,000 trade — and it appears as a single line in braces that
               is easy to read past. */}
           <div className="rounded-xl border border-sand-300 bg-sand-100/60 p-3">
-            <p className="text-[12px] font-medium text-ink-soft">
+            <p className="text-xs font-medium text-ink-soft">
               Does this bond repay principal early?
             </p>
             <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
@@ -318,7 +318,7 @@ export default function SellClient() {
 
             {analysis.quoteDisagrees && (
               <div className="rounded-xl border border-gold-500 bg-gold-100/60 p-3">
-                <p className="flex items-start gap-2 text-[12px] leading-relaxed text-ink-soft">
+                <p className="flex items-start gap-2 text-xs leading-relaxed text-ink-soft">
                   <AlertTriangle size={15} className="mt-0.5 shrink-0 text-gold-700" />
                   <span>
                     <strong>Our price does not match your sheet.</strong> At the quoted{' '}
@@ -332,7 +332,7 @@ export default function SellClient() {
               </div>
             )}
             {!analysis.quoteDisagrees && quotedYTM && (
-              <p className="flex items-center gap-1.5 text-[12px] text-mint-700">
+              <p className="flex items-center gap-1.5 text-xs text-mint-700">
                 <CheckCircle2 size={14} /> Our arithmetic reproduces your broker&apos;s price at the
                 quoted yield.
               </p>
@@ -369,7 +369,7 @@ export default function SellClient() {
                 </tbody>
               </table>
               {bond.taxExempt && (
-                <p className="rounded-lg bg-sand-200/70 px-3 py-2 text-[12px] leading-relaxed text-ink-soft">
+                <p className="rounded-lg bg-sand-200/70 px-3 py-2 text-xs leading-relaxed text-ink-soft">
                   <strong>This is a tax-free bond.</strong> Its coupons reach you whole. An
                   ordinary bond loses{' '}
                   <span className="num">{(analysis.whtRateOnReplacement * 100).toFixed(0)}%</span> of
@@ -386,7 +386,7 @@ export default function SellClient() {
                   If market yields move before you sell
                   <span aria-hidden className="text-lg text-gold-700 transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-2 text-[12px] leading-relaxed text-ink-faint">
+                <p className="mt-2 text-xs leading-relaxed text-ink-faint">
                   Repriced exactly from this bond&apos;s own coupons and dates, starting from the {formatPct(shocks.anchorYieldPct)} implied by your
                   price. Rates up means a lower price; rates down, a higher one. A scenario to size the risk of waiting, not a forecast.
                   Charges are not included.
@@ -425,7 +425,7 @@ export default function SellClient() {
               <h2 className="font-display text-sm font-bold text-ink-soft">
                 What could replace it
               </h2>
-              <p className="text-[12px] leading-relaxed text-ink-faint">
+              <p className="text-xs leading-relaxed text-ink-faint">
                 {verdict(analysis, bond, replacements[0] ?? null)}
               </p>
               <div className="overflow-x-auto">
@@ -472,7 +472,7 @@ export default function SellClient() {
               <h2 className="font-display text-sm font-bold text-ink-soft">
                 What you are giving up
               </h2>
-              <p className="text-[12px] leading-relaxed text-ink-muted">
+              <p className="text-xs leading-relaxed text-ink-muted">
                 Holding to maturity would pay you{' '}
                 <span className="num font-semibold text-ink">{formatKES(analysis.totalNetCouponsKES)}</span>{' '}
                 in coupons after tax, plus{' '}

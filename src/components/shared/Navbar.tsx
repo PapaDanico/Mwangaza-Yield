@@ -80,7 +80,7 @@ export default function Navbar() {
                   // dimension that is not contended, so the tap target can
                   // reach 44px without touching the constraint that actually
                   // binds. These links were ~28px tall.
-                  'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-1.5 text-xs font-medium transition-colors lg:px-3 lg:text-sm',
+                  'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-1 text-xs font-medium transition-colors lg:px-3 lg:text-sm',
                   isActive(href)
                     ? 'bg-ink text-sand-50'
                     : 'text-ink-muted hover:bg-sand-200 hover:text-ink'

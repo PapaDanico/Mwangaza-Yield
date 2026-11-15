@@ -99,7 +99,7 @@ export default function InteractiveModules() {
     <section>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-display text-lg font-bold text-ink">Interactive Modules</h2>
-        <div className="flex items-center gap-2 text-[12px] text-ink-muted">
+        <div className="flex items-center gap-2 text-xs text-ink-muted">
           <ProgressRing done={completed.size} total={MODULES.length} />
           <span>{completed.size}/{MODULES.length} completed</span>
         </div>
@@ -121,7 +121,7 @@ export default function InteractiveModules() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-[12px] text-ink-soft">{desc}</p>
+                  <p className="mt-0.5 text-xs text-ink-soft">{desc}</p>
                 </div>
                 {isDone && <CheckCircle2 size={18} className="shrink-0 text-mint-700" />}
               </div>
@@ -144,7 +144,7 @@ export default function InteractiveModules() {
                   {!isDone && (
                     <button
                       onClick={() => markDone(id)}
-                      className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-mint-700 hover:underline underline-offset-2"
+                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-mint-700 hover:underline underline-offset-2"
                     >
                       <CheckCircle2 size={14} /> Mark as complete
                     </button>

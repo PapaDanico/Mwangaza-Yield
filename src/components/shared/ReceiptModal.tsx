@@ -123,7 +123,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
 
           {/* Inputs */}
           <Section title="Inputs">
-            <table className="w-full text-[12px]">
+            <table className="w-full text-xs">
               <tbody>
                 {receipt.inputs.map((inp, i) => (
                   <tr key={i} className="border-b border-sand-200/70 last:border-0">
@@ -140,7 +140,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
           <Section title="Data Sources">
             <ul className="space-y-1">
               {receipt.dataSources.map((ds, i) => (
-                <li key={i} className="text-[12px] text-ink-soft">
+                <li key={i} className="text-xs text-ink-soft">
                   <span className="font-medium text-ink">{ds.name}</span>
                   {ds.lastUpdated && <span className="text-ink-faint"> · {ds.lastUpdated}</span>}
                   {ds.url && (
@@ -160,7 +160,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
 
           {/* Formula */}
           <Section title="Formula">
-            <p className="mb-2 text-[12px] leading-relaxed text-ink-soft">
+            <p className="mb-2 text-xs leading-relaxed text-ink-soft">
               {receipt.formulaPlainText}
             </p>
             <pre className={cn(
@@ -178,7 +178,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
 
           {/* Verification */}
           <Section title="Verification">
-            <p className="mb-1 text-[12px] text-ink-soft">
+            <p className="mb-1 text-xs text-ink-soft">
               SHA-256 hash of inputs + formula. Re-run the calculation with the same inputs and
               verify the hash matches to confirm the figures have not changed.
             </p>

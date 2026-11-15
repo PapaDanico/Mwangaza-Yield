@@ -191,7 +191,7 @@ export default function PricesClient() {
       <div className="flex flex-col gap-3 rounded-xl border border-sand-300 bg-sand-50 px-4 py-3 sm:flex-row sm:items-start">
         <ShieldCheck size={16} className="mt-0.5 shrink-0 text-mint-700" />
         <div className="flex-1 min-w-0">
-          <p className="text-[12px] leading-relaxed text-ink-soft">
+          <p className="text-xs leading-relaxed text-ink-soft">
             <strong className="text-ink">
               Your prices are anonymised and stored only on your device. We never see them.
             </strong>{' '}
@@ -203,7 +203,7 @@ export default function PricesClient() {
         </div>
         {/* Opt-in toggle — default off */}
         <label className="flex shrink-0 cursor-pointer items-center gap-2 sm:ml-auto">
-          <span className="text-[12px] font-medium text-ink-muted whitespace-nowrap">
+          <span className="text-xs font-medium text-ink-muted whitespace-nowrap">
             Contribute to Community Book
           </span>
           <button
@@ -276,7 +276,7 @@ export default function PricesClient() {
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <div className="min-w-0">
                   <p className="font-semibold text-ink">{bond.issueCode}</p>
-                  <p className="text-[12px] text-ink-faint">
+                  <p className="text-xs text-ink-faint">
                     matures {bond.maturityDate} · {bond.couponRate.toFixed(3)}% coupon
                     {bond.taxExempt && ' · tax-free'}
                   </p>
@@ -306,7 +306,7 @@ export default function PricesClient() {
               {/* Community stats — only show when ≥3 submissions exist */}
               {cp && (
                 <div className="mt-2 rounded-lg border border-sand-200 bg-sand-100/60 px-3 py-2">
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-[12px] text-ink-soft">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-ink-soft">
                     <span className="flex items-center gap-1">
                       <Users size={11} className="text-ink-faint" />
                       <strong className="text-ink">Median quoted price:</strong>{' '}
@@ -418,7 +418,7 @@ export default function PricesClient() {
                       ))}
                     </select>
                   </label>
-                  {error && <p className="text-[12px] font-medium text-red-700">{error}</p>}
+                  {error && <p className="text-xs font-medium text-red-700">{error}</p>}
                   {contributeEnabled && (
                     <p className="text-xs text-ink-faint">
                       An anonymised copy of this price will be added to your local community book.
@@ -457,7 +457,7 @@ export default function PricesClient() {
                       <Trash2 size={14} /> Remove
                     </button>
                   )}
-                  {info.note && <span className="text-[12px] text-ink-faint">{info.note}</span>}
+                  {info.note && <span className="text-xs text-ink-faint">{info.note}</span>}
                 </div>
               )}
             </div>
@@ -477,7 +477,7 @@ export default function PricesClient() {
         )}
       </div>
 
-      <p className="text-[12px] leading-relaxed text-ink-faint">
+      <p className="text-xs leading-relaxed text-ink-faint">
         Prices feed the <Link href="/calculator/" className="underline underline-offset-2">calculator</Link>,{' '}
         <Link href="/ladder/" className="underline underline-offset-2">ladder</Link> and{' '}
         <Link href="/goals/" className="underline underline-offset-2">goal plans</Link>. A price older

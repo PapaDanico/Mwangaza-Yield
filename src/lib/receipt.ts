@@ -72,7 +72,7 @@ export interface Receipt {
   formulaNotation: string;
   /** Final computed value as a display string. */
   result: string;
-  /** SHA-256 hex of `${kind}:${JSON.stringify(inputs)}:${formulaNotation}`,
+  /** SHA-256 hex of the canonical receipt calculation payload (inputs, sources, formula, result),
    *  or a djb2 hex prefixed "djb2:" when SubtleCrypto is unavailable. */
   hash: string;
 }
@@ -200,7 +200,16 @@ export async function generateReceipt(ctx: CalculationContext): Promise<Receipt>
       ? buildBondInvestmentReceipt(ctx)
       : buildPortfolioReceipt(ctx);
 
-  const hashPayload = `${partial.kind}:${JSON.stringify(partial.inputs)}:${partial.formulaNotation}`;
+  // Bind the displayed result and provenance to the checksum as well as the inputs.
+  // Otherwise two receipts with different outputs could share a verification hash.
+  const hashPayload = JSON.stringify({
+    kind: partial.kind,
+    inputs: partial.inputs,
+    dataSources: partial.dataSources,
+    formulaPlainText: partial.formulaPlainText,
+    formulaNotation: partial.formulaNotation,
+    result: partial.result,
+  });
   const hash = await sha256Hex(hashPayload);
 
   return {

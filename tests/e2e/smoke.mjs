@@ -626,6 +626,14 @@ async function main() {
        * this decompresses the content streams and counts real text-draw
        * operators, then checks a figure and a bond code survived. */
       const full = path ? await readFile(path) : Buffer.alloc(0);
+      /* The document identifies itself. The file once carried no Title,
+       * Author or Subject, so a viewer, a search index and a screen reader
+       * showed a filename or nothing (found by exporting every report and
+       * reading the file, 15 Nov 2026). */
+      const info = full.toString('latin1');
+      if (!/\/Title\s*\(/.test(info) || !/\/Author\s*\(Mwangaza Yield\)/.test(info)) {
+        fail('ladder: exported PDF has no Title/Author in its document properties');
+      }
       const drawn = [];
       for (const m of full.toString('latin1').matchAll(/stream\r?\n([\s\S]*?)endstream/g)) {
         let body = Buffer.from(m[1], 'latin1');

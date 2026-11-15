@@ -182,8 +182,10 @@ export function planFire(
 
 /* ----------------------------------------------------------- School fees */
 
-/** The form offers 1–8; the planner enforces it so nothing else can exceed it. */
-export const MAX_FEE_YEARS = 8;
+/** The form offers 1–10 (a child from primary entry to the end of secondary school and beyond);
+ *  the planner enforces it so nothing else can exceed it. Raised from 8 on 15 Nov 2026 at the
+ *  owner's request. The form reads this constant, so the two cannot drift apart. */
+export const MAX_FEE_YEARS = 10;
 /** Fees more than a working lifetime away are a typo, not a plan. */
 export const MAX_YEARS_AHEAD = 40;
 
@@ -479,6 +481,8 @@ export function priceIncomeSpreads(
 export interface PreservationPlan {
   tenorDays: number;
   discountRate: number;
+  /** The CBK auction the rate comes from (ISO date), so a printed plan can say so. */
+  auctionDate: string;
   netEAY: number;
   costKES: number;
   netProceedsKES: number;
@@ -493,6 +497,7 @@ export function planPreservation(tbills: TBill[], capitalKES: number): Preservat
   return {
     tenorDays: shortest.tenorDays,
     discountRate: shortest.discountRate,
+    auctionDate: shortest.auctionDate,
     netEAY: r.netEAY,
     costKES: r.costKES,
     netProceedsKES: r.netProceedsKES,

@@ -7,7 +7,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice } from '@/components/shared/PriceProvenance';
 import {
-  GOALS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, type GoalKey,
+  GOALS, MAX_FEE_YEARS, planFire, planSchoolFees, planPassiveIncome, priceIncomeSpreads, planPreservation, type GoalKey,
 } from '@/lib/goals';
 import { formatKES, formatPct } from '@/lib/financial-engine';
 import { ladderEmptyReason } from '@/lib/ladder';
@@ -541,8 +541,8 @@ export default function GoalsClient() {
                 onChange={(e) => setFirstFeeYear(nonNegativeNumber(e.target.value))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Years of fees">
-              <input type="number" min={1} max={8} value={yearsOfFees}
-                onChange={(e) => setYearsOfFees(Number(e.target.value) || 1)} className={`num ${inputCls}`} />
+              <input type="number" min={1} max={MAX_FEE_YEARS} value={yearsOfFees}
+                onChange={(e) => setYearsOfFees(Math.min(MAX_FEE_YEARS, Math.max(1, Math.floor(Number(e.target.value)) || 1)))} className={`num ${inputCls}`} />
             </Field>
             <Field label="Fees per year, at today's prices">
               <input type="number" step={50_000} value={annualFee}
@@ -788,7 +788,7 @@ export default function GoalsClient() {
                   wrong half the year, in the direction that hurts.
                 */}
                 <Stat
-                  label={income.monthsPaid === 12 ? 'Every month' : 'In the months it pays'}
+                  label={income.monthsPaid === 12 ? 'Average per month' : 'In the months it pays'}
                   value={formatCompactKES(
                     income.monthsPaid > 0 ? income.totalNetAnnualKES / income.monthsPaid : 0
                   )}

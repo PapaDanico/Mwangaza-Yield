@@ -19,6 +19,8 @@ import LadderReport from '@/components/report/LadderReport';
 import Fold from '@/components/shared/Fold';
 import IssuerIntent from '@/components/ladder/IssuerIntent';
 import ReinvestmentEvidence from '@/components/ladder/ReinvestmentEvidence';
+import LadderAnalysisCard from '@/components/ladder/LadderAnalysisCard';
+import type { LadderObjective } from '@/lib/ladder';
 import ReportActions from '@/components/report/ReportActions';
 import LiveResult from '@/components/shared/LiveResult';
 import { inputCls } from '@/lib/field-styles';
@@ -35,6 +37,7 @@ export default function LadderPage() {
   const [amount, setAmount] = usePersistedState('ladder:amount', 3_000_000);
   const [horizon, setHorizon] = usePersistedState('ladder:horizon', 10);
   const [rungCount, setRungCount] = usePersistedState('ladder:rungs', 4);
+  const [objective, setObjective] = usePersistedState<LadderObjective>('ladder:objective', 'yield');
   /**
    * Bonds the reader has chosen for themselves.
    *
@@ -52,8 +55,8 @@ export default function LadderPage() {
   useEffect(() => setToday(new Date().toLocaleDateString('en-KE', { dateStyle: 'long' })), []);
 
   const plan = useMemo(
-    () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices, chosenIsins),
-    [bonds, secondary, userPrices, amount, horizon, rungCount, chosenIsins]
+    () => buildLadder(bonds, secondary, amount, horizon, rungCount, new Date(), userPrices, chosenIsins, objective),
+    [bonds, secondary, userPrices, amount, horizon, rungCount, chosenIsins, objective]
   );
 
   /** Every bond a reader could still buy, soonest maturity first. */
@@ -209,6 +212,20 @@ export default function LadderPage() {
               onChange={(e) => setRungCount(Number(e.target.value))}
               className="h-11 w-full cursor-pointer accent-gold-600"
             />
+          </div>
+          <div>
+            <label htmlFor="ladder-objective" className="mb-1 block text-sm font-medium text-ink-soft">How to choose the bonds</label>
+            <select
+              id="ladder-objective"
+              value={objective}
+              onChange={(e) => setObjective(e.target.value as LadderObjective)}
+              disabled={tailored}
+              className={inputCls}
+            >
+              <option value="yield">Best net yield in each window</option>
+              <option value="smooth-income">Smoother income: pay in more months, give up a little yield</option>
+            </select>
+            {tailored && <p className="mt-1 text-xs text-ink-faint">Off while you are choosing the bonds yourself.</p>}
           </div>
           <p className="text-xs leading-relaxed text-ink-faint">
             Rungs are spread across the horizon — best net yield in each window, one bond per
@@ -423,7 +440,8 @@ export default function LadderPage() {
           used to live inside the input card and pushed the reader's own ladder
           ~2,400px down the page (measured 7 Nov 2026). Kept in the markup, so
           crawlers and no-JS readers still get it. */}
-      <div className="no-print">
+      <div className="no-print space-y-3">
+        <LadderAnalysisCard plan={plan} />
         <Fold title="Will the rungs roll? What the issuer plans and what was on offer">
           <IssuerIntent />
           <ReinvestmentEvidence />

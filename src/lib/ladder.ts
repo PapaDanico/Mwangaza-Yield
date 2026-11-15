@@ -39,6 +39,40 @@ export interface LadderPlan {
   unallocatedKES: number;
   /** How much of this plan rests on real prices rather than the par placeholder. */
   priceCoverage: PriceCoverage;
+  /** Why these bonds: the objective used and, per maturity window, who was ranked. Absent on an empty plan. */
+  selection?: LadderSelection;
+}
+
+/**
+ * What the automatic pick optimises.
+ *  - `yield`: the best net yield inside each maturity window (the original behaviour).
+ *  - `smooth-income`: the same, but a bond whose coupon months are already paid by an
+ *    earlier rung loses `SMOOTHING_PENALTY_PP` percentage points per overlapping month,
+ *    so the ladder pays in more of the twelve months. The price of smoothness is stated
+ *    in the plan: each window shows the yield given up.
+ */
+export type LadderObjective = 'yield' | 'smooth-income';
+
+/** Net-yield points a bond gives up for each coupon month an earlier rung already covers. */
+export const SMOOTHING_PENALTY_PP = 0.2;
+
+export interface LadderWindow {
+  /** ISO dates bounding the window of maturities this rung was chosen from. */
+  from: string;
+  to: string;
+  chosen: string | null;
+  /** Top candidates in the window, best first, with the score they were ranked on. */
+  ranked: { issueCode: string; netYTM: number; score: number; taxExempt: boolean }[];
+  /** Candidates in the window beyond those listed. */
+  others: number;
+}
+
+export interface LadderSelection {
+  mode: 'auto' | 'chosen';
+  objective: LadderObjective;
+  windows: LadderWindow[];
+  /** Rungs added because their window had no paper, in the order added. */
+  backfilled: string[];
 }
 
 const STEP = 50_000; // CBK face values move in Ksh 50k increments
@@ -177,7 +211,8 @@ export function buildLadder(
   maxRungs = 5,
   asOf: Date = new Date(),
   userPrices: UserPrice[] = [],
-  selectedIsins: string[] = []
+  selectedIsins: string[] = [],
+  objective: LadderObjective = 'yield'
 ): LadderPlan {
   const horizonEnd = new Date(asOf);
   horizonEnd.setFullYear(horizonEnd.getFullYear() + horizonYears);
@@ -206,7 +241,9 @@ export function buildLadder(
       .filter((b): b is Bond => Boolean(b) && new Date(b!.maturityDate) > asOf)
       .map(priced)
       .sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
-    return assemble(chosenBonds, totalKES, asOf);
+    const plan = assemble(chosenBonds, totalKES, asOf);
+    if (plan.rungs.length) plan.selection = { mode: 'chosen', objective, windows: [], backfilled: [] };
+    return plan;
   }
 
   // Rank candidates by net yield at their price, then keep one per maturity year.
@@ -216,21 +253,61 @@ export function buildLadder(
     .sort((a, x) => x.netYTM - a.netYTM);
 
   // Spread rungs ACROSS the horizon: split it into `maxRungs` equal windows and
-  // take the best net yield in each. Taking the first N by date instead would
+  // take the best-scoring bond in each. Taking the first N by date instead would
   // clump every rung at the short end and ignore the horizon the user set.
   const spanMs = horizonEnd.getTime() - asOf.getTime();
-  const chosen = new Map<number, (typeof candidates)[number]>();
-  for (const c of candidates) {
+  const bucketOf = (c: PricedBond) => {
     const t = new Date(c.bond.maturityDate).getTime() - asOf.getTime();
-    const bucket = Math.min(maxRungs - 1, Math.floor((t / spanMs) * maxRungs));
-    const held = chosen.get(bucket);
-    if (!held || c.netYTM > held.netYTM) chosen.set(bucket, c);
+    return Math.min(maxRungs - 1, Math.floor((t / spanMs) * maxRungs));
+  };
+  const byBucket = new Map<number, PricedBond[]>();
+  for (const c of candidates) {
+    const k = bucketOf(c);
+    byBucket.set(k, [...(byBucket.get(k) ?? []), c]);
   }
-  const picked = Array.from(chosen.values());
+
+  // Calendar months in which a bond pays a coupon over the next twelve months.
+  const yearAhead = new Date(asOf);
+  yearAhead.setFullYear(yearAhead.getFullYear() + 1);
+  const couponMonths = (c: PricedBond) =>
+    new Set(
+      getCouponDates(new Date(c.bond.issueDate), new Date(c.bond.maturityDate), c.bond.couponFrequencyPerYear || 2)
+        .filter((d) => d > asOf && d <= yearAhead)
+        .map((d) => d.getMonth())
+    );
+
+  const covered = new Set<number>();
+  const picked: PricedBond[] = [];
+  const windows: LadderWindow[] = [];
+  const LISTED = 4;
+  for (let k = 0; k < maxRungs; k++) {
+    const scored = (byBucket.get(k) ?? [])
+      .map((c) => {
+        const overlap = objective === 'smooth-income' ? [...couponMonths(c)].filter((m) => covered.has(m)).length : 0;
+        return { c, score: c.netYTM - SMOOTHING_PENALTY_PP * overlap };
+      })
+      // Stable: on a tie the earlier (higher net yield) candidate stays first.
+      .sort((x, y) => y.score - x.score);
+    const best = scored[0]?.c;
+    if (best) {
+      picked.push(best);
+      couponMonths(best).forEach((m) => covered.add(m));
+    }
+    windows.push({
+      from: new Date(asOf.getTime() + (spanMs * k) / maxRungs).toISOString().slice(0, 10),
+      to: new Date(asOf.getTime() + (spanMs * (k + 1)) / maxRungs).toISOString().slice(0, 10),
+      chosen: best?.bond.issueCode ?? null,
+      ranked: scored.slice(0, LISTED).map(({ c, score }) => ({
+        issueCode: c.bond.issueCode, netYTM: c.netYTM, score, taxExempt: Boolean(c.bond.taxExempt),
+      })),
+      others: Math.max(0, scored.length - LISTED),
+    });
+  }
 
   // Buckets can be empty when the market has no paper in that window (Kenya's
   // curve is sparse at the short end). Backfill up to maxRungs with the best
   // remaining yields, still one bond per maturity year.
+  const backfilled: string[] = [];
   if (picked.length < maxRungs) {
     const takenYears = new Set(picked.map((c) => new Date(c.bond.maturityDate).getFullYear()));
     for (const c of candidates) {
@@ -239,11 +316,14 @@ export function buildLadder(
       if (takenYears.has(y)) continue;
       takenYears.add(y);
       picked.push(c);
+      backfilled.push(c.bond.issueCode);
     }
   }
   picked.sort((a, x) => a.bond.maturityDate.localeCompare(x.bond.maturityDate));
 
-  return assemble(picked, totalKES, asOf);
+  const plan = assemble(picked, totalKES, asOf);
+  if (plan.rungs.length) plan.selection = { mode: 'auto', objective, windows, backfilled };
+  return plan;
 }
 
 /**

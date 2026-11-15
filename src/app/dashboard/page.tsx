@@ -20,6 +20,7 @@ import DecisionBrief from '@/components/dashboard/DecisionBrief';
 import LatestForecast from '@/components/dashboard/LatestForecast';
 import HeroRates from '@/components/landing/HeroRates';
 import Fold from '@/components/shared/Fold';
+import MobileFold from '@/components/shared/MobileFold';
 
 const actions = [
   { href: '/calculator/', title: 'Work out your return', desc: 'What a given amount really earns after tax' },
@@ -48,15 +49,35 @@ export default function DashboardPage() {
         * rate, so today's rates now come first: the latest T-bill auction
         * after tax, then the latest bond auction against our forecast. */}
       <HeroRates className="" />
-      <LatestForecast />
-      <AuctionBanner />
+
+      {/* Paired from `lg`: the forecast card (236px) and the open-auction banner
+        * (151px) are both short, and each was a full-width row. A phone still
+        * gets them one under the other, in the same order. */}
+      <div className="grid gap-5 lg:grid-cols-2 [&>*]:min-w-0">
+        <LatestForecast />
+        <AuctionBanner />
+      </div>
       <DecisionBrief />
-      <WhatChanged />
+      <div className="grid gap-5 lg:grid-cols-2 [&>*]:min-w-0">
+        <WhatChanged />
+        <MacroPanel />
+      </div>
       <TopYields />
-      <MacroPanel />
-      <InflationSplitCard />
-      <RateCycle />
-      <YieldCurveChart />
+
+      {/* Context, not the answer: on a phone each is a one-line disclosure
+        * (see MobileFold). From `lg` they are the panels they always were, and
+        * the curve sits beside the inflation split instead of under it. */}
+      <div className="grid gap-5 lg:grid-cols-2 [&>*]:min-w-0">
+        <MobileFold title="Inflation, headline against core" hint="Whose inflation the headline number is">
+          <InflationSplitCard />
+        </MobileFold>
+        <MobileFold title="The yield curve" hint="What the government pays for different loan lengths">
+          <YieldCurveChart />
+        </MobileFold>
+      </div>
+      <MobileFold title="The rate cycle" hint="Where the Central Bank Rate has been, and where it has stopped">
+        <RateCycle />
+      </MobileFold>
 
       {/* Two-up from `lg`. Measured at 1366px, the dashboard ran 3,381px —
           nearly four screens — with every block full width in a single column,
@@ -67,10 +88,12 @@ export default function DashboardPage() {
           their width to stay legible, and buying vertical space by making a
           chart harder to read is not a saving. These are stat-and-prose cards
           that read perfectly well at half width. */}
-      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
-        <MarketPulse />
-        <YieldInHistory />
-      </div>
+      <MobileFold title="Twelve months of auctions" hint="What the last year of auctions actually paid, and the market read">
+        <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
+          <MarketPulse />
+          <YieldInHistory />
+        </div>
+      </MobileFold>
 
       {/* Four shortcuts as one list. They were four full cards (about 620px on a
           phone) repeating destinations the tab bar and the header already carry. */}

@@ -173,3 +173,23 @@ describe('receipt verification algorithm labelling', () => {
     expect(receiptToMarkdown(digest)).toContain('SHA-256:');
   });
 });
+
+describe('receipt checksum covers the actual reported calculation', () => {
+  it('changes when the reported result changes but inputs remain identical', async () => {
+    const first = await generateReceipt(bondCtx);
+    const second = await generateReceipt({
+      ...bondCtx,
+      result: { ...mockResult, netYTM: mockResult.netYTM + 0.5 },
+    });
+    expect(first.hash).not.toBe(second.hash);
+  });
+
+  it('changes when source provenance changes', async () => {
+    const first = await generateReceipt(bondCtx);
+    const second = await generateReceipt({
+      ...bondCtx,
+      dataSources: [{ ...bondCtx.dataSources[0], lastUpdated: '2026-08-16' }],
+    });
+    expect(first.hash).not.toBe(second.hash);
+  });
+});

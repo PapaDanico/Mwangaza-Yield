@@ -35,6 +35,8 @@ export const GAP_DOCS_PER_RUN = 8;
 export const GAP_DEADLINE_MS = 22_000;
 /** Named extra documents read per run: they are large, and one run must be able to finish. */
 export const EXTRA_DOCS_PER_RUN = 1;
+/** A document that failed to read is set aside this long before another try. */
+export const FAIL_BACKOFF_MS = 6 * 3_600_000;
 /** Characters of each document posted. Results notices are one or two pages. */
 const TEXT_CHARS = 4_000;
 
@@ -290,7 +292,14 @@ export default async () => {
   const started = Date.now();
   const store = getStore('cbk-watch');
   const done = ((await store.get('gap-docs-read', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
-  const pending = pendingDocs(archive as unknown as Row[]).filter((d) => !done[readKey(d)]);
+  /* A document that failed is set aside for FAIL_BACKOFF_MS, not retried first
+   * every hour: the first hourly run found LN 197's PDF is a zero-byte file on
+   * CBK's side, and with one extra per run that one failure would have starved
+   * the other three forever (16 Nov 2026). */
+  const failedAt = ((await store.get('gap-docs-failed', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
+  const pending = pendingDocs(archive as unknown as Row[]).filter(
+    (d) => !done[readKey(d)] && !(failedAt[readKey(d)] && Date.now() - Date.parse(failedAt[readKey(d)]) < FAIL_BACKOFF_MS)
+  );
   /* Named extras (statutes, full prospectuses) are large. Eight at once from a
    * function that is killed at about 30 seconds meant the run died mid-extraction
    * and posted nothing, so four of them were never delivered and nothing said
@@ -316,6 +325,7 @@ export default async () => {
       }
       if (/^status [45]\d\d$/.test(text) || /^error /.test(text)) {
         failures.push(`${doc.file}: ${text}`);
+        failedAt[readKey(doc)] = new Date().toISOString();
         return;
       }
       read.push({ doc, text });
@@ -325,6 +335,7 @@ export default async () => {
   const site = process.env.URL ?? 'https://mwangazayield.org';
   // A failure is reported, not swallowed: it stays pending and is retried next run.
   if (failures.length) {
+    await store.setJSON('gap-docs-failed', failedAt).catch(() => null);
     await fetch(`${site}/cbk-watch-form.html`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },

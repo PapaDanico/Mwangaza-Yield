@@ -10,7 +10,7 @@ import { usePriceStore } from '@/stores/priceStore';
 import { useCommunityPriceStore, selectCommunityPrice } from '@/stores/communityPriceStore';
 import { resolvePrice, MIN_PRICE, MAX_PRICE, isPlausiblePrice } from '@/lib/prices';
 import {
-  computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING,
+  computeBondInvestment, formatKES, formatPct, formatYield,
 } from '@/lib/financial-engine';
 import { PRICE_SOURCES, computeFairValueSpread, type PriceSource } from '@/lib/communityPrice';
 import DataState from '@/components/shared/DataState';
@@ -106,7 +106,7 @@ export default function PricesClient() {
 
   // Never print the solver's own ceiling as though it were measured — the same
   // guard the calculator uses.
-  const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
+  const pct = (v: number) => formatYield(v);
 
   const SHORT_DATED_DAYS = 365;
 

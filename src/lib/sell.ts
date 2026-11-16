@@ -26,7 +26,7 @@
 import type { Bond } from '../types/bond';
 import { determineWHTRate, getCouponDates, getLastCouponDate } from './financial-engine';
 
-import { DAYS_IN_YEAR as YEAR_DAYS, DAYS_IN_COUPON_PERIOD as PERIOD_DAYS, DAY_MS } from './constants';
+import { DAYS_IN_YEAR as YEAR_DAYS, DAYS_IN_COUPON_PERIOD as PERIOD_DAYS, DAY_MS, YTM_CEILING, YTM_FLOOR } from './constants';
 
 /** 364-day year, 182-day coupon period — the convention Kenyan paper is built on. */
 
@@ -324,7 +324,8 @@ function solveYield(
   freq: number,
   useNet: boolean
 ): number {
-  let lo = 0.0001, hi = 200;
+  // Percent. Negative yields are real (a price above every remaining cash flow); see YTM_FLOOR.
+  let lo = YTM_FLOOR, hi = YTM_CEILING;
   for (let i = 0; i < 200; i++) {
     const mid = (lo + hi) / 2;
     if (pvPer100(cashflows, faceValueKES, settlement, mid, freq, useNet) > targetPer100) lo = mid;

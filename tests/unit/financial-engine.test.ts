@@ -206,14 +206,14 @@ describe('purchase charges', () => {
     expect(b).toEqual(a);
     expect(a.purchaseChargesKES).toBe(0);
   });
-  it('a charge adds to the cost and lowers both yields; negative or NaN is ignored', async () => {
+  it('a charge adds to the cost and lowers both yields; negative or NaN is rejected, not ignored', async () => {
     const { computeBondInvestment } = await import('../../src/lib/financial-engine');
     const a = computeBondInvestment(bond, 1_000_000, 100, at);
     const c = computeBondInvestment(bond, 1_000_000, 100, at, 2_500);
     expect(c.settlementCostKES).toBeCloseTo(a.settlementCostKES + 2_500, 6);
     expect(c.grossYTM).toBeLessThan(a.grossYTM);
     expect(c.netYTM).toBeLessThan(a.netYTM);
-    expect(computeBondInvestment(bond, 1_000_000, 100, at, -5)).toEqual(a);
-    expect(computeBondInvestment(bond, 1_000_000, 100, at, NaN)).toEqual(a);
+    expect(() => computeBondInvestment(bond, 1_000_000, 100, at, -5)).toThrow(RangeError);
+    expect(() => computeBondInvestment(bond, 1_000_000, 100, at, NaN)).toThrow(RangeError);
   });
 });

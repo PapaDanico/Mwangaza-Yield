@@ -22,7 +22,7 @@ import type { Bond } from '../types/bond';
  * and the remaining 0.14% appears from nowhere on payment day. The accrual
  * never reconciles with the cheque.
  */
-import { DAYS_IN_COUPON_PERIOD, DAYS_IN_YEAR, YTM_CEILING } from './constants';
+import { DAYS_IN_COUPON_PERIOD, DAYS_IN_YEAR, YTM_CEILING, YTM_FLOOR } from './constants';
 
 /**
  * Upper bound of the yield search, and a number the UI must not present as a
@@ -36,6 +36,27 @@ export { YTM_CEILING };
 
 export function isYieldPinned(ytm: number): boolean {
   return ytm >= YTM_CEILING - 0.05;
+}
+
+export { YTM_FLOOR };
+
+/**
+ * The other end. Until 16 Nov 2026 the search started at zero, so a price above
+ * the sum of a bond's remaining cash flows (a 12% bond quoted at 250) came back
+ * as "0.00%": the solver's lower limit printed as though it were a yield. Such
+ * a price has a real, negative yield, and the search now reaches it. Below
+ * `YTM_FLOOR` it is pinned again, and this says so.
+ */
+export function isYieldFloored(ytm: number): boolean {
+  return ytm <= YTM_FLOOR + 0.05;
+}
+
+/** A yield for display: the solver's limits are named as limits, never printed as figures. */
+export function formatYield(ytm: number, decimals = 2): string {
+  if (!Number.isFinite(ytm)) return 'not available';
+  if (isYieldPinned(ytm)) return `over ${YTM_CEILING}%`;
+  if (isYieldFloored(ytm)) return `below ${YTM_FLOOR}%`;
+  return `${ytm.toFixed(decimals)}%`;
 }
 
 /**
@@ -154,7 +175,8 @@ export function solveYTMFromPrice(
   const pv = (y: number) =>
     flows.reduce((s, f) => s + f.amount / Math.pow(1 + y / freq, f.t), 0);
 
-  let lo = 0.000001, hi = YTM_CEILING / 100; // annual, as a fraction
+  // Annual, as a fraction. The floor is negative: see isYieldFloored.
+  let lo = YTM_FLOOR / 100, hi = YTM_CEILING / 100;
   for (let i = 0; i < 100; i++) {
     const mid = (lo + hi) / 2;
     if (pv(mid) > dirtyPrice) lo = mid;
@@ -208,7 +230,13 @@ export function computeBondInvestment(
   const whtRate = determineWHTRate(bond);
   const accrued = calculateAccruedInterest(bond, settlementDate);
   const dirtyPrice = cleanPrice + accrued;
-  const charges = Number.isFinite(purchaseChargesKES) && purchaseChargesKES > 0 ? purchaseChargesKES : 0;
+  // An explicit charge that is not a real amount is an error, not zero: quietly
+  // dropping a malformed fee understates the cost and overstates both yields.
+  // (`sell.ts` already rejects an invalid sale charge the same way.)
+  if (!Number.isFinite(purchaseChargesKES) || purchaseChargesKES < 0) {
+    throw new RangeError('The purchase charge must be zero or a positive amount.');
+  }
+  const charges = purchaseChargesKES;
   const settlementCostKES = (faceValueKES * dirtyPrice) / 100 + charges;
   // The yield is solved from what you actually pay per 100 of face, charges included.
   const effectiveDirty = faceValueKES > 0 ? (settlementCostKES / faceValueKES) * 100 : dirtyPrice;

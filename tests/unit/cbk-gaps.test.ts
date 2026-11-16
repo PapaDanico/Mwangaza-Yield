@@ -169,5 +169,14 @@ describe('extra documents', () => {
     expect(src).toMatch(/for \(const \{ doc, text \} of read\) \{[\s\S]*?gapdocs: body[\s\S]*?done\[readKey\(doc\)\]/);
     expect(src).not.toMatch(/\.join\('\\n'\)\s*\.slice\(0, 38_000\)/);
   });
+  it('reads large named extras one per run and reports every failure instead of swallowing it', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
+    expect(src).toMatch(/EXTRA_DOCS_PER_RUN = 1/);
+    expect(src).toMatch(/slice\(0, EXTRA_DOCS_PER_RUN\)/);
+    expect(src).toMatch(/FETCH DIAGNOSTICS \(will retry\)/);
+    expect(src).not.toMatch(/\)\s*return;\s*\n\s*read\.push\(\{ doc, text \}\);\s*\n\s*\}\)\s*\n\s*\);\s*\n\s*if \(read\.length === 0\) return;/);
+  });
 });
+
 

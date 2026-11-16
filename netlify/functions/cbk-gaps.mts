@@ -33,6 +33,8 @@ const CORE = ['auctionDate', 'couponRate', 'pricePer100', 'amountOfferedKESM', '
 /** Documents read per run, and the time the whole run may take. */
 export const GAP_DOCS_PER_RUN = 8;
 export const GAP_DEADLINE_MS = 22_000;
+/** Named extra documents read per run: they are large, and one run must be able to finish. */
+export const EXTRA_DOCS_PER_RUN = 1;
 /** Characters of each document posted. Results notices are one or two pages. */
 const TEXT_CHARS = 4_000;
 
@@ -288,10 +290,20 @@ export default async () => {
   const started = Date.now();
   const store = getStore('cbk-watch');
   const done = ((await store.get('gap-docs-read', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
-  const todo = pendingDocs(archive as unknown as Row[]).filter((d) => !done[readKey(d)]).slice(0, GAP_DOCS_PER_RUN);
+  const pending = pendingDocs(archive as unknown as Row[]).filter((d) => !done[readKey(d)]);
+  /* Named extras (statutes, full prospectuses) are large. Eight at once from a
+   * function that is killed at about 30 seconds meant the run died mid-extraction
+   * and posted nothing, so four of them were never delivered and nothing said
+   * why (15 to 16 Nov 2026). One per run, so a run can finish; the schedule is
+   * hourly while anything is pending. */
+  const todo = [
+    ...pending.filter((d) => d.tier !== 'extra').slice(0, GAP_DOCS_PER_RUN),
+    ...pending.filter((d) => d.tier === 'extra').slice(0, EXTRA_DOCS_PER_RUN),
+  ];
   if (todo.length === 0) return;
 
   const read: { doc: GapDoc; text: string }[] = [];
+  const failures: string[] = [];
   await Promise.all(
     todo.map(async (doc) => {
       const text = await pdfText(doc.url, GAP_DEADLINE_MS - (Date.now() - started)).catch((e) => `error ${String(e).slice(0, 100)}`);
@@ -302,13 +314,29 @@ export default async () => {
         read.push({ doc, text: `FETCH REFUSED: ${text}` });
         return;
       }
-      if (/^status [45]\d\d$/.test(text) || /^error /.test(text)) return;
+      if (/^status [45]\d\d$/.test(text) || /^error /.test(text)) {
+        failures.push(`${doc.file}: ${text}`);
+        return;
+      }
       read.push({ doc, text });
     })
   );
-  if (read.length === 0) return;
 
   const site = process.env.URL ?? 'https://mwangazayield.org';
+  // A failure is reported, not swallowed: it stays pending and is retried next run.
+  if (failures.length) {
+    await fetch(`${site}/cbk-watch-form.html`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        'form-name': 'cbk-watch',
+        at: new Date().toISOString(),
+        gapdocs: `=== FETCH DIAGNOSTICS (will retry)\nafter ${Math.round((Date.now() - started) / 1000)}s\n${failures.join('\n')}`,
+      }),
+    }).catch(() => null);
+  }
+  if (read.length === 0) return;
+
   // One submission per document: a combined body was cut at 38,000 characters and
   // every document of the run was then marked read, so the ones cut off were lost
   // for good (LN 197, the DhowCSD FAQ and Finance Act 2026, 14 Nov 2026).
@@ -326,10 +354,11 @@ export default async () => {
   await store.setJSON('gap-docs-read', done);
 };
 
-// Once a day, at 06:45 UTC. It ran every five minutes while the archive's source
+// Hourly, at :45, now that named extras are read one per run (a run with nothing
+// pending returns at once, so idle hours cost nothing). It was once a day at 06:45 UTC. It ran every five minutes while the archive's source
 // documents and the fiscal-history series were being read (eight documents per
 // run); all are read now, and a run with nothing pending returns at once, so the
 // 288 daily invocations bought nothing. Daily still lets a document added to
 // EXTRA_DOCS, or a row newly flagged by `verifyDocs`, be read within a day: one
 // run reads eight, so a larger batch takes one run per eight documents.
-export const config: Config = { schedule: '45 6 * * *' };
+export const config: Config = { schedule: '45 * * * *' };

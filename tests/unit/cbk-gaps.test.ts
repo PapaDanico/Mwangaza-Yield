@@ -177,6 +177,14 @@ describe('extra documents', () => {
     expect(src).toMatch(/FETCH DIAGNOSTICS \(will retry\)/);
     expect(src).not.toMatch(/\)\s*return;\s*\n\s*read\.push\(\{ doc, text \}\);\s*\n\s*\}\)\s*\n\s*\);\s*\n\s*if \(read\.length === 0\) return;/);
   });
+  it('sets a failed document aside so one bad file cannot starve the rest', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
+    expect(src).toMatch(/FAIL_BACKOFF_MS = 6 \* 3_600_000/);
+    expect(src).toMatch(/gap-docs-failed/);
+    expect(src).toMatch(/failedAt\[readKey\(doc\)\] = new Date\(\)\.toISOString\(\)/);
+  });
 });
+
 
 

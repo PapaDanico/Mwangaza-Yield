@@ -173,7 +173,7 @@ export default function Footer() {
             before you invest. Capital is at risk; yields change at every auction.
           </p>
           <p className="mt-4 text-xs text-sand-300/60">
-            © {new Date().getFullYear()} Mwangaza Yield · Built in Kenya 🇰🇪
+            © {new Date().getFullYear()} Mwangaza Yield, a Danico Ventures Ltd product · Built in Kenya 🇰🇪
           </p>
         </div>
       </div>

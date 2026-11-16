@@ -297,8 +297,27 @@ export default async () => {
    * CBK's side, and with one extra per run that one failure would have starved
    * the other three forever (16 Nov 2026). */
   const failedAt = ((await store.get('gap-docs-failed', { type: 'json' }).catch(() => null)) ?? {}) as Record<string, string>;
+  const markTime = (v: string | undefined) => (v ? Date.parse(v.replace(/^[a-z]+:/, '')) : NaN);
+  const site = process.env.URL ?? 'https://mwangazayield.org';
+  const post = (gapdocs: string) =>
+    fetch(`${site}/cbk-watch-form.html`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ 'form-name': 'cbk-watch', at: new Date().toISOString(), gapdocs }),
+    }).catch(() => null);
+  /* A run that is killed at the platform's 30 seconds leaves no trace: nothing
+   * is posted and nothing is recorded, so the same document is picked again and
+   * killed again. Hourly runs from 15:45 to 21:45 UTC on 16 Nov posted nothing
+   * at all. Each attempt is marked BEFORE the fetch; the next run reports any
+   * mark that never finished and moves on. */
+  const unfinished = Object.entries(failedAt).filter(([k, v]) => v.startsWith('started:') && !done[k]);
+  if (unfinished.length) {
+    for (const [k] of unfinished) failedAt[k] = failedAt[k].replace('started:', 'failed:');
+    await post(`=== FETCH DIAGNOSTICS (earlier run did not finish)\n${unfinished.map(([k]) => k.split('#')[1] ?? k).join('\n')}\nLikely too large to read inside the 30-second limit; set aside for 6 hours.`);
+    await store.setJSON('gap-docs-failed', failedAt).catch(() => null);
+  }
   const pending = pendingDocs(archive as unknown as Row[]).filter(
-    (d) => !done[readKey(d)] && !(failedAt[readKey(d)] && Date.now() - Date.parse(failedAt[readKey(d)]) < FAIL_BACKOFF_MS)
+    (d) => !done[readKey(d)] && !(failedAt[readKey(d)] && Date.now() - markTime(failedAt[readKey(d)]) < FAIL_BACKOFF_MS)
   );
   /* Named extras (statutes, full prospectuses) are large. Eight at once from a
    * function that is killed at about 30 seconds meant the run died mid-extraction
@@ -313,6 +332,8 @@ export default async () => {
 
   const read: { doc: GapDoc; text: string }[] = [];
   const failures: string[] = [];
+  for (const d of todo) failedAt[readKey(d)] = `started:${new Date().toISOString()}`;
+  await store.setJSON('gap-docs-failed', failedAt).catch(() => null);
   await Promise.all(
     todo.map(async (doc) => {
       const text = await pdfText(doc.url, GAP_DEADLINE_MS - (Date.now() - started)).catch((e) => `error ${String(e).slice(0, 100)}`);
@@ -325,26 +346,17 @@ export default async () => {
       }
       if (/^status [45]\d\d$/.test(text) || /^error /.test(text)) {
         failures.push(`${doc.file}: ${text}`);
-        failedAt[readKey(doc)] = new Date().toISOString();
+        failedAt[readKey(doc)] = `failed:${new Date().toISOString()}`;
         return;
       }
       read.push({ doc, text });
     })
   );
 
-  const site = process.env.URL ?? 'https://mwangazayield.org';
   // A failure is reported, not swallowed: it stays pending and is retried next run.
   if (failures.length) {
     await store.setJSON('gap-docs-failed', failedAt).catch(() => null);
-    await fetch(`${site}/cbk-watch-form.html`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        'form-name': 'cbk-watch',
-        at: new Date().toISOString(),
-        gapdocs: `=== FETCH DIAGNOSTICS (will retry)\nafter ${Math.round((Date.now() - started) / 1000)}s\n${failures.join('\n')}`,
-      }),
-    }).catch(() => null);
+    await post(`=== FETCH DIAGNOSTICS (will retry in 6 hours)\nafter ${Math.round((Date.now() - started) / 1000)}s\n${failures.join('\n')}`);
   }
   if (read.length === 0) return;
 
@@ -361,8 +373,10 @@ export default async () => {
     // Marked read only once this document's text has been delivered.
     if (!res || res.status >= 400) continue;
     done[readKey(doc)] = text === '(no text layer)' ? 'no text layer' : 'read';
+    delete failedAt[readKey(doc)];
   }
   await store.setJSON('gap-docs-read', done);
+  await store.setJSON('gap-docs-failed', failedAt).catch(() => null);
 };
 
 // Hourly, at :45, now that named extras are read one per run (a run with nothing

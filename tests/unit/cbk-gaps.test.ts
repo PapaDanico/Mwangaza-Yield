@@ -174,7 +174,7 @@ describe('extra documents', () => {
     const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
     expect(src).toMatch(/EXTRA_DOCS_PER_RUN = 1/);
     expect(src).toMatch(/slice\(0, EXTRA_DOCS_PER_RUN\)/);
-    expect(src).toMatch(/FETCH DIAGNOSTICS \(will retry\)/);
+    expect(src).toMatch(/FETCH DIAGNOSTICS \(will retry in 6 hours\)/);
     expect(src).not.toMatch(/\)\s*return;\s*\n\s*read\.push\(\{ doc, text \}\);\s*\n\s*\}\)\s*\n\s*\);\s*\n\s*if \(read\.length === 0\) return;/);
   });
   it('sets a failed document aside so one bad file cannot starve the rest', async () => {
@@ -182,7 +182,10 @@ describe('extra documents', () => {
     const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
     expect(src).toMatch(/FAIL_BACKOFF_MS = 6 \* 3_600_000/);
     expect(src).toMatch(/gap-docs-failed/);
-    expect(src).toMatch(/failedAt\[readKey\(doc\)\] = new Date\(\)\.toISOString\(\)/);
+    expect(src).toMatch(/failedAt\[readKey\(doc\)\] = `failed:\$\{new Date\(\)\.toISOString\(\)\}`/);
+    // Each attempt is marked before the fetch, so a run killed at 30 seconds is reported by the next.
+    expect(src).toMatch(/`started:\$\{new Date\(\)\.toISOString\(\)\}`/);
+    expect(src).toMatch(/earlier run did not finish/);
   });
 });
 

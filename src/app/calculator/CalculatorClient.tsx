@@ -7,7 +7,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
-import { computeBondInvestment, formatKES, formatPct, isYieldPinned, YTM_CEILING } from '@/lib/financial-engine';
+import { computeBondInvestment, formatKES, formatPct, formatYield, isYieldFloored, isYieldPinned } from '@/lib/financial-engine';
 import { nonNegativeNumber } from '@/lib/utils';
 import { track } from '@/lib/analytics';
 import DataState from '@/components/shared/DataState';
@@ -127,13 +127,13 @@ export default function CalculatorClient() {
   const belowMinimum = amount > 0 && amount < bond.minInvestmentKES;
 
   // Never print the solver's own ceiling as though it were measured.
-  const pct = (v: number) => (isYieldPinned(v) ? `over ${YTM_CEILING}%` : formatPct(v));
+  const pct = (v: number) => formatYield(v);
 
   // Both yields pinned means both stopped at the same ceiling, so their
   // difference is zero by construction — not because tax took nothing. Printing
   // "0.00 pp" there tells a taxed bondholder their tax is free.
   const taxDrag = (gross: number, net: number, bps: number) =>
-    isYieldPinned(gross) && isYieldPinned(net)
+    (isYieldPinned(gross) && isYieldPinned(net)) || (isYieldFloored(gross) && isYieldFloored(net))
       ? 'not measurable at this price'
       : `${(bps / 100).toFixed(2)} pp`;
 

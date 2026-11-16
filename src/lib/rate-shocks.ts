@@ -22,8 +22,10 @@ const DAY_MS = 86_400_000;
 
 /** Dirty price per 100 at an annual yield in percent. */
 export function dirtyPriceAtYield(bond: Bond, settlement: Date, yieldPct: number): number | null {
-  if (!(yieldPct > 0)) return null;
   const freq = bond.couponFrequencyPerYear || 2;
+  // Negative yields are valid (a price above the remaining cash flows); the
+  // discount factor only breaks down once 1 + y/freq is no longer positive.
+  if (!Number.isFinite(yieldPct) || !(1 + yieldPct / 100 / freq > 0)) return null;
   const maturity = new Date(bond.maturityDate);
   const coupon = bond.couponRate / freq;
   const flows = getCouponDates(new Date(bond.issueDate), maturity, freq)

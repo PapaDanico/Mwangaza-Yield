@@ -14,7 +14,7 @@ import { resolvePrice } from '@/lib/prices';
 import { analyseSale, findReplacements, verdict, type SaleQuote } from '@/lib/sell';
 import { track } from '@/lib/analytics';
 import { rateShocks } from '@/lib/rate-shocks';
-import { computeBondInvestment, formatKES, formatPct } from '@/lib/financial-engine';
+import { computeBondInvestment, formatKES, formatPct, formatYield } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
 import LiveResult from '@/components/shared/LiveResult';
 import { inputCls, labelCls } from '@/lib/field-styles';
@@ -241,7 +241,7 @@ export default function SellClient() {
           <div className="space-y-3">
             <LiveResult>
               {`Net proceeds ${formatKES(analysis.netProceedsKES)}. You are really selling at `
-                + `${formatPct(analysis.effectiveSaleYield)}. To stand still, a taxable replacement `
+                + `${formatYield(analysis.effectiveSaleYield)}. To stand still, a taxable replacement `
                 + `must yield ${formatPct(analysis.breakEvenTaxableGrossYield)} gross.`}
             </LiveResult>
 
@@ -305,7 +305,7 @@ export default function SellClient() {
                   `*Sale quote — ${bond.issueCode}*\n\n`
                     + `Face ${formatKES(face)} settling ${settlement}\n`
                     + `Net proceeds ${formatKES(analysis.netProceedsKES)}\n`
-                    + `Effective sale yield ${formatPct(analysis.effectiveSaleYield)}\n`
+                    + `Effective sale yield ${formatYield(analysis.effectiveSaleYield)}\n`
                     + `A taxable replacement must yield `
                     + `${formatPct(analysis.breakEvenTaxableGrossYield)} gross to stand still\n\n`
                     + `Open these numbers and change them → ${link}`
@@ -359,10 +359,10 @@ export default function SellClient() {
                 <tbody>
                   <Row label="You are really selling at"
                     hint={`charges cost you ${analysis.chargeDragPp.toFixed(3)} points of yield`}
-                    value={formatPct(analysis.effectiveSaleYield)} accent />
+                    value={formatYield(analysis.effectiveSaleYield)} accent />
                   <Row label="Break-even, net of tax"
                     hint="a replacement must beat this, after tax"
-                    value={formatPct(analysis.breakEvenNetYield)} />
+                    value={formatYield(analysis.breakEvenNetYield)} />
                   <Row label="…so a taxed bond must yield"
                     hint={`grossed up for ${(analysis.whtRateOnReplacement * 100).toFixed(0)}% withholding tax`}
                     value={formatPct(analysis.breakEvenTaxableGrossYield)} accent />

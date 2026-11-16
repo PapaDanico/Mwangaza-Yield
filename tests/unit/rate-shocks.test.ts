@@ -44,6 +44,10 @@ describe('rate shocks', () => {
   it('refuses rather than invent: matured bond, bad price', () => {
     expect(rateShocks(mk('2026-06-15'), SETTLE, 100)).toBeNull();
     expect(rateShocks(FIVE, SETTLE, 0)).toBeNull();
-    expect(dirtyPriceAtYield(FIVE, SETTLE, 0)).toBeNull();
+    // A zero yield is a real price (the undiscounted sum of what is left); the
+    // refusal is where the discount factor stops being positive.
+    expect(dirtyPriceAtYield(FIVE, SETTLE, 0)).toBeGreaterThan(100);
+    expect(dirtyPriceAtYield(FIVE, SETTLE, -200)).toBeNull();
+    expect(dirtyPriceAtYield(FIVE, SETTLE, NaN)).toBeNull();
   });
 });

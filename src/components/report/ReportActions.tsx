@@ -141,6 +141,16 @@ function adoptStylesIntoClone(clonedDoc: Document): void {
   const head = clonedDoc.head ?? clonedDoc.getElementsByTagName('head')[0];
   if (!head) return;
 
+  /* html2canvas lays text out from per-fragment measurements, and a hyphen is
+   * a break opportunity, so "2026-11-12", "182-day" and "91-day" were drawn as
+   * "2026- 11- 12", "182- day": each fragment placed from a rounded width, with
+   * kerning applied to the measurement and not to the paint (16 Nov audit,
+   * every report). Switching kerning and ligatures off in the copy makes the
+   * measurement and the paint agree. */
+  const fix = clonedDoc.createElement('style');
+  fix.textContent = '*{font-kerning:none!important;font-variant-ligatures:none!important;text-rendering:geometricPrecision!important}';
+  head.appendChild(fix);
+
   for (const sheet of Array.from(document.styleSheets)) {
     let rules: CSSRuleList | null = null;
     try {

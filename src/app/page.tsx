@@ -27,7 +27,7 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <div className="space-y-20 pb-8 pt-6 md:space-y-28 md:pt-14">
+    <div className="space-y-10 pb-6 pt-4 md:space-y-14 md:pt-8">
       {/* Hero */}
       <section className="grid items-center gap-10 md:grid-cols-[1.2fr,1fr]">
         <div>
@@ -58,7 +58,7 @@ export default function LandingPage() {
               choices that carry equal weight. A phone has one column, so a button
               that stops short of it reads as unfinished rather than as emphasis.
               Full width below sm:, intrinsic width once they sit in a row. */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href="/dashboard/"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 font-display text-sm font-semibold text-sand-50 shadow-card transition hover:bg-ink-soft sm:w-auto"
@@ -99,7 +99,7 @@ export default function LandingPage() {
           </nav>
 
           {/* Trust markers, per the brand board's poster footer */}
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-sand-300 pt-5">
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-sand-300 pt-5">
             {[
               { Icon: RefreshCw, label: `Updated ${updateCadence()}` },
               { Icon: Landmark, label: 'Official CBK figures' },
@@ -136,7 +136,7 @@ export default function LandingPage() {
           balance, and an evening at the kitchen table. Nothing here assumes you have done this
           before — and nothing here talks down to you if you have.
         </p>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ Icon, title, desc }) => (
             <div key={title} className="card">
               <div className="mb-3 inline-flex rounded-xl bg-ink p-2.5 text-gold-500">
@@ -150,7 +150,7 @@ export default function LandingPage() {
       </section>
 
       {/* Objectives — dark navy band, per the brand boards */}
-      <section className="-mx-4 bg-treasury-navy px-4 py-14 md:mx-0 md:rounded-3xl md:px-10 md:py-16">
+      <section className="-mx-4 bg-treasury-navy px-4 py-9 md:mx-0 md:rounded-3xl md:px-10 md:py-10">
         <p className="text-center text-sm font-semibold tracking-[0.2em] text-gold-500">
           Start with the why
         </p>
@@ -228,7 +228,7 @@ export default function LandingPage() {
       {/* How it works */}
       <section>
         <h2 className="text-center text-2xl font-bold text-ink md:text-3xl">How it works</h2>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           {steps.map(({ n, title, desc }) => (
             <div key={n} className="card">
               <p className="num text-sm font-semibold text-gold-700">{n}</p>

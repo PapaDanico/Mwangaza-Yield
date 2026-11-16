@@ -586,21 +586,21 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * single predictable wrap, and the buttons below share the line evenly
      * instead of ragging. */
     <div className="flex w-full flex-col gap-1 sm:w-auto sm:items-end">
-      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+      <div className="flex w-full items-stretch gap-2 sm:w-auto sm:items-center sm:justify-end">
         <button
           onClick={downloadPdf}
           disabled={busy !== null}
           /* Full width on its own line below `sm`: it is the primary action and
              the one the bug report was about, so it gets the emphatic slot
              rather than competing for a shared line. */
-          className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition-colors hover:bg-ink-soft disabled:opacity-50 sm:w-auto"
+          className="flex min-h-11 flex-[1.4] items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-sand-50 transition-colors hover:bg-ink-soft disabled:opacity-50 sm:flex-none"
         >
           <FileDown size={15} /> {busy === 'pdf' ? 'Building…' : 'Download PDF'}
         </button>
         <button
           onClick={downloadImage}
           disabled={busy !== null}
-          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200 disabled:opacity-50 sm:flex-none"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-sand-400 px-3 py-2 text-sm font-medium text-ink transition-colors hover:bg-sand-200 disabled:opacity-50 sm:flex-none"
         >
           <ImageDown size={15} /> {busy === 'image' ? 'Building…' : 'Save image'}
         </button>
@@ -609,7 +609,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
             iOS app, so it must never be the button a reader reaches for first. */}
         <button
           onClick={() => printReport()}
-          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink sm:flex-none"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2 text-sm font-medium text-ink-muted transition-colors hover:text-ink sm:flex-none"
           title="Opens your browser's print dialog, where it is available"
         >
           <Printer size={15} /> Print

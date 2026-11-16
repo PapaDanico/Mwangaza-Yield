@@ -62,12 +62,12 @@ export default function RealTermsNote() {
     <p className="mt-3 text-xs leading-relaxed text-ink-muted">
       <strong>These are nominal shillings.</strong> A government bond pays the same coupon
       every year, so the income above is fixed while prices are not. At the latest published
-      inflation of <span className="num">{cpi.rate.toFixed(1)}%</span>, held flat purely to
+      inflation of <span className="tabular-nums">{cpi.rate.toFixed(1)}%</span>, held flat purely to
       illustrate, the same income would buy about{' '}
       {HORIZONS.map((y, i) => (
         <span key={y}>
           {i > 0 ? ' and ' : ''}
-          <span className="num">{keeps(y).toFixed(0)}%</span> of today&apos;s shopping in {y}{' '}
+          <span className="tabular-nums">{keeps(y).toFixed(0)}%</span> of today&apos;s shopping in {y}{' '}
           years
         </span>
       ))}
@@ -75,8 +75,8 @@ export default function RealTermsNote() {
       {split && (
         <>
           {' '}That average hides a split: food and energy rose{' '}
-          <span className="num">{split.nonCore.toFixed(1)}%</span> over the past year while
-          everything else rose <span className="num">{split.core.toFixed(1)}%</span>, so a
+          <span className="tabular-nums">{split.nonCore.toFixed(1)}%</span> over the past year while
+          everything else rose <span className="tabular-nums">{split.core.toFixed(1)}%</span>, so a
           household spending more of its money on food and transport loses ground faster than
           this shows.
         </>

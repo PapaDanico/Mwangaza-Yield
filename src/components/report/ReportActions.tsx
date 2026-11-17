@@ -137,7 +137,7 @@ function asciiPunctuation(text: string): string {
  * and inlined; anything whose `cssRules` cannot be read (which is exactly the
  * case that fails silently) has its <link> copied so the clone re-fetches it.
  */
-function adoptStylesIntoClone(clonedDoc: Document): void {
+async function adoptStylesIntoClone(clonedDoc: Document): Promise<void> {
   const head = clonedDoc.head ?? clonedDoc.getElementsByTagName('head')[0];
   if (!head) return;
 
@@ -176,6 +176,29 @@ function adoptStylesIntoClone(clonedDoc: Document): void {
       link.href = href;
       head.appendChild(link);
     }
+  }
+
+  /* Load the web fonts IN THE COPY before anything is measured or painted.
+   *
+   * html2canvas lays the copy out, reads each word's position, then draws. On a
+   * slower browser the copy's own font files have not arrived when it is laid
+   * out, so positions come from the fallback face (narrower) and the words are
+   * then drawn in the real face (wider): "Combinebondswhosecoupon", "1 0 years"
+   * (uploaded ladder and passive income plans, 17 Nov 2026). It looked correct
+   * everywhere the font was already cached, which is why it passed every local
+   * check. html2canvas waits for the copy's onclone callback, so wait here. */
+  try {
+    const fonts = clonedDoc.fonts;
+    if (fonts) {
+      await Promise.all(
+        Array.from(document.fonts)
+          .filter((f) => f.status === 'loaded')
+          .map((f) => fonts.load(`${f.style} ${f.weight} 16px "${f.family}"`).catch(() => null))
+      );
+      await fonts.ready;
+    }
+  } catch {
+    // A browser without the Font Loading API keeps the old behaviour.
   }
 }
 

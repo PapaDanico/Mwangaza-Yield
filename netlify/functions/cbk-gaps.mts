@@ -51,6 +51,8 @@ export interface GapDoc {
   file: string;
   /** 'gap': behind a row missing a core field. 'verify': behind rows that look complete. 'extra': a named Treasury document wanted for its own series. */
   tier: 'gap' | 'verify' | 'extra';
+  /** Bump to read a document again: it joins the read key. The 14 Nov bug marked documents read that never arrived. */
+  rev?: number;
   rows: { id: string; missing: string[]; contradicts?: boolean }[];
   /**
    * For a long statute or guidance note: phrases whose surroundings are posted
@@ -204,6 +206,7 @@ export const EXTRA_DOCS: GapDoc[] = [
     url: 'https://www.centralbank.go.ke/wp-content/uploads/2025/12/DhowCSD-Frequently-Asked-Questions.pdf',
     file: 'CBK DhowCSD Frequently Asked Questions (fees).pdf',
     tier: 'extra',
+    rev: 2,
     rows: [],
     finds: ['how much', 'transaction cost', 'fees', 'free of charge'],
   },
@@ -226,6 +229,7 @@ export const EXTRA_DOCS: GapDoc[] = [
     url: 'https://www.odpc.go.ke/wp-content/uploads/2024/02/ODPC-Guidance-Note-on-Registration-of-Data-Controllers-and-Data-Processors.pdf',
     file: 'ODPC Guidance Note on Registration of Data Controllers and Processors.pdf',
     tier: 'extra',
+    rev: 2,
     rows: [],
     finds: ['non-exempt', 'exempt', 'turnover', 'employees'],
     occurrences: 6,
@@ -241,6 +245,7 @@ export const EXTRA_DOCS: GapDoc[] = [
     url: 'https://www.kra.go.ke/images/publications/Finance-Act-2026.pdf',
     file: 'Finance Act 2026 (withholding tax, bonds).pdf',
     tier: 'extra',
+    rev: 2,
     rows: [],
     finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'withholding tax', 'Third Schedule'],
     occurrences: 3,
@@ -265,7 +270,7 @@ export function pendingDocs(rows: Row[]): GapDoc[] {
 
 /** The key a document is recorded under once read. Extras include the file name, so changing what is posted for one re-reads it. */
 /** A named extra is keyed by its phrases too, so a revised window is read again instead of skipped. */
-const readKey = (d: GapDoc) => (d.tier === 'extra' ? `${d.url}#${d.file}${d.finds?.length ? `#f:${d.finds.join('|')}:${d.occurrences ?? ''}` : ''}` : d.url);
+const readKey = (d: GapDoc) => (d.tier === 'extra' ? `${d.url}#${d.file}${d.finds?.length ? `#f:${d.finds.join('|')}:${d.occurrences ?? ''}` : ''}${d.rev ? `#r${d.rev}` : ''}` : d.url);
 
 async function pdfText(url: string, timeoutMs: number): Promise<string> {
   const res = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(timeoutMs) });
@@ -328,7 +333,18 @@ export default async () => {
     ...pending.filter((d) => d.tier !== 'extra').slice(0, GAP_DOCS_PER_RUN),
     ...pending.filter((d) => d.tier === 'extra').slice(0, EXTRA_DOCS_PER_RUN),
   ];
-  if (todo.length === 0) return;
+  if (todo.length === 0) {
+    /* An idle run left no trace, so "nothing to read" and "everything is stuck"
+     * looked the same (16 Nov). When named documents are still unread but all of
+     * them are set aside, say so, at most twice a day. */
+    const waiting = pendingDocs(archive as unknown as Row[]).filter((d) => d.tier === 'extra' && !done[readKey(d)]);
+    const last = Date.parse(((await store.get('gap-docs-status', { type: 'text' }).catch(() => null)) as string | null) ?? '');
+    if (waiting.length && !(Date.now() - last < 12 * 3_600_000)) {
+      await post(`=== STATUS: ${waiting.length} named document(s) unread, all set aside\n${waiting.map((d) => `${d.file}: ${failedAt[readKey(d)] ?? 'no mark'}`).join('\n')}`);
+      await store.set('gap-docs-status', new Date().toISOString()).catch(() => null);
+    }
+    return;
+  }
 
   const read: { doc: GapDoc; text: string }[] = [];
   const failures: string[] = [];

@@ -187,7 +187,17 @@ describe('extra documents', () => {
     expect(src).toMatch(/`started:\$\{new Date\(\)\.toISOString\(\)\}`/);
     expect(src).toMatch(/earlier run did not finish/);
   });
+  it('can force a re-read with rev, and says so when named documents are stuck rather than idling silently', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('netlify/functions/cbk-gaps.mts', 'utf8');
+    expect(src).toMatch(/\$\{d\.rev \? `#r\$\{d\.rev\}` : ''\}/);
+    expect(src).toMatch(/=== STATUS: /);
+    const { pendingDocs } = await import('../../netlify/functions/cbk-gaps.mts');
+    const names = pendingDocs([]).filter((d) => d.rev === 2).map((d) => d.file);
+    expect(names).toHaveLength(3);
+  });
 });
+
 
 
 

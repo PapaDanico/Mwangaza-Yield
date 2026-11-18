@@ -188,7 +188,11 @@
     "high": 12.934650000000001,
     "thin": false,
     "correctionPp": 0.03614999999999924,
-    "bandScale": 1.75
+    "bandScale": 1.75,
+    "actualRate": 12.6193,
+    "scoredOn": "2026-11-18",
+    "hitRange": false,
+    "hitMiddleHalf": false
   },
   {
     "issueCode": "SDB1/2011/030",
@@ -205,6 +209,10 @@
     "high": 14.30335,
     "thin": false,
     "correctionPp": 0.03614999999999924,
-    "bandScale": 1.75
+    "bandScale": 1.75,
+    "actualRate": 13.5931,
+    "scoredOn": "2026-11-18",
+    "hitRange": true,
+    "hitMiddleHalf": true
   }
 ]

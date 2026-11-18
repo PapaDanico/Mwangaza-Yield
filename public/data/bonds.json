@@ -521,10 +521,10 @@
     "tenorYears": 15,
     "couponRate": 12.857,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 12.857,
+    "ytmGross": 12.7179,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2023-04-24",
+    "ytmAsOf": "2026-11-18",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/797884050_APRIL 2023 RE-OPENED FXD1-2022-03 & FXD1-2019-15 DATED 24-04-2023.pdf"
   },
   {
@@ -809,10 +809,10 @@
     "tenorYears": 30,
     "couponRate": 12,
     "couponFrequencyPerYear": 2,
-    "ytmGross": 13.7159,
+    "ytmGross": 13.6868,
     "minInvestmentKES": 50000,
     "taxExempt": false,
-    "ytmAsOf": "2026-10-14",
+    "ytmAsOf": "2026-11-18",
     "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/482629457_RESULTS SDB1-2011-030 AND FXD1-2026-030 DATED 20-04-2026.pdf"
   },
   {

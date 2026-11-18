@@ -9,7 +9,7 @@ export default function PrivacyPage() {
     <Prose
       title="Privacy policy"
       lead="Everything you enter stays on your device, and nothing of yours is stored on a server — not even price alerts, which since July 2026 are worked out on your device."
-      updated="13 November 2026"
+      updated="18 November 2026"
     >
       {/* Named, because this page ends by pointing readers at the ODPC.
           Sending somebody to complain about an entity the notice will not
@@ -70,6 +70,15 @@ export default function PrivacyPage() {
         <li><strong>No cookies</strong> are set for tracking, advertising or profiling.</li>
       </ul>
 
+      <h2>Cookies and local storage</h2>
+      <p>
+        We set <strong>no cookies of any kind</strong>, so there is no cookie banner to accept.
+        What your browser does keep for the app is local storage (IndexedDB): your holdings, your
+        price book, your goals and your settings, so the app works offline and remembers where you
+        left off. It is used for nothing else, is never sent to us, and is read only by the pages of
+        this site on your device.
+      </p>
+
       <h2>What our host can see</h2>
       <p>
         The site is served as static files by Netlify. Like any web host, Netlify processes standard
@@ -104,6 +113,13 @@ export default function PrivacyPage() {
         is built, not a promise about how we behave.
       </p>
 
+      <h2>Why, and for how long</h2>
+      <ul>
+        <li><strong>Your holdings, prices and goals</strong> — kept on your device so the app can work out your figures. They stay until you clear them; we never hold a copy, so there is no retention period on our side.</li>
+        <li><strong>The tool counter</strong> — a name and a daily number, kept to see which tools are worth building. It identifies nobody.</li>
+        <li><strong>Request data at our host</strong> — kept by Netlify for its own security and delivery purposes, for as long as its policy provides. We do not add to it or combine it with anything.</li>
+      </ul>
+
       <h2>Price alerts — we now store nothing at all</h2>
       <p>
         Until July 2026 turning on alerts issued a <strong>push endpoint</strong>: a long URL the
@@ -121,9 +137,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         The trade is deliberate and worth stating plainly: alerts no longer reach you while the app
-        is closed. In exchange there is nothing here to lose, sell, or be compelled to hand over,
-        and no question about whether we are a data controller — because we hold no personal data
-        at all. Auction bid windows carry five days&apos; notice and T-bill results are weekly, so
+        is closed. In exchange there is nothing here to lose, sell, or be compelled to hand over:
+        we hold no personal data of yours. Auction bid windows carry five days&apos; notice and T-bill results are weekly, so
         an alert you see next time you open the app is still an alert in time.
       </p>
 
@@ -147,6 +162,13 @@ export default function PrivacyPage() {
         <li><strong>Deletion</strong> — &ldquo;Clear all holdings&rdquo; on the portfolio page, or clearing site data in your browser. There is nothing to delete on our side, for alerts or anything else, because nothing of yours is stored there.</li>
         <li><strong>Objection and withdrawal</strong> — alerts are the only optional feature, and they run on your device. Turn them off at any time; nothing of yours has been sent anywhere, so there is nothing to withdraw from our side.</li>
       </ul>
+      <p>
+        <strong>If you do ask us.</strong> Write to{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. If we ever hold personal data of
+        yours, the Data Protection (General) Regulations, 2021 require us to answer an access
+        request within seven days and a correction or erasure request within fourteen. Today there
+        is none to give you, and we will say so.
+      </p>
       <p>
         If you believe your rights have been infringed you may complain to the{' '}
         <a href="https://www.odpc.go.ke" target="_blank" rel="noopener noreferrer">

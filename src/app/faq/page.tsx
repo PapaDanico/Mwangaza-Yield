@@ -95,7 +95,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     a: (
       <>
         No. There is no account and no server storing your data — holdings live in your browser on
-        your device. See our <a href="/privacy/">privacy policy</a>.
+        your device, and we set no cookies. See our <a href="/privacy/">privacy policy</a>.
       </>
     ),
   },
@@ -190,8 +190,10 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
     q: 'Is it free? What is the catch?',
     a: (
       <>
-        It is free, with no ads and no data collection. The app is static files and client-side
-        maths, so it costs almost nothing to run.
+        It is free, with no ads and no personal data collected. The only thing we tally is how
+        often each tool is used, as a name and a daily number with no identifier. The app is
+        static files and client-side maths, so it costs almost nothing to run. How it is funded is
+        set out on <a href="/licensing/">this page</a>.
       </>
     ),
   },

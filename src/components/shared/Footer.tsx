@@ -166,7 +166,7 @@ export default function Footer() {
               to the first screenful never saw it. */}
           <p className="text-xs leading-relaxed text-sand-300/70">
             Mwangaza Yield provides analytics for education only and is <strong>not investment
-            advice</strong>, nor an offer to buy or sell securities. We are not affiliated with, or
+            advice</strong>, nor an offer to buy or sell securities. We are not a licensed investment adviser, and are not affiliated with, or
             endorsed by, the Central Bank of Kenya, the Nairobi Securities Exchange or the Capital
             Markets Authority. Figures are derived from published CBK, National Treasury and KNBS data and may be
             delayed, estimated or incorrect — verify every number against the official prospectus

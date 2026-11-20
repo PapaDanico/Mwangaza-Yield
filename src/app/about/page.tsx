@@ -36,6 +36,9 @@ export default function AboutPage() {
       </p>
 
       <h2>Who is behind it</h2>
+      <div className="flex items-start gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/danico-logo.webp" alt="Danico Ventures Ltd logo" width={40} height={40} loading="lazy" decoding="async" className="mt-1 h-10 w-10 shrink-0 rounded-lg" />
       <p>
         Mwangaza Yield is built and operated by Danico Ventures Ltd, a Kenyan company that also runs
         JiPange, a separate set of personal-finance tools whose own pages disclose any commercial
@@ -44,6 +47,7 @@ export default function AboutPage() {
         <a href="/methodology/">How we calculate</a>, and where it comes from on{' '}
         <a href="/sources/">Sources</a>.
       </p>
+      </div>
 
       <h2>What we are not</h2>
       <ul>

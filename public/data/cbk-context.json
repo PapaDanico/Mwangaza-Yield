@@ -13,12 +13,12 @@
   {
     "id": "cbk-domestic-debt",
     "label": "Gross domestic debt",
-    "value": 7.91,
+    "value": 7.99,
     "unit": "KSh tn",
-    "asOf": "2026-11-06",
+    "asOf": "2026-11-13",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,906.50 billion at 6 November 2026 (Weekly Bulletin for the week ending 13 November, gross domestic debt), up from 7,894.42 billion a week earlier. Read by the cbk-watch function from CBK's own PDF.",
+    "note": "What the government owes at home, the pool every auction on this site draws from. KSh 7,985.51 billion at 13 November 2026 (Weekly CBK Bulletin of 20 November 2026, gross domestic debt), up from 7,906.50 billion a week earlier. Read by the cbk-watch function from CBK's own PDF.",
     "sentiment": "watch"
   },
   {

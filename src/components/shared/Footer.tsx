@@ -172,8 +172,12 @@ export default function Footer() {
             delayed, estimated or incorrect — verify every number against the official prospectus
             before you invest. Capital is at risk; yields change at every auction.
           </p>
-          <p className="mt-4 text-xs text-sand-300/60">
-            © {new Date().getFullYear()} Mwangaza Yield, a Danico Ventures Ltd product · Built in Kenya 🇰🇪
+          <p className="mt-4 flex items-center gap-3 text-xs text-sand-300/60">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/danico-logo.webp" alt="" width={28} height={28} loading="lazy" decoding="async" className="h-7 w-7 shrink-0 rounded-md" />
+            <span>
+              © {new Date().getFullYear()} Mwangaza Yield, a Danico Ventures Ltd product · Built in Kenya 🇰🇪
+            </span>
           </p>
         </div>
       </div>

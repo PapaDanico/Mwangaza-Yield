@@ -91,3 +91,14 @@ describe('"used it" means someone touched the tool', () => {
     }
   });
 });
+
+describe('a touch on one page does not count use on the next', () => {
+  it('trackRoute resets the gate, so client-side navigation needs a new touch', () => {
+    const src = readFileSync('src/lib/analytics.ts', 'utf8');
+    const body = src.slice(src.indexOf('export function trackRoute'));
+    expect(body.slice(0, body.indexOf('\n}'))).toMatch(/resetUseGate\(\)/);
+    expect(src).toMatch(/export function resetUseGate[\s\S]*?detachGate\?\.\(\)[\s\S]*?gate = null/);
+    // and a gate opened on another path is never reused, whatever runs first
+    expect(src).toMatch(/gatePath !== window\.location\.pathname\) resetUseGate\(\)/);
+  });
+});

@@ -1,0 +1,26 @@
+# Mwangaza Yield
+
+> Free, independent tools for Kenyan Treasury bills and bonds: auction results, after-tax yields, a bond ladder builder, an early-sale calculator and a public forecast track record. Built and operated by Danico Ventures Ltd, Kenya. Educational information only, not investment advice. Mwangaza Yield sells no securities and takes no commission.
+
+## Where the numbers come from
+- Figures are taken from Central Bank of Kenya (CBK) and National Treasury releases, and from IMF World Economic Outlook series. Each figure on the site carries its date and source.
+- Rates are published as CBK prints them. A T-bill "discount rate" is a quote, not a return: use the effective annual yield. Check the tenor (91, 182 or 364 days) before quoting any bill figure.
+- Withholding tax is applied as the site states on its methodology page; a rule the site marks as unconfirmed is unconfirmed.
+- Past auction results are not a forecast. The site's auction guidance publishes its own measured accuracy.
+
+## Pages
+- [How we calculate](https://mwangazayield.org/methodology/): every formula and assumption
+- [Sources](https://mwangazayield.org/sources/): where each dataset comes from and its licence
+- [Auctions](https://mwangazayield.org/auctions/): upcoming and past T-bill and bond auctions
+- [Yield curve](https://mwangazayield.org/yield-curve/)
+- [Macro](https://mwangazayield.org/macro/): policy rate, inflation, exchange rate, fiscal context
+- [FAQ](https://mwangazayield.org/faq/)
+- [About](https://mwangazayield.org/about/)
+- [Disclaimer](https://mwangazayield.org/disclaimer/)
+
+## Machine-readable data
+- A rates feed (JSON and CSV) is published under /data/ and described in /data/RATES-FEED.md. Cite Mwangaza Yield and the underlying CBK release if you reuse it.
+
+## Please
+- Quote a figure together with its date. Do not present a quoted discount rate as a yield.
+- Do not describe the site's output as financial advice.

@@ -98,6 +98,59 @@ export function track(event: TrackedEvent): void {
   }
 }
 
+/**
+ * "Used it" must mean someone did something. Every tool computes a default
+ * result the moment it mounts (a calculator opens with a bond and an amount
+ * already filled in), so an `act:` event fired from the result alone counts
+ * page loads, not use — the figure a sponsor would be shown would be a
+ * second copy of the view count. The gate holds an act event back until the
+ * reader has changed a field (an `input` or `change` event anywhere on the
+ * page), then sends it, and sends later ones straight away.
+ *
+ * Pure so it can be tested without a browser: `send` is whatever delivers.
+ */
+export function createUseGate(send: (event: TrackedEvent) => void) {
+  const pending = new Set<TrackedEvent>();
+  let interacted = false;
+  return {
+    request(event: TrackedEvent) {
+      if (interacted) send(event);
+      else pending.add(event);
+    },
+    noteInteraction() {
+      if (interacted) return;
+      interacted = true;
+      for (const e of pending) send(e);
+      pending.clear();
+    },
+    get interacted() {
+      return interacted;
+    },
+  };
+}
+
+let gate: ReturnType<typeof createUseGate> | null = null;
+
+/** Report that a tool did its job for a reader who has touched the page. */
+export function trackOnUse(event: TrackedEvent): void {
+  try {
+    if (typeof document === 'undefined' || optedOut()) return;
+    if (!gate) {
+      gate = createUseGate(track);
+      const onTouch = () => {
+        gate?.noteInteraction();
+        document.removeEventListener('input', onTouch, true);
+        document.removeEventListener('change', onTouch, true);
+      };
+      document.addEventListener('input', onTouch, true);
+      document.addEventListener('change', onTouch, true);
+    }
+    gate.request(event);
+  } catch {
+    // Analytics must never break a tool.
+  }
+}
+
 /** For route changes: a new page load starts a fresh dedupe window per view. */
 export function trackRoute(pathname: string): void {
   const event = ROUTE_EVENTS[pathname.replace(/\/+$/, '') || '/'];

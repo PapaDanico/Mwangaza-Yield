@@ -13,7 +13,7 @@ import { ladderCsv } from '@/lib/ladder-cashflows';
 import { APP_URL, formatLadderSummary, shareText } from '@/lib/share';
 import { nonNegativeNumber, CURRENCY_LABEL } from '@/lib/utils';
 import { usePersistedState } from '@/lib/persisted';
-import { track } from '@/lib/analytics';
+import { trackOnUse } from '@/lib/analytics';
 import WiderView from '@/components/shared/WiderView';
 import LadderReport from '@/components/report/LadderReport';
 import Fold from '@/components/shared/Fold';
@@ -86,7 +86,7 @@ export default function LadderPage() {
   };
 
   useEffect(() => {
-    if (plan.rungs.length) track('act:ladder-built');
+    if (plan.rungs.length) trackOnUse('act:ladder-built');
   }, [plan]);
 
   const maxYear = Math.max(...plan.yearlyPayouts.map((p) => p.couponsKES + p.principalKES), 1);

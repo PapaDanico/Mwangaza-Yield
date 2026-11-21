@@ -12,7 +12,7 @@ import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { resolvePrice } from '@/lib/prices';
 import { analyseSale, findReplacements, verdict, type SaleQuote } from '@/lib/sell';
-import { track } from '@/lib/analytics';
+import { trackOnUse } from '@/lib/analytics';
 import { rateShocks } from '@/lib/rate-shocks';
 import { computeBondInvestment, formatKES, formatPct, formatYield } from '@/lib/financial-engine';
 import DataState from '@/components/shared/DataState';
@@ -136,7 +136,7 @@ export default function SellClient() {
   );
 
   useEffect(() => {
-    if (analysis) track('act:sell-analysed');
+    if (analysis) trackOnUse('act:sell-analysed');
   }, [analysis]);
 
   const replacements = useMemo(() => {

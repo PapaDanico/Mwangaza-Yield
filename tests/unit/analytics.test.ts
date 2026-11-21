@@ -54,3 +54,40 @@ describe('the server refuses to become a logger', () => {
     expect(fn).toMatch(/!configured \|\| given !== configured/);
   });
 });
+
+describe('"used it" means someone touched the tool', () => {
+  it('holds an act event until a field changes, then sends it once', async () => {
+    const { createUseGate } = await import('../../src/lib/analytics');
+    const sent: string[] = [];
+    const gate = createUseGate((e) => sent.push(e));
+    gate.request('act:calculator-run'); // the default result on mount
+    expect(sent).toEqual([]);
+    gate.noteInteraction();
+    expect(sent).toEqual(['act:calculator-run']);
+    gate.noteInteraction(); // a second touch changes nothing
+    gate.request('act:ladder-built'); // after a touch, straight through
+    expect(sent).toEqual(['act:calculator-run', 'act:ladder-built']);
+  });
+
+  it('a page that is only looked at sends no act event', async () => {
+    const { createUseGate } = await import('../../src/lib/analytics');
+    const sent: string[] = [];
+    const gate = createUseGate((e) => sent.push(e));
+    gate.request('act:sell-analysed');
+    gate.request('act:sell-analysed');
+    expect(sent).toEqual([]);
+    expect(gate.interacted).toBe(false);
+  });
+
+  it('the three tools that compute on mount all go through the gate', () => {
+    for (const f of [
+      'src/app/calculator/CalculatorClient.tsx',
+      'src/app/sell/SellClient.tsx',
+      'src/app/ladder/page.tsx',
+    ]) {
+      const src = readFileSync(f, 'utf8');
+      expect(src, f).toMatch(/trackOnUse\('act:/);
+      expect(src, f).not.toMatch(/\btrack\('act:(calculator-run|sell-analysed|ladder-built)'\)/);
+    }
+  });
+});

@@ -130,20 +130,43 @@ export function createUseGate(send: (event: TrackedEvent) => void) {
 }
 
 let gate: ReturnType<typeof createUseGate> | null = null;
+let detachGate: (() => void) | null = null;
+/** The path the gate was opened on; a different path means a new page. */
+let gatePath = '';
+
+/**
+ * Forget the touch when the route changes. Next.js navigates without a page
+ * load, so a module-level gate survived it: touching the calculator and then
+ * following a link to /sell/ counted the sell page's default analysis as a
+ * use. Each tool page now needs its own touch.
+ */
+export function resetUseGate(): void {
+  detachGate?.();
+  detachGate = null;
+  gate = null;
+}
 
 /** Report that a tool did its job for a reader who has touched the page. */
 export function trackOnUse(event: TrackedEvent): void {
   try {
     if (typeof document === 'undefined' || optedOut()) return;
+    // Belt and braces with trackRoute's reset: whichever effect runs first on
+    // a client-side navigation, a gate opened on another path is not reused.
+    if (gate && gatePath !== window.location.pathname) resetUseGate();
     if (!gate) {
+      gatePath = window.location.pathname;
       gate = createUseGate(track);
-      const onTouch = () => {
-        gate?.noteInteraction();
+      const detach = () => {
         document.removeEventListener('input', onTouch, true);
         document.removeEventListener('change', onTouch, true);
       };
+      const onTouch = () => {
+        gate?.noteInteraction();
+        detach();
+      };
       document.addEventListener('input', onTouch, true);
       document.addEventListener('change', onTouch, true);
+      detachGate = detach;
     }
     gate.request(event);
   } catch {
@@ -153,6 +176,7 @@ export function trackOnUse(event: TrackedEvent): void {
 
 /** For route changes: a new page load starts a fresh dedupe window per view. */
 export function trackRoute(pathname: string): void {
+  resetUseGate();
   const event = ROUTE_EVENTS[pathname.replace(/\/+$/, '') || '/'];
   if (event) track(event);
 }

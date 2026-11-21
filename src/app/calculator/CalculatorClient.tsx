@@ -9,7 +9,7 @@ import { resolvePrice } from '@/lib/prices';
 import { PriceBadge } from '@/components/shared/PriceProvenance';
 import { computeBondInvestment, formatKES, formatPct, formatYield, isYieldFloored, isYieldPinned } from '@/lib/financial-engine';
 import { nonNegativeNumber } from '@/lib/utils';
-import { track } from '@/lib/analytics';
+import { track, trackOnUse } from '@/lib/analytics';
 import DataState from '@/components/shared/DataState';
 import FollowChannel from '@/components/shared/FollowChannel';
 import AuctionHistory from '@/components/shared/AuctionHistory';
@@ -117,7 +117,7 @@ export default function CalculatorClient() {
   );
 
   useEffect(() => {
-    if (result) track('act:calculator-run');
+    if (result) trackOnUse('act:calculator-run');
   }, [result]);
 
   if (!bond) return <DataState reserve="h-[900px]" />;

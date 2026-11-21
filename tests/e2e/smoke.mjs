@@ -1522,6 +1522,51 @@ async function main() {
       for (const f of found) fail(`structure: ${route} ${f}`);
     }
     if (failures.length === before) pass(`one <main>, named progress bars, keyboard-reachable scroll regions (${ROUTES.length} routes)`);
+
+    /* A chart tooltip is drawn wherever the pointer rests. On /portfolio/ at
+       320px the duration chart's tooltip sat to the right of the bar and
+       pushed the page sideways; it surfaced as a 1-in-7 layout failure only
+       when an earlier step had left the mouse over the chart. Sweep the
+       pointer deliberately so the check is deterministic. Holdings were
+       imported earlier in this suite. */
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(BASE + '/portfolio/', { waitUntil: 'load' });
+    await settled(page);
+    let worstTip = 0;
+    let tipCulprit = '';
+    // The duration chart is a dynamic import; wait for it rather than racing it.
+    await page.waitForSelector('.recharts-wrapper', { timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(300);
+    const tipCharts = await page.locator('.recharts-wrapper').all();
+    /* A sweep over no charts proves nothing, so an empty portfolio is a failure. */
+    if (!tipCharts.length) fail('structure: /portfolio/ has no charts to sweep (holdings from the import step are missing)');
+    for (const c of tipCharts) {
+      await c.scrollIntoViewIfNeeded();
+      const bb = await c.boundingBox();
+      if (!bb) continue;
+      for (let x = bb.x + 5; x < bb.x + bb.width - 1; x += 8) {
+        await page.mouse.move(x, bb.y + bb.height * 0.4);
+        await page.waitForTimeout(30);
+        const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (o > worstTip) {
+          worstTip = o;
+          tipCulprit = await page.evaluate(() => {
+            for (const e of document.querySelectorAll('body *')) {
+              const r = e.getBoundingClientRect();
+              if (!r.width || r.right <= window.innerWidth + 0.5) continue;
+              let a = e.parentElement, sc = false;
+              while (a && a !== document.body) { if (getComputedStyle(a).overflowX !== 'visible') { sc = true; break; } a = a.parentElement; }
+              if (!sc) return `<${e.tagName.toLowerCase()} class="${String(e.className).slice(0, 60)}"> right=${Math.round(r.right)} w=${Math.round(r.width)} "${(e.textContent || '').trim().slice(0, 40)}"`;
+            }
+            return '';
+          });
+        }
+      }
+    }
+    await page.mouse.move(0, 0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    if (worstTip > 0) fail(`structure: /portfolio/ chart tooltip pushes the page ${worstTip}px sideways at 320px (${tipCulprit})`);
+    else pass('portfolio chart tooltips stay on screen at 320px');
   }
 
   /* -------------------------------------------- the ragged rule, as cases */

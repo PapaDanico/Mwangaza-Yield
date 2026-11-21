@@ -17,7 +17,8 @@ export interface RiskDurationDatum {
 
 export default function RiskMetricsDurationChart({ data }: { data: RiskDurationDatum[] }) {
   return (
-    <ResponsiveContainer>
+    /* Clipped to the card: a tooltip may not hang off a 320px screen. */
+    <ResponsiveContainer style={{ overflow: 'hidden' }}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 16, left: 0 }}>
         <CartesianGrid stroke="#E3D8BE" strokeDasharray="3 3" vertical={false} />
         <XAxis
@@ -35,8 +36,14 @@ export default function RiskMetricsDurationChart({ data }: { data: RiskDurationD
           tickFormatter={(value) => `${Number(value).toFixed(1)}y`}
           width={44}
         />
+        {/* Kept inside the chart and narrower than a 320px phone: at that
+            width the default tooltip sat to the right of the bar and pushed
+            the page 10px sideways whenever a finger rested on the chart. */}
         <Tooltip
+          allowEscapeViewBox={{ x: false, y: false }}
+          wrapperStyle={{ maxWidth: 200 }}
           contentStyle={{
+            whiteSpace: 'normal',
             background: '#FDFBF5',
             border: '1px solid #E3D8BE',
             borderRadius: 12,

@@ -13,6 +13,6 @@
 | Financial formulas changed | none |
 | Dependency advisories | 5 flagged, none reachable on a static export (see `AUDIT_FINDINGS.md`) |
 
-**Remaining risks:** MY-08 (intermittent 10 px overflow on `/portfolio/` at 320 px, now self-diagnosing); axe `link-in-text-block` and the remaining `color-contrast` flags on chips (`border-gold-600` on `/calculator/` and `/tbills/`) are unconfirmed and queued for the next batch; WHT 10%/0% rules unconfirmed against statute until `cbk-gaps` posts the Act. GitHub Actions remains unavailable (billing), so the local gate is the release gate.
+**Remaining risks:** axe `link-in-text-block` and the remaining `color-contrast` flags on chips (`border-gold-600` on `/calculator/` and `/tbills/`) are unconfirmed and queued for the next batch; WHT 10%/0% rules unconfirmed against statute until `cbk-gaps` posts the Act. GitHub Actions remains unavailable (billing), so the local gate is the release gate.
 
 **Rollback target:** the deploy current before this merge, `6b00f0c935fb938e33efdd0c` (#468).

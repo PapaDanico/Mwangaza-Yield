@@ -1385,8 +1385,18 @@ async function main() {
      * file state that they run at the suite's phone width and would quietly
      * start measuring a desktop layout otherwise. */
     const VIEWPORTS = [
+      /* 320px is the narrowest phone still in use (and WCAG 1.4.10's reflow
+         width). The navbar's icon cluster once ended at x=334 here, putting a
+         14px sideways scroll on every route, because nothing looked below 390. */
+      { name: 'small phone', width: 320, height: 640 },
       { name: 'phone', width: 390, height: 844 },
       { name: 'tablet', width: 768, height: 1024 },
+      /* 1024px is where the desktop navbar first appears. Its icon cluster plus
+         the data-status chip and the ⌘K hint ended at x=1096 here: 72px of
+         sideways scroll on every route, unseen because the sweep jumped from
+         768 to 1440. */
+      { name: 'laptop', width: 1024, height: 768 },
+      { name: 'laptop wide', width: 1280, height: 800 },
       { name: 'desktop', width: 1440, height: 900 },
     ];
     for (const vp of VIEWPORTS) {
@@ -1399,6 +1409,19 @@ async function main() {
       await settled(page);
       const found = await page.evaluate((RULE) => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
+        /* Name the element that sticks out, so a failure says what to fix. */
+        out.culprit = '';
+        if (out.over > 0) {
+          for (const e of document.querySelectorAll('body *')) {
+            const r = e.getBoundingClientRect();
+            if (r.width === 0 || r.right <= window.innerWidth + 0.5) continue;
+            let a = e.parentElement, inScroller = false;
+            while (a && a !== document.body) { if (getComputedStyle(a).overflowX !== 'visible') { inScroller = true; break; } a = a.parentElement; }
+            if (inScroller) continue;
+            out.culprit = `<${e.tagName.toLowerCase()} class="${String(e.className).slice(0, 70)}"> "${(e.textContent || '').trim().slice(0, 40)}"`;
+            break;
+          }
+        }
 
         /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
            purpose, so anything with a real height is the only interesting case.
@@ -1457,7 +1480,7 @@ async function main() {
       }, RAGGED_RULE);
 
       const at = `${route} @${vp.width}px`;
-      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px`);
+      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px${found.culprit ? ` (widest: ${found.culprit})` : ''}`);
       for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${at} ${c}`);
       for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${at} stacked buttons are ragged: ${r}`);
     }
@@ -1466,6 +1489,84 @@ async function main() {
     if (!failures.some((f) => f.startsWith('layout:'))) {
       pass(`no sideways scroll, no clipped text, no ragged button stacks (${SWEPT_ROUTES.length} routes x ${VIEWPORTS.length} viewports)`);
     }
+  }
+
+  /* STRUCTURE THAT ASSISTIVE TECHNOLOGY READS, FOUND BY AN AXE SWEEP ON 21 NOV.
+   * A page nested a second <main> inside the layout's; a progress bar had
+   * values and no name; scrolling charts and tables could not be reached with
+   * the Tab key. None of it shows on screen, so none of the visual checks above
+   * could see it. */
+  console.log('\nstructure');
+  {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const before = failures.length;
+    for (const route of ROUTES) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await settled(page);
+      const found = await page.evaluate(() => {
+        const out = [];
+        const mains = document.querySelectorAll('main').length;
+        if (mains !== 1) out.push(`${mains} <main> landmarks`);
+        for (const el of document.querySelectorAll('[role="progressbar"]')) {
+          if (!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby'))) out.push('role=progressbar with no accessible name');
+        }
+        for (const el of document.querySelectorAll('*')) {
+          const ox = getComputedStyle(el).overflowX;
+          if ((ox === 'auto' || ox === 'scroll') && el.scrollWidth > el.clientWidth + 1) {
+            const focusable = el.tabIndex >= 0 || el.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+            if (!focusable) out.push(`scrolling region cannot be reached by keyboard: <${el.tagName.toLowerCase()} class="${String(el.className).slice(0, 50)}">`);
+          }
+        }
+        return out;
+      });
+      for (const f of found) fail(`structure: ${route} ${f}`);
+    }
+    if (failures.length === before) pass(`one <main>, named progress bars, keyboard-reachable scroll regions (${ROUTES.length} routes)`);
+
+    /* A chart tooltip is drawn wherever the pointer rests. On /portfolio/ at
+       320px the duration chart's tooltip sat to the right of the bar and
+       pushed the page sideways; it surfaced as a 1-in-7 layout failure only
+       when an earlier step had left the mouse over the chart. Sweep the
+       pointer deliberately so the check is deterministic. Holdings were
+       imported earlier in this suite. */
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(BASE + '/portfolio/', { waitUntil: 'load' });
+    await settled(page);
+    let worstTip = 0;
+    let tipCulprit = '';
+    // The duration chart is a dynamic import; wait for it rather than racing it.
+    await page.waitForSelector('.recharts-wrapper', { timeout: 10_000 }).catch(() => {});
+    await page.waitForTimeout(300);
+    const tipCharts = await page.locator('.recharts-wrapper').all();
+    /* A sweep over no charts proves nothing, so an empty portfolio is a failure. */
+    if (!tipCharts.length) fail('structure: /portfolio/ has no charts to sweep (holdings from the import step are missing)');
+    for (const c of tipCharts) {
+      await c.scrollIntoViewIfNeeded();
+      const bb = await c.boundingBox();
+      if (!bb) continue;
+      for (let x = bb.x + 5; x < bb.x + bb.width - 1; x += 8) {
+        await page.mouse.move(x, bb.y + bb.height * 0.4);
+        await page.waitForTimeout(30);
+        const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        if (o > worstTip) {
+          worstTip = o;
+          tipCulprit = await page.evaluate(() => {
+            for (const e of document.querySelectorAll('body *')) {
+              const r = e.getBoundingClientRect();
+              if (!r.width || r.right <= window.innerWidth + 0.5) continue;
+              let a = e.parentElement, sc = false;
+              while (a && a !== document.body) { if (getComputedStyle(a).overflowX !== 'visible') { sc = true; break; } a = a.parentElement; }
+              if (!sc) return `<${e.tagName.toLowerCase()} class="${String(e.className).slice(0, 60)}"> right=${Math.round(r.right)} w=${Math.round(r.width)} "${(e.textContent || '').trim().slice(0, 40)}"`;
+            }
+            return '';
+          });
+        }
+      }
+    }
+    await page.mouse.move(0, 0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    if (worstTip > 0) fail(`structure: /portfolio/ chart tooltip pushes the page ${worstTip}px sideways at 320px (${tipCulprit})`);
+    else pass('portfolio chart tooltips stay on screen at 320px');
   }
 
   /* -------------------------------------------- the ragged rule, as cases */

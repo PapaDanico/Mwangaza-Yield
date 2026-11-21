@@ -303,7 +303,7 @@ export default function LadderPage() {
                     onClick={() => setChosenIsins([])}
                     className="ml-auto flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 font-medium text-ink transition-colors hover:bg-sand-200"
                   >
-                    <RotateCcw size={13} /> Back to our picks
+                    <RotateCcw size={13} /> Back to the default selection
                   </button>
                 </div>
               )}
@@ -413,7 +413,7 @@ export default function LadderPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-end gap-2 overflow-x-auto pb-1">
+                <div className="flex items-end gap-2 overflow-x-auto pb-1" tabIndex={0} role="region" aria-label="Payouts by year, scrolls sideways">
                   {plan.yearlyPayouts.map((p) => {
                     const total = p.couponsKES + p.principalKES;
                     return (

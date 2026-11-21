@@ -250,6 +250,18 @@ export const EXTRA_DOCS: GapDoc[] = [
     finds: ['infrastructure bond', 'treasury bill', 'qualifying interest', 'withholding tax', 'Third Schedule'],
     occurrences: 3,
   },
+  // The consolidated Income Tax Act as KRA now publishes it (2026). The 2017
+  // revision read on 15 Nov had no ten-year or infrastructure-bond rule, and
+  // later Finance Acts may have added one; this is the text that decides it.
+  {
+    url: 'https://www.kra.go.ke/images/publications/Income-Tax-Act-2026.pdf',
+    file: 'Income Tax Act 2026 consolidated (withholding tax, bonds).pdf',
+    tier: 'extra',
+    rev: 1,
+    rows: [],
+    finds: ['ten years', 'infrastructure bond', 'treasury bill', 'qualifying interest', 'bearer'],
+    occurrences: 4,
+  },
   {
     url: 'https://www.kra.go.ke/images/publications/IncomeTaxAct2of1975.pdf',
     file: 'Income Tax Act Cap 470 (withholding tax, bonds).pdf',

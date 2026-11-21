@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function YieldCurvePage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-8">
       <Prose
         title="Kenya’s yield curve, year by year"
         lead="What the government has had to pay to borrow, from two years out to twenty — rebuilt from the Central Bank’s own auction results."
@@ -61,6 +61,6 @@ export default function YieldCurvePage() {
           </p>
         </Prose>
       </div>
-    </main>
+    </div>
   );
 }

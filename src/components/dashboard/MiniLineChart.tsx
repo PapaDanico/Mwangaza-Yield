@@ -54,6 +54,9 @@ export default function MiniLineChart<T>({
 }: Props<T>) {
   const [hover, setHover] = useState<number | null>(null);
   // Drawn at the container's real pixel width, so text and dots never stretch.
+  // Until the first measurement W is a guess (640), and on a 320px phone that
+  // guess pushed the page sideways for a frame; `max-w-full` on the <svg>
+  // scales the first paint down instead.
   const box = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(640);
   useEffect(() => {
@@ -143,7 +146,7 @@ export default function MiniLineChart<T>({
       onBlur={() => setHover(null)}
     >
       <svg
-        width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="block overflow-visible"
+        width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="block max-w-full overflow-visible"
         onPointerMove={onMove} onPointerLeave={() => setHover(null)} aria-hidden="true"
       >
         {yTicks.map((t) => (

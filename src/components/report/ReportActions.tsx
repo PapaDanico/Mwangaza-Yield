@@ -619,7 +619,7 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * single predictable wrap, and the buttons below share the line evenly
      * instead of ragging. */
     <div className="flex w-full flex-col gap-1 sm:w-auto sm:items-end">
-      <div className="flex w-full items-stretch gap-2 sm:w-auto sm:items-center sm:justify-end">
+      <div className="flex w-full items-stretch gap-2 max-[359px]:flex-col sm:w-auto sm:items-center sm:justify-end">
         <button
           onClick={downloadPdf}
           disabled={busy !== null}

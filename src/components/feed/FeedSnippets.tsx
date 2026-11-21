@@ -54,7 +54,7 @@ export default function FeedSnippets() {
             { url: FEED_CSV_URL, label: 'CSV', hint: 'the T-bill rows, for a spreadsheet' },
           ].map((e) => (
             <div key={e.url} className="flex flex-wrap items-center gap-2">
-              <code className="num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-sand-100 px-2 py-2 text-xs text-ink">
+              <code className="num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-sand-100 px-2 py-2 text-xs text-ink" tabIndex={0}>
                 {e.url}
               </code>
               <CopyButton text={e.url} label={`the ${e.label} endpoint`} />
@@ -68,7 +68,7 @@ export default function FeedSnippets() {
           <h2 className="font-display font-semibold text-ink">Read it in a browser</h2>
           <CopyButton text={FEED_SNIPPET} label="the snippet" />
         </div>
-        <pre className="mt-2 overflow-x-auto rounded-lg bg-ink px-3 py-3 text-xs leading-relaxed text-sand-50">
+        <pre tabIndex={0} aria-label="Code example, scrolls sideways" className="mt-2 overflow-x-auto rounded-lg bg-ink px-3 py-3 text-xs leading-relaxed text-sand-50">
           <code>{FEED_SNIPPET}</code>
         </pre>
         <p className="mt-2 text-xs text-ink-faint">

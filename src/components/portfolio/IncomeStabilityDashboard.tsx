@@ -85,12 +85,12 @@ export default function IncomeStabilityDashboard() {
             </button>
           </div>
           <div className="h-64 rounded-xl border border-sand-300 p-2">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" style={{ overflow: 'hidden' }}>
               <ComposedChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip />
+                <Tooltip allowEscapeViewBox={{ x: false, y: false }} wrapperStyle={{ maxWidth: 200 }} contentStyle={{ whiteSpace: 'normal' }} />
                 <Bar dataKey="income" fill="#0B214A" />
                 <Line dataKey="target" stroke="#B7791F" dot={false} />
               </ComposedChart>
@@ -119,12 +119,12 @@ export default function IncomeStabilityDashboard() {
         <h3 className="font-semibold text-ink">Ladder Visualizer</h3>
         <p className="text-xs text-ink-muted">Months to maturity by bond (coupon intensity shown in tooltip).</p>
         <div className="mt-2 h-56">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" style={{ overflow: 'hidden' }}>
             <BarChart layout="vertical" data={ladderData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="issueCode" type="category" width={110} />
-              <Tooltip />
+              <Tooltip allowEscapeViewBox={{ x: false, y: false }} wrapperStyle={{ maxWidth: 200 }} contentStyle={{ whiteSpace: 'normal' }} />
               <Bar dataKey="months" fill="#0B214A" />
             </BarChart>
           </ResponsiveContainer>

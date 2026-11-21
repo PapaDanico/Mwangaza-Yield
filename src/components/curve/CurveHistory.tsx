@@ -194,7 +194,7 @@ export default function CurveHistory() {
           <summary className="cursor-pointer text-sm font-medium text-ink-soft hover:text-gold-700">
             What the Central Bank was doing in each of these years
           </summary>
-          <div className="mt-2 overflow-x-auto">
+          <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Yield curve figures, scrolls sideways">
             <table className="min-w-full whitespace-nowrap text-left text-xs">
               <thead className="text-ink-faint">
                 <tr>

@@ -51,7 +51,7 @@ export default function LadderAnalysisCard({ plan }: { plan: LadderPlan }) {
                   ? `The horizon is split into equal windows. In each, bonds are ranked by net yield less ${SMOOTHING_PENALTY_PP} points for every coupon month an earlier rung already pays, so the ladder pays in more months. The score shown is that adjusted figure.`
                   : 'The horizon is split into equal windows. In each, the bond with the highest net yield at its price is taken; where a window has no bond, the best remaining yield fills in.'}
               </p>
-              <div className="mt-2 overflow-x-auto">
+              <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Ladder analysis table, scrolls sideways">
                 <table className="w-full text-left text-xs">
                   <caption className="sr-only">Maturity windows, the bond chosen in each and the alternatives ranked</caption>
                   <thead>
@@ -87,7 +87,7 @@ export default function LadderAnalysisCard({ plan }: { plan: LadderPlan }) {
         {/* 2. Bond by bond */}
         <section aria-labelledby="la-rungs">
           <h3 id="la-rungs" className="text-sm font-semibold text-ink">Bond by bond</h3>
-          <div className="mt-2 overflow-x-auto">
+          <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Ladder analysis table, scrolls sideways">
             <table className="w-full min-w-[34rem] text-left text-xs">
               <caption className="sr-only">Each bond&apos;s yield, sensitivity to a rise in yields, position against the curve and price basis</caption>
               <thead>

@@ -303,7 +303,7 @@ export default function LadderPage() {
                     onClick={() => setChosenIsins([])}
                     className="ml-auto flex items-center gap-1.5 rounded-lg border border-sand-300 px-3 py-1.5 font-medium text-ink transition-colors hover:bg-sand-200"
                   >
-                    <RotateCcw size={13} /> Back to our picks
+                    <RotateCcw size={13} /> Back to the default selection
                   </button>
                 </div>
               )}

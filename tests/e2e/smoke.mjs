@@ -1409,6 +1409,19 @@ async function main() {
       await settled(page);
       const found = await page.evaluate((RULE) => {
         const out = { over: document.documentElement.scrollWidth - window.innerWidth, clipped: [], ragged: [] };
+        /* Name the element that sticks out, so a failure says what to fix. */
+        out.culprit = '';
+        if (out.over > 0) {
+          for (const e of document.querySelectorAll('body *')) {
+            const r = e.getBoundingClientRect();
+            if (r.width === 0 || r.right <= window.innerWidth + 0.5) continue;
+            let a = e.parentElement, inScroller = false;
+            while (a && a !== document.body) { if (getComputedStyle(a).overflowX !== 'visible') { inScroller = true; break; } a = a.parentElement; }
+            if (inScroller) continue;
+            out.culprit = `<${e.tagName.toLowerCase()} class="${String(e.className).slice(0, 70)}"> "${(e.textContent || '').trim().slice(0, 40)}"`;
+            break;
+          }
+        }
 
         /* Visibly clipped text. sr-only elements are collapsed to a 1px box on
            purpose, so anything with a real height is the only interesting case.
@@ -1467,7 +1480,7 @@ async function main() {
       }, RAGGED_RULE);
 
       const at = `${route} @${vp.width}px`;
-      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px`);
+      if (found.over > 0) fail(`layout: ${at} scrolls sideways by ${found.over}px${found.culprit ? ` (widest: ${found.culprit})` : ''}`);
       for (const c of [...new Set(found.clipped)].slice(0, 3)) fail(`layout: ${at} ${c}`);
       for (const r of [...new Set(found.ragged)].slice(0, 3)) fail(`layout: ${at} stacked buttons are ragged: ${r}`);
     }

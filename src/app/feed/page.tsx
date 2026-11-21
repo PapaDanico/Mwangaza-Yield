@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function FeedPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-8">
       <Prose
         title="The rates feed"
         lead="Kenyan Treasury bill yields, the central bank rate, inflation and bond auction benchmarks — as JSON or CSV, free, and open to any origin."
@@ -105,6 +105,6 @@ export default function FeedPage() {
           </p>
         </Prose>
       </div>
-    </main>
+    </div>
   );
 }

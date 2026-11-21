@@ -9,10 +9,10 @@ export default function ProvenanceBadge({ via }: { via?: string | null }) {
   return (
     <span
       title={p.detail}
-      aria-label={`${p.label}: ${p.detail}`}
       className={`ml-1 inline-flex items-center gap-0.5 align-middle ${p.tone === 'primary' ? 'text-emerald-800' : 'text-gold-800'}`}
     >
       <Icon size={11} aria-hidden />
+      <span className="sr-only">{`${p.label}: ${p.detail}`}</span>
       <span className="hidden sm:inline" aria-hidden>{p.label}</span>
     </span>
   );

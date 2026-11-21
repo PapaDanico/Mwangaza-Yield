@@ -407,7 +407,7 @@ export default function PortfolioPage() {
             Or type a CSV by hand — this also lets you record what you paid, which unlocks
             yield-on-cost:
           </p>
-          <div className="mx-auto mt-2 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left">
+          <div className="mx-auto mt-2 max-w-md overflow-x-auto rounded-xl border border-sand-300 bg-sand-200 p-3 text-left" tabIndex={0} role="region" aria-label="Example import file, scrolls sideways">
             <p className="mb-1.5 text-sm font-semibold text-ink-faint">
               Example file
             </p>
@@ -489,7 +489,7 @@ IFB1/2022/19,500000,2026-02-16,98.5`}
                   </div>
 
                   <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-                    <div className="overflow-x-auto rounded-2xl border border-sand-300">
+                    <div className="overflow-x-auto rounded-2xl border border-sand-300" tabIndex={0} role="region" aria-label="Holdings table, scrolls sideways">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-sand-300 text-left text-xs uppercase tracking-wide text-ink-muted">

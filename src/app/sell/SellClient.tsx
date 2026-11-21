@@ -391,7 +391,7 @@ export default function SellClient() {
                   price. Rates up means a lower price; rates down, a higher one. A scenario to size the risk of waiting, not a forecast.
                   Charges are not included.
                 </p>
-                <div className="mt-2 overflow-x-auto">
+                <div className="mt-2 overflow-x-auto" tabIndex={0} role="region" aria-label="Sale figures table, scrolls sideways">
                   <table className="w-full text-sm">
                     <caption className="sr-only">Sale price if the market yield moved</caption>
                     <thead>

@@ -413,7 +413,7 @@ export default function LadderPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-end gap-2 overflow-x-auto pb-1">
+                <div className="flex items-end gap-2 overflow-x-auto pb-1" tabIndex={0} role="region" aria-label="Payouts by year, scrolls sideways">
                   {plan.yearlyPayouts.map((p) => {
                     const total = p.couponsKES + p.principalKES;
                     return (

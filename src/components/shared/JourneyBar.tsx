@@ -37,7 +37,7 @@ export default function JourneyBar() {
   const pct = ((activeIdx + 1) / JOURNEY_STAGES.length) * 100;
 
   return (
-    <div
+    <section
       className="no-print border-b border-sand-200 bg-sand-100"
       aria-label={`You are at the ${JOURNEY_STAGES[activeIdx]!.label} stage`}
     >
@@ -50,6 +50,8 @@ export default function JourneyBar() {
           aria-valuenow={activeIdx + 1}
           aria-valuemin={1}
           aria-valuemax={JOURNEY_STAGES.length}
+          aria-label="Your progress through the tools"
+          aria-valuetext={`Step ${activeIdx + 1} of ${JOURNEY_STAGES.length}: ${JOURNEY_STAGES[activeIdx]!.label}`}
         />
       </div>
 
@@ -64,7 +66,7 @@ export default function JourneyBar() {
                 className={cn(
                   'text-xs font-medium tracking-wide',
                   isActive
-                    ? 'text-gold-700'
+                    ? 'text-gold-800'
                     : isPast
                       ? 'text-ink-muted'
                       : 'text-ink-faint',
@@ -80,6 +82,6 @@ export default function JourneyBar() {
           );
         })}
       </ol>
-    </div>
+    </section>
   );
 }

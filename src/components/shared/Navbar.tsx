@@ -46,7 +46,7 @@ export default function Navbar() {
   return (
     <>
       <header className="no-print sticky top-0 z-40 border-b border-sand-300 bg-sand-100/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 lg:gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 max-[359px]:gap-1 lg:gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2 lg:gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="" className="h-9 w-9 rounded-xl" />
@@ -90,18 +90,18 @@ export default function Navbar() {
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1 max-[359px]:gap-0">
             <OfflineBadge />
-            <span className="hidden lg:contents"><DataStatus /></span>
+            <span className="hidden xl:contents"><DataStatus /></span>
             {/* Command palette trigger — gives power users a visual entry point
                 alongside the Cmd+K shortcut. */}
             <button
               onClick={() => document.dispatchEvent(new CustomEvent(APP_EVENTS.OPEN_PALETTE))}
               aria-label="Open command palette (⌘K)"
-              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-ink-muted transition-colors hover:bg-sand-200 hover:text-ink lg:px-3"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-2 text-ink-muted transition-colors hover:bg-sand-200 hover:text-ink max-[359px]:px-1.5 lg:px-3"
             >
               <Search size={18} />
-              <kbd className="hidden rounded border border-sand-300 px-1.5 py-0.5 font-mono text-xs text-ink-faint lg:block">
+              <kbd className="hidden rounded border border-sand-300 px-1.5 py-0.5 font-mono text-xs text-ink-faint xl:block">
                 ⌘K
               </kbd>
             </button>
@@ -112,7 +112,7 @@ export default function Navbar() {
               href="/sell/"
               aria-label="Should you sell?"
               className={cn(
-                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
+                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 max-[359px]:p-1 lg:p-2',
                 isActive('/sell/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >
@@ -123,7 +123,7 @@ export default function Navbar() {
               href="/prices/"
               aria-label="Your price book"
               className={cn(
-                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 lg:p-2',
+                'inline-flex min-h-11 items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-sand-200 max-[359px]:p-1 lg:p-2',
                 isActive('/prices/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >
@@ -136,7 +136,7 @@ export default function Navbar() {
               href="/alerts/"
               aria-label={unseen ? `Alerts — ${unseen} new` : 'Alerts'}
               className={cn(
-                'relative inline-flex min-h-11 items-center justify-center rounded-lg p-2 transition-colors hover:bg-sand-200',
+                'relative inline-flex min-h-11 items-center justify-center rounded-lg p-2 transition-colors hover:bg-sand-200 max-[359px]:p-1.5',
                 isActive('/alerts/') ? 'text-gold-700' : 'text-ink-muted hover:text-ink'
               )}
             >

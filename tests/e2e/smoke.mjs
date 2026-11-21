@@ -1385,8 +1385,18 @@ async function main() {
      * file state that they run at the suite's phone width and would quietly
      * start measuring a desktop layout otherwise. */
     const VIEWPORTS = [
+      /* 320px is the narrowest phone still in use (and WCAG 1.4.10's reflow
+         width). The navbar's icon cluster once ended at x=334 here, putting a
+         14px sideways scroll on every route, because nothing looked below 390. */
+      { name: 'small phone', width: 320, height: 640 },
       { name: 'phone', width: 390, height: 844 },
       { name: 'tablet', width: 768, height: 1024 },
+      /* 1024px is where the desktop navbar first appears. Its icon cluster plus
+         the data-status chip and the ⌘K hint ended at x=1096 here: 72px of
+         sideways scroll on every route, unseen because the sweep jumped from
+         768 to 1440. */
+      { name: 'laptop', width: 1024, height: 768 },
+      { name: 'laptop wide', width: 1280, height: 800 },
       { name: 'desktop', width: 1440, height: 900 },
     ];
     for (const vp of VIEWPORTS) {
@@ -1466,6 +1476,39 @@ async function main() {
     if (!failures.some((f) => f.startsWith('layout:'))) {
       pass(`no sideways scroll, no clipped text, no ragged button stacks (${SWEPT_ROUTES.length} routes x ${VIEWPORTS.length} viewports)`);
     }
+  }
+
+  /* STRUCTURE THAT ASSISTIVE TECHNOLOGY READS, FOUND BY AN AXE SWEEP ON 21 NOV.
+   * A page nested a second <main> inside the layout's; a progress bar had
+   * values and no name; scrolling charts and tables could not be reached with
+   * the Tab key. None of it shows on screen, so none of the visual checks above
+   * could see it. */
+  console.log('\nstructure');
+  {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const before = failures.length;
+    for (const route of ROUTES) {
+      await page.goto(BASE + route, { waitUntil: 'load' });
+      await settled(page);
+      const found = await page.evaluate(() => {
+        const out = [];
+        const mains = document.querySelectorAll('main').length;
+        if (mains !== 1) out.push(`${mains} <main> landmarks`);
+        for (const el of document.querySelectorAll('[role="progressbar"]')) {
+          if (!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby'))) out.push('role=progressbar with no accessible name');
+        }
+        for (const el of document.querySelectorAll('*')) {
+          const ox = getComputedStyle(el).overflowX;
+          if ((ox === 'auto' || ox === 'scroll') && el.scrollWidth > el.clientWidth + 1) {
+            const focusable = el.tabIndex >= 0 || el.querySelector('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+            if (!focusable) out.push(`scrolling region cannot be reached by keyboard: <${el.tagName.toLowerCase()} class="${String(el.className).slice(0, 50)}">`);
+          }
+        }
+        return out;
+      });
+      for (const f of found) fail(`structure: ${route} ${f}`);
+    }
+    if (failures.length === before) pass(`one <main>, named progress bars, keyboard-reachable scroll regions (${ROUTES.length} routes)`);
   }
 
   /* -------------------------------------------- the ragged rule, as cases */

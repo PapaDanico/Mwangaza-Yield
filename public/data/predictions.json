@@ -214,5 +214,22 @@
     "scoredOn": "2026-11-18",
     "hitRange": true,
     "hitMiddleHalf": true
+  },
+  {
+    "issueCode": "FXD1/2020/015",
+    "auctionDate": "2026-12-09",
+    "recordedOn": "2026-11-26",
+    "targetYears": 8.19,
+    "toleranceYears": 1.5,
+    "windowDays": 180,
+    "sampleSize": 6,
+    "low": 12.593300000000001,
+    "p25": 12.697225000000001,
+    "median": 12.72575,
+    "p75": 13.01821875,
+    "high": 13.286,
+    "thin": false,
+    "correctionPp": 0.0259999999999998,
+    "bandScale": 1.75
   }
 ]

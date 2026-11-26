@@ -527,5 +527,22 @@
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-12-09-reopen",
+    "issueCode": "FXD1/2020/015",
+    "bondName": "Re-opened 15-Year Fixed Coupon Bond (Ksh 30B, budgetary support)",
+    "category": "FXD",
+    "offerOpenDate": "2026-11-26",
+    "offerCloseDate": "2026-12-09",
+    "auctionDate": "2026-12-09",
+    "settlementDate": "2026-12-14",
+    "amountOfferedKES": 30000000000,
+    "couponRate": 12.756,
+    "tenorYears": 15,
+    "maturityDate": "2035-02-05",
+    "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "issuance"
   }
 ]

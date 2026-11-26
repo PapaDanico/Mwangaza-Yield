@@ -26,7 +26,13 @@ describe('decision brief on the shipped data', () => {
     const t = (d: number) => computeTBill(100_000, (tbills as TBill[]).find((b) => b.tenorDays === d)!.discountRate, d).netEAY;
     const gap = t(364) - t(91);
     const item = get('lock-in')!;
-    expect(item.detail).toContain(`${gap.toFixed(2)} points more than the 91-day`);
+    // The gap can be negative (on 26 Nov 2026 the 364-day paid 0.01 less after
+    // tax than the 91-day), and the brief then says "less", not "-0.01 more".
+    expect(item.detail).toContain(
+      gap >= 0
+        ? `${gap.toFixed(2)} points more than the 91-day`
+        : `${(-gap).toFixed(2)} points less than the 91-day`,
+    );
     expect(item.detail).not.toContain(`${t(91).toFixed(2)}%`); // the yields themselves are on the page already
     if (gap < LOCK_IN_NEGLIGIBLE_PP) expect(item.tone).toBe('watch');
   });

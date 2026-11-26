@@ -513,7 +513,7 @@
   },
   {
     "id": "auc-2026-11-26-tbills",
-    "issueCode": "2710/091 · 2684/182 · 2639/364",
+    "issueCode": "2710/091 · 2684/182 · 2640/364",
     "bondName": "91, 182 & 364-day Treasury Bills",
     "category": "TBILL",
     "offerOpenDate": "2026-11-20",
@@ -525,7 +525,7 @@
     "tenorYears": 1,
     "maturityDate": null,
     "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
-    "status": "upcoming",
+    "status": "closed",
     "transactionType": "issuance"
   },
   {
@@ -542,6 +542,23 @@
     "tenorYears": 15,
     "maturityDate": "2035-02-05",
     "prospectusUrl": "https://www.centralbank.go.ke/securities/treasury-bonds/treasury-bonds-prospectuses/",
+    "status": "upcoming",
+    "transactionType": "issuance"
+  },
+  {
+    "id": "auc-2026-12-03-tbills",
+    "issueCode": "91 · 182 · 364-day (issue numbers on the notice)",
+    "bondName": "91, 182 & 364-day Treasury Bills",
+    "category": "TBILL",
+    "offerOpenDate": "2026-11-27",
+    "offerCloseDate": "2026-12-03",
+    "auctionDate": "2026-12-03",
+    "settlementDate": "2026-12-07",
+    "amountOfferedKES": 28000000000,
+    "couponRate": null,
+    "tenorYears": 1,
+    "maturityDate": null,
+    "prospectusUrl": "https://www.centralbank.go.ke/bills-bonds/treasury-bills/",
     "status": "upcoming",
     "transactionType": "issuance"
   }

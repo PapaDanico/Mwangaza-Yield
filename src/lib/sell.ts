@@ -40,7 +40,20 @@ import { DAYS_IN_YEAR as YEAR_DAYS, DAYS_IN_COUPON_PERIOD as PERIOD_DAYS, DAY_MS
 export interface AmortisationStep {
   /** ISO date the principal fraction is repaid. */
   date: string;
-  /** Fraction of ORIGINAL face repaid on that date, 0–1. */
+  /**
+   * Fraction of the balance OUTSTANDING immediately before this date that is
+   * repaid on it, 0–1, exactly as CBK prints it ("30% of unencumbered
+   * outstanding principal amount"); 1 repays whatever remains.
+   *
+   * Until 27 Nov 2026 this was read as a fraction of ORIGINAL face, which
+   * agrees with CBK only for a single step. IFB1/2023/6.5 (50%, then 30% of
+   * outstanding) priced at 102.4471 against CBK's printed 102.5044 at 17%.
+   * See docs/research/2026-11-27-credit-and-bond-engine-gaps/REPORT.md.
+   *
+   * Steps dated on or before settlement are ignored: the face value entered
+   * is what the holder owns NOW, so earlier redemptions are already in it and
+   * prices are per 100 of that outstanding balance, as CBK quotes them.
+   */
   fraction: number;
 }
 
@@ -196,12 +209,24 @@ export function remainingCouponDates(bond: Bond, settlement: Date): Date[] {
  * Outstanding principal fraction on a given date, after any amortisation that
  * has already happened by then.
  */
-function balanceOn(date: Date, amortisation: AmortisationStep[]): number {
+function balanceOn(date: Date, amortisation: AmortisationStep[], settlement?: Date): number {
   let bal = 1;
-  for (const step of amortisation) {
-    if (new Date(step.date) <= date) bal -= step.fraction;
+  for (const step of sortedSteps(amortisation)) {
+    const when = new Date(step.date);
+    if (settlement && when <= settlement) continue; // already in the face held
+    if (when <= date) bal *= 1 - step.fraction;
   }
   return Math.max(0, bal);
+}
+
+function sortedSteps(amortisation: AmortisationStep[]): AmortisationStep[] {
+  return [...amortisation].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Principal repaid on a step date, as a fraction of the face held at settlement. */
+function principalFractionOn(step: AmortisationStep, amortisation: AmortisationStep[], settlement: Date): number {
+  const before = balanceOn(new Date(new Date(step.date).getTime() - DAY_MS), amortisation, settlement);
+  return before * step.fraction;
 }
 
 /* -------------------------------------------------------------- cashflows */
@@ -213,8 +238,8 @@ function balanceOn(date: Date, amortisation: AmortisationStep[]): number {
 function validateAmortisation(bond: Bond, steps: AmortisationStep[]): void {
   const issue = new Date(bond.issueDate);
   const maturity = new Date(bond.maturityDate);
-  let total = 0;
-  for (const step of steps) {
+  let fullyRedeemedOn: string | null = null;
+  for (const step of sortedSteps(steps)) {
     const when = new Date(step.date);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(step.date)
       || Number.isNaN(when.getTime())
@@ -226,10 +251,12 @@ function validateAmortisation(bond: Bond, steps: AmortisationStep[]): void {
       || step.fraction > 1) {
       throw new RangeError('Invalid bond amortisation date or principal fraction');
     }
-    total += step.fraction;
-    if (total > 1 + 1e-9) {
-      throw new RangeError('Bond amortisation exceeds 100% of original principal');
+    // A fraction is of the balance outstanding, so no sum can exceed 100%;
+    // what cannot happen is a repayment after the bond is fully redeemed.
+    if (fullyRedeemedOn !== null) {
+      throw new RangeError('Bond amortisation continues after full redemption');
     }
+    if (step.fraction >= 1 - 1e-12) fullyRedeemedOn = step.date;
   }
 }
 
@@ -255,11 +282,11 @@ export function buildCashflows(
   const rows: CashflowRow[] = dates.map((d) => {
     // The coupon is paid on the balance outstanding for that period, i.e. the
     // balance the DAY BEFORE any repayment landing on the same date.
-    const bal = balanceOn(new Date(d.getTime() - DAY_MS), amortisation);
+    const bal = balanceOn(new Date(d.getTime() - DAY_MS), amortisation, settlement);
     const gross = fullPeriodCoupon * bal;
     const principal = amortisation
       .filter((s) => iso(new Date(s.date)) === iso(d) && d < maturity && new Date(s.date) > settlement)
-      .reduce((sum, s) => sum + s.fraction * faceValueKES, 0);
+      .reduce((sum, s) => sum + principalFractionOn(s, amortisation, settlement) * faceValueKES, 0);
     return {
       date: iso(d),
       couponKES: gross,
@@ -278,14 +305,14 @@ export function buildCashflows(
       date: iso(when),
       couponKES: 0,
       netCouponKES: 0,
-      principalKES: step.fraction * faceValueKES,
+      principalKES: principalFractionOn(step, amortisation, settlement) * faceValueKES,
     });
   }
 
   // Redemption at maturity includes any fraction contractually marked for
   // that date. balanceOn(maturity) would subtract it before calculating the
   // final payment, causing principal to disappear from the cash-flow schedule.
-  const finalBalance = balanceOn(new Date(maturity.getTime() - DAY_MS), amortisation);
+  const finalBalance = balanceOn(new Date(maturity.getTime() - DAY_MS), amortisation, settlement);
   const maturityRow = rows.find((row) => row.date === iso(maturity));
   if (maturityRow) maturityRow.principalKES += finalBalance * faceValueKES;
   else if (finalBalance > 0) {
@@ -375,7 +402,7 @@ export function analyseSale(bond: Bond, quote: SaleQuote): SaleAnalysis {
   // coupon date comes from the engine for the same reason the schedule does.
   const lastCoupon = getLastCouponDate(bond, settlement);
   const daysAccrued = daysBetween(lastCoupon, settlement);
-  const balNow = balanceOn(settlement, amortisation);
+  const balNow = balanceOn(settlement, amortisation, settlement);
   const fullPeriodCoupon = (face * bond.couponRate) / 100 / freq;
   const accruedInterestKES = fullPeriodCoupon * balNow * (daysAccrued / PERIOD_DAYS);
   const accruedPer100 = (accruedInterestKES / face) * 100;

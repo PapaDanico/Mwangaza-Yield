@@ -36,6 +36,7 @@ const COLOURS = [
 export default function CurveHistory() {
   const bonds = useBondStore((s) => s.bonds);
   const auctionResults = useAuctionArchive();
+  const archiveLoaded = useBondStore((s) => s.archiveLoaded);
   const cbrHistory = useBondStore((s) => s.cbrHistory);
   const cpiHistory = useBondStore((s) => s.cpiHistory);
   const [failed, setFailed] = useState(false);
@@ -113,7 +114,9 @@ export default function CurveHistory() {
   // (measured 27 Nov: ~800px at 390px wide, ~600px at 1280px) so the chart
   // replacing it does not push the page down: with the default h-64 CLS
   // on /yield-curve/ was 0.36 against a budget of 0.1.
-  if (!auctionResults.length) return <DataState reserve="h-[780px] sm:h-[590px]" />;
+  if (!auctionResults.length) {
+    return <DataState label="auction archive" pending={!archiveLoaded} reserve="h-[780px] sm:h-[590px]" />;
+  }
   if (!drawable.length) {
     return (
       <p className="text-sm text-ink-muted">

@@ -329,6 +329,28 @@
     "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 130.03 (24-11-2026)', read by the cbk-watch Netlify function at 19:00 Nairobi on 24 Nov 2026. Up from 129.98 on 23 Nov."
   },
   {
+    "id": "fx-2026-11-25",
+    "indicator": "FX_USD_KES",
+    "value": 130.02,
+    "date": "2026-11-25",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "cbk-home",
+    "lastChecked": "2026-11-26",
+    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 130.02 (25-11-2026)', read by the cbk-watch Netlify function at 09:00 Nairobi on 26 Nov 2026 (the 25 Nov evening reading could not be fetched). Down from 130.03 on 24 Nov."
+  },
+  {
+    "id": "fx-2026-11-26",
+    "indicator": "FX_USD_KES",
+    "value": 130.06,
+    "date": "2026-11-26",
+    "unit": "KES/USD",
+    "source": "CBK indicative",
+    "via": "cbk-home",
+    "lastChecked": "2026-11-26",
+    "sourceNote": "Central Bank of Kenya website, Key Rates sidebar 'US DOLLAR 130.06 (26-11-2026)', read by the cbk-watch Netlify function at 19:00 Nairobi on 26 Nov 2026. Up from 130.02 on 25 Nov."
+  },
+  {
     "id": "gdp-2026q2",
     "indicator": "GDP",
     "value": 5.1,

@@ -222,3 +222,27 @@ describe('across the whole shipped universe', () => {
     }
   });
 });
+
+describe('the principal comes back when THIS holder is repaid', () => {
+  /* CBK redeems a holding of KSh 1m or less in full at an amortising IFB's
+   * first step. The calculator said so in one row and, in the card below,
+   * "over 5.7 years the principal comes back worth Ksh 67" (27 Nov 2026). */
+  it('uses the early full-redemption date, not maturity, when one applies', () => {
+    const ifb = live.find((b) => b.amortisation?.length && new Date(b.amortisation[0].date) > ASOF);
+    expect(ifb, 'needs an IFB with a future amortisation step').toBeDefined();
+    const r = computeBondInvestment(ifb!, 500_000, 100, ASOF, 0, { applyHolderRules: true });
+    expect(r.earlyFullRedemptionDate).not.toBeNull();
+    const toMaturity = realReturn(ifb!, r.netYTM, r.grossYTM, 7.3, ASOF);
+    const toRepayment = realReturn(ifb!, r.netYTM, r.grossYTM, 7.3, ASOF, r.earlyFullRedemptionDate);
+    const years = (new Date(r.earlyFullRedemptionDate!).getTime() - ASOF.getTime()) / (365 * 86_400_000);
+    expect(toRepayment.yearsToMaturity).toBeCloseTo(years, 6);
+    expect(toRepayment.yearsToMaturity).toBeLessThan(toMaturity.yearsToMaturity);
+    expect(toRepayment.principalRealValuePer100).toBeGreaterThan(toMaturity.principalRealValuePer100);
+  });
+
+  it('is unchanged when no early date applies', () => {
+    const b = live[0];
+    const r = computeBondInvestment(b, 100_000, 100, ASOF);
+    expect(realReturn(b, r.netYTM, r.grossYTM, 7.3, ASOF, null)).toEqual(realReturn(b, r.netYTM, r.grossYTM, 7.3, ASOF));
+  });
+});

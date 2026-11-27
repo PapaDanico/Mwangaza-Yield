@@ -423,6 +423,7 @@ export default function CalculatorClient() {
           netYTM={result.netYTM}
           grossYTM={result.grossYTM}
           macro={macro}
+          repaidOn={result.earlyFullRedemptionDate ?? null}
         />
       )}
 

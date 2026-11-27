@@ -161,14 +161,20 @@ export function realReturn(
   netYTM: number,
   grossYTM: number,
   inflationPct: number,
-  asOf: Date = new Date()
+  asOf: Date = new Date(),
+  /* When THIS holder is repaid, if earlier than maturity: CBK redeems a
+     holding of KSh 1m or less in full at an amortising bond's first step
+     (earlyFullRedemptionDate). Without it the card said "over 5.7 years the
+     principal comes back worth Ksh 67" beside a result row saying it comes
+     back in full in about three months (27 Nov 2026). */
+  repaidOn?: string | null
 ): RealReturn {
   const realNetYTM = realRate(netYTM, inflationPct);
   const realGrossYTM = realRate(grossYTM, inflationPct);
 
   const yearsToMaturity = Math.max(
     0,
-    (new Date(bond.maturityDate).getTime() - asOf.getTime()) / (365 * 86_400_000)
+    (new Date(repaidOn || bond.maturityDate).getTime() - asOf.getTime()) / (365 * 86_400_000)
   );
 
   const principalRealValuePer100 =

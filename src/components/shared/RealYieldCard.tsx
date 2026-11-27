@@ -22,19 +22,22 @@ export default function RealYieldCard({
   netYTM,
   grossYTM,
   macro,
+  repaidOn = null,
 }: {
   bond: Bond;
   netYTM: number;
   grossYTM: number;
   macro: MacroIndicator[];
+  /** The date this holder's principal actually comes back, when earlier than maturity. */
+  repaidOn?: string | null;
 }) {
   const reading = useMemo(() => latestInflation(macro), [macro]);
   const [override, setOverride] = useState<number | null>(null);
   const rate = override ?? reading?.rate ?? null;
 
   const real = useMemo(
-    () => (rate === null ? null : realReturn(bond, netYTM, grossYTM, rate)),
-    [bond, netYTM, grossYTM, rate],
+    () => (rate === null ? null : realReturn(bond, netYTM, grossYTM, rate, new Date(), repaidOn)),
+    [bond, netYTM, grossYTM, rate, repaidOn],
   );
 
   if (!reading) {

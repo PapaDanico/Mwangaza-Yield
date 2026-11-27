@@ -1,6 +1,6 @@
 # Spec: publish each figure's route in the rates feed
 
-Status: proposal, nothing built. Needs the owner's go-ahead because it changes the
+Status: step 1 (feed, contract, test) shipped in #487; steps 3 and 4 not built. Needs the owner's go-ahead because it changes the
 published feed and, downstream, JiPange's snapshot.
 
 ## Why
@@ -22,7 +22,7 @@ not invent one.
    way and consumers that ignore unknown keys are unaffected.
 2. **Mwangaza, contract test.** Extend `feed-contract-published.test.ts`: every
    emitted `via` is a key of `ROUTES` in `figure-route.ts`; a row without one
-   emits no key. Document the field in `docs/RATES-FEED.md`.
+   emits no key. Document the field in `public/data/RATES-FEED.md` (the published contract; `docs/RATES-FEED.md` is only a pointer to it).
 3. **JiPange, sync script.** `scripts/sync-rates.mjs` carries `via` through only
    if it is one of the four known routes (`supplied-document`,
    `search-corroborated`, `imf-weo`, `cbk-home`); an unknown value is dropped and

@@ -23,10 +23,13 @@ export default function HeroRates({ className = 'mt-6' }: { className?: string }
     <Link
       href="/tbills/"
       className={`card-link ${className} block rounded-2xl border border-sand-300 bg-sand-50/80 p-4 shadow-card`}
-      aria-label="Treasury bill rates after tax from the latest CBK auction; open the T-bill page"
+      aria-label="Treasury bill returns over a year after tax, reinvested, from the latest CBK auction; open the T-bill page"
     >
       <p className="text-sm font-semibold tracking-[0.14em] text-ink-faint">
-        T-bills, after tax · CBK auction {fmt(date)}
+        {/* The figure is netEAY: after tax over a year, each bill reinvested at
+            maturity. "After tax" alone left the gap to the CBK rate beside it
+            unexplained (design review, 27 Nov 2026; JiPange's card matches). */}
+        T-bills, a year after tax, reinvested · CBK auction {fmt(date)}
       </p>
       <div className="mt-2 grid grid-cols-3 gap-2">
         {bills.map((t) => (

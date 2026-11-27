@@ -45,7 +45,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2015-03-30",
-    "source": "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/#ifb1-2015-12-dated-30-03-2015"
+    "source": "https://www.centralbank.go.ke/bills-bonds/treasury-bonds/#ifb1-2015-12-dated-30-03-2015",
+    "amortisation": [
+      {
+        "date": "2021-03-22",
+        "fraction": 0.39932
+      },
+      {
+        "date": "2024-03-18",
+        "fraction": 0.63547
+      },
+      {
+        "date": "2027-03-15",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/images/march%202015%20-%2012yr%20ifb1-2015-12%20dated%2030.03.2015.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 22nd March, 2021 - 39.932% of outstanding principal amount; 18th March, 2024 - 63.547% of outstanding principal amount; 15th March, 2027 - 100% - Final Redemption of all outstanding amounts; Amortization Amount : Any outstanding amount up to Kshs. 1.0 million per CDS account at the time of amortization will be redeemed in full.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000006655",
@@ -205,7 +221,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2022-12-26",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1685903722_RESULTS FOR TAP TREASURY BONDS ISSUE NOs IFBI-2022-06 DATED 26-12-2022.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1685903722_RESULTS FOR TAP TREASURY BONDS ISSUE NOs IFBI-2022-06 DATED 26-12-2022.pdf",
+    "amortisation": [
+      {
+        "date": "2025-12-01",
+        "fraction": 0.5
+      },
+      {
+        "date": "2028-11-27",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1600925720_December%202022%20IFB1-2022-6%20%20SWITCH%20DATED%2005-12-2022%20v2.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 1st December 2025-50% of unencumbered outstanding principal amount. : 27th November 2028-100% - Final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000009216",
@@ -253,7 +281,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2017-02-27",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1556453751_IFB1-2017-12 DATED 27-02-2017.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1556453751_IFB1-2017-12 DATED 27-02-2017.pdf",
+    "amortisation": [
+      {
+        "date": "2022-02-21",
+        "fraction": 0.2
+      },
+      {
+        "date": "2024-02-19",
+        "fraction": 0.45
+      },
+      {
+        "date": "2029-02-12",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1834290175_February%202017%20Treasury%20Bond%20Prospectus.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 21st February, 2022- 20.000% of unencumbered outstanding principal amount 19th February,2024-45.000% of unencumbered outstanding principal amount 12th February, 2029 - 100% - Final Redemption of all outstanding amounts\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000009877",
@@ -285,7 +329,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2020-04-13",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/347954303_Results IFBI-2020-09 Dated 13.04.2020.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/347954303_Results IFBI-2020-09 Dated 13.04.2020.pdf",
+    "amortisation": [
+      {
+        "date": "2025-04-07",
+        "fraction": 0.5
+      },
+      {
+        "date": "2029-04-02",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1962742103_APRIL%202020%20IFB1-2020-09%20%20DATED%2013-04-2020.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 7th April, 2025-50% of unencumbered outstanding principal amount. : 2nd April, 2029-100% -Final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE6000004876",
@@ -333,7 +389,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2024-08-19",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/107706422_RESULTS FOR REOPENED IFB1-2023-6.5 AND IFB1-2023-17 DATED 19-08-2024.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/107706422_RESULTS FOR REOPENED IFB1-2023-6.5 AND IFB1-2023-17 DATED 19-08-2024.pdf",
+    "amortisation": [
+      {
+        "date": "2027-05-10",
+        "fraction": 0.5
+      },
+      {
+        "date": "2029-05-07",
+        "fraction": 0.3
+      },
+      {
+        "date": "2030-05-06",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/665697928_November%202023%20IFB1-2023-%206.5%20%20DATED%2013-11-2023.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 10 May 2027 - 50% amortization outstanding principal amount. 07 May 2029- 30% of unencumbered outstanding principal amount. : 06 May 2030 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE8000005879",
@@ -349,7 +421,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2023-06-19",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1518885045_RESULTS FOR TREASURY BONDS ISSUE NO. IFB1-2023-07 DATED 19-06-2023.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1518885045_RESULTS FOR TREASURY BONDS ISSUE NO. IFB1-2023-07 DATED 19-06-2023.pdf",
+    "amortisation": [
+      {
+        "date": "2026-06-15",
+        "fraction": 0.2
+      },
+      {
+        "date": "2027-12-13",
+        "fraction": 0.3
+      },
+      {
+        "date": "2030-06-10",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/32319642_JUNE%202023%20IFB1-2023-007%20%20DATED%2019-06-2023.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 15th June, 2026 - 20% of unencumbered outstanding principal amount. : 13th December, 2027 - 30% of unencumbered outstanding principal amount. : 10th June, 2030 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE2000002176",
@@ -381,7 +469,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2020-08-24",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1961884867_Results IFBI-2020-11Dated 24.08.2020.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1961884867_Results IFBI-2020-11Dated 24.08.2020.pdf",
+    "amortisation": [
+      {
+        "date": "2026-08-17",
+        "fraction": 0.5
+      },
+      {
+        "date": "2031-08-11",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/158381259_AUGUST%202020%20IFB1-2020-11%20DATED%2024-08-2020%20AND%20AND%20TAP%20SALE%20FXD2-2018-20%20DATED%2010-08-2020.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 17th August, 2026-50% of unencumbered outstanding principal amount. : 11th August, 2031-100% -Final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000006659",
@@ -397,7 +497,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2016-10-24",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/218483643_IFB1-2016-015 DATED 24-10-2016.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/218483643_IFB1-2016-015 DATED 24-10-2016.pdf",
+    "amortisation": [
+      {
+        "date": "2021-10-18",
+        "fraction": 0.25
+      },
+      {
+        "date": "2026-10-12",
+        "fraction": 0.33333
+      },
+      {
+        "date": "2031-10-06",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/383478517_OCTOBER%202016-15%20yr%20IFB1-2016-15%20dated%2024.10.2016.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 18th October, 2021- 25.000% of unencumbered outstanding principal amount 12th October,2026-33.333% of unencumbered outstanding principal amount 6th October, 2031 - 100% - Final Redemption of all outstanding amounts\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000009436",
@@ -429,7 +545,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2024-02-19",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/84469011_RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/84469011_RESULTS FOR IFB1-2024-8.5 DATED 19-02-2024.pdf",
+    "amortisation": [
+      {
+        "date": "2027-02-15",
+        "fraction": 0.2
+      },
+      {
+        "date": "2030-02-11",
+        "fraction": 0.3
+      },
+      {
+        "date": "2032-08-09",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/2087959385_February%202024%20IFB1-2024-8.5%20%20DATED%2019-02-2024.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 15 Feb 2027 - 20% amortization of outstanding principal amount. 11 Feb 2030- 30% of unencumbered outstanding principal amount. : 9 Aug 2032 - 100%, final redemption of all outstanding amounts. Any amounts up to Kshs. 1.0 million per CSD account at armotization will be redeemed in full.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE4000003949",
@@ -461,7 +593,19 @@
     "minInvestmentKES": 100000,
     "taxExempt": true,
     "ytmAsOf": "2025-08-25",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf",
+    "amortisation": [
+      {
+        "date": "2028-01-17",
+        "fraction": 0.4
+      },
+      {
+        "date": "2033-01-10",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1619884150_January%20Prospectus%20Prospectus.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 17th January, 2028- 40.000% of unencumbered outstanding principal amount. 10th January, 2033 - 100.000% - Final Redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE8000005432",
@@ -621,7 +765,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2026-08-17",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf",
+    "amortisation": [
+      {
+        "date": "2030-10-14",
+        "fraction": 0.5
+      },
+      {
+        "date": "2035-10-08",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1334980349_OCTOBER%20%202019%2016%20YR%20%20IFB1-2019-16%20dated%2028.10.2019..pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 14th October, 2030- 50.00% of unencumbered outstanding principal amount 8th October, 2035- 100% - Final Redemption of all outstanding amounts\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000006543",
@@ -653,7 +809,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2025-02-17",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf",
+    "amortisation": [
+      {
+        "date": "2030-11-04",
+        "fraction": 0.5
+      },
+      {
+        "date": "2036-10-27",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/414224857_NOV%202022%20IFB1-2022-14%20%20DATED%2014-11-2022...pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 4th November, 2030 - 50% of unencumbered outstanding principal amount. : 27th October, 2036 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000002324",
@@ -669,7 +837,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2021-01-25",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1750508134_FINAL RESULTS IFB1-2021-16 DATED 25.01.2021.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1750508134_FINAL RESULTS IFB1-2021-16 DATED 25.01.2021.pdf",
+    "amortisation": [
+      {
+        "date": "2030-01-14",
+        "fraction": 0.5
+      },
+      {
+        "date": "2037-01-05",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1160414754_JAN%202021%20FXD1-2021-2%20AND%20IFB1-2021-16%20DATED%2025-01-2021...pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure :IFB1/2021/016- 14th January, 2030-50% of unencumbered outstanding principal amount : 5th January, 2037-Final redemption of all outstanding amounts\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000009329",
@@ -733,7 +913,23 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2018-12-03",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1042591131_IFB1-2018-20 TAP  DATED 03.12.2018.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1042591131_IFB1-2018-20 TAP  DATED 03.12.2018.pdf",
+    "amortisation": [
+      {
+        "date": "2028-11-06",
+        "fraction": 0.5
+      },
+      {
+        "date": "2033-10-31",
+        "fraction": 0.5
+      },
+      {
+        "date": "2038-10-25",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1927954702_NOVEMBER%202018%2020%20YR%20%20IFB1-2018-20%20dated%2019.11.2018.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 6th November, 2028- 50.00% of unencumbered outstanding principal amount 31st October, 2033- 50.00% of unencumbered outstanding principal amount 25th October, 2038 - 100% - Final Redemption of all outstanding amounts\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000009984",
@@ -765,7 +961,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2026-08-17",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf",
+    "amortisation": [
+      {
+        "date": "2030-04-01",
+        "fraction": 0.5
+      },
+      {
+        "date": "2039-03-21",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1791729205_APRIL%202021%20IFB1-2021-18%20%20DATED%2012-04-2021.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 1st April, 2030-50% of unencumbered outstanding principal amount. : 21st March, 2039-100% -Final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE8000005549",
@@ -781,7 +989,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2025-02-17",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/2066379370_RESULTS IFB1-2022-014 AND IFB1-2023-017 DATED 17-02-2025.pdf",
+    "amortisation": [
+      {
+        "date": "2033-02-28",
+        "fraction": 0.5
+      },
+      {
+        "date": "2040-02-20",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/344731597_MARCH%202023%20IFB1-2023-17%20%20DATED%2013-03-2023.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 28th February, 2033 - 50% of unencumbered outstanding principal amount. : 20th February, 2040 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE8000002322",
@@ -797,7 +1017,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2022-07-11",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/169700742_SUMMARY TAP RESULTS IFB1-2022-18 DATED 11-07-2022.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/169700742_SUMMARY TAP RESULTS IFB1-2022-18 DATED 11-07-2022.pdf",
+    "amortisation": [
+      {
+        "date": "2031-06-02",
+        "fraction": 0.5
+      },
+      {
+        "date": "2040-05-21",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1214717772_JUNE%202022%20IFB1-2022-18%20%20DATED%2013-06-2022.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 2nd June, 2031 - 50% of unencumbered outstanding principal amount. : 21st May, 2040 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE2000002135",
@@ -829,7 +1061,19 @@
     "minInvestmentKES": 100000,
     "taxExempt": true,
     "ytmAsOf": "2025-08-25",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1674878752_TAPSALE RESULTS FOR  TREASURY BOND ISSUE NOs. IFB1-2018-15 AND IFB1-2022-19 DATED 25-08-2025.pdf",
+    "amortisation": [
+      {
+        "date": "2032-02-09",
+        "fraction": 0.5
+      },
+      {
+        "date": "2041-01-28",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/2088339460_FEBRUARY%202022%20IFB1-2022-19%20%20DATED%2021-02-2022.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 9th February, 2032 - 50% of unencumbered outstanding principal amount. : 28th January, 2041 - 100%, final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000005210",
@@ -861,7 +1105,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2026-08-17",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/1214594764_RESULTS IFB1-2019-016 IFB1-2021-018 AND IFB1-2021-021 DATED 17-08-2026.pdf",
+    "amortisation": [
+      {
+        "date": "2031-09-01",
+        "fraction": 0.5
+      },
+      {
+        "date": "2042-08-18",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/927638006_SEPTEMBER%202021%20IFB1-2021-21%20%20DATED%2013-09-2021.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 1st September, 2031-50% of unencumbered outstanding principal amount. : 18th August, 2042-100% -Final redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE5000008549",
@@ -893,7 +1149,19 @@
     "minInvestmentKES": 50000,
     "taxExempt": true,
     "ytmAsOf": "2019-03-25",
-    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/989366244_RESULTS IFB1-2019-25 DATED 25-03-2019.pdf"
+    "source": "https://www.centralbank.go.ke//uploads/historical_treasury_bond_results/989366244_RESULTS IFB1-2019-25 DATED 25-03-2019.pdf",
+    "amortisation": [
+      {
+        "date": "2034-03-06",
+        "fraction": 0.5
+      },
+      {
+        "date": "2044-02-22",
+        "fraction": 1.0
+      }
+    ],
+    "amortisationSource": "https://www.centralbank.go.ke/uploads/treasury_bonds_prospectuses/1058102206_MARCH%20%202019%20%2025%20YR%20%20IFB1-2019-25%20dated%2025-03-2019.pdf",
+    "amortisationNote": "CBK prospectus, verbatim: \"Redemption Structure : 6th March, 2034- 50.00% of unencumbered outstanding principal amount. 22nd February 2044, -100% - Final Redemption of all outstanding amounts.\" Each percentage is of the balance OUTSTANDING before that date. Read from the prospectus 27 Nov 2026; see docs/research/2026-11-27-credit-and-bond-engine-gaps."
   },
   {
     "isin": "KE7000003652",

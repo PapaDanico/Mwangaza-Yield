@@ -147,6 +147,83 @@ export function calculateAccruedInterest(bond: Bond, settlementDate: Date): numb
 }
 
 /**
+ * The cash flows left on 100 of face held at `settlementDate`, honouring the
+ * bond's amortisation schedule (27 Nov 2026).
+ *
+ * Coupons are paid on the balance outstanding during the period; on each
+ * scheduled date `fraction` of the balance outstanding just before it is
+ * repaid; whatever remains is repaid at maturity. Steps on or before
+ * settlement are ignored, because the face held is already net of them and
+ * CBK quotes prices per 100 of it. A bond without a schedule is a bullet, as
+ * before. Reproduces CBK's printed price tables for amortising IFBs to their
+ * printed decimals (tests/unit/ifb-amortisation.test.ts); the bullet model
+ * this replaced missed IFB1/2021/018 by 3.2 per 100.
+ */
+/**
+ * CBK redeems in full any holding of up to KSh 1.0 million per CSD account at
+ * an amortisation date ("Any amount up to KES 1.0 million per CSD account at
+ * amortization will be redeemed in full", every IFB prospectus 2015-2026;
+ * pledged holdings excepted). Applied only when a caller passes the holding.
+ */
+export const IFB_FULL_REDEMPTION_LIMIT_KES = 1_000_000;
+
+/**
+ * The date a holding of `holdingKES` is fully repaid early under the KSh 1m
+ * rule, or null when it runs to maturity (or the bond does not amortise).
+ */
+export function earlyFullRedemptionDate(bond: Bond, settlementDate: Date, holdingKES: number): string | null {
+  const maturity = new Date(bond.maturityDate);
+  let outstanding = holdingKES;
+  for (const s of [...(bond.amortisation ?? [])].sort((a, b) => a.date.localeCompare(b.date))) {
+    const when = new Date(s.date);
+    if (when <= settlementDate || when >= maturity) continue;
+    if (outstanding <= IFB_FULL_REDEMPTION_LIMIT_KES) return s.date;
+    outstanding *= 1 - s.fraction;
+  }
+  return null;
+}
+
+export function remainingFlowsPer100(
+  bond: Bond,
+  settlementDate: Date,
+  couponTaxFactor = 1,
+  /** The reader's own holding, to apply CBK's KSh 1m full-redemption rule. Omit for CBK's standard schedule. */
+  holdingKES?: number
+): { t: number; amount: number }[] {
+  const freq = bond.couponFrequencyPerYear || 2;
+  const couponPerPeriod = (bond.couponRate / freq) * couponTaxFactor;
+  const maturity = new Date(bond.maturityDate);
+  const steps = (bond.amortisation ?? [])
+    .map((s) => ({ when: new Date(s.date), fraction: s.fraction }))
+    .filter((s) => s.when > settlementDate && s.when < maturity)
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
+  const coupons = getCouponDates(new Date(bond.issueDate), maturity, freq).filter((d) => d > settlementDate);
+  const dates = [...new Set([...coupons, ...steps.map((s) => s.when)].map((d) => d.getTime()))].sort((a, b) => a - b);
+  const isCoupon = new Set(coupons.map((d) => d.getTime()));
+  let balance = 100;
+  const out: { t: number; amount: number }[] = [];
+  for (const ms of dates) {
+    // The coupon accrues on the balance before any repayment that same day.
+    let amount = isCoupon.has(ms) ? couponPerPeriod * (balance / 100) : 0;
+    for (const s of steps) {
+      if (s.when.getTime() !== ms) continue;
+      const fullyRedeemed = holdingKES !== undefined
+        && (holdingKES * balance) / 100 <= IFB_FULL_REDEMPTION_LIMIT_KES;
+      const repaid = fullyRedeemed ? balance : balance * Math.min(1, Math.max(0, s.fraction));
+      amount += repaid;
+      balance -= repaid;
+    }
+    if (ms === maturity.getTime()) {
+      amount += balance;
+      balance = 0;
+    }
+    out.push({ t: (ms - settlementDate.getTime()) / 86_400_000 / (DAYS_IN_YEAR / freq), amount });
+    if (balance <= 0) break;
+  }
+  return out;
+}
+
+/**
  * Solve YTM from a dirty price by bisection on the remaining cash flows.
  * Semi-annual compounding; time to each flow measured in coupon periods of 182
  * days (Act/364), so a flow one period out sits at exactly t = 1 rather than
@@ -159,17 +236,11 @@ export function solveYTMFromPrice(
   bond: Bond,
   dirtyPrice: number,
   settlementDate: Date,
-  couponTaxFactor = 1
+  couponTaxFactor = 1,
+  holdingKES?: number
 ): number {
   const freq = bond.couponFrequencyPerYear || 2;
-  const couponPerPeriod = (bond.couponRate / freq) * couponTaxFactor;
-  const maturity = new Date(bond.maturityDate);
-  const flows = getCouponDates(new Date(bond.issueDate), maturity, freq)
-    .filter((d) => d > settlementDate)
-    .map((d) => ({
-      t: (d.getTime() - settlementDate.getTime()) / 86_400_000 / (DAYS_IN_YEAR / freq),
-      amount: couponPerPeriod + (d.getTime() === maturity.getTime() ? 100 : 0),
-    }));
+  const flows = remainingFlowsPer100(bond, settlementDate, couponTaxFactor, holdingKES);
   if (!flows.length) return 0;
 
   const pv = (y: number) =>
@@ -203,6 +274,11 @@ export interface InvestmentResult {
   taxDragBps: number;
   nextCouponDate: string | null;
   currentYieldNet: number; // net annual income / settlement cost
+  /**
+   * When `applyHolderRules` is set: the date CBK repays this holding in full
+   * under the KSh 1m rule, which both yields already reflect. Null otherwise.
+   */
+  earlyFullRedemptionDate: string | null;
 }
 
 /**
@@ -225,8 +301,15 @@ export function computeBondInvestment(
    * alone, and a bank's or broker's tariff is the reader's to enter. The charge
    * is part of what leaves the account, so it lowers both yields.
    */
-  purchaseChargesKES: number = 0
+  purchaseChargesKES: number = 0,
+  /**
+   * Apply rules that depend on the reader's own holding (CBK's KSh 1m full
+   * redemption at an IFB amortisation date). Market-wide tables leave this off
+   * so every bond is on CBK's standard schedule; a personal calculator sets it.
+   */
+  options: { applyHolderRules?: boolean } = {}
 ): InvestmentResult {
+  const holding = options.applyHolderRules && faceValueKES > 0 ? faceValueKES : undefined;
   const whtRate = determineWHTRate(bond);
   const accrued = calculateAccruedInterest(bond, settlementDate);
   const dirtyPrice = cleanPrice + accrued;
@@ -250,8 +333,8 @@ export function computeBondInvestment(
   // Both yields are solved from the price the user actually pays. Net YTM
   // discounts WHT-taxed coupons with untaxed principal — exact, not a
   // coupon-share approximation.
-  const grossYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1);
-  const netYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1 - whtRate);
+  const grossYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1, holding);
+  const netYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1 - whtRate, holding);
 
   const next = getNextCouponDate(bond, settlementDate);
 
@@ -276,6 +359,7 @@ export function computeBondInvestment(
     // box — which the number input invites, since Number('') is 0.
     currentYieldNet:
       settlementCostKES > 0 ? (netAnnualIncomeKES / settlementCostKES) * 100 : 0,
+    earlyFullRedemptionDate: holding !== undefined ? earlyFullRedemptionDate(bond, settlementDate, holding) : null,
   };
 }
 

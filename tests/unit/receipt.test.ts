@@ -25,6 +25,7 @@ const mockResult: InvestmentResult = {
   taxDragBps: 132,
   nextCouponDate: '2026-12-01',
   currentYieldNet: 0.1075,
+  earlyFullRedemptionDate: null,
 };
 
 const bondCtx: BondInvestmentContext = {

@@ -147,6 +147,54 @@ export function calculateAccruedInterest(bond: Bond, settlementDate: Date): numb
 }
 
 /**
+ * The cash flows left on 100 of face held at `settlementDate`, honouring the
+ * bond's amortisation schedule (27 Nov 2026).
+ *
+ * Coupons are paid on the balance outstanding during the period; on each
+ * scheduled date `fraction` of the balance outstanding just before it is
+ * repaid; whatever remains is repaid at maturity. Steps on or before
+ * settlement are ignored, because the face held is already net of them and
+ * CBK quotes prices per 100 of it. A bond without a schedule is a bullet, as
+ * before. Reproduces CBK's printed price tables for amortising IFBs to their
+ * printed decimals (tests/unit/ifb-amortisation.test.ts); the bullet model
+ * this replaced missed IFB1/2021/018 by 3.2 per 100.
+ */
+export function remainingFlowsPer100(
+  bond: Bond,
+  settlementDate: Date,
+  couponTaxFactor = 1
+): { t: number; amount: number }[] {
+  const freq = bond.couponFrequencyPerYear || 2;
+  const couponPerPeriod = (bond.couponRate / freq) * couponTaxFactor;
+  const maturity = new Date(bond.maturityDate);
+  const steps = (bond.amortisation ?? [])
+    .map((s) => ({ when: new Date(s.date), fraction: s.fraction }))
+    .filter((s) => s.when > settlementDate && s.when < maturity)
+    .sort((a, b) => a.when.getTime() - b.when.getTime());
+  const coupons = getCouponDates(new Date(bond.issueDate), maturity, freq).filter((d) => d > settlementDate);
+  const dates = [...new Set([...coupons, ...steps.map((s) => s.when)].map((d) => d.getTime()))].sort((a, b) => a - b);
+  const isCoupon = new Set(coupons.map((d) => d.getTime()));
+  let balance = 100;
+  const out: { t: number; amount: number }[] = [];
+  for (const ms of dates) {
+    // The coupon accrues on the balance before any repayment that same day.
+    let amount = isCoupon.has(ms) ? couponPerPeriod * (balance / 100) : 0;
+    for (const s of steps) {
+      if (s.when.getTime() !== ms) continue;
+      const repaid = balance * Math.min(1, Math.max(0, s.fraction));
+      amount += repaid;
+      balance -= repaid;
+    }
+    if (ms === maturity.getTime()) {
+      amount += balance;
+      balance = 0;
+    }
+    out.push({ t: (ms - settlementDate.getTime()) / 86_400_000 / (DAYS_IN_YEAR / freq), amount });
+  }
+  return out;
+}
+
+/**
  * Solve YTM from a dirty price by bisection on the remaining cash flows.
  * Semi-annual compounding; time to each flow measured in coupon periods of 182
  * days (Act/364), so a flow one period out sits at exactly t = 1 rather than
@@ -162,14 +210,7 @@ export function solveYTMFromPrice(
   couponTaxFactor = 1
 ): number {
   const freq = bond.couponFrequencyPerYear || 2;
-  const couponPerPeriod = (bond.couponRate / freq) * couponTaxFactor;
-  const maturity = new Date(bond.maturityDate);
-  const flows = getCouponDates(new Date(bond.issueDate), maturity, freq)
-    .filter((d) => d > settlementDate)
-    .map((d) => ({
-      t: (d.getTime() - settlementDate.getTime()) / 86_400_000 / (DAYS_IN_YEAR / freq),
-      amount: couponPerPeriod + (d.getTime() === maturity.getTime() ? 100 : 0),
-    }));
+  const flows = remainingFlowsPer100(bond, settlementDate, couponTaxFactor);
   if (!flows.length) return 0;
 
   const pv = (y: number) =>

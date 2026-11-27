@@ -109,9 +109,12 @@ export default function SellClient() {
       quotedYTM: quoted,
       commissionKES: commission,
       leviesKES: levies,
+      // A step typed from the reader's own sheet wins; otherwise the bond's
+      // CBK schedule from bonds.json (27 Nov 2026), so an amortising IFB is no
+      // longer priced as a bullet just because the box was left empty.
       amortisation: amortDate && amortPct > 0
         ? [{ date: amortDate, fraction: amortPct / 100 }]
-        : [],
+        : (bond.amortisation ?? []),
     };
   }, [bond, face, settlement, dirty, quotedYTM, commission, levies, amortDate, amortPct]);
 
@@ -219,11 +222,25 @@ export default function SellClient() {
             <p className="text-xs font-medium text-ink-soft">
               Does this bond repay principal early?
             </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
-              Many infrastructure bonds do. Your sheet may show it as
-              &ldquo;Amortization Dates&rdquo;. Leaving it out overstates the bond — on a real
-              18-year IFB quote it was worth <span className="num">1.83</span> per 100.
-            </p>
+            {bond?.amortisation?.length && !amortDate ? (
+              <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
+                Using CBK&rsquo;s schedule for this bond:{' '}
+                {bond.amortisation
+                  .filter((s) => s.date > settlement)
+                  .map((s) => (s.fraction >= 1
+                    ? `the rest on ${s.date}`
+                    : `${+(s.fraction * 100).toFixed(3)}% of what is outstanding on ${s.date}`))
+                  .join('; ') || 'nothing left to repay early'}
+                {' '}(<a className="underline" href={bond.amortisationSource} target="_blank" rel="noopener noreferrer">prospectus</a>).
+                Enter a date below only if your sheet says otherwise.
+              </p>
+            ) : (
+              <p className="mt-0.5 text-xs leading-relaxed text-ink-faint">
+                Many infrastructure bonds do. Your sheet may show it as
+                &ldquo;Amortization Dates&rdquo;. Leaving it out overstates the bond — on a real
+                18-year IFB quote it was worth <span className="num">1.83</span> per 100.
+              </p>
+            )}
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
               <input type="date" value={amortDate} aria-label="Amortisation date"
                 onChange={(e) => setAmortDate(e.target.value)} className={inputCls} />
@@ -231,7 +248,7 @@ export default function SellClient() {
                 <input type="number" min={0} max={100} value={amortPct} aria-label="Percent of principal repaid"
                   onChange={(e) => setAmortPct(Math.min(100, Math.max(0, Number(e.target.value))))}
                   className={inputCls} />
-                <span className="shrink-0 text-sm text-ink-muted">% of principal</span>
+                <span className="shrink-0 text-sm text-ink-muted">% of outstanding principal</span>
               </div>
             </div>
           </div>

@@ -25,6 +25,18 @@ export interface Bond {
   ytmAsOf?: string;
   minInvestmentKES: number;
   taxExempt: boolean;       // IFBs are WHT-exempt
+  /**
+   * Scheduled principal repayments, as CBK prints them in the bond's
+   * prospectus: each `fraction` is a share of the balance OUTSTANDING just
+   * before `date`, and the last step is 1 on the maturity date. Absent for a
+   * bullet bond. Engines ignore steps on or before settlement: the face a
+   * reader holds is already net of them, and CBK quotes prices per 100 of it.
+   */
+  amortisation?: { date: string; fraction: number }[];
+  /** The CBK prospectus the schedule was read from. */
+  amortisationSource?: string;
+  /** CBK's wording, verbatim, and what was checked. */
+  amortisationNote?: string;
 }
 
 export interface AuctionSchedule {

@@ -84,10 +84,10 @@
       "fallback": false
     },
     "usdKes": {
-      "value": 130.03,
+      "value": 130.06,
       "unit": "KES/USD",
-      "date": "2026-11-24",
-      "lastChecked": "2026-11-24",
+      "date": "2026-11-26",
+      "lastChecked": "2026-11-26",
       "source": "CBK indicative",
       "fallback": false
     }

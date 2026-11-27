@@ -2,12 +2,12 @@
   {
     "id": "cbk-import-cover",
     "label": "Reserves (import cover)",
-    "value": 5.9,
+    "value": 5.6,
     "unit": "months",
-    "asOf": "2026-11-12",
+    "asOf": "2026-11-19",
     "source": "CBK Weekly Bulletin",
     "sourceUrl": "https://www.centralbank.go.ke/publications/",
-    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 14,605 million on this date, about KSh 1.90 trillion at 129.96, down from USD 14,699 million (also 5.9 months) a week earlier and below 15,088 million (6.1) on 17 September. Weekly Bulletin for the week ending 13 November 2026, read by the cbk-watch function from CBK's own PDF.",
+    "note": "How many months of imports the reserves would cover. The buffer that decides whether a shilling shock has to be met by borrowing. CBK publishes this weekly against a statutory floor of four months; USD 13,949 million on this date, about KSh 1.81 trillion at 129.99, down USD 656 million in one week from 14,605 million (5.9 months) on 12 November, after five weeks flat at 5.9. Weekly Bulletin for the week ending 19 November 2026 (dated 20 November), supplied by the owner after the cbk-watch parser missed it; Table 2 and the text agree, and the bulletin's own USD/KES for 19 November (129.99) matches the rate held.",
     "sentiment": "good"
   },
   {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { analyseSale, buildCashflows, remainingCouponDates, findReplacements, verdict, type SaleQuote } from '../../src/lib/sell';
 import type { Bond } from '../../src/types/bond';
 
@@ -306,21 +307,39 @@ describe('off-cycle amortisation cash-flow timing', () => {
   });
 
   it('does not repay principal already amortised before settlement a second time', () => {
+    /* The face entered is the balance HELD at settlement (27 Nov 2026), as CBK
+     * quotes prices per 100 of the outstanding face; IFB1/2018/015's 2025 table
+     * reproduces only re-based that way. So a step before settlement is already
+     * in the 400,000 and is neither paid again nor subtracted again. */
     const rows = buildCashflows(IFB, 400_000, new Date('2027-02-01'), [
       { date: '2027-01-15', fraction: 0.25 },
     ]);
     expect(rows.some((row) => row.date === '2027-01-15')).toBe(false);
-    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(300_000, 2);
+    expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
   });
 });
 
 describe('amortisation input integrity', () => {
   const settlement = new Date('2026-07-20');
-  it('rejects schedules repaying more than original face', () => {
-    expect(() => buildCashflows(IFB, 400_000, settlement, [
+  /* Fractions are of the balance OUTSTANDING, as CBK prints them (27 Nov
+   * 2026), so 70% then 50% is a valid schedule: 280,000, then 50% of the
+   * 120,000 left, then the last 60,000 at maturity. Under the old
+   * original-face reading this threw as "over 100%". What cannot happen is a
+   * repayment after the bond is fully redeemed. */
+  it('reads each step as a share of the balance outstanding', () => {
+    const rows = buildCashflows(IFB, 400_000, settlement, [
       { date: '2030-01-01', fraction: 0.7 },
       { date: '2031-01-01', fraction: 0.5 },
-    ])).toThrow(/exceeds 100%/);
+    ]);
+    const principal = rows.filter((r) => r.principalKES > 0).map((r) => Math.round(r.principalKES));
+    expect(principal).toEqual([280_000, 60_000, 60_000]);
+  });
+
+  it('rejects a repayment after full redemption', () => {
+    expect(() => buildCashflows(IFB, 400_000, settlement, [
+      { date: '2030-01-01', fraction: 1 },
+      { date: '2031-01-01', fraction: 0.5 },
+    ])).toThrow(/after full redemption/);
   });
 
   it('rejects negative, nonfinite and out-of-life principal repayments', () => {
@@ -336,9 +355,10 @@ describe('amortisation input integrity', () => {
   });
 
   it('allows full redemption by maturity without returning principal twice', () => {
+    // "50%, then 100% of what remains", the form CBK prints a final step in.
     const rows = buildCashflows(IFB, 400_000, settlement, [
       { date: '2030-01-01', fraction: 0.5 },
-      { date: '2035-01-01', fraction: 0.5 },
+      { date: '2035-01-01', fraction: 1 },
     ]);
     expect(rows.reduce((sum, row) => sum + row.principalKES, 0)).toBeCloseTo(400_000, 2);
     expect(rows.filter((row) => row.principalKES > 0)).toHaveLength(2);
@@ -422,5 +442,43 @@ describe('broker quote integrity', () => {
       expect(() => analyseSale(IFB, { ...QUOTE, leviesKES })).toThrow(RangeError);
     }
     expect(() => analyseSale(IFB, { ...QUOTE, quotedYTM: NaN })).toThrow(RangeError);
+  });
+});
+
+
+/* CBK's own table for the re-opened IFB1/2023/6.5, settlement 19 Aug 2024
+ * (prospectus fetched and read 27 Nov 2026): "10 May 2027-50% amortization on
+ * outstanding principal amount, 7th May 2029-30% of unencumbered outstanding
+ * principal amounts and 6th May 2030-100%"; clean 102.5044 at 17.0000% and
+ * 98.3691 at 18.5000%; accrued interest 4.8280 per 100. Reading the 30% as a
+ * share of ORIGINAL face gave 102.4471. */
+describe("CBK's printed price table for an amortising IFB", () => {
+  const bonds: Bond[] = JSON.parse(readFileSync('public/data/bonds.json', 'utf8'));
+  const ifb65 = bonds.find((b) => b.issueCode === 'IFB1/2023/006.5')!;
+  const schedule = [
+    { date: '2027-05-10', fraction: 0.5 },
+    { date: '2029-05-07', fraction: 0.3 },
+    { date: '2030-05-06', fraction: 1 },
+  ];
+  const at = (ytm: number, clean: number) => analyseSale(ifb65, {
+    faceValueKES: 100_000, settlementDate: '2024-08-19', cleanPrice: clean,
+    quotedYTM: ytm, commissionKES: 0, leviesKES: 0, amortisation: schedule,
+  });
+
+  it('holds the bond it prices', () => {
+    expect(ifb65.couponRate).toBe(17.9327);
+    expect(ifb65.maturityDate).toBe('2030-05-06');
+  });
+
+  it("reproduces CBK's accrued interest", () => {
+    expect(at(17, 102.5044).accruedPer100).toBeCloseTo(4.828, 3);
+  });
+
+  it("reproduces CBK's clean price at 17.00% and 18.50% to four decimals", () => {
+    for (const [ytm, clean] of [[17, 102.5044], [18.5, 98.3691]] as const) {
+      const a = at(ytm, clean);
+      expect(a.ourDirtyAtQuotedYTM! - a.accruedPer100).toBeCloseTo(clean, 3);
+      expect(a.quoteDisagrees).toBe(false);
+    }
   });
 });

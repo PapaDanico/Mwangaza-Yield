@@ -16,7 +16,7 @@ import { ClipboardCheck } from 'lucide-react';
 import { summariseLedger, type Prediction } from '@/lib/predictions';
 import { scoringVerdict } from '@/lib/prediction-verdict';
 import { backtestPair, summariseBacktest, biasPhrase, CORRECTION_WINDOW } from '@/lib/backtest';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { cn } from '@/lib/utils';
 
 /**
@@ -45,7 +45,7 @@ function Outcome({ p }: { p: Prediction }) {
 export default function TrackRecord() {
   const [ledger, setLedger] = useState<Prediction[] | null>(null);
   const bonds = useBondStore((s) => s.bonds);
-  const auctionResults = useBondStore((s) => s.auctionResults);
+  const auctionResults = useAuctionArchive();
 
   /* Replayed in the browser from data the store already holds, so this costs
    * no extra fetch. Memoised because it is a few hundred guidance rebuilds and

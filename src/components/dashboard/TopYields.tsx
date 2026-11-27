@@ -3,7 +3,7 @@
 import Link from '@/components/shared/Link';
 import { useState } from 'react';
 import { Sparkles, ShieldCheck } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { makePriceResolver } from '@/lib/prices';
 import { computeBondInvestment, formatPct } from '@/lib/financial-engine';
@@ -75,7 +75,7 @@ function BenchmarkNote() {
 export default function TopYields() {
   const bonds = useBondStore((s) => s.bonds);
   const secondary = useBondStore((s) => s.secondary);
-  const prints = useBondStore((s) => s.auctionResults);
+  const prints = useAuctionArchive();
   const userPrices = usePriceStore((s) => s.userPrices);
   const [selected, setSelected] = useState<Bond | null>(null);
   // Holds the space rather than popping in. See Reserve for the measurement.

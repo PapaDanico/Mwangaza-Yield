@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { updateCadence } from '@/lib/data-freshness';
 import {
   demandPulse,
@@ -24,7 +24,7 @@ import Explain from '@/components/shared/Explain';
 import Reserve from '@/components/shared/Reserve';
 
 export default function MarketPulse() {
-  const auctionResults = useBondStore((s) => s.auctionResults);
+  const auctionResults = useAuctionArchive();
   const bonds = useBondStore((s) => s.bonds);
 
   const { buckets, demand } = useMemo(() => {

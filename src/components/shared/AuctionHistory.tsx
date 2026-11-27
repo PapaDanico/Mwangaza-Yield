@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { ArrowDownRight, ArrowUpRight, ExternalLink, Minus } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 
 /* Deferred: see AuctionHistoryPlot. The placeholder holds the chart's height
    so the text below it does not jump when the plot arrives. */
@@ -24,7 +24,7 @@ import Term from '@/components/shared/Term';
  * the card on the bonds where it does have something to say.
  */
 export default function AuctionHistory({ issueCode }: { issueCode: string }) {
-  const prints = useBondStore((s) => s.auctionResults);
+  const prints = useAuctionArchive();
 
   const history = useMemo(
     () => summarise(historyFor(prints, issueCode)),

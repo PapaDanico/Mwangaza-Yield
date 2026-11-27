@@ -13,7 +13,7 @@
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 
 /* Deferred: see CurveHistoryPlot. The placeholder holds the chart's height so
    the table below it does not jump when the plot arrives. */
@@ -35,7 +35,7 @@ const COLOURS = [
 
 export default function CurveHistory() {
   const bonds = useBondStore((s) => s.bonds);
-  const auctionResults = useBondStore((s) => s.auctionResults);
+  const auctionResults = useAuctionArchive();
   const cbrHistory = useBondStore((s) => s.cbrHistory);
   const cpiHistory = useBondStore((s) => s.cpiHistory);
   const [failed, setFailed] = useState(false);

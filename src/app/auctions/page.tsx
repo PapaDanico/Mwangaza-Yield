@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ExternalLink, ChevronDown, CalendarPlus, MessageCircle } from 'lucide-react';
 import { CBK_WHATSAPP_CHANNEL, PESA_SMART_CHANNEL, PESA_SMART_NAME } from '@/lib/share';
 import { track } from '@/lib/analytics';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, cn, effectiveAuctionStatus } from '@/lib/utils';
 import { downloadICS } from '@/lib/ics';
 import { BidAssistant } from '@/components/auctions/BidAssistant';
@@ -38,7 +38,7 @@ const BID_STEPS = [
 export default function AuctionsPage() {
   const auctions = useBondStore((s) => s.auctions);
   const bonds = useBondStore((s) => s.bonds);
-  const auctionResults = useBondStore((s) => s.auctionResults);
+  const auctionResults = useAuctionArchive();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const [showEarlier, setShowEarlier] = useState(false);

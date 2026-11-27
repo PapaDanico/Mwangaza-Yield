@@ -3,7 +3,7 @@
 import Link from '@/components/shared/Link';
 import { useMemo } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus, CalendarClock } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { weekChanges, type WeekChange } from '@/lib/week-changes';
 import Reserve from '@/components/shared/Reserve';
 import MPC_NEXT from '../../../public/data/mpc-next.json';
@@ -29,7 +29,7 @@ function Arrow({ d }: { d: WeekChange['direction'] }) {
  */
 export default function WhatChanged() {
   const tbills = useBondStore((s) => s.tbills);
-  const prints = useBondStore((s) => s.auctionResults);
+  const prints = useAuctionArchive();
   const cpi = useBondStore((s) => s.cpiHistory);
   /* T-bill moves only. The bond-auction row repeats "Our forecast against the
    * result" above it and the inflation row repeats the CPI card (which already

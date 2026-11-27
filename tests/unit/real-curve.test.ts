@@ -127,3 +127,23 @@ describe('partialYearNote', () => {
     expect(note).not.toMatch(/1 months/);
   });
 });
+
+/* End to end, from an auction print: a 20-year bond re-opened with about 6.4
+ * years left lands in the 5-year bucket, and the real curve must still net it
+ * at 10%, as CBK withheld (June 2026 prospectus). Taxing by the bucket's
+ * remaining-term years gave 15%; mutation-checked 27 Nov 2026. */
+describe('realCurveRows taxes by original tenor', () => {
+  it('nets a re-opened long bond in a short bucket at 10%', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { curveRows } = await import('../../src/lib/yield-curve');
+    const bonds = JSON.parse(readFileSync('public/data/bonds.json', 'utf8'));
+    const built = curveRows(
+      [{ issueCode: 'FXD1/2012/020', auctionDate: '2026-06-17', weightedAverageRate: 13 } as never],
+      bonds
+    );
+    const [y] = realCurveRows(built, annualInflation(twelve(2026, 6)));
+    expect(y.cells[0].years).toBe(5);
+    expect(y.cells[0].whtRate).toBe(0.1);
+    expect(y.cells[0].netRate).toBeCloseTo(11.7, 3);
+  });
+});

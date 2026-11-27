@@ -132,11 +132,14 @@ export function realCurveRows(
     const inflation = inflationByYear.get(row.year);
     if (!inflation) continue;
     const cells = row.cells.map((cell) => {
-      // Defer to the engine's own rule rather than restating it: 10% at ten
-      // years or longer, 15% below. `taxExempt: false` is safe because
+      // Prefer the per-auction net median curveRows computes: each auction
+      // taxed at its bond's ORIGINAL tenor, as CBK withholds. The bucket's
+      // `years` is REMAINING term, so taxing by it put re-opened long bonds in
+      // the 15% band (defect found 27 Nov 2026). The fallback keeps rows built
+      // without per-auction data working. `taxExempt: false` is safe because
       // curveRows drops infrastructure bonds before bucketing.
-      const whtRate = determineWHTRate({ taxExempt: false, tenorYears: cell.years });
-      const netRate = cell.rate * (1 - whtRate);
+      const whtRate = cell.whtRate ?? determineWHTRate({ taxExempt: false, tenorYears: cell.years });
+      const netRate = cell.netRate ?? cell.rate * (1 - whtRate);
       const real = realRate(netRate, inflation.pct);
       return {
         ...cell,

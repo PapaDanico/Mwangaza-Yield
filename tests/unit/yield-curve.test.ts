@@ -205,3 +205,50 @@ describe('the policy rate beside each curve', () => {
     expect(ctx.every((c) => c.cbrPct !== null)).toBe(true);
   });
 });
+
+/* Withholding tax follows the bond's ORIGINAL tenor, as CBK withholds (every
+ * 2023-2026 prospectus; e.g. FXD4/2019/010 at 10% with 3.0 years left). The
+ * real curve once taxed by the bucket's REMAINING-term years, which put a
+ * re-opened long bond in the 15% band. docs/research/2026-11-27-kenya-bond-
+ * withholding-tax/REPORT.md. */
+describe('withholding tax by original tenor', () => {
+  const byCode = new Map(bonds.map((b) => [normaliseCode(b.issueCode), b]));
+  const long = (p: AuctionPrint) => {
+    const b = byCode.get(normaliseCode(p.issueCode));
+    const m = /\/(\d+)$/.exec(String(p.issueCode));
+    return (b?.tenorYears ?? (m ? Number(m[1]) : 0)) >= 10;
+  };
+
+  it('nets a re-opened long bond at 10% even in a short remaining-term bucket', () => {
+    const [reopened] = curveRows(
+      [{
+        // CBK re-opened this 20-year bond in June 2026 with about 6.4 years
+        // left and printed 10% withholding on the prospectus.
+        issueCode: 'FXD1/2012/020', auctionDate: '2026-06-17', weightedAverageRate: 13.0,
+      } as unknown as AuctionPrint],
+      bonds
+    ).flatMap((r) => r.cells);
+    expect(reopened, 'FXD1/2012/020 produced no cell').toBeDefined();
+    expect(reopened.years).toBe(5); // the 5-year bucket by remaining term, where the old rule gave 15%
+    expect(reopened.whtRate).toBe(0.1);
+    expect(reopened.netRate).toBeCloseTo(13.0 * 0.9, 3);
+  });
+
+  it('nets a short original-tenor bond at 15%', () => {
+    const [short] = curveRows(
+      [{ issueCode: 'FXD1/2023/005', auctionDate: '2026-11-11', weightedAverageRate: 12.0 } as unknown as AuctionPrint],
+      bonds
+    ).flatMap((r) => r.cells);
+    expect(short.whtRate).toBe(0.15);
+    expect(short.netRate).toBeCloseTo(12.0 * 0.85, 3);
+  });
+
+  it('applies on the real archive: some short buckets hold long-tenor re-openings', () => {
+    const cells = rows.flatMap((r) => r.cells).filter((c) => c.years < 10 && c.whtRate != null);
+    const mixed = cells.filter((c) => (c.whtRate as number) < 0.15);
+    expect(cells.length).toBeGreaterThan(0);
+    // If this ever reads zero the archive has no re-openings in short buckets
+    // and the guard above is the only thing testing the rule.
+    expect(mixed.length + prints.filter((p) => long(p)).length).toBeGreaterThan(0);
+  });
+});

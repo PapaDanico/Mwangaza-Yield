@@ -33,6 +33,7 @@
 
 import type { AuctionPrint, Bond } from '../types/bond';
 import { normaliseCode, clearingRate, auctionKind } from './auction-history';
+import { determineWHTRate } from './financial-engine';
 
 /**
  * Remaining-term buckets, labelled by the tenor a reader recognises.
@@ -62,6 +63,27 @@ export interface CurveCell {
   rate: number;
   /** How many auctions the median is over. 1 is a single auction, not a curve. */
   n: number;
+  /**
+   * Median of each auction's rate NET of withholding tax, each taxed at its
+   * own bond's ORIGINAL tenor (10% at ten years or more, 15% below), which is
+   * how CBK withholds. Taxing the bucket's remaining-term `years` instead put
+   * a re-opened long bond (FXD1/2019/015 sold in 2026 with 7.3 years left) in
+   * the 15% band when CBK withheld 10%. See
+   * docs/research/2026-11-27-kenya-bond-withholding-tax/REPORT.md.
+   */
+  netRate?: number;
+  /** Median withholding rate across the bucket's auctions (0.10 or 0.15, or between when mixed). */
+  whtRate?: number;
+}
+
+/**
+ * A bond's ORIGINAL tenor in years: the held record's `tenorYears`, else the
+ * issue code's last segment (FXD1/2019/015 -> 15). Null when neither says.
+ */
+export function originalTenorYears(issueCode: string, bond?: Bond): number | null {
+  if (bond && Number.isFinite(bond.tenorYears) && bond.tenorYears > 0) return bond.tenorYears;
+  const m = /^[A-Z]+\d*\/\d{4}\/(\d+(?:\.\d+)?)/.exec(String(issueCode).toUpperCase());
+  return m ? Number(m[1]) : null;
 }
 
 export interface CurveYear {
@@ -117,6 +139,7 @@ const median = (xs: number[]): number => {
 export function curveRows(prints: AuctionPrint[], bonds: Bond[]): CurveYear[] {
   const byCode = new Map(bonds.map((b) => [normaliseCode(b.issueCode), b]));
   const buckets = new Map<string, number[]>();
+  const netBuckets = new Map<string, { net: number; wht: number }[]>();
 
   for (const p of prints) {
     if (!p.auctionDate) continue;
@@ -139,6 +162,15 @@ export function curveRows(prints: AuctionPrint[], bonds: Bond[]): CurveYear[] {
     const seen = buckets.get(key);
     if (seen) seen.push(rate);
     else buckets.set(key, [rate]);
+
+    const tenor = originalTenorYears(p.issueCode, byCode.get(normaliseCode(p.issueCode)));
+    if (tenor != null) {
+      const wht = determineWHTRate({ taxExempt: false, tenorYears: tenor });
+      const entry = { net: rate * (1 - wht), wht };
+      const netSeen = netBuckets.get(key);
+      if (netSeen) netSeen.push(entry);
+      else netBuckets.set(key, [entry]);
+    }
   }
 
   const years = new Map<number, CurveCell[]>();
@@ -152,6 +184,13 @@ export function curveRows(prints: AuctionPrint[], bonds: Bond[]): CurveYear[] {
       rate: Math.round(median(rates) * 1000) / 1000,
       n: rates.length,
     };
+    const nets = netBuckets.get(key);
+    // Only when every auction in the bucket has a known tenor; a partial set
+    // would make the net median describe different auctions from the gross.
+    if (nets && nets.length === rates.length) {
+      cell.netRate = Math.round(median(nets.map((e) => e.net)) * 1000) / 1000;
+      cell.whtRate = median(nets.map((e) => e.wht));
+    }
     const list = years.get(cell.year);
     if (list) list.push(cell);
     else years.set(cell.year, [cell]);

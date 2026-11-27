@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import type { Bond } from '../../src/types/bond';
 import { analyseSale } from '../../src/lib/sell';
-import { getCouponDates, solveYTMFromPrice } from '../../src/lib/financial-engine';
+import { computeBondInvestment, getCouponDates, solveYTMFromPrice } from '../../src/lib/financial-engine';
 
 /* Amortisation schedules for every outstanding infrastructure bond, read from
  * CBK's own prospectuses on 27 Nov 2026 (docs/research/2026-11-27-credit-and-
@@ -87,5 +87,40 @@ describe("both engines reproduce CBK's printed prices from bonds.json", () => {
     const y = solveYTMFromPrice(bullet, 108.0281 + 4.6283, new Date('2026-08-17'));
     expect(y).toBeGreaterThan(11.4); // measured 11.4446: 44 basis points overstated
     expect(solveYTMFromPrice(bond, 108.0281 + 4.6283, new Date('2026-08-17'))).toBeCloseTo(11, 3);
+  });
+});
+
+/* CBK: "Any amount up to KES 1.0 million per CSD account at amortization will
+ * be redeemed in full" (every IFB prospectus 2015-2026, pledged holdings
+ * excepted). It applies to the reader's own holding, so only when asked. */
+describe('the KSh 1m full-redemption rule', () => {
+  const ifb18 = byCode.get('IFB1/2021/018')!; // 50% on 2030-04-01, rest 2039-03-21
+  const on = new Date('2026-11-27');
+
+  it('ends a retail holding at the first amortisation date', () => {
+    const r = computeBondInvestment(ifb18, 500_000, 100, on, 0, { applyHolderRules: true });
+    expect(r.earlyFullRedemptionDate).toBe('2030-04-01');
+  });
+
+  it('leaves a large holding on the standard schedule until it falls under KSh 1m', () => {
+    // 1.5m -> 750,000 after the 2030 step, under the limit, and there is no
+    // later partial step, so it runs to maturity on the half that remains.
+    expect(computeBondInvestment(ifb18, 1_500_000, 100, on, 0, { applyHolderRules: true }).earlyFullRedemptionDate).toBeNull();
+    // IFB1/2018/020: 50% in 2028, 50% in 2033. 1.5m -> 750,000, fully redeemed in 2033.
+    const ifb2018 = byCode.get('IFB1/2018/020')!;
+    expect(computeBondInvestment(ifb2018, 1_500_000, 100, on, 0, { applyHolderRules: true }).earlyFullRedemptionDate).toBe('2033-10-31');
+  });
+
+  it('is off unless asked for, so market tables stay on CBK\'s basis', () => {
+    const r = computeBondInvestment(ifb18, 500_000, 100, on);
+    expect(r.earlyFullRedemptionDate).toBeNull();
+  });
+
+  it('changes the yield a retail buyer is shown when the price is away from par', () => {
+    // Bought at 108: the premium is lost over 3.3 years, not 12.3, so the
+    // retail yield is lower than the standard-schedule yield.
+    const retail = computeBondInvestment(ifb18, 500_000, 108, on, 0, { applyHolderRules: true });
+    const standard = computeBondInvestment(ifb18, 500_000, 108, on);
+    expect(retail.grossYTM).toBeLessThan(standard.grossYTM - 0.3);
   });
 });

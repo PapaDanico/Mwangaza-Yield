@@ -112,7 +112,8 @@ export default function CalculatorClient() {
   }, [priceInfo]);
 
   const result = useMemo(
-    () => (bond ? computeBondInvestment(bond, amount, price, new Date(), charges) : null),
+    // The reader's own holding, so CBK's KSh 1m full-redemption rule for IFBs applies.
+    () => (bond ? computeBondInvestment(bond, amount, price, new Date(), charges, { applyHolderRules: true }) : null),
     [bond, amount, price, charges]
   );
 
@@ -365,6 +366,10 @@ export default function CalculatorClient() {
               hint="Income only — it ignores any gain or loss when the bond is repaid." />
             <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
               hint="Every 182 days from the issue date, which is why these always fall on a Monday." />
+            {result.earlyFullRedemptionDate && (
+              <Row label="CBK repays you in full on" value={result.earlyFullRedemptionDate}
+                hint="This bond repays principal in stages, and CBK redeems any holding of Ksh 1 million or less per CSD account in full at the first stage it reaches. Both yields above already assume it." />
+            )}
             <p className="mt-3 text-xs leading-relaxed text-ink-faint">
               Accrued interest uses Actual/364, and coupon dates run in exact 182-day steps from
               issue — the basis Kenyan government bonds are built on, which is why a ten-year bond

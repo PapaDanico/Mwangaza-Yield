@@ -148,6 +148,13 @@ is when the automated scrape last ran; figures may be newer than it when they
 were entered from CBK's own published notices, and each row's own `date`,
 `auctionDate` or `sourceNote` says which.
 
+**`via`** (added November 2026, additive, optional) says how a T-bill or macro
+figure arrived: `supplied-document` (transcribed from the publisher's own
+notice), `search-corroborated` (not read from the primary document),
+`imf-weo` or `cbk-home`. The key is **omitted** when the route is not recorded
+or not one of these four; absence means unknown, never "official". Do not infer
+a route from `source` text, and ignore a value you do not recognise.
+
 ## What is deliberately absent
 
 - **No exchange-sourced or secondary-market prices**, published or implied.

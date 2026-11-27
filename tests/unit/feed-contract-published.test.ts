@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
+import { provenanceOf } from '@/lib/figure-route';
 
 /**
  * The feed's contract must be readable by the people the feed is for.
@@ -122,5 +123,38 @@ describe('the rates-feed contract is actually published', () => {
       /Access-Control-Allow-Origin\s*=\s*"\*"/
     );
     expect(rule, 'not served as markdown').toMatch(/text\/markdown/);
+  });
+});
+
+describe('the feed passes the recorded route through, and only a known one', () => {
+  const feed = JSON.parse(read('public/data/rates.json'));
+  const entries: [string, { via?: unknown }][] = [
+    ...feed.tbills.map((b: { tenorDays: number }) => [`tbills ${b.tenorDays}d`, b] as [string, { via?: unknown }]),
+    ...Object.entries(feed.macro).filter(([, v]) => v).map(([k, v]) => [`macro.${k}`, v as { via?: unknown }] as [string, { via?: unknown }]),
+  ];
+
+  it('emits only routes the badge can label, never null or a default', () => {
+    for (const [name, row] of entries) {
+      if (!('via' in row)) continue;
+      expect(typeof row.via, `${name}: via must be a string`).toBe('string');
+      expect(provenanceOf(row.via as string), `${name}: via "${String(row.via)}" has no label in figure-route.ts`).not.toBeNull();
+    }
+  });
+
+  it('is built from the same list as the labels', () => {
+    const builder = read('scripts/build-rates-feed.mjs');
+    const list = /const KNOWN_ROUTES = \[([^\]]+)\]/.exec(builder);
+    expect(list, 'KNOWN_ROUTES not found in the builder').not.toBeNull();
+    const keys = [...list![1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    expect(keys.length).toBeGreaterThan(0);
+    for (const k of keys) expect(provenanceOf(k), `${k} has no label`).not.toBeNull();
+    // and the other direction: every labelled route is publishable
+    const figure = read('src/lib/figure-route.ts');
+    const labelled = [...figure.slice(figure.indexOf('const ROUTES'), figure.indexOf('export function provenanceOf')).matchAll(/^\s{2}'([a-z-]+)': \{/gm)].map((m) => m[1]);
+    expect(keys.sort()).toEqual(labelled.sort());
+  });
+
+  it('documents the field in the published contract', () => {
+    expect(read('public/data/RATES-FEED.md')).toMatch(/\*\*`via`\*\*/);
   });
 });

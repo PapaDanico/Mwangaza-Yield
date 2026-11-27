@@ -90,6 +90,15 @@ const asOf = new Date(generatedAt);
 
 const round = (n, dp = 4) => Math.round(n * 10 ** dp) / 10 ** dp;
 
+/* How a hand-maintained row arrived, passed through so a consumer can say so
+ * truthfully (docs/RATES-FEED-ROUTE-SPEC.md). Additive: the key is OMITTED when
+ * the row has no recorded route or an unknown one, never null and never a
+ * default, because an absent route must not be mistaken for a known one. The
+ * list must equal the keys of ROUTES in src/lib/figure-route.ts; a test pins it. */
+const KNOWN_ROUTES = ['supplied-document', 'search-corroborated', 'imf-weo', 'cbk-home'];
+const viaField = (row) =>
+  typeof row?.via === 'string' && KNOWN_ROUTES.includes(row.via) ? { via: row.via } : {};
+
 /* ------------------------------------------------------------- T-bills */
 
 const tbills = bills
@@ -110,6 +119,7 @@ const tbills = bills
       nextAuctionDate: b.nextAuctionDate ?? null,
       minInvestmentKES: b.minInvestmentKES ?? null,
       source: b.source ?? null,
+      ...viaField(b),
     };
   })
   .sort((a, b) => a.tenorDays - b.tenorDays);
@@ -137,6 +147,7 @@ const pickMacro = (indicator) => {
     // legacy shape is understood until the next scrape rewrites it.
     source: String(latest.source ?? "").replace(/\s*\(.*unavailable\)\s*/i, "").trim(),
     fallback: latest.fallback === true || /unavailable/i.test(String(latest.source ?? "")),
+    ...viaField(latest),
   };
 };
 

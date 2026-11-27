@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import {
   Calculator, Radar, Briefcase, Layers, WifiOff, LockKeyhole, ArrowRight, CalendarCheck, Receipt,
   RefreshCw, Landmark, Users, BarChart3, Target, BookOpen,

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig, configDefaults } from 'vitest/config';
 
 /**
@@ -19,8 +20,16 @@ import { defineConfig, configDefaults } from 'vitest/config';
  * `configDefaults.exclude` is spread rather than replaced, because it already
  * covers node_modules and dist, and dropping those would trade this problem
  * for a slower and stranger one.
+ *
+ * `resolve.alias` mirrors tsconfig's `"@/*": ["./src/*"]`. Without it a
+ * component under test that imports `@/components/...` fails to load in
+ * vitest while typechecking and building pass, which is how the shared Link
+ * wrapper first surfaced it (27 Nov 2026).
  */
 export default defineConfig({
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   test: {
     exclude: [...configDefaults.exclude, '**/.claude/**'],
   },

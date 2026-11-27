@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import RATES from '../../../public/data/rates.json';
 
 const fmt = (iso: string) =>

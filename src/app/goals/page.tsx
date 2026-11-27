@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import ToolShell from '@/components/shared/ToolShell';
 import GoalsClient from './GoalsClient';
 

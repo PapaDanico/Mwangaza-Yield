@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { Tag } from 'lucide-react';
 import ToolShell from '@/components/shared/ToolShell';
 import Fold from '@/components/shared/Fold';

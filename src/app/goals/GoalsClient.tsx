@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Flame, GraduationCap, CalendarHeart, ShieldCheck, ArrowRight, Save, Trash2, Check } from 'lucide-react';
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { useBondStore } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { CoverageNotice } from '@/components/shared/PriceProvenance';

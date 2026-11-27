@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { readQuoteParams, shareableQuoteUrl } from '@/lib/quote-link';
 import { APP_URL, shareText } from '@/lib/share';
 import { plural, CURRENCY_LABEL, nonNegativeNumber, MAX_QUOTED_PRICE, MAX_QUOTED_YTM_PCT } from '@/lib/utils';
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { ArrowRightLeft, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { Bond } from '@/types/bond';
 import { outstanding } from '@/lib/outstanding';

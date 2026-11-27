@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { Trash2, Download, Users, ShieldCheck } from 'lucide-react';
 import type { Bond } from '@/types/bond';
 import { outstanding } from '@/lib/outstanding';

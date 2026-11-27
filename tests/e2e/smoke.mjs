@@ -516,13 +516,22 @@ async function main() {
     await page.locator('#sell-levy').fill('47.44');
     await page.waitForTimeout(700);
 
-    // Without the amortisation the sheet cannot be reproduced, and the page
-    // must say so rather than quietly print a different price.
+    // Since 27 Nov 2026 the page applies the bond's own CBK schedule (50% on
+    // 2031-06-02 for this bond, from its prospectus), so the sheet reconciles
+    // with nothing typed, and the page says whose schedule it used.
+    const arrived = await page.innerText('body');
+    if (!/Using CBK.s schedule/i.test(arrived)) fail("sell: the bond's CBK schedule is not shown");
+    if (!/reproduces your broker/i.test(arrived)) fail("sell: CBK's schedule applied but the sheet does not reconcile");
+
+    // A step typed from the reader's sheet still wins, and a wrong one must
+    // produce the warning rather than quietly print a different price.
+    await page.locator('input[type=date]').nth(1).fill('2031-06-02');
+    await page.locator('input[aria-label="Percent of principal repaid"]').fill('10');
+    await page.waitForTimeout(900);
     if (!/does not match your sheet/i.test(await page.innerText('body'))) {
       fail('sell: no warning when our price disagrees with the quoted yield');
     }
 
-    await page.locator('input[type=date]').nth(1).fill('2031-06-02');
     await page.locator('input[aria-label="Percent of principal repaid"]').fill('50');
     await page.waitForTimeout(900);
 

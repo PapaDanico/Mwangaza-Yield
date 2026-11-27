@@ -165,6 +165,43 @@ cat /root/.ccr/README.md                          # failure classes and fixes
 Do not retry or route around a 403/407 the proxy reports: record the host and
 the date here instead.
 
+### Close evidence gaps with the deep-research workflow (adopted 27 Nov 2026)
+
+When a gap needs evidence from outside the repository (a tax rule, a pricing
+convention, a product's real cost), run the `deep-research` skill rather than a
+handful of ad hoc searches. The owner asked for it to be the standard. What it
+did on 27 Nov is the template:
+
+1. **Split the question into independent tracks and run them in parallel**:
+   statute, the regulator's own documents, market practice. Five tracks
+   settled bond withholding tax, Kenyan credit pricing and CBK bond conventions
+   in under ten minutes.
+2. **Each researcher reads primary documents**, now that the hosts answer
+   (CBK prospectuses, KRA's consolidated Act, Treasury bulletins), and
+   **reproduces a convention against the publisher's own numbers** before
+   calling it established. The CBK pricing formula was confirmed by
+   reproducing seven bonds' printed prices and accrued interest to four
+   decimals, not by reading a description of it.
+3. **Notes are labelled**: read in full versus search summary, source URL,
+   date, confidence, conflicts. A report writer then turns them into a
+   decision table the code can follow.
+4. **Verify a researcher's code finding yourself before acting.** "Verify
+   before asserting" applies to subagents too. The real-curve tax-tenor bug
+   was confirmed in `real-curve.ts` and `yield-curve.ts` before being reported.
+   One researcher also said CBK was unreachable by `curl` minutes after a direct
+   test returned 200, so take a researcher's network claims as leads.
+5. **Keep the output in `docs/research/<date>-<title>/`** (notes plus the
+   report). `docs/` is on `netlify-should-build.sh`'s skip list, so merging
+   research costs no build.
+6. **A methodology change still needs the owner's approval** with reference
+   cases. Research supplies the evidence; it does not authorise the edit.
+
+Reports from the first run: `docs/research/2026-11-27-kenya-bond-withholding-tax/`
+(statute, CBK practice, T-bills: 15% under 10 years, 10% at 10 years or more
+by ORIGINAL tenor, IFB 0%, T-bills 15% final) and
+`docs/research/2026-11-27-credit-and-bond-engine-gaps/` (loan pricing,
+CBK pricing formula, outstanding-balance amortisation).
+
 ### A blocked host is not a blocked figure
 
 **Being unable to reach a source is a reason to look elsewhere, not a reason to

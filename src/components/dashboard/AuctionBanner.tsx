@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { Radar, ArrowRight } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';
 import { daysUntil, formatCompactKES, effectiveAuctionStatus } from '@/lib/utils';

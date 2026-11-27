@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { cn, plural } from '@/lib/utils';
 import type { PriceCoverage, ResolvedPrice } from '@/lib/prices';
 

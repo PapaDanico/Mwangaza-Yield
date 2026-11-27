@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { useState } from 'react';
 import { Sparkles, ShieldCheck } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import Prose from '@/components/shared/Prose';
 import GlossaryBrowser from '@/components/glossary/GlossaryBrowser';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Target, Calculator, Radar, Briefcase, Layers, Receipt, Bell, Tag, ArrowRightLeft, Search, ArrowRight, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';

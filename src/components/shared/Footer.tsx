@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { MessageCircle, Mail } from 'lucide-react';
 import {
   CBK_WHATSAPP_CHANNEL,

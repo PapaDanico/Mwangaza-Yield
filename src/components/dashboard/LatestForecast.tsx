@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { Target } from 'lucide-react';
 import type { Prediction } from '@/lib/predictions';
 import LEDGER from '../../../public/data/predictions.json';

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import ToolShell from '@/components/shared/ToolShell';
 import TbillsClient from './TbillsClient';
 /* Read at build time from the very files the client store fetches at runtime,

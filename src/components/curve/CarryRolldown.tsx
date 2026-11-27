@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { useMemo, useState } from 'react';
 import { useBondStore } from '@/stores/bondStore';
 import { carryRollTable, type CarryRoll } from '@/lib/carry-rolldown';

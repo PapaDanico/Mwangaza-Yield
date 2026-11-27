@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { ArrowRight } from 'lucide-react';
 import InteractiveModules from './InteractiveModules';
 import { realSentence, realAtCpi, cpiNow } from '@/lib/narrative-figures';

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/shared/Link';
 import { useMemo } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus, CalendarClock } from 'lucide-react';
 import { useBondStore } from '@/stores/bondStore';

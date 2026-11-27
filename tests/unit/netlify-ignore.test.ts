@@ -156,6 +156,23 @@ describe('netlify build-skip decision', () => {
     const sibling = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
     expect(run(legal, sibling), 'LICENSE-THIRD-PARTY must still build').toBe(BUILD);
 
+    // DESIGN.md at the repo root, added 2026-11-27: documentation only, so a
+    // diff holding nothing else must skip; a nested one must still build.
+    execFileSync('bash', ['-c', `echo d > ${dir}/DESIGN.md`]);
+    git('add', '-A');
+    git('commit', '-qm', 'design doc');
+    const design = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(sibling, design), 'root DESIGN.md alone should skip').toBe(SKIP);
+    execFileSync('bash', ['-c', `mkdir -p ${dir}/src/c && echo d > ${dir}/src/c/DESIGN.md`]);
+    git('add', '-A');
+    git('commit', '-qm', 'nested design doc');
+    const nested = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    expect(run(design, nested), 'a nested DESIGN.md must still build').toBe(BUILD);
+    // Remove it again so later blocks, which diff from `sibling`, are unaffected.
+    execFileSync('bash', ['-c', `rm -r ${dir}/src/c`]);
+    git('add', '-A');
+    git('commit', '-qm', 'drop nested design doc');
+
     /* vercel.json, added 2026-09-08.
      *
      * It configures a different host and its only contents turn that host's

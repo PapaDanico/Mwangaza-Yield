@@ -71,11 +71,14 @@ changed=$(git diff --name-only "$CACHED_COMMIT_REF" "$COMMIT_REF" 2>/dev/null) |
 # nothing under src/ imports from them. Without this line the commit that added
 # them would have spent a production build credit to publish a Dockerfile no
 # reader can reach — the third time that charge would have been paid.
+# DESIGN.md joins them on 2026-11-27: the design-system record at the repo root.
+# Nothing imports it and `next build` never opens it, the same argument as
+# CLAUDE.md. Anchored at both ends, so a nested src/**/DESIGN.md still builds.
 # vercel.json joins them on 2026-09-08. It configures a DIFFERENT host, and
 # the only thing in it turns that host's deployments off — Netlify cannot be
 # changed by it under any reading. Without this line, the commit that adds it
 # would spend a Netlify build credit to publish a file Netlify never reads.
-relevant=$(echo "$changed" | grep -Ev '^(docs/|scripts/|tests/|backend/|deploy/|\.github/|README\.md$|CLAUDE\.md$|LICENSE$|SECURITY\.md$|\.gitignore$|vercel\.json$|render\.yaml$)') || true
+relevant=$(echo "$changed" | grep -Ev '^(docs/|scripts/|tests/|backend/|deploy/|\.github/|README\.md$|CLAUDE\.md$|DESIGN\.md$|LICENSE$|SECURITY\.md$|\.gitignore$|vercel\.json$|render\.yaml$)') || true
 
 if [ -z "$relevant" ]; then
   skip "$(echo "$changed" | wc -l | tr -d ' ') changed file(s), none of them reachable by next build"

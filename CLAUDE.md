@@ -140,7 +140,7 @@ to be adopted and the old restrictions removed. So:
   returns 404, which looks like a missing file and is not one.
 - **The live sites can be loaded,** so a deploy can be checked on the page, not
   only on Netlify's record. Say which one you did.
-- **The scrapers may now run from a session,** except the KNBS source. A first sign of what that buys: on 27 Nov the live DataMapper series read Kenya debt/GDP 71.3 (2025) and 72.9 (2026) against the April 2026 vintage held in `imf-outlook.json` (69.33, 71.58), i.e. a newer IMF vintage is out and the file is due a refresh through its route, with the vintage recorded. That is
+- **The scrapers may now run from a session,** except the KNBS source. **`imf-outlook.json` is current, checked 27 Nov:** it holds the October 2026 WEO (entered 15 Oct from the owner's DataMapper export), and all seven series, 84 points, equal the live DataMapper API to the published decimal. An earlier line here said the April vintage (69.33, 71.58) was held; that was stale, and no refresh is due until the April 2027 WEO. Running the scrapers end to end is still
   untested: run `npm run refresh` without `--push` first and confirm a
   dataset's `asOf` actually advanced in `freshness.json`, because a dead run
   exits 0 (see `npm run ci` and `npm run refresh` under Known state).

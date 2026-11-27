@@ -26,6 +26,8 @@ const mockResult: InvestmentResult = {
   nextCouponDate: '2026-12-01',
   currentYieldNet: 0.1075,
   earlyFullRedemptionDate: null,
+  couponsUntilRepaid: null,
+  netIncomeUntilRepaidKES: null,
 };
 
 const bondCtx: BondInvestmentContext = {

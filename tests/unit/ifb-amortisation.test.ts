@@ -111,6 +111,25 @@ describe('the KSh 1m full-redemption rule', () => {
     expect(computeBondInvestment(ifb2018, 1_500_000, 100, on, 0, { applyHolderRules: true }).earlyFullRedemptionDate).toBe('2033-10-31');
   });
 
+  /* What actually arrives, not the coupon rate. 27 Nov 2026: "Paid to you
+   * each year" beside a repayment months away overstated a retail holder's
+   * income. IFB1/2021/018 pays 12.667% tax-free; 500,000 earns 31,667.50 a
+   * coupon, on full balance until 2030-04-01. */
+  it('counts the coupons a retail holder actually receives before repayment', () => {
+    const r = computeBondInvestment(ifb18, 500_000, 100, on, 0, { applyHolderRules: true });
+    const coupons = r.couponsUntilRepaid!;
+    expect(coupons).toBeGreaterThanOrEqual(6);
+    expect(coupons).toBeLessThanOrEqual(8);
+    expect(r.netIncomeUntilRepaidKES!).toBeCloseTo(coupons * r.netCouponPerPeriodKES, 0);
+  });
+
+  it('earns later coupons on the reduced balance when a holding is partly repaid first', () => {
+    const ifb2018 = byCode.get('IFB1/2018/020')!;
+    const r = computeBondInvestment(ifb2018, 1_500_000, 100, on, 0, { applyHolderRules: true });
+    expect(r.earlyFullRedemptionDate).toBe('2033-10-31');
+    expect(r.netIncomeUntilRepaidKES!).toBeLessThan(r.couponsUntilRepaid! * r.netCouponPerPeriodKES - 1);
+  });
+
   it('is off unless asked for, so market tables stay on CBK\'s basis', () => {
     const r = computeBondInvestment(ifb18, 500_000, 100, on);
     expect(r.earlyFullRedemptionDate).toBeNull();

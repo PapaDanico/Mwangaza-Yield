@@ -279,6 +279,15 @@ export interface InvestmentResult {
    * under the KSh 1m rule, which both yields already reflect. Null otherwise.
    */
   earlyFullRedemptionDate: string | null;
+  /**
+   * With an early full redemption: how many coupons this holder receives
+   * before it, and their after-tax total in shillings. The per-period and
+   * yearly income figures are rates; these say what actually arrives, because
+   * "Paid to you each year: Ksh 184,607" beside a repayment three months away
+   * overstated a KSh 1m holder's income (27 Nov 2026). Null otherwise.
+   */
+  couponsUntilRepaid: number | null;
+  netIncomeUntilRepaidKES: number | null;
 }
 
 /**
@@ -337,6 +346,13 @@ export function computeBondInvestment(
   const netYTM = solveYTMFromPrice(bond, effectiveDirty, settlementDate, 1 - whtRate, holding);
 
   const next = getNextCouponDate(bond, settlementDate);
+  const early = holding !== undefined ? earlyFullRedemptionDate(bond, settlementDate, holding) : null;
+  // Coupons paid after settlement up to and including the repayment date; the
+  // balance is whole until then, since the holding is repaid at the first step.
+  const couponsUntilRepaid = early
+    ? getCouponDates(new Date(bond.issueDate), new Date(bond.maturityDate), freq)
+        .filter((d) => d > settlementDate && d <= new Date(early)).length
+    : null;
 
   return {
     faceValueKES,
@@ -359,7 +375,17 @@ export function computeBondInvestment(
     // box — which the number input invites, since Number('') is 0.
     currentYieldNet:
       settlementCostKES > 0 ? (netAnnualIncomeKES / settlementCostKES) * 100 : 0,
-    earlyFullRedemptionDate: holding !== undefined ? earlyFullRedemptionDate(bond, settlementDate, holding) : null,
+    earlyFullRedemptionDate: early,
+    couponsUntilRepaid,
+    // From the same schedule the yields are solved on, so a holding that is
+    // partly repaid first (IFB1/2018/020 at KSh 1.5m: half in 2028, the rest
+    // in 2033) earns its later coupons on the smaller balance. Total flows
+    // per 100, less the 100 of principal, are the after-tax coupons.
+    netIncomeUntilRepaidKES:
+      couponsUntilRepaid === null
+        ? null
+        : (remainingFlowsPer100(bond, settlementDate, 1 - whtRate, holding)
+            .reduce((a, f) => a + f.amount, 0) - 100) * (faceValueKES / 100),
   };
 }
 

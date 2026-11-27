@@ -3,7 +3,7 @@
 import Link from '@/components/shared/Link';
 import { useMemo } from 'react';
 import { ArrowRight, Compass } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { decisionBrief, type BriefItem } from '@/lib/decision-brief';
 import { inflationExpectations } from '@/lib/expectations';
 import Reserve from '@/components/shared/Reserve';
@@ -25,7 +25,7 @@ export default function DecisionBrief() {
   const tbills = useBondStore((s) => s.tbills);
   const macro = useBondStore((s) => s.macro);
   const bonds = useBondStore((s) => s.bonds);
-  const prints = useBondStore((s) => s.auctionResults);
+  const prints = useAuctionArchive();
 
   const items = useMemo(() => {
     const oneYear = inflationExpectations().find((h) => h.horizonMonths === 12);

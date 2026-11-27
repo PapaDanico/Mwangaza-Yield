@@ -23,7 +23,7 @@
 
 import { useMemo } from 'react';
 import { History } from 'lucide-react';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { yieldContext, analogueStrength } from '@/lib/regime';
 import Reserve from '@/components/shared/Reserve';
 
@@ -40,7 +40,7 @@ function asOfFrom(dates: (string | null | undefined)[]): string {
 
 export default function YieldInHistory() {
   const bonds = useBondStore((s) => s.bonds);
-  const prints = useBondStore((s) => s.auctionResults);
+  const prints = useAuctionArchive();
   const loaded = useBondStore((s) => s.loaded);
 
   const rows = useMemo(() => {

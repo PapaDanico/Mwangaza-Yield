@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { prefetchTarget } from '../../src/components/shared/Link';
 
 /**
  * Pages must link through src/components/shared/Link.tsx, which prefetches on
@@ -27,5 +28,16 @@ describe('links prefetch on intent', () => {
     expect(src).toMatch(/prefetch=\{prefetch \?\? false\}/);
     for (const ev of ['onMouseEnter', 'onTouchStart', 'onFocus']) expect(src).toContain(ev);
     expect(src).toContain('router.prefetch(');
+  });
+
+  it('warms routes only, never files or other sites', () => {
+    expect(prefetchTarget('/auctions/')).toBe('/auctions/');
+    expect(prefetchTarget('/glossary/#war')).toBe('/glossary/');
+    expect(prefetchTarget('/sell/?bond=X')).toBe('/sell/');
+    expect(prefetchTarget('/data/RATES-FEED.md')).toBeNull();
+    expect(prefetchTarget('/data/auction-results.json')).toBeNull();
+    expect(prefetchTarget('https://www.centralbank.go.ke/')).toBeNull();
+    expect(prefetchTarget('//evil.example/')).toBeNull();
+    expect(prefetchTarget('')).toBeNull();
   });
 });

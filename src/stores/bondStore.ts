@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import type { Bond, AuctionSchedule, AuctionPrint, MacroIndicator, SecondaryTrade, TBill, ContextIndicator, RateDecision } from '@/types/bond';
 import { db, type CpiPoint } from '@/lib/db';
@@ -13,13 +14,19 @@ interface BondState {
   tbills: TBill[];
   context: ContextIndicator[];
   cbrHistory: RateDecision[];
+  /* The ~400-row auction archive (~280 KB raw, ~28 KB compressed). Loaded
+     on demand by useAuctionArchive(), not by fetchData: most pages never read
+     it, and on those it was a download, an IndexedDB read and an idle rewrite
+     on every visit for nothing (27 Nov 2026). */
   auctionResults: AuctionPrint[];
+  archiveLoaded: boolean;
   /* Monthly CPI, for the real-terms view of the curve. Supplementary: its
      absence hides one toggle, never the chart. */
   cpiHistory: CpiPoint[];
   loaded: boolean;
   offline: boolean;
   fetchData: () => Promise<void>;
+  loadArchive: () => Promise<void>;
 }
 
 async function loadJSON<T>(url: string): Promise<T> {
@@ -37,13 +44,14 @@ export const useBondStore = create<BondState>((set) => ({
   context: [],
   cbrHistory: [],
   auctionResults: [],
+  archiveLoaded: false,
   cpiHistory: [],
   loaded: false,
   offline: false,
   fetchData: async () => {
     // Offline-first: serve IndexedDB immediately, then refresh from network.
     try {
-      const [bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory] = await Promise.all([
+      const [bonds, auctions, macro, secondary, tbills, context, cbrHistory, cpiHistory] = await Promise.all([
         db.bonds.toArray(),
         db.auctions.toArray(),
         db.macro.toArray(),
@@ -51,10 +59,9 @@ export const useBondStore = create<BondState>((set) => ({
         db.tbills.toArray(),
         db.context.toArray(),
         db.cbrHistory.toArray(),
-        db.auctionResults.toArray(),
         db.cpiHistory.toArray(),
       ]);
-      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory, loaded: true });
+      if (bonds.length) set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, cpiHistory, loaded: true });
     } catch { /* IndexedDB unavailable (SSR/private mode) — fall through */ }
 
     try {
@@ -68,7 +75,7 @@ export const useBondStore = create<BondState>((set) => ({
       // Sovereign context and rate history are supplementary — never let them
       // break market data. A missing history hides one panel; a rejected
       // Promise.all would blank the whole dashboard.
-      const [context, cbrHistory, auctionResults, cpiHistory] = await Promise.all([
+      const [context, cbrHistory, cpiHistory] = await Promise.all([
         // Two files, merged for display rather than on disk: each scraper's
         // completeness guard counts its own source, and a merged file would
         // make a normal World Bank run look like a collapse. See
@@ -95,17 +102,16 @@ export const useBondStore = create<BondState>((set) => ({
           )
         ),
         loadJSON<RateDecision[]>('/data/cbr-history.json').catch(() => []),
-        loadJSON<AuctionPrint[]>('/data/auction-results.json').catch(() => []),
         loadJSON<CpiPoint[]>('/data/cpi-history.json').catch(() => []),
       ]);
-      set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, auctionResults, cpiHistory, loaded: true, offline: false });
+      set({ bonds, auctions, macro, secondary, tbills, context, cbrHistory, cpiHistory, loaded: true, offline: false });
       // Replace, don't merge: retired issues must not linger from old datasets.
       // Offline cache only: a later or offline visit reads it, this one never
       // does. Written when idle so it stays out of hydration — see lib/idle.ts.
       whenIdle(() => {
         void db
-        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.context, db.cbrHistory, db.auctionResults, db.cpiHistory], async () => {
-          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.context.clear(), db.cbrHistory.clear(), db.auctionResults.clear(), db.cpiHistory.clear()]);
+        .transaction('rw', [db.bonds, db.auctions, db.macro, db.secondary, db.tbills, db.context, db.cbrHistory, db.cpiHistory], async () => {
+          await Promise.all([db.bonds.clear(), db.auctions.clear(), db.macro.clear(), db.secondary.clear(), db.tbills.clear(), db.context.clear(), db.cbrHistory.clear(), db.cpiHistory.clear()]);
           await Promise.all([
             db.bonds.bulkPut(bonds),
             db.auctions.bulkPut(auctions),
@@ -115,7 +121,6 @@ export const useBondStore = create<BondState>((set) => ({
             db.context.bulkPut(context),
             db.cbrHistory.bulkPut(cbrHistory),
             db.cpiHistory.bulkPut(cpiHistory),
-            db.auctionResults.bulkPut(auctionResults),
           ]);
         })
         .catch(() => {});
@@ -124,4 +129,55 @@ export const useBondStore = create<BondState>((set) => ({
       set((s) => ({ offline: true, loaded: s.bonds.length > 0 }));
     }
   },
+  loadArchive: () => {
+    archivePromise ??= (async () => {
+      // Offline-first, as fetchData: cached rows now, the network copy after.
+      try {
+        const cached = await db.auctionResults.toArray();
+        if (cached.length) set({ auctionResults: cached, archiveLoaded: true });
+      } catch { /* IndexedDB unavailable — fall through */ }
+      try {
+        const auctionResults = await loadJSON<AuctionPrint[]>('/data/auction-results.json');
+        set({ auctionResults, archiveLoaded: true });
+        whenIdle(() => {
+          void db
+            .transaction('rw', db.auctionResults, async () => {
+              await db.auctionResults.clear();
+              await db.auctionResults.bulkPut(auctionResults);
+            })
+            .catch(() => {});
+        });
+      } catch {
+        // A missing archive hides the panels that need it; it never breaks a page.
+        set({ archiveLoaded: true });
+        archivePromise = null; // let a later mount retry, e.g. once back online
+      }
+    })();
+    return archivePromise;
+  },
 }));
+
+let archivePromise: Promise<void> | null = null;
+
+/**
+ * The auction archive, loaded the first time any component asks for it and
+ * shared after that. Returns [] until it arrives, which every consumer already
+ * handled: the archive has always arrived after first render.
+ */
+export function useAuctionArchive(): AuctionPrint[] {
+  const prints = useBondStore((s) => s.auctionResults);
+  const loaded = useBondStore((s) => s.loaded);
+  const load = useBondStore((s) => s.loadArchive);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  /* Never hand out the archive before the bonds. On a returning visit the
+     cached archive can resolve first, and for one frame the curve was drawn
+     without maturities: a 331px "not enough data" state, then the 850px
+     chart, CLS 0.64 on /yield-curve/ (27 Nov 2026). Before the archive was
+     lazy both arrived in one update, so no consumer was written for this. */
+  return loaded ? prints : NO_PRINTS;
+}
+
+/** One shared empty array, so memos keyed on array identity stay stable. */
+const NO_PRINTS: AuctionPrint[] = [];

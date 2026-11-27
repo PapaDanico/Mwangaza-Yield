@@ -33,16 +33,23 @@ export default function DataState({
    * needed: what follows the tool then starts below the fold, and its arrival
    * moves nothing the reader can see. */
   reserve = 'h-64',
+  /* True while data that loads separately from the bonds is still on its way
+     (the auction archive, via useAuctionArchive). Without it, a panel that
+     waits on the archive read the store's `loaded` and told the reader "No
+     bonds to show yet ... it is our problem" for a frame on every returning
+     visit, then jumped 331px -> 850px (CLS 0.64 on /yield-curve/, 27 Nov). */
+  pending = false,
 }: {
   label?: string;
   reserve?: string;
+  pending?: boolean;
 }) {
   const loaded = useBondStore((s) => s.loaded);
   const offline = useBondStore((s) => s.offline);
   const fetchData = useBondStore((s) => s.fetchData);
 
   // Genuinely still loading: a skeleton is honest here.
-  if (!loaded && !offline) {
+  if (pending || (!loaded && !offline)) {
     return <div className={`card ${reserve} animate-pulse`} aria-busy="true" aria-label={`Loading ${label}`} />;
   }
 

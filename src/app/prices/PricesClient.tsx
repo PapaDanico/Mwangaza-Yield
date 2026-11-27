@@ -5,7 +5,7 @@ import Link from '@/components/shared/Link';
 import { Trash2, Download, Users, ShieldCheck } from 'lucide-react';
 import type { Bond } from '@/types/bond';
 import { outstanding } from '@/lib/outstanding';
-import { useBondStore } from '@/stores/bondStore';
+import { useBondStore, useAuctionArchive } from '@/stores/bondStore';
 import { usePriceStore } from '@/stores/priceStore';
 import { useCommunityPriceStore, selectCommunityPrice } from '@/stores/communityPriceStore';
 import { resolvePrice, MIN_PRICE, MAX_PRICE, isPlausiblePrice } from '@/lib/prices';
@@ -52,7 +52,7 @@ export default function PricesClient() {
   const bonds = useMemo(() => outstanding(allBonds), [allBonds]);
   const secondary = useBondStore((s) => s.secondary);
   const userPrices = usePriceStore((s) => s.userPrices);
-  const auctionResults = useBondStore((s) => s.auctionResults);
+  const auctionResults = useAuctionArchive();
   const setPrice = usePriceStore((s) => s.setPrice);
   const removePrice = usePriceStore((s) => s.removePrice);
   const communityState = useCommunityPriceStore();

@@ -25,6 +25,19 @@ import { forwardRef, useCallback, useRef, type ComponentProps } from 'react';
 
 type Props = ComponentProps<typeof NextLink>;
 
+/**
+ * The route to warm for an href, or null when there is none: external links,
+ * protocol-relative URLs, and FILES such as /data/RATES-FEED.md, for which a
+ * prefetch requests a route payload that does not exist and logs a 404 in the
+ * reader's console. Query and hash are dropped; the route is the same page.
+ */
+export function prefetchTarget(href: string | null | undefined): string | null {
+  if (!href || !href.startsWith('/') || href.startsWith('//')) return null;
+  const path = href.split(/[?#]/)[0];
+  if (/\.[a-z0-9]+$/i.test(path)) return null;
+  return path || '/';
+}
+
 const Link = forwardRef<HTMLAnchorElement, Props>(function Link(
   { prefetch, onMouseEnter, onTouchStart, onFocus, href, ...rest },
   ref
@@ -34,9 +47,8 @@ const Link = forwardRef<HTMLAnchorElement, Props>(function Link(
 
   const warm = useCallback(() => {
     if (done.current) return;
-    const target = typeof href === 'string' ? href : href.pathname;
-    // Only internal routes; next/link already treats anything else as a plain anchor.
-    if (!target || !target.startsWith('/')) return;
+    const target = prefetchTarget(typeof href === 'string' ? href : href.pathname);
+    if (!target) return;
     done.current = true;
     try {
       router.prefetch(target);

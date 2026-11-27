@@ -107,7 +107,13 @@ export default function CurveHistory() {
     }
   }
 
-  if (!auctionResults.length) return <DataState />;
+  // The archive loads on demand, after the page's other data (bondStore,
+  // useAuctionArchive), so this placeholder is on screen while the prose
+  // around it is already laid out. Reserved near the drawn card's height
+  // (measured 27 Nov: ~800px at 390px wide, ~600px at 1280px) so the chart
+  // replacing it does not push the page down: with the default h-64 CLS
+  // on /yield-curve/ was 0.36 against a budget of 0.1.
+  if (!auctionResults.length) return <DataState reserve="h-[780px] sm:h-[590px]" />;
   if (!drawable.length) {
     return (
       <p className="text-sm text-ink-muted">

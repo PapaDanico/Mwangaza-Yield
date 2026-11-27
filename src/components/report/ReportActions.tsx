@@ -619,7 +619,10 @@ function collectTextRuns(el: HTMLElement, bounds: DOMRect): TextRun[] {
      * single predictable wrap, and the buttons below share the line evenly
      * instead of ragging. */
     <div className="flex w-full flex-col gap-1 sm:w-auto sm:items-end">
-      <div className="flex w-full items-stretch gap-2 max-[359px]:flex-col sm:w-auto sm:items-center sm:justify-end">
+      {/* Stacks below 380px, not 360: the three labels need ~370px on one line,
+          so at 360px (a common Android width) Print overflowed the page by 9px
+          on /goals/ and /ladder/ (measured live, 27 Nov 2026). */}
+      <div className="flex w-full items-stretch gap-2 max-[379px]:flex-col sm:w-auto sm:items-center sm:justify-end">
         <button
           onClick={downloadPdf}
           disabled={busy !== null}

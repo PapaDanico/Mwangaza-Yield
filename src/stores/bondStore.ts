@@ -166,9 +166,18 @@ let archivePromise: Promise<void> | null = null;
  */
 export function useAuctionArchive(): AuctionPrint[] {
   const prints = useBondStore((s) => s.auctionResults);
+  const loaded = useBondStore((s) => s.loaded);
   const load = useBondStore((s) => s.loadArchive);
   useEffect(() => {
     void load();
   }, [load]);
-  return prints;
+  /* Never hand out the archive before the bonds. On a returning visit the
+     cached archive can resolve first, and for one frame the curve was drawn
+     without maturities: a 331px "not enough data" state, then the 850px
+     chart, CLS 0.64 on /yield-curve/ (27 Nov 2026). Before the archive was
+     lazy both arrived in one update, so no consumer was written for this. */
+  return loaded ? prints : NO_PRINTS;
 }
+
+/** One shared empty array, so memos keyed on array identity stay stable. */
+const NO_PRINTS: AuctionPrint[] = [];

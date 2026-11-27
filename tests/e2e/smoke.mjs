@@ -1398,6 +1398,11 @@ async function main() {
          width). The navbar's icon cluster once ended at x=334 here, putting a
          14px sideways scroll on every route, because nothing looked below 390. */
       { name: 'small phone', width: 320, height: 640 },
+      /* 360px is the most common Android width. The report actions stack
+         below a breakpoint, and with that at 360 the sweep's 320 sat on one
+         side and 390 on the other: Print overflowed /goals/ and /ladder/ by
+         9px live, at exactly this width, unseen (27 Nov 2026). */
+      { name: 'android', width: 360, height: 780 },
       { name: 'phone', width: 390, height: 844 },
       { name: 'tablet', width: 768, height: 1024 },
       /* 1024px is where the desktop navbar first appears. Its icon cluster plus

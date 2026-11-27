@@ -360,8 +360,9 @@ export default function CalculatorClient() {
             <Row label="Total you would pay" value={formatKES(result.settlementCostKES)}
               hint="What leaves your account on settlement day." />
             <Row label="Paid to you every six months" value={formatKES(result.netCouponPerPeriodKES)}
-              hint="After tax." />
-            <Row label="Paid to you each year" value={formatKES(result.netAnnualIncomeKES)} />
+              hint={result.earlyFullRedemptionDate ? 'After tax. A rate: see what you will actually receive below.' : 'After tax.'} />
+            <Row label="Paid to you each year" value={formatKES(result.netAnnualIncomeKES)}
+              hint={result.earlyFullRedemptionDate ? `At this coupon, if held a full year. CBK repays you on ${result.earlyFullRedemptionDate}, so you receive less than this.` : undefined} />
             <Row label="Yearly income as a % of your outlay" value={formatPct(result.currentYieldNet)}
               hint="Income only — it ignores any gain or loss when the bond is repaid." />
             <Row label="Next payment due" value={result.nextCouponDate ?? '—'}
@@ -369,6 +370,10 @@ export default function CalculatorClient() {
             {result.earlyFullRedemptionDate && (
               <Row label="CBK repays you in full on" value={result.earlyFullRedemptionDate}
                 hint="This bond repays principal in stages, and CBK redeems any holding of Ksh 1 million or less per CSD account in full at the first stage it reaches. Both yields above already assume it." />
+            )}
+            {result.earlyFullRedemptionDate && result.couponsUntilRepaid !== null && result.netIncomeUntilRepaidKES !== null && (
+              <Row label="Interest you will actually receive" value={formatKES(result.netIncomeUntilRepaidKES)}
+                hint={`${result.couponsUntilRepaid} payment${result.couponsUntilRepaid === 1 ? '' : 's'} after tax before CBK repays your principal, plus that principal back in full.`} />
             )}
             <p className="mt-3 text-xs leading-relaxed text-ink-faint">
               Accrued interest uses Actual/364, and coupon dates run in exact 182-day steps from
